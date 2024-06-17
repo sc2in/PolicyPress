@@ -1,0 +1,57 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    exclude:
+      - content
+
+resources:
+  - repo: self
+
+variables:
+  tag: "$(Build.BuildId)"
+  DOCKER_BUILDKIT: 1
+
+stages:
+  - stage: Build
+    displayName: Build image
+    jobs:
+      - job: Build
+        displayName: Build
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+            clean: False
+          - task: Docker@2
+            displayName: Login to docker repo
+            inputs:
+              containerRegistry: 8237b94b-dadc-4c7b-9927-370a5623f7e7
+              command: login
+              addPipelineData: false
+              addBaseImageData: false
+          - task: Docker@2
+            displayName: Pull for caching
+            continueOnError: True
+            inputs:
+              containerRegistry: 8237b94b-dadc-4c7b-9927-370a5623f7e7
+              repository: monahven.hugopdf
+              command: pull
+              arguments: sc2containers.azurecr.io/monahven.hugopdf:pandoc
+          - task: Docker@2
+            displayName: Build pandoc image
+            inputs:
+              containerRegistry: 'SC2Containers'
+              repository: 'monahven.hugopdf'
+              command: 'buildAndPush'
+              Dockerfile: '**/Dockerfile'
+              buildArguments: --cache-from=sc2containers.azurecr.io/monahven.hugopdf:pandoc
+              tags: |
+                $(Build.BuildId)
+                pandoc
+        

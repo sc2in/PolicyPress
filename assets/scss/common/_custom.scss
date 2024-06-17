@@ -1,0 +1,33 @@
+// Put your custom SCSS code here
+/** Custom styles */
+#version-summary{
+  padding: 10px;
+
+  font-size: 12px;
+
+td {
+  padding: 5px;
+  text-align: center;
+}
+th {
+  padding: 5px;
+  text-align: center;
+  font-weight: bold;
+}
+}
+#version-summary-label{
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.contributors-list {
+  display: grid;
+  grid-auto-flow: column;
+  grid-gap: 25px;
+  justify-content: center;
+  align-items: center;
+  li:first-child {
+    list-style-type: none;
+  }
+  list-style-type: disc;
+}

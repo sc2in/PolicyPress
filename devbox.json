@@ -1,0 +1,71 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.10.7/.schema/devbox.schema.json",
+  "packages": [
+    "pandoc@latest",
+    "yq-go@latest",
+    "gawk@latest",
+    "gnused@latest",
+    "bash@latest",
+    "pnpm@latest",
+    "nodejs_18@latest",
+    "yq@latest",
+    "github:sc2in/eisvogel-tex#"
+  ],
+  "shell": {
+    "init_hook": [
+      "echo 'Welcome to devbox!' > /dev/null"
+    ],
+    "scripts": {
+      "build-pdfs": [
+        "./pandoc.sh"
+      ],
+      "build-pdfs-redact": [
+        "./pandoc.sh -r"
+      ],
+      "build-pdfs-draft": [
+        "./pandoc.sh -d"
+      ],
+      "build-pdfs-draft-redact": [
+        "./pandoc.sh -d -r"
+      ],
+      "build-site": [
+        "pnpm build"
+      ],
+      "initial-setup": [
+        "pnpm install"
+      ],
+      "clean": [
+        "echo Cleaning the project of all build artifacts and node_modules...",
+        "rm -rf .direnv node_modules public resources internal .pnpm-store *.err *.log *.core 2>/dev/null"
+      ],
+      "create-news": [
+        "if [ -z \"$1\" ]; then echo 'Please provide a title for the news post.'; exit 1; fi",
+        "echo 'Creating a new news post at $1...'",
+        "pnpm run create content/news/$1.md"
+      ],
+      "create-policy": [
+        "if [ -z \"$1\" ]; then echo 'Please provide a title for the policy document.'; exit 1; fi",
+        "echo 'Creating a new policy document at $1...'",
+        "pnpm run create content/docs/isms/$1.md"
+      ],
+      "audit-policy-compliance": [
+        "./scripts/compliance_check_soc2.sh"
+      ],
+      "audit-policy-review-dates": [
+        "./scripts/review_date_check.sh"
+      ],
+      "update-node-pkgs": [
+        "pnpm update --latest"
+      ],
+      "ci": [
+        "devbox run initial-setup",
+        "if [ $PUBLISH == \"true\" ]; then",
+        "devbox run build-site",
+        "devbox run build-pdfs",
+        "else",
+        "devbox run build-pdfs-draft",
+        "fi"
+      ]
+    }
+  }
+}

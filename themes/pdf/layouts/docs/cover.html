@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="themes/pdf/static/styles.css" />
+    <style>%DRAFT%</style>
+  </head>
+  <body onload="subst()">
+    <div>
+      <img src="themes/pdf/static/SC2.png" width="200" />
+    </div>
+    <div>
+      <svg width="600" height="20">
+        <rect
+          width="600"
+          height="5"
+          style="fill: rgb(64, 126, 201); stroke-width: 0; stroke: rgb(0, 0, 0)"
+        />
+      </svg>
+    </div>
+    <div style="margin-top: 4rem; float: right; text-align: right;">
+      <span
+        style="
+          text-transform: uppercase;
+          font-size: 32px;
+          font-weight: bold;
+          color: #407ec9;
+        "
+        >%TITLE%</span
+      >
+      <br/><br/>
+      <span
+        style="
+          font-size: 18px;
+          font-weight: bold;
+          color: #407ec9;
+        "
+        >v%VERSION%</span
+      >
+      <br/>
+      <span
+        style="
+          font-size: 16px;
+          font-weight: bold;
+          color: #407ec9;
+        "
+        >Last Reviewed and Accepted on %DATE%</span
+      >
+    </div>
+  </body>
+</html>

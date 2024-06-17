@@ -1,0 +1,158 @@
+body {
+  font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+  font-style: normal;
+  font-variant: normal;
+  font-size: 14px;
+}
+
+main {
+  margin: 3rem;
+}
+table,
+p {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16px;
+}
+h1 {
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 28px;
+}
+h2 {
+  background-color: #4472c4;
+  color: white;
+  padding: 0.1rem 0rem 0rem 1rem;
+  text-transform: uppercase;
+  font-size: 18px;
+}
+h3 {
+  background-color: #dae2f3;
+  color: black;
+  padding: 0.1rem 0rem 0rem 1rem;
+  text-transform: uppercase;
+  font-size: 16px;
+}
+h4 {
+  padding: 0.1rem 0rem 0rem 1rem;
+  text-transform: uppercase;
+  font-size: 16px;
+  border-bottom: 1px solid;
+  width: 90%;
+}
+
+li {
+  margin: 10px 0;
+}
+#TableOfContents {
+  font-size: 16px;
+}
+#TableOfContents li::marker {
+  content: "";
+}
+#TableOfContents a:link,
+a:visited {
+  text-decoration: none;
+  color: #4472c4;
+}
+#TableOfContents a:hover {
+  text-decoration: underline;
+}
+
+table {
+  width: 75%;
+  margin: auto;
+  border-collapse: collapse;
+}
+table,
+th,
+tr,
+td {
+  border-color: darkgray;
+  border: 1px solid;
+}
+table th {
+  background-color: #dae2f3;
+  color: black;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+#dataClassificationTable table tr:nth-child(even) {
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+table td,
+th {
+  padding: 0.5rem 0.75rem 0.5rem 0.75rem;
+}
+
+.table-3 td,
+th {
+  width: 50%;
+}
+.table-4 td,
+th {
+  width: 25%;
+}
+.table-3 td,
+th {
+  width: 33%;
+}
+.table-5 td,
+th {
+  width: 20%;
+}
+.table-6 td,
+th {
+  width: 16%;
+}
+
+.table-center td,
+tr {
+  text-align: center;
+}
+
+.reset {
+  all: initial;
+}
+
+/* Auto Numbering */
+body {
+  counter-reset: h2;
+}
+h2 {
+  counter-reset: h3;
+}
+h3 {
+  counter-reset: h4;
+}
+h4 {
+  counter-reset: h5;
+}
+
+.redaction {
+  background-color: black;
+}
+
+article[autonumbering] h2:not(.nonNumber):before {
+  counter-increment: h2;
+  content: counter(h2) " ";
+}
+article[autonumbering] h3:not(.nonNumber):before {
+  counter-increment: h3;
+  content: counter(h2) "." counter(h3) " ";
+}
+article[autonumbering] h4:not(.nonNumber):before {
+  counter-increment: h4;
+  content: counter(h2) "." counter(h3) "." counter(h4) " ";
+}
+
+article[autonumbering] #TableOfContents ul {
+  counter-reset: item;
+}
+article[autonumbering] #TableOfContents li a:before {
+  content: counters(item, ".") ". ";
+  counter-increment: item;
+}

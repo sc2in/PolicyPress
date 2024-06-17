@@ -1,0 +1,12 @@
+{{ define "main" }}
+<main>
+  <article class="post" {{- if .Param "autonumbering" }} autonumbering {{- end }}>
+    <aside>{{  partial "toc.html" .  }}</aside>
+    {{ partial "main/version-summary.html" . }}
+    {{ .Content }}
+    {{ with .Page.Params.majorRevisions -}}
+      {{ partial "main/version-table.html" .}}
+    {{end}}
+  </article>
+</main>
+{{ end }}

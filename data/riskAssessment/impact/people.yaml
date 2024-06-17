@@ -1,0 +1,14 @@
+title: people
+impacts:
+  - impact: high
+    confidentiality: Any employee or contractor discloses sensitive information to unauthorized external sources.
+    integrity: An employee or contract in a critical role is charged and arrested for fraud.
+    availability: Pandemic loss of employees for extended period of time will slow down business processes and customer service delivery could be negatively impacted.
+  - impact: medium
+    confidentiality: Any employee or contractor discloses sensitive information to unauthorized internal SC2 sources.
+    integrity: An employee undergoes background screening and as a result cannot continue in their role.
+    availability: No succession plan in place and thus the loss of an employee could result in lost knowledge.
+  - impact: low
+    confidentiality: Any employee or contractor discloses sensitive information to unauthorized internal SC2 sources.
+    integrity: An employee has unfounded allegations against them that has been raised to management to be addressed.
+    availability: Crucial positions unfilled however work can be re-allocated to other employees

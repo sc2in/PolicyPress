@@ -1,0 +1,17 @@
+{{/* Check if there are contributors listed in the page's front matter */}}
+{{ if .Params.contributors }}
+  {{/* Create an unordered list */}}
+  <ul class="contributors-list">
+    {{/* Range over each contributor */}}
+    {{ range .Params.contributors }}
+      {{ $contributorSlug := . | urlize }}
+
+      {{/* Set the URL to the contributor's taxonomy page */}}
+      {{ $contributorURL := printf "/contributors/%s/" $contributorSlug | absURL }}
+      <li>
+        {{/* Create a link to the contributor's taxonomy page */}}
+        <a href="{{ $contributorURL }}">{{ . }}</a>
+      </li>
+    {{ end }}
+  </ul>
+{{ end }}

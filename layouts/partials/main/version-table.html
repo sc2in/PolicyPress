@@ -1,0 +1,23 @@
+<h2>Major Revisions</h2>
+<table id="version-table">
+    <thead>
+        <tr>
+            <th>Version</th>
+            <th>Revision Date</th>
+            <th>Revision Notes</th>
+            <th>Revised By</th>
+            <th>Approved By</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ range . }}
+        <tr>
+            <td>{{ .version }}</td>
+            <td>{{ ( time.Format "January 2, 2006" .date) }}</td>
+            <td style="text-align: left;">{{ .comment }}</td>
+            <td>{{ .revisedBy }}</td>
+            <td>{{ .approvedBy }}</td>
+        </tr>
+        {{ end }}
+    </tbody>
+</table>

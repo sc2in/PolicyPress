@@ -1,0 +1,14 @@
+title: software
+impacts:
+  - impact: high
+    confidentiality: The source code of software developed by SC2  has been disclosed to non-authorized external party.
+    integrity: Server side encryption keys used to protect client information have expired and/or corrupted resulting in permanent damage to valuable information.
+    availability: Mission critical software including customizations and personalization's used to provide service to customers has been lost.
+  - impact: medium
+    confidentiality: Software, not source code, developed by SC2  has been disclosed to non-authorized external party.
+    integrity: Mission critical software including customizations and personalization's used to provide service to customers is regularly backed up, however the recovery process has not been tested.
+    availability: No succession plan in place and thus the loss of an employee could result in lost knowledge.
+  - impact: low
+    confidentiality: Technical information pertaining to the architecture and structure of custom software has been disclosed to unauthorized personnel.
+    integrity: Encryption keys, and server side keys have been implemented, validated and regularly tested are functioning as intended.
+    availability: Mission critical software including customizations and personalization's used to provide service to customers is regularly backed up and the recovery process is tested annually.

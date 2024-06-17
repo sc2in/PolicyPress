@@ -1,0 +1,8 @@
+{{- $redact := os.Getenv "REDACT" -}}
+{{ if $redact }}
+  <span class="redaction">
+    {{ range (seq (len .Inner)) }}_{{end}}
+  </span>
+{{else}}
+  {{.Inner | markdownify}}
+{{end}}

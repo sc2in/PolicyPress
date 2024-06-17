@@ -1,0 +1,50 @@
+theme = "pdf"
+
+[options]
+  lazySizes = false
+  clipBoard = false
+  instantPage = false
+  flexSearch = false
+  searchSectionsShow = []
+  searchSectionsIndex = []
+  darkMode = false
+  bootStrapJs = false
+  breadCrumb = false
+  highLight = true
+  kaTex = false
+  multilingualMode = false
+  docsVersioning = false
+  fullWidth = false
+  navbarSticky = false
+  toTopButton = false
+  scrollSpy = false # experimental; needs Bootstrap >= 5.2.0-beta1
+
+defaultMarkdownHandler = "goldmark"
+
+[goldmark]
+  [goldmark.extensions]
+    linkify = false
+  [goldmark.parser]
+    autoHeadingID = true
+    autoHeadingIDType = "github"
+    [goldmark.parser.attribute]
+      block = true
+      title = true
+  [goldmark.renderer]
+    unsafe = true
+
+[highlight]
+  codeFences = false
+  guessSyntax = false
+  hl_Lines = ""
+  lineNoStart = 1
+  lineNos = false
+  lineNumbersInTable = true
+  noClasses = false
+  style = "dracula"
+  tabWidth = 4
+
+[tableOfContents]
+  endLevel = 3
+  ordered = false
+  startLevel = 2

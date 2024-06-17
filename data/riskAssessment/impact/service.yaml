@@ -1,0 +1,14 @@
+title: service
+impacts:
+  - impact: high
+    confidentiality: Sensitive SC2 data or Sensitive customer data for one or more systems representing more than 10,000 users are released.
+    integrity: SC2 data or data for one or more customer facing applications lose integrity and require recovery from backups or invocation of Business Continuity Plans.
+    availability: Many customer facing or SC2 products, services or datasets become unavailable beyond SLA uptime requirements or require invocation of Business Continuity Plans.
+  - impact: medium
+    confidentiality: Confidential SC2  data, any Sensitive customer data are released.
+    integrity: SC2 data or data for one or more customer facing applications lose integrity, but integrity can be recovered online, or manual recovery will take more than one week.
+    availability: One customer facing or SC2 product, service or dataset becomes unavailable beyond SLA uptime requirements or require invocation of Business Continuity Plans.
+  - impact: low
+    confidentiality: Any Confidential data are released at levels below High and Medium.
+    integrity: Data integrity loss is limited to SC2 internal data and can be recovered manually in less than one week
+    availability: Any loss of availability of customer facing or SC2 products, services, or datasets is limited to short durations within SLA requirements.

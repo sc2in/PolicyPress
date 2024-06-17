@@ -1,0 +1,14 @@
+title: telecommunication
+impacts:
+  - impact: high
+    confidentiality: Telecommunication lines are not protected from interception or eavesdropping.
+    integrity: Telecommunication lines are not regularly tested against interception and degradation /quality.
+    availability: Telecommunication lines are not regularly tested against capacity and volume or traffic contention /quality.  Critical communication channels have no redundancy.
+  - impact: medium
+    confidentiality: Telecommunication lines are partially protected from interception or eavesdropping.
+    integrity: Telecommunication lines are regularly tested against interception and degradation /quality.
+    availability: Telecommunication lines are regularly tested against capacity and volume quality.  Critical communication channels have no redundancy.
+  - impact: low
+    confidentiality: Telecommunication lines are protected from interception or eavesdropping.
+    integrity: Telecommunication lines are regularly tested against interception against degradation /quality and reviewed by management. Corrective and Preventive actions are managed until successful completion.
+    availability: Telecommunication lines are regularly tested against interception against degradation /quality and reviewed by management. Corrective and Preventive actions are managed until successful completion. Critical communication channels have built in redundancy.

@@ -1,0 +1,26 @@
+<table class="table-4">
+  <tr>
+    <th colspan="4">Business Impact to <span style="color: red; text-decoration: underline;"><i>{{ .title }}</i></span> Assets</th>
+  </tr>
+  <tr>
+    <th>Impact</th>
+    <th>Confidentiality</th>
+    <th>Integrity</th>
+    <th>Availability</th>
+  </tr>
+  {{range .impacts }}
+    {{ $color := "green" }}
+    {{ if eq .impact "high" }}
+      {{ $color = "red" }}
+    {{ else if eq .impact "medium" }}
+      {{ $color = "yellow"}}
+    {{ end }}
+    <tr>
+      <td style=" text-align: center; background-color: {{$color}}; font-weight: bold;">{{ substr .impact 0 1 | upper }}</td>
+      <td>{{ .confidentiality }}</td>
+      <td>{{ .integrity }}</td>
+      <td>{{ .availability }}</td>
+    </tr>
+  {{ end }}
+</table>
+

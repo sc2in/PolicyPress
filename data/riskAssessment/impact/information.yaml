@@ -1,0 +1,14 @@
+title: information
+impacts:
+  - impact: high
+    confidentiality: Sensitive information under the care of SC2 ends up in the hands of external party.
+    integrity: Mission critical information has been corrupted and inadvertently resulted in incorrect reporting to management.
+    availability: Mission critical information has been lost and cannot be recovered.
+  - impact: medium
+    confidentiality: Sensitive information under the care of SC2 is inadvertently forwarded to management outside SC2.
+    integrity: Crucial business information has been corrupted and requires recovery from backup archive.
+    availability: Mission critical information has been lost and requires recovery from backup media located off site.
+  - impact: low
+    confidentiality: Sensitive information internal to SC2 has been disclosed to unauthorized personnel.
+    integrity: Crucial business information has been corrupted but can be recovered from online archive.
+    availability: Mission critical information has been lost and requires recovery from backup media which is onsite.

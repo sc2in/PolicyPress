@@ -545,6 +545,54 @@
           "store_path": "/nix/store/pav6s8341f5va09csmlda75nr4c39kyr-python3.12-yq-3.4.3"
         }
       }
+    },
+    "zola@latest": {
+      "last_modified": "2024-12-23T21:10:33Z",
+      "resolved": "github:NixOS/nixpkgs/de1864217bfa9b5845f465e771e0ecb48b30e02d#zola",
+      "source": "devbox-search",
+      "version": "0.19.2",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/kxspaxldd2gkcbw1rsjl9fl2crlndpic-zola-0.19.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/kxspaxldd2gkcbw1rsjl9fl2crlndpic-zola-0.19.2"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/vkl7zwph1aqaan14kjsnhm4ij1lcgcjf-zola-0.19.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/vkl7zwph1aqaan14kjsnhm4ij1lcgcjf-zola-0.19.2"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/5sn25dgc51kh2mqk61j0mrjh9qzxxbx8-zola-0.19.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/5sn25dgc51kh2mqk61j0mrjh9qzxxbx8-zola-0.19.2"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ldllal86qd7gnhjpy3fnzciyx1bnabdb-zola-0.19.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/ldllal86qd7gnhjpy3fnzciyx1bnabdb-zola-0.19.2"
+        }
+      }
     }
   }
 }

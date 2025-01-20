@@ -1,3 +1,0 @@
-# Overrides for production environment
-baseurl = "https://security.sc2.in"
-canonifyURLs = false

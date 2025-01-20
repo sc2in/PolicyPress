@@ -9,7 +9,8 @@
     "pnpm@latest",
     "nodejs_18@latest",
     "yq@latest",
-    "github:sc2in/eisvogel-tex#"
+    "github:sc2in/eisvogel-tex#",
+    "zola@latest"
   ],
   "shell": {
     "init_hook": [

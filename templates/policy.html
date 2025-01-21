@@ -1,0 +1,41 @@
+{% extends "index.html" %}
+{% block title %} {{ config.title }} | {{ page.title }} {% endblock title %}
+{% block content %}
+{% set versions = page.extra.major_revisions | sort(attribute="date") | reverse %}
+{% set current_version = versions | first %}
+<article class="policy">
+  <h2 class="title">{{page.title}} - v{{current_version.version}}</h2>
+  <div class="last-reviewed">v{{current_version.version}} Last reviewed and approved on {{page.extra.last_reviewed | date(format="%B %d, %Y")}}</div>
+  <div class="summary">{{ page.summary | safe }}</div>
+  <div class="description">{{ page.description | safe }}</div>
+  <div>
+    {{ page.content | safe }}
+  </div>
+  <div class="revisions">
+    <h3>Revisions</h3>
+    <ul>
+      {% for version in versions %}
+      <li>
+        <h4>v{{version.version}} - {{version.date}}</h4>
+        <p>{{version.description}}</p>
+        <p>Revised by {{version.revised_by}}. Approved by {{version.approved_by}}</p>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="satisfies">
+    <h3>Satisfies</h3>
+    <ul>
+      {% for standard in page.extra.satisfies %}
+      <li>{{standard.name}}</li>
+      <li>
+        <ul>
+        {% for item in standard.line_items %}
+          <li>{{item}}</li>
+        {% endfor %}
+      </ul>
+    </li>
+      {% endfor %}
+    </ul>
+</article>
+{% endblock content %}

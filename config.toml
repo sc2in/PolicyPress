@@ -8,6 +8,15 @@ build_search_index = true
 highlight_code = true
 highlight_theme = "base16-ocean-light"
 
+[[taxonomies]]
+name = "TSC2017"
+feed  = true 
+render = true
+[[taxonomies]]
+name = "ISO27001"
+feed  = false
+render = false 
+
 [extra]
 logo = "https://easydocs.codeandmedia.com/logo.svg"
 # release = "https://api.github.com/repos/getzola/zola/releases/latest"
@@ -24,3 +33,5 @@ easydocs_uglyurls = false
 # Minimum number of headings needed on a page before the headings show in the navigation on the left. Defaults to 5.
 # Can be used for example to always show headings on each page by setting it to 1.
 easydocs_heading_threshold = 5
+
+nav = {}

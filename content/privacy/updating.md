@@ -13,7 +13,7 @@ name = "ISO 27001:2013"
 line_items = ["2.1"]
 [[extra.satisfies]]
 name = "TSC2017"
-line_items = ["8.6"]
+line_items = ["P1.1"]
 
 [[extra.major_revisions]]
 date = 2023-09-07

@@ -3,12 +3,18 @@
 {% block content %}
 {% set versions = page.extra.major_revisions | sort(attribute="date") | reverse %}
 {% set current_version = versions | first %}
+{% set last_reviewed_ts = page.extra.last_reviewed | date(format="%s") | int %}
+{% set today = now() | date(format="%s") | int %}
+{% if (today - last_reviewed_ts) > 31536000 %}
+  {{ throw(message="Error: Policy last reviewed date is older than one year") }}
+{% endif %}
 <article class="policy">
   <h2 class="title">{{page.title}} - v{{current_version.version}}</h2>
   <div class="last-reviewed">v{{current_version.version}} Last reviewed and approved on {{page.extra.last_reviewed | date(format="%B %d, %Y")}}</div>
   <div class="summary">{{ page.summary | safe }}</div>
   <div class="description">{{ page.description | safe }}</div>
   <div>
+    
     {{ page.content | safe }}
   </div>
   <div class="revisions">

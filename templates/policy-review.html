@@ -1,0 +1,41 @@
+{% extends "index.html" %}
+{# {% block title %} {{ config.title }} | {{ page.title }} {% endblock title %}
+#}
+{% block content %}
+
+<article class>
+  <p>
+    {% if page %}
+    {{ page.content | safe }}
+    {% elif section %}
+    {{ section.content | safe }}
+    {% endif %}
+  </p>
+  {% set section = get_section(path=config.extra.policy_root) %}
+  {% set policies = section.pages %}
+  {% for sub in section.subsections %}
+    {% set subsection = get_section(path=sub) %}
+    {% set_global policies = policies | concat(with=subsection.pages) %}
+  {% endfor %}
+  <ul>
+    {% for policy in policies | sort(attribute="extra.last_reviewed") %}
+    {% set last_reviewed_ts = policy.extra.last_reviewed | date(format="%s") | int %}
+    {% set today = now() | date(format="%s") | int %}
+    {% set diff = (today - last_reviewed_ts) %}
+    {% if diff >= 23668200 %}
+    <li style="color: red;">
+    {% elif diff > 15778800  and diff < 23668200 %}
+    <li style="color:orange">
+    {% else %}
+    <li style="color: green">
+    {% endif %}
+    <a href="{{ get_url(path=policy.path) }}">{{ policy.title }}</a>
+      <p>Last reviewed: {{ policy.extra.last_reviewed | date(format="%B %d, %Y")}}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  <pre>
+  {{ __tera_context }}
+</pre>
+</article>
+{% endblock content %}

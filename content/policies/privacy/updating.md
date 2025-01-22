@@ -4,10 +4,9 @@ description = "The SC2 Privacy Policy Update Policy and Procedure"
 summary = "How to update the SC2 Privacy Policy and communicate changes."
 date = 2024-07-15
 weight = 2
-template = "policy.html"
 [extra]
 owner = "SC2"
-last_reviewed = 2025-01-20
+last_reviewed = 2024-08-20
 [[extra.satisfies]]
 name = "ISO 27001:2013"
 line_items = ["2.1"]

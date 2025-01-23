@@ -16,7 +16,7 @@
   "shell": {
     "init_hook": [
       "export CARGO_HOME=$DEVBOX_PROJECT_ROOT/.devbox/.cargo",
-      "if [ ! -d \"$CARGO_HOME\" ]; then",
+      "if [[ ! -d \"$CARGO_HOME\" ]]; then",
       "devbox run cargo-deps",
       "fi",
       "export PATH=$CARGO_HOME/bin:$PATH",
@@ -49,7 +49,7 @@
         "zola serve"
       ],
       "cargo-deps": [
-        "cargo install toml-cli",
+        "cargo install tomlq",
         "cargo install frontmatter-gen --features=cli"
       ],
       "ci": [

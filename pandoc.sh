@@ -92,6 +92,7 @@ for FILE in ${FILES[@]}; do
 
   local_args=(
     "${FILE}" -o "${OUTPUT_FILE}"   # Input and output_FILE files
+    -V title="${TITLE}" 
     -V subtitle="Version ${VERSION}"  # Use the subtitle field for the version
     -V date="Last Reviewed ${LAST_REVIEW_DATE}" # Set the date with the last review date
     --resource-path="${FILEDIR}" # Set resource path for current file's directory

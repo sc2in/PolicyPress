@@ -58,6 +58,9 @@
       "update-node-pkgs": [
         "pnpm update --latest"
       ],
+      "serve": [
+        "zola serve"
+      ],
       "ci": [
         "devbox run initial-setup",
         "if [ $PUBLISH == \"true\" ]; then",

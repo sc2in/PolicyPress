@@ -25,19 +25,19 @@ TOTAL_FILES=$(echo "$FILES" | tr ' ' '\n' | wc -l)
 echo "Building PDFs from ${TOTAL_FILES} markdown files in ${POLICY_DIR}..."
 mkdir -p "${BUILD_DIR}"
 
-
+COLOR=$(magick ${LOGO_PATH} -scale 1x1\! -format '%[pixel:u]\n' info: | grep -Po "#[[:xdigit:]]{6}")
 global_arguments=(
   # Pandoc variables for all files
   -V papersize=letter # Set paper size to letter
   -V titlepage=true # Enable title page
-  -V titlepage-rule-color=ff5c39  # Set title page rule color to SC2 orange
+  -V titlepage-rule-color=${COLOR}  # Set title page rule color to SC2 orange
   -V titlepage-logo=${LOGO_PATH} # Set title page logo
   -V toc-own-page=true  # Enable table of contents on its own page
   -V toc=true # Enable table of contents
   -V institution="${ORG}" # Set institution
   -V toc-depth=3  # Set table of contents depth
   -V logo-width=6cm # Set logo width
-  -V header-right="\includegraphics[width=4cm]{${LOGO_PATH}}" # Set the right header to the logo
+  -V header-right="\includegraphics[width=2cm,height=2cm]{${LOGO_PATH}}" # Set the right header to the logo
   -V table-use-row-colors=true  # Enable row colors in tables
   -V footer-left="${ORG} \textcopyright ${CURRENT_YEAR}"  # Set the left footer to SC2
   -V footer-center="Confidental"  # Set the center footer to Confidential

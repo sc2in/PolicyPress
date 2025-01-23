@@ -11,7 +11,8 @@
     "yq@latest",
     "github:sc2in/eisvogel-tex#",
     "zola@latest",
-    "cargo@latest"
+    "cargo@latest",
+    "imagemagick@latest"
   ],
   "shell": {
     "init_hook": [

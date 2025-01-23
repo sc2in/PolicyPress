@@ -321,6 +321,86 @@
         }
       }
     },
+    "imagemagick@latest": {
+      "last_modified": "2025-01-14T01:21:38Z",
+      "resolved": "github:NixOS/nixpkgs/2b1fca3296ddd1602d2c4f104a4050e006f4b0cb#imagemagick",
+      "source": "devbox-search",
+      "version": "7.1.1-43",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/wqw36sai4sbib15ydj925339ffvp1xqn-imagemagick-7.1.1-43",
+              "default": true
+            },
+            {
+              "name": "doc",
+              "path": "/nix/store/b0332x03230n8hm19zq1fa346v88gsh0-imagemagick-7.1.1-43-doc"
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/i6v0zr0q3qxrr04laq3lz8l757qq8lvn-imagemagick-7.1.1-43-dev"
+            }
+          ],
+          "store_path": "/nix/store/wqw36sai4sbib15ydj925339ffvp1xqn-imagemagick-7.1.1-43"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/mxm3wfj0xylkziimr1i85q46vclv1b8a-imagemagick-7.1.1-43",
+              "default": true
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/bfbdw0bcmk3yzqqq5yb1n749bvzzpgf2-imagemagick-7.1.1-43-dev"
+            },
+            {
+              "name": "doc",
+              "path": "/nix/store/6xw17i4pcmzaiv31sfvd6w4dih2m1pmb-imagemagick-7.1.1-43-doc"
+            }
+          ],
+          "store_path": "/nix/store/mxm3wfj0xylkziimr1i85q46vclv1b8a-imagemagick-7.1.1-43"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/f98fn7bbq4chyrg7wabhbyqvky2yj0pv-imagemagick-7.1.1-43",
+              "default": true
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/9wbim3jp1hip0cgs0hk41v0fbqy28n81-imagemagick-7.1.1-43-dev"
+            },
+            {
+              "name": "doc",
+              "path": "/nix/store/wgjp76w0s7ixfh4nq9cfcwjasqckrbbv-imagemagick-7.1.1-43-doc"
+            }
+          ],
+          "store_path": "/nix/store/f98fn7bbq4chyrg7wabhbyqvky2yj0pv-imagemagick-7.1.1-43"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/wj4gp2b1mks14ry6m25rfwkpbj0qwvc0-imagemagick-7.1.1-43",
+              "default": true
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/s77ik3wgzf99lzam0m9fgkjjvss420ly-imagemagick-7.1.1-43-dev"
+            },
+            {
+              "name": "doc",
+              "path": "/nix/store/yfa5p3acq9dp4x3q2xr5123ksqipf5ah-imagemagick-7.1.1-43-doc"
+            }
+          ],
+          "store_path": "/nix/store/wj4gp2b1mks14ry6m25rfwkpbj0qwvc0-imagemagick-7.1.1-43"
+        }
+      }
+    },
     "nodejs_18@latest": {
       "last_modified": "2024-11-13T20:59:08Z",
       "plugin_version": "0.0.2",

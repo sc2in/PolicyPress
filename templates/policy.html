@@ -3,9 +3,13 @@
 {% block content %}
 {% set versions = page.extra.major_revisions | sort(attribute="date") | reverse %}
 {% set current_version = versions | first %}
+{% if page.extra is not containing("last_reviewed") %}
+  {{ throw(message="Error: Policy last reviewed date is not set") }}
+{% endif %}
+
 {% set last_reviewed_ts = page.extra.last_reviewed | date(format="%s") | int %}
 {% set today = now() | date(format="%s") | int %}
-{% if (today - last_reviewed_ts) > 31536000 %}
+{% if (today - last_reviewed_ts) > 31557600 %}
   {{ throw(message="Error: Policy last reviewed date is older than one year") }}
 {% endif %}
 <article class="policy">
@@ -29,19 +33,6 @@
       {% endfor %}
     </ul>
   </div>
-  <div class="satisfies">
-    <h3>Satisfies</h3>
-    <ul>
-      {% for standard in page.extra.satisfies %}
-      <li>{{standard.name}}</li>
-      <li>
-        <ul>
-        {% for item in standard.line_items %}
-          <li>{{item}}</li>
-        {% endfor %}
-      </ul>
-    </li>
-      {% endfor %}
-    </ul>
+  {%- include "partials/satisfies.html" -%}
 </article>
 {% endblock content %}

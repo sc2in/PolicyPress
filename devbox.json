@@ -10,10 +10,16 @@
     "nodejs_18@latest",
     "yq@latest",
     "github:sc2in/eisvogel-tex#",
-    "zola@latest"
+    "zola@latest",
+    "cargo@latest"
   ],
   "shell": {
     "init_hook": [
+      "export CARGO_HOME=$DEVBOX_PROJECT_ROOT/.devbox/.cargo",
+      "if [ ! -d \"$CARGO_HOME\" ]; then",
+      "devbox run cargo-deps",
+      "fi",
+      "export PATH=$CARGO_HOME/bin:$PATH",
       "echo 'Welcome to devbox!' > /dev/null"
     ],
     "scripts": {
@@ -30,36 +36,21 @@
         "./pandoc.sh -d -r"
       ],
       "build-site": [
-        "pnpm build"
-      ],
-      "initial-setup": [
-        "pnpm install"
+        "zola build"
       ],
       "clean": [
         "echo Cleaning the project of all build artifacts and node_modules...",
         "rm -rf .direnv node_modules public resources internal .pnpm-store *.err *.log *.core 2>/dev/null"
       ],
-      "create-news": [
-        "if [ -z \"$1\" ]; then echo 'Please provide a title for the news post.'; exit 1; fi",
-        "echo 'Creating a new news post at $1...'",
-        "pnpm run create content/news/$1.md"
-      ],
-      "create-policy": [
-        "if [ -z \"$1\" ]; then echo 'Please provide a title for the policy document.'; exit 1; fi",
-        "echo 'Creating a new policy document at $1...'",
-        "pnpm run create content/docs/isms/$1.md"
-      ],
-      "audit-policy-compliance": [
-        "./scripts/compliance_check_soc2.sh"
-      ],
-      "audit-policy-review-dates": [
-        "./scripts/review_date_check.sh"
-      ],
-      "update-node-pkgs": [
-        "pnpm update --latest"
+      "test": [
+        "zola check"
       ],
       "serve": [
         "zola serve"
+      ],
+      "cargo-deps": [
+        "cargo install toml-cli",
+        "cargo install frontmatter-gen --features=cli"
       ],
       "ci": [
         "devbox run initial-setup",

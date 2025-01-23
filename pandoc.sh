@@ -66,17 +66,19 @@ for FILE in ${FILES[@]}; do
   
   FILE_COUNT=$((FILE_COUNT+1))
 
-  TMP_FILE=$(mktemp --tmpdir="${BUILD_DIR}" --suffix=.tmp)
-  FRONTMATTER=$(sed -n '/^+++$/,/^+++$/p' ${FILE} | sed '1d;$d' > ${TMP_FILE})
+  TMP_FM_FILE=$(mktemp --tmpdir="${BUILD_DIR}" --suffix=.toml)
+  sed -n '/^+++$/,/^+++$/p' ${FILE} | sed '1d;$d' > ${TMP_FM_FILE}
+  TMP_MD_FILE=$(mktemp --tmpdir="${BUILD_DIR}" --suffix=.md)
+  sed '/^+++$/,/^+++$/d' ${FILE}  > ${TMP_MD_FILE}
 
 
   echo "Processing file ${FILE_COUNT}/${TOTAL_FILES}: ${FILE}"
 
 
-  LAST_REVIEW_DATE=$(tomlq -r '.extra.last_reviewed' "${TMP_FILE}" )
-  VERSION=$(tomlq -r '.extra.major_revisions | sort_by("date")| .[0].version' "${TMP_FILE}")
+  LAST_REVIEW_DATE=$(tomlq -r '.extra.last_reviewed' "${TMP_FM_FILE}" )
+  VERSION=$(tomlq -r '.extra.major_revisions | sort_by("date")| .[0].version' "${TMP_FM_FILE}")
 
-  TITLE=$(tomlq -r  '.title' "${TMP_FILE}" )
+  TITLE=$(tomlq -r  '.title' "${TMP_FM_FILE}" )
   echo "Title: ${TITLE}, Date: ${LAST_REVIEW_DATE}, Version: ${VERSION}"
   LAST_REVIEW_DATE=`date -d"${LAST_REVIEW_DATE}" +"%B %d, %Y"`
   if [ $REDACT -eq 1 ]; then
@@ -91,7 +93,7 @@ for FILE in ${FILES[@]}; do
   FILEDIR=$(dirname "${FILE}")
 
   local_args=(
-    "${FILE}" -o "${OUTPUT_FILE}"   # Input and output_FILE files
+    "${TMP_MD_FILE}" -o "${OUTPUT_FILE}"   # Input and output_FILE files
     -V title="${TITLE}" 
     -V subtitle="Version ${VERSION}"  # Use the subtitle field for the version
     -V date="Last Reviewed ${LAST_REVIEW_DATE}" # Set the date with the last review date
@@ -109,6 +111,6 @@ for FILE in ${FILES[@]}; do
     echo "${ERROR_COLOR}Error: Failed to build PDF for ${FILE}${NO_COLOR}"
   fi
 
-  rm "${TMP_FILE}"
+  rm "${TMP_FM_FILE}" "${TMP_MD_FILE}"
 
 done

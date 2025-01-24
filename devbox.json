@@ -27,8 +27,13 @@
       "build-pdfs": [
         "./pandoc.sh"
       ],
-      "build-pdfs-redact": [
-        "./pandoc.sh -r"
+      "build-pdfs-zola": [
+        "zola build -u file://`pwd`/public",
+        "export POLICY_ROOT=$(dirname `tomlq -r '.extra.policy_root' config.toml` )",
+        "mkdir -p public/pdfs/",
+        "for file in $(find public/${POLICY_ROOT} -type f -name \"*.html\" -not -name \"_index.md\"); do",
+        "pandoc --from html --to pdf --pdf-engine=xelatex $file -o ${file%.html}.pdf",
+        "done"
       ],
       "build-pdfs-draft": [
         "./pandoc.sh -d"

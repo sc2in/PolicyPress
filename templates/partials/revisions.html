@@ -1,40 +1,33 @@
 <div class="revisions">
   <h3>Revisions</h3>
-  <div class="row">
-    <div class="cell header">
-      Version
-    </div>
-    <div class="cell header">
-      Date
-    </div>
-    <div class="cell header">
-      Description
-    </div>
-    <div class="cell header">
-      Revised by
-      </div>
-    <div class="cell header">
-      Approved by
-    </div>
-  </div>
+  <table>
+    <tr><th>Version
+      </th><th>Date
+      </th><th>Description
+      </th><th>Revised by
+      </th><th>Approved by
+    </th></tr>
+    
     {% for version in versions %}
-    <div class="row">
-      <div class="cell">
+    <tr>
+
+      <td>
         v{{version.version}}
-      </div>
-      <div class="cell">
-        {{version.date | date(format="%B %d, %Y")}}
-      </div>
-      <div class="cell">
+      </td>
+      <td>
+        {{version.date | date(format="%b %d, %Y")}}
+      </td>
+      <td>
         {{version.description}}
-      </div>
-      <div class="cell">
+      </td>
+      <td>
         {{version.revised_by}}
-      </div>
-      <div class="cell">
+      </td>
+      <td>
         {{version.approved_by}}
-      </div>
-    </div>
+      </td>
+  </tr>
     {% endfor %}
-  </div>
+ 
+</table>
 </div>

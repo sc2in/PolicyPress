@@ -1,19 +1,18 @@
 .revisions{
-  display: table;
-  h1,h2,h3,h4{
-    display: table-caption;
-    text-align: center;
+  border: none;
+  text-align: center;
+  table {
+    width: 90%;
   }
-  .row {
-    display: table-row;
-    .cell,.header{
-      display: table-cell;
+  th{
+
+    text-align: center;
+    font-weight: bold;
+  }
+  td{
+  
       padding: 0.5rem;
       text-align: center;
       vertical-align: middle;
     }
-    .header{
-      font-weight: bold;
-    }
-  }
 }

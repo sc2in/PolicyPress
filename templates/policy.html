@@ -21,18 +21,8 @@
     
     {{ page.content | safe }}
   </div>
-  <div class="revisions">
-    <h3>Revisions</h3>
-    <ul>
-      {% for version in versions %}
-      <li>
-        <h4>v{{version.version}} - {{version.date}}</h4>
-        <p>{{version.description}}</p>
-        <p>Revised by {{version.revised_by}}. Approved by {{version.approved_by}}</p>
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
+
+  {%- include "partials/revisions.html" -%}
   {%- include "partials/satisfies.html" -%}
 </article>
 {% endblock content %}

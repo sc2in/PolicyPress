@@ -47,8 +47,8 @@ global_arguments=(
   --listings  
   --webtex # Enable webtex for math rendering
   --pdf-engine=xelatex # Use xelatex engine
-  --data-dir=./  # Set data directory to use the custom template
-  --resource-path=./ # Set resource path
+  --data-dir=$DEVBOX_PROJECT_ROOT  # Set data directory to use the custom template
+  --resource-path=$DEVBOX_PROJECT_ROOT # Set resource path
   # -F mermaid-filter  # Use mermaid filter https://github.com/raghur/mermaid-filter
 )
 
@@ -66,8 +66,8 @@ for FILE in ${FILES[@]}; do
   
   FILE_COUNT=$((FILE_COUNT+1))
 
-  TMP_FM_FILE=$(mktemp --tmpdir="${BUILD_DIR}" --suffix=.toml)
-  sed -n '/^+++$/,/^+++$/p' ${FILE} | sed '1d;$d' > ${TMP_FM_FILE}
+  TMP_FM_FILE=$(mktemp --tmpdir="${BUILD_DIR}" --suffix=.yaml)
+  sed -n '/^+++$/,/^+++$/p' ${FILE} | sed '1d;$d'| yj -ty > ${TMP_FM_FILE}
   TMP_MD_FILE=$(mktemp --tmpdir="${BUILD_DIR}" --suffix=.md)
   sed '/^+++$/,/^+++$/d' ${FILE}  > ${TMP_MD_FILE}
 
@@ -75,10 +75,10 @@ for FILE in ${FILES[@]}; do
   echo "Processing file ${FILE_COUNT}/${TOTAL_FILES}: ${FILE}"
 
 
-  LAST_REVIEW_DATE=$(tomlq -r '.extra.last_reviewed' "${TMP_FM_FILE}" )
-  VERSION=$(tomlq -r '.extra.major_revisions | sort_by("date")| .[0].version' "${TMP_FM_FILE}")
+  LAST_REVIEW_DATE=$(yq -r '.extra.last_reviewed' "${TMP_FM_FILE}" )
+  VERSION=$(yq -r '.extra.major_revisions | sort_by("date")| .[0].version' "${TMP_FM_FILE}")
 
-  TITLE=$(tomlq -r  '.title' "${TMP_FM_FILE}" )
+  TITLE=$(yq -r  '.title' "${TMP_FM_FILE}" )
   echo "Title: ${TITLE}, Date: ${LAST_REVIEW_DATE}, Version: ${VERSION}"
   LAST_REVIEW_DATE=`date -d"${LAST_REVIEW_DATE}" +"%B %d, %Y"`
   if [ $REDACT -eq 1 ]; then

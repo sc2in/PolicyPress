@@ -61,15 +61,17 @@ fi
 
 FILE_COUNT=0
 
+rm -rf "${BUILD_DIR}/*"
+
 # loop through files
 for FILE in ${FILES[@]}; do
   
   FILE_COUNT=$((FILE_COUNT+1))
 
   TMP_FM_FILE=$(mktemp --tmpdir="${BUILD_DIR}" --suffix=.yaml)
-  sed -n '/^+++$/,/^+++$/p' ${FILE} | sed '1d;$d'| yj -ty > ${TMP_FM_FILE}
-  TMP_MD_FILE=$(mktemp --tmpdir="${BUILD_DIR}" --suffix=.md)
-  sed '/^+++$/,/^+++$/d' ${FILE}  > ${TMP_MD_FILE}
+  yq --front-matter extract ${FILE} > ${TMP_FM_FILE}
+  # TMP_MD_FILE=$(mktemp --tmpdir="${BUILD_DIR}" --suffix=.md)
+  # sed '/^---$/,/^---$/d' ${FILE}  > ${TMP_MD_FILE}
 
 
   echo "Processing file ${FILE_COUNT}/${TOTAL_FILES}: ${FILE}"
@@ -93,9 +95,8 @@ for FILE in ${FILES[@]}; do
   FILEDIR=$(dirname "${FILE}")
 
   local_args=(
-    "${TMP_MD_FILE}" -o "${OUTPUT_FILE}"   # Input and output_FILE files
-    -V title="${TITLE}" 
-    -V subtitle="Version ${VERSION}"  # Use the subtitle field for the version
+    "${FILE}" -o "${OUTPUT_FILE}"   # Input and output_FILE files
+    # TODO: Get this out of the front matter
     -V date="Last Reviewed ${LAST_REVIEW_DATE}" # Set the date with the last review date
     --resource-path="${FILEDIR}" # Set resource path for current file's directory
   );
@@ -111,6 +112,6 @@ for FILE in ${FILES[@]}; do
     echo "${ERROR_COLOR}Error: Failed to build PDF for ${FILE}${NO_COLOR}"
   fi
 
-  rm "${TMP_FM_FILE}" "${TMP_MD_FILE}"
+  rm "${TMP_FM_FILE}" 
 
 done

@@ -954,6 +954,10 @@ $if(titlepage-background)$
   \vskip 1em
   {\Large \textsf{$subtitle$}}
   $endif$
+  $if(extra.major_revisions)$
+  \vskip 1em
+  {\Large \textsf{Version v$$extra.major_revisions/first version$$}}
+  $endif$
   \vskip 2em
   \noindent {\Large \textsf{$for(author)$$author$$sep$, $endfor$} \vskip 0.6em \textsf{$date$}}
   \vfill
@@ -966,6 +970,10 @@ $else$
   $if(subtitle)$
   \vskip 1em
   {\Large \textsf{$subtitle$}}
+  $endif$
+  $if(extra.major_revisions)$
+  \vskip 1em
+  {\Large \textsf{Version v$for(extra.major_revisions/first)$$it.version$$endfor$ }}
   $endif$
   \vskip 2em
   \noindent {\Large \textsf{$for(author)$$author$$sep$, $endfor$}}
@@ -1068,7 +1076,7 @@ $endif$
 %
 % Custom version history page
 %
-$if(majorRevisions)$
+$if(extra.major_revisions)$
   $if(beamer)$
   $else$
   \pagebreak
@@ -1078,8 +1086,8 @@ $if(majorRevisions)$
     \begin{tabular}{cccp{3.5in}}
       \fontsize{10}{10}\selectfont
       \textbf{Version} & \textbf{Date} & \textbf{Approved By} & \textbf{Comment}\\ \hline
-      $for(majorRevisions)$
-        $majorRevisions.version$ & $majorRevisions.date$ & $majorRevisions.approvedBy$ & \RaggedRight{$majorRevisions.comment$}\\
+      $for(extra.major_revisions)$
+        $it.version$ & $it.date$ & $it.approved_by$ & \RaggedRight{$it.description$}\\
       $endfor$
     \end{tabular}
   \end{table}

@@ -572,7 +572,7 @@ $endif$
 \subtitle{$subtitle$}
 $endif$
 \author{$for(author)$$author$$sep$ \and $endfor$}
-\date{$date$}
+\date{Last Reviewed: $extra.last_reviewed$}
 $if(beamer)$
 $if(institute)$
 \institute{$for(institute)$$institute$$sep$ \and $endfor$}
@@ -703,7 +703,7 @@ $else$
 \usepackage{titling}
 \title{$title$}
 \author{$for(author)$$author$$sep$, $endfor$}
-\date{$date$}
+\date{Last Reviewed: $extra.last_reviewed$}
 $endif$
 
 %
@@ -882,7 +882,7 @@ $else$
   \clearpairofpagestyles
   \ihead*{$if(header-left)$$header-left$$else$$title$$endif$}
   \chead*{$if(header-center)$$header-center$$else$$endif$}
-  \ohead*{$if(header-right)$$header-right$$else$$date$$endif$}
+  \ohead*{$if(header-right)$$header-right$$else$Last Reviewed: $extra.last_reviewed$$endif$}
   \ifoot*{$if(footer-left)$$footer-left$$else$$for(author)$$author$$sep$, $endfor$$endif$}
   \cfoot*{$if(footer-center)$$footer-center$$else$$endif$}
   \ofoot*{$if(footer-right)$$footer-right$$else$\thepage$endif$}
@@ -954,8 +954,12 @@ $if(titlepage-background)$
   \vskip 1em
   {\Large \textsf{$subtitle$}}
   $endif$
+  $if(extra.major_revisions)$
+  \vskip 1em
+  {\Large \textsf{Version v$$extra.major_revisions/first version$$}}
+  $endif$
   \vskip 2em
-  \noindent {\Large \textsf{$for(author)$$author$$sep$, $endfor$} \vskip 0.6em \textsf{$date$}}
+  \noindent {\Large \textsf{$for(author)$$author$$sep$, $endfor$} \vskip 0.6em \textsf{Last Reviewed: $extra.last_reviewed$}}
   \vfill
 }
 $else$
@@ -966,6 +970,10 @@ $else$
   $if(subtitle)$
   \vskip 1em
   {\Large \textsf{$subtitle$}}
+  $endif$
+  $if(extra.major_revisions)$
+  \vskip 1em
+  {\Large \textsf{Version $for(extra.major_revisions/first)$$it.version$$endfor$ }}
   $endif$
   \vskip 2em
   \noindent {\Large \textsf{$for(author)$$author$$sep$, $endfor$}}
@@ -980,7 +988,7 @@ $endif$
 
 $if(titlepage-background)$
 $else$
-\textsf{$date$}
+\textsf{Last Reviewed: $extra.last_reviewed$}
 $endif$
 \end{flushleft}
 \end{titlepage}
@@ -1068,7 +1076,7 @@ $endif$
 %
 % Custom version history page
 %
-$if(majorRevisions)$
+$if(extra.major_revisions)$
   $if(beamer)$
   $else$
   \pagebreak
@@ -1078,8 +1086,8 @@ $if(majorRevisions)$
     \begin{tabular}{cccp{3.5in}}
       \fontsize{10}{10}\selectfont
       \textbf{Version} & \textbf{Date} & \textbf{Approved By} & \textbf{Comment}\\ \hline
-      $for(majorRevisions)$
-        $majorRevisions.version$ & $majorRevisions.date$ & $majorRevisions.approvedBy$ & \RaggedRight{$majorRevisions.comment$}\\
+      $for(extra.major_revisions)$
+        $it.version$ & $it.date$ & $it.approved_by$ & \RaggedRight{$it.description$}\\
       $endfor$
     \end{tabular}
   \end{table}

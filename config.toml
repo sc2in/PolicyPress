@@ -19,8 +19,8 @@ render = false
 
 [extra]
 policy_root = "policies/_index.md"
-
-logo = "https://easydocs.codeandmedia.com/logo.svg"
+organization = "Star City Security Consulting"
+logo = "logo.png"
 # release = "https://api.github.com/repos/getzola/zola/releases/latest"
 favicon = "https://www.getzola.org/favicon.ico"
 easydocs_logo_always_clickable = true

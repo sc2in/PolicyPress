@@ -1,5 +1,5 @@
 ---
-title: Creating a Policy
+title: Creating a New Policy
 weight: 1
 description: How to add a policy to the SC2 Policy Center
 summary: How to add a policy to the SC2 Policy Center
@@ -20,6 +20,7 @@ $> nano <policy-slug>.md
 The front matter is a set of key-value pairs that provide metadata about the policy. This information is used to generate the policy's page, produce the pdfs, and create reports. The front matter format is [YAML](https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started), which is a human-readable data serialization format. Here is an example of the front matter for a policy:
 
 ```yaml
+---
 # These fields are required
 title: Privacy Policy
 description: The SC2 Privacy Policy
@@ -57,6 +58,7 @@ extra:
     revised_by: Ben Craton # Individual who made the changes
     approved_by: Ben Craton # Individual who approved the changes
     version: '1.0' # Version of the policy after the changes were made
+---
 ```
 
 ### Important notes on front matter

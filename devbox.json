@@ -3,61 +3,33 @@
   "packages": [
     "pandoc@latest",
     "yq-go@latest",
-    "gawk@latest",
     "gnused@latest",
-    "bash@latest",
-    "pnpm@latest",
-    "nodejs_18@latest",
     "yq@latest",
     "github:sc2in/eisvogel-tex#",
     "zola@latest",
-    "cargo@latest",
     "imagemagick@latest",
     "yj@latest"
   ],
   "shell": {
     "init_hook": [
-      "export CARGO_HOME=$DEVBOX_PROJECT_ROOT/.devbox/.cargo",
-      "if [[ ! -d \"$CARGO_HOME\" ]]; then",
-      "devbox run cargo-deps",
-      "fi",
-      "export PATH=$CARGO_HOME/bin:$PATH",
       "echo 'Welcome to devbox!' > /dev/null"
     ],
     "scripts": {
       "build-pdfs": [
         "./pandoc.sh"
       ],
-      "build-pdfs-zola": [
-        "zola build -u file://`pwd`/public",
-        "export POLICY_ROOT=$(dirname `tomlq -r '.extra.policy_root' config.toml` )",
-        "mkdir -p public/pdfs/",
-        "for file in $(find public/${POLICY_ROOT} -type f -name \"*.html\" -not -name \"_index.md\"); do",
-        "pandoc --from html --to pdf --pdf-engine=xelatex $file -o ${file%.html}.pdf",
-        "done"
-      ],
-      "build-pdfs-draft": [
-        "./pandoc.sh -d"
-      ],
-      "build-pdfs-draft-redact": [
-        "./pandoc.sh -d -r"
-      ],
       "build-site": [
         "zola build"
       ],
       "clean": [
-        "echo Cleaning the project of all build artifacts and node_modules...",
-        "rm -rf .direnv node_modules public resources internal .pnpm-store *.err *.log *.core 2>/dev/null"
+        "echo Cleaning the project of all build artifacts and devbox cache...",
+        "rm -rf .direnv .devbox node_modules public resources internal .pnpm-store *.err *.log *.core 2>/dev/null"
       ],
       "test": [
         "zola check"
       ],
       "serve": [
         "zola serve"
-      ],
-      "cargo-deps": [
-        "cargo install tomlq",
-        "cargo install frontmatter-gen --features=cli"
       ],
       "preview": [
         "zola build --base-url http://0.0.0.0:1111",
@@ -69,7 +41,7 @@
         "devbox run build-site",
         "devbox run build-pdfs",
         "else",
-        "devbox run build-pdfs-draft",
+        "devbox run build-site",
         "fi"
       ]
     }

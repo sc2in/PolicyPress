@@ -20,7 +20,7 @@
   <div class="description">{{ page.description | safe }}</div>
   <div class="pdf-links">
   {%- if (config.mode != "serve") -%}
-    <a href="/pdfs/{{pdf_file}}">PDF Version</a>
+    <a href="/pdf/{{pdf_file}}">PDF Version</a>
     {% else %}
     PDF Version not available in serve mode
     {%- endif -%}

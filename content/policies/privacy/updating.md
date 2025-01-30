@@ -4,6 +4,10 @@ description: The SC2 Privacy Policy Update Policy and Procedure
 summary: How to update the SC2 Privacy Policy and communicate changes.
 date: 2024-07-15
 weight: 2
+taxonomies:
+  TSC2017: ["P1.1"]
+  ISO27001:
+    - "2.1"
 extra:
   owner: SC2
   last_reviewed: 2024-08-20

@@ -572,7 +572,7 @@ $endif$
 \subtitle{$subtitle$}
 $endif$
 \author{$for(author)$$author$$sep$ \and $endfor$}
-\date{$date$}
+\date{Last Reviewed: $extra.last_reviewed$}
 $if(beamer)$
 $if(institute)$
 \institute{$for(institute)$$institute$$sep$ \and $endfor$}
@@ -703,7 +703,7 @@ $else$
 \usepackage{titling}
 \title{$title$}
 \author{$for(author)$$author$$sep$, $endfor$}
-\date{$date$}
+\date{Last Reviewed: $extra.last_reviewed$}
 $endif$
 
 %
@@ -882,7 +882,7 @@ $else$
   \clearpairofpagestyles
   \ihead*{$if(header-left)$$header-left$$else$$title$$endif$}
   \chead*{$if(header-center)$$header-center$$else$$endif$}
-  \ohead*{$if(header-right)$$header-right$$else$$date$$endif$}
+  \ohead*{$if(header-right)$$header-right$$else$Last Reviewed: $extra.last_reviewed$$endif$}
   \ifoot*{$if(footer-left)$$footer-left$$else$$for(author)$$author$$sep$, $endfor$$endif$}
   \cfoot*{$if(footer-center)$$footer-center$$else$$endif$}
   \ofoot*{$if(footer-right)$$footer-right$$else$\thepage$endif$}
@@ -959,7 +959,7 @@ $if(titlepage-background)$
   {\Large \textsf{Version v$$extra.major_revisions/first version$$}}
   $endif$
   \vskip 2em
-  \noindent {\Large \textsf{$for(author)$$author$$sep$, $endfor$} \vskip 0.6em \textsf{$date$}}
+  \noindent {\Large \textsf{$for(author)$$author$$sep$, $endfor$} \vskip 0.6em \textsf{Last Reviewed: $extra.last_reviewed$}}
   \vfill
 }
 $else$
@@ -973,7 +973,7 @@ $else$
   $endif$
   $if(extra.major_revisions)$
   \vskip 1em
-  {\Large \textsf{Version v$for(extra.major_revisions/first)$$it.version$$endfor$ }}
+  {\Large \textsf{Version $for(extra.major_revisions/first)$$it.version$$endfor$ }}
   $endif$
   \vskip 2em
   \noindent {\Large \textsf{$for(author)$$author$$sep$, $endfor$}}
@@ -988,7 +988,7 @@ $endif$
 
 $if(titlepage-background)$
 $else$
-\textsf{$date$}
+\textsf{Last Reviewed: $extra.last_reviewed$}
 $endif$
 \end{flushleft}
 \end{titlepage}

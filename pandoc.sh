@@ -68,21 +68,13 @@ for FILE in ${FILES[@]}; do
   
   FILE_COUNT=$((FILE_COUNT+1))
 
-  TMP_FM_FILE=$(mktemp --tmpdir="${BUILD_DIR}" --suffix=.yaml)
-  yq --front-matter extract ${FILE} > ${TMP_FM_FILE}
-  # TMP_MD_FILE=$(mktemp --tmpdir="${BUILD_DIR}" --suffix=.md)
-  # sed '/^---$/,/^---$/d' ${FILE}  > ${TMP_MD_FILE}
-
-
   echo "Processing file ${FILE_COUNT}/${TOTAL_FILES}: ${FILE}"
 
 
-  LAST_REVIEW_DATE=$(yq -r '.extra.last_reviewed' "${TMP_FM_FILE}" )
-  VERSION=$(yq -r '.extra.major_revisions | sort_by("date")| .[0].version' "${TMP_FM_FILE}")
+  VERSION=$(yq --front-matter extract -r '.extra.major_revisions | sort_by("date")| .[0].version' "${FILE}")
 
-  TITLE=$(yq -r  '.title' "${TMP_FM_FILE}" )
+  TITLE=$(yq --front-matter extract -r  '.title' "${FILE}" )
   echo "Title: ${TITLE}, Date: ${LAST_REVIEW_DATE}, Version: ${VERSION}"
-  LAST_REVIEW_DATE=`date -d"${LAST_REVIEW_DATE}" +"%B %d, %Y"`
   if [ $REDACT -eq 1 ]; then
     TITLE="${TITLE} (Redacted)"
   fi
@@ -96,8 +88,6 @@ for FILE in ${FILES[@]}; do
 
   local_args=(
     "${FILE}" -o "${OUTPUT_FILE}"   # Input and output_FILE files
-    # TODO: Get this out of the front matter
-    -V date="Last Reviewed ${LAST_REVIEW_DATE}" # Set the date with the last review date
     --resource-path="${FILEDIR}" # Set resource path for current file's directory
   );
 
@@ -112,6 +102,5 @@ for FILE in ${FILES[@]}; do
     echo "${ERROR_COLOR}Error: Failed to build PDF for ${FILE}${NO_COLOR}"
   fi
 
-  rm "${TMP_FM_FILE}" 
 
 done

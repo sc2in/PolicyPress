@@ -6,8 +6,7 @@ date: 2023-09-07 16:13:18+02:00
 lastmod: 2023-09-07 16:13:18+02:00
 weight: 1
 taxonomies:
-  TSC2017:
-  - CC1.1
+  TSC2017: ["CC1.1" ]
   ISO27001:
   - '2.1'
 extra:

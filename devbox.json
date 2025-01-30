@@ -60,9 +60,9 @@
         "cargo install frontmatter-gen --features=cli"
       ],
       "preview": [
-        "zola build --base-url http://0.0.0.0:8000",
+        "zola build --base-url http://0.0.0.0:1111",
         "devbox run build-pdfs",
-        "python -m http.server 8000 -d public"
+        "python -m http.server 1111 -d public"
       ],
       "ci": [
         "if [ $PUBLISH == \"true\" ]; then",

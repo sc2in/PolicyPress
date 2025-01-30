@@ -59,8 +59,12 @@
         "cargo install tomlq",
         "cargo install frontmatter-gen --features=cli"
       ],
+      "preview": [
+        "zola build --base-url http://0.0.0.0:8000",
+        "devbox run build-pdfs",
+        "python -m http.server 8000 -d public"
+      ],
       "ci": [
-        "devbox run initial-setup",
         "if [ $PUBLISH == \"true\" ]; then",
         "devbox run build-site",
         "devbox run build-pdfs",

@@ -1,3 +1,6 @@
+{% if get_env(name="BUILD_TYPE", default="web") != "pandoc" %}
+
+
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -167,3 +170,14 @@
 
 </body>
 </html>
+
+{% else %}
+{% block content -%}
+
+{% if page %}
+{{page.content |safe }}
+{% else %}
+{{section.content |safe }}
+{% endif %}
+{% endblock content -%}
+{% endif %}

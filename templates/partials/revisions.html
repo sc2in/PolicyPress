@@ -1,0 +1,33 @@
+<div class="revisions">
+  <h3>Revisions</h3>
+  <table>
+    <tr><th>Version
+      </th><th>Date
+      </th><th>Description
+      </th><th>Revised by
+      </th><th>Approved by
+    </th></tr>
+    
+    {% for version in versions %}
+    <tr>
+
+      <td>
+        v{{version.version}}
+      </td>
+      <td>
+        {{version.date | date(format="%b %d, %Y")}}
+      </td>
+      <td>
+        {{version.description}}
+      </td>
+      <td>
+        {{version.revised_by}}
+      </td>
+      <td>
+        {{version.approved_by}}
+      </td>
+  </tr>
+    {% endfor %}
+ 
+</table>
+</div>

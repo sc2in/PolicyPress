@@ -1,28 +1,31 @@
-+++
-title = "Update Policy and Procedure"
-description = "The SC2 Privacy Policy Update Policy and Procedure"
-summary = "How to update the SC2 Privacy Policy and communicate changes."
-date = 2024-07-15
-weight = 2
-[extra]
-owner = "SC2"
-last_reviewed = 2024-08-20
-[[extra.satisfies]]
-name = "ISO 27001:2013"
-line_items = ["2.1"]
-[[extra.satisfies]]
-name = "TSC2017"
-line_items = ["P1.1"]
+---
+title: Update Policy and Procedure
+description: The SC2 Privacy Policy Update Policy and Procedure
+summary: How to update the SC2 Privacy Policy and communicate changes.
+date: 2024-07-15
+weight: 2
+taxonomies:
+  TSC2017: ["P1.1"]
+  ISO27001:
+    - "2.1"
+extra:
+  owner: SC2
+  last_reviewed: 2024-08-20
+  satisfies:
+    - name: ISO 27001:2013
+      line_items:
+        - "2.1"
+    - name: TSC2017
+      line_items:
+        - P1.1
+  major_revisions:
+    - date: 2023-09-07
+      description: Initial version.
+      revised_by: Ben Craton
+      approved_by: Ben Craton
+      version: "1.0"
 
-[[extra.major_revisions]]
-date = 2023-09-07
-description = "Initial version."
-revised_by = "Ben Craton"
-approved_by = "Ben Craton"
-version = "1.0"
-
-
-+++
+---
 
 ## Introduction
 

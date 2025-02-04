@@ -1,0 +1,38 @@
+{% extends "index.html" %}
+{% block title %} {{ config.title }} | {{ section.title }} {% endblock title %}
+{% block content %}
+{% set fp = config.extra.frontpage %}
+<section class="frontpage">
+  <div class="banner">
+    {% block banner %}
+    <div class="title">
+      <h1>{{ section.title |default(value=config.title) }}</h1>
+    </div>
+    {% if fp.lead  %}<div class="lead">{{fp.lead}}</div>{%endif%}
+    {% if fp.cta  %}
+    <div class="cta">
+      <a class="button call-to-action" href="{{fp.cta.url}}" role="button">{{fp.cta.text}}</a>
+    </div>
+      
+      {%endif%}
+    </div>
+    {% endblock banner %}
+    {% if fp.cards %}
+    <div class="cards">
+      {% for card in fp.cards %}
+      <div class="card">
+        <p class="title">{{card.title}}</p>
+        {{card.text | markdown | safe}}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="content">
+      {{ section.content | safe }}
+    </div>
+  </div>
+</section>
+
+
+{% endblock content %}
+

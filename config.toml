@@ -37,3 +37,14 @@ easydocs_uglyurls = false
 easydocs_heading_threshold = 5
 
 nav = {}
+[extra.frontpage]
+lead = "Security Policy Center for Our Business"
+[extra.frontpage.cta]
+text = "Get Started"
+url = "/policies/"
+[[extra.frontpage.cards]]
+title = "Get Help"
+text = "Need help with your security policies? [Contact us.](mailto:inquiries@sc2.in)"
+[[extra.frontpage.cards]]
+title = "Need to file a report?"
+text = "[Report a security incident.](#report)"

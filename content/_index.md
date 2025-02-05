@@ -1,6 +1,7 @@
 +++
 title = "Policy Center"
 insert_anchor_links = "right"
+template = "frontpage.html"
 +++
 
 ## An easy way to create a document library for your project

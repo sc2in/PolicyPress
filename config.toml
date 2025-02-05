@@ -43,8 +43,10 @@ lead = "Security Policy Center for Our Business"
 text = "Get Started"
 url = "/policies/"
 [[extra.frontpage.cards]]
+image = "https://picsum.photos/id/1011/800/450"
 title = "Get Help"
 text = "Need help with your security policies? [Contact us.](mailto:inquiries@sc2.in)"
 [[extra.frontpage.cards]]
 title = "Need to file a report?"
 text = "[Report a security incident.](#report)"
+image = "https://picsum.photos/id/1005/800/450"

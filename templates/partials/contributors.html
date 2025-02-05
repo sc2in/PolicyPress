@@ -1,0 +1,14 @@
+<ul class="contributors-list">
+{% for contrib in page.authors %}
+{% set teamMember = config.extra.policyteam.members | filter(attribute="name", value=contrib) | first %}
+
+  <li>
+    {% if teamMember %}
+    {% if teamMember.page %}<a href="{{ get_url(path="@/"~teamMember.page) }}">{{teamMember.name}}</a>{% else %}{{teamMember.name}}{% endif %}
+
+    {% else %}
+    {{contrib}}
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>

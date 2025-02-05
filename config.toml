@@ -37,6 +37,16 @@ easydocs_uglyurls = false
 easydocs_heading_threshold = 5
 
 nav = {}
+
+[extra.policyteam]
+  [[extra.policyteam.members]]
+    name = "Alice Beuler"
+    title = "Chief Security Officer"
+    email = "abeuler@sc2.in"
+    phone = "+91 123 456 7890"
+    image = "logo.svg"
+    page = "team/abeuler.md"
+
 [extra.frontpage]
 lead = "Security Policy Center for Our Business"
 [extra.frontpage.cta]
@@ -50,3 +60,4 @@ text = "Need help with your security policies? [Contact us.](mailto:inquiries@sc
 title = "Need to file a report?"
 text = "[Report a security incident.](#report)"
 image = "https://picsum.photos/id/1005/800/450"
+

@@ -1,17 +1,18 @@
 {% extends "index.html" %}
 {% block title %} {{ config.title }} | {{ page.title }} {% endblock title %}
 {% block content %}
-<article class="page">
+<article class="news">
   <h2 class="title">{{ page.title }}</h2>
-  {% if page.description %}<div class="description">{{ page.description | safe }}</div>{% endif %}
-  {% if page.summary %}<div class="summary">{{ page.summary | safe }}</div>{% endif %}
+  <h3 class="subtitle">Posted {{ page.date | date(format="%b %d, %Y") }}</h3>
   {% if page.authors %}
   {%- include "partials/contributors.html" -%}
   {% endif %}
+  {% if page.description %}<div class="description">{{ page.description | safe }}</div>{% endif %}
+  {% if page.summary %}<div class="summary">{{ page.summary | safe }}</div>{% endif %}
 
   <div class="content">
     {{ page.content | safe }}
   </div>
 
-    </article>
+</article>
 {% endblock content %}

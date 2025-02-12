@@ -7,27 +7,31 @@
 {{ section.content | safe }}
 {% endif %}
 
-<article class="">
+<article class="report">
   {% set tax = get_taxonomy(kind="TSC2017") %}
   {% set data = load_data(path="templates/opencontrols/standards/TSC-2017 (SOC2).yml") %}
   {% for key, item in data %}
-  <h2>{{ key }}</h2>
-  {% set line_items = tax.items | group_by(attribute="name") %}
-  {% if key in line_items and 0 < line_items[key] | length %}
-  <ul>
-    {% for line_item in line_items[key] %}
-    {% for policy in line_item.pages %}
-    <li><a href="{{ get_url(path=policy.path) }}">{{ policy.title }}</a></li>
+  <div class="control">
+
+    <h2 class="title" id="{{key}}">{{ key }} - {{item.name}}</h2>
+    <p class="description">{{item.description}}</p>
+    {% set line_items = tax.items | group_by(attribute="name") %}
+    {% if key in line_items and 0 < line_items[key] | length %}
+    <ul class="line-items">
+      {% for line_item in line_items[key] %}
+      {% for policy in line_item.pages %}
+      <li class="line-item"><a href="{{ get_url(path=policy.path) }}">{{ policy.title }}</a></li>
+      {% endfor %}
+      {% endfor %}
+      {# {% for page in map %} #}
+      {# {{name}} #}
+      {# <li><a href="{{ name.url }}">{{ name.title }}</a></li> #}
+      {# {% endfor %} #}
+    </ul>
+    {% else %}
+    <p>No policies found for {{ key }}</p>
+    {% endif %}
+  </div>
     {% endfor %}
-    {% endfor %}
-    {# {% for page in map %} #}
-    {# {{name}} #}
-    {# <li><a href="{{ name.url }}">{{ name.title }}</a></li> #}
-    {# {% endfor %} #}
-  </ul>
-  {% else %}
-  <p>No policies found for {{ key }}</p>
-  {% endif %}
-  {% endfor %}
 </article>
 {% endblock content %}

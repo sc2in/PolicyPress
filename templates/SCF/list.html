@@ -11,9 +11,11 @@
 <article class>
   {% set tax = get_taxonomy(kind="SCF") %}
   {% set data = load_data(path="templates/opencontrols/standards/SCF.yml") %}
-  {% for key, item in data %}
-  <h2>{{ key }}</h2>
+  {% for group, gitems in data | group_by(attribute="domain" ) %}
   {% set line_items = tax.items | group_by(attribute="name") %}
+  <h2>{{ group }}</h2>
+  {% for key, item in gitems | group_by(attribute="control_id") %}
+  <h3>{{ key }}</h3>
   {% if key in line_items and 0 < line_items[key] | length %}
   <ul>
     {% for line_item in line_items[key] %}
@@ -29,6 +31,7 @@
   {% else %}
   <p>No policies found for {{ key }}</p>
   {% endif %}
+  {% endfor %}
   {% endfor %}
 </article>
 {% endblock content %}

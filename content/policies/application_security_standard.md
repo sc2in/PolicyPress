@@ -6,6 +6,42 @@ date: 2025-04-16
 weight: 2
 taxonomies:
   SCF:
+    - "MON-01"
+    - "PRM-07"
+    - "SEA-01"
+    - "TDA-01"
+    - "TDA-01.1"
+    - "TDA-01.2"
+    - "TDA-01.3"
+    - "TDA-01.4"
+    - "TDA-02"
+    - "TDA-02.3"
+    - "TDA-02.4"
+    - "TDA-03"
+    - "TDA-04.2"
+    - "TDA-05"
+    - "TDA-06"
+    - "TDA-06.4"
+    - "TDA-06.5"
+    - "TDA-09"
+    - "TDA-09.1"
+    - "TDA-09.2"
+    - "TDA-09.3"
+    - "TDA-09.4"
+    - "TDA-09.5"
+    - "TDA-18"
+    - "TPM-01"
+    - "TPM-01.1"
+    - "TPM-02"
+    - "TPM-03"
+    - "TPM-04"
+    - "VPM-01"
+    - "VPM-02"
+    - "VPM-03"
+    - "VPM-04"
+    - "VPM-05"
+    - "VPM-06"
+    - "VPM-06.2"
 extra:
   owner: SC2
   last_reviewed: 2025-04-16
@@ -80,7 +116,7 @@ Incorporating vendor risk assessments into SCA can provide a more-comprehensive 
 party risks. While not mandatory for all organizations, it can significantly enhance the security of applications,
 especially for those heavily reliant on third-party components.
 
-## SAST
+## SAST (Static Application Security Testing)
 
 SAST is a pivotal process for early detection of security vulnerabilities in application source code. This method
 involves analyzing code for security flaws without executing it, providing a proactive approach to security.
@@ -107,7 +143,7 @@ Effective management of SAST findings involves:
 
 SAST is an essential component in developing secure applications. Its early integration into the development process helps in identifying and mitigating security risks promptly. As threat landscapes evolve, so, too, should the organization’s approach to SAST, ensuring it remains an effective tool for identifying potential application security vulnerabilities.
 
-## DAST
+## DAST (Dynamic Application Security Testing)
 
 DAST is a security testing methodology that focuses on identifying vulnerabilities in a running application. Unlike SAST, which examines the source code, DAST evaluates the application in its running state, simulating an external attacker’s perspective. This approach is crucial for identifying security flaws that manifest during the application’s operation.
 
@@ -163,7 +199,7 @@ Quality code is less prone to common security issues like SQL injection, buffer 
 
 High code quality standards are vital for ensuring the security and integrity of software applications. By using existing tools, focusing on best practices and fostering a culture of continuous improvement and education, organizations can significantly enhance their security posture.
 
-## APIs
+## APIs (Application Programming Interfaces)
 
 APIs are integral to modern application architectures, facilitating communication among various software systems. Securing APIs is crucial to prevent data breaches, unauthorized access and service disruptions.
 

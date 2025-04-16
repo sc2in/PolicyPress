@@ -1,0 +1,34 @@
+{% extends "index.html" %}
+{# {% block title %} {{ config.title }} | {{ page.title }} {% endblock title %}
+#}
+{% block content %}
+{% if page %}
+{{ page.content | safe }}
+{% elif section %}
+{{ section.content | safe }}
+{% endif %}
+
+<article class>
+  {% set tax = get_taxonomy(kind="SCF") %}
+  {% set data = load_data(path="templates/opencontrols/standards/SCF.yml") %}
+  {% for key, item in data %}
+  <h2>{{ key }}</h2>
+  {% set line_items = tax.items | group_by(attribute="name") %}
+  {% if key in line_items and 0 < line_items[key] | length %}
+  <ul>
+    {% for line_item in line_items[key] %}
+    {% for policy in line_item.pages %}
+    <li><a href="{{ get_url(path=policy.path) }}">{{ policy.title }}</a></li>
+    {% endfor %}
+    {% endfor %}
+    {# {% for page in map %} #}
+    {# {{name}} #}
+    {# <li><a href="{{ name.url }}">{{ name.title }}</a></li> #}
+    {# {% endfor %} #}
+  </ul>
+  {% else %}
+  <p>No policies found for {{ key }}</p>
+  {% endif %}
+  {% endfor %}
+</article>
+{% endblock content %}

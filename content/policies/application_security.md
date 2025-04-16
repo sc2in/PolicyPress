@@ -8,39 +8,33 @@ taxonomies:
   TSC2017: ["P1.1"]
   ISO27001:
     - "2.1"
+  SCF:
+    - "SEA-01"
+    - "SEA-01.2"
+    - "TDA-01"
+    - "TDA-01.1"
+    - "TDA-01.2"
+    - "TDA-02"
+    - "TDA-05"
+    - "TDA-06"
+    - "TDA-06.1"
+    - "TDA-06.2"
+    - "TDA-06.4"
+    - "TDA-06.5"
+    - "TDA-09"
+    - "VPM-01"
+    - "WEB-01"
+    - "RSK-03"
+    - "RSK-04"
+    - "RSK-09"
+    - "PRM-04"
+    - "MON-01"
+    - "CFG-02"
 extra:
   owner: SC2
   last_reviewed: 2024-08-20
-  satisfies:
-    - name: ISO 27001:2013
-      line_items:
-        - "2.1"
-    - name: TSC2017
-      line_items:
-        - P1.1
-    - name: SCF
-      line_items:
-        - "SEA-01"
-        - "SEA-01.2"
-        - "TDA-01"
-        - "TDA-01.1"
-        - "TDA-01.2"
-        - "TDA-02"
-        - "TDA-05"
-        - "TDA-06"
-        - "TDA-06.1"
-        - "TDA-06.2"
-        - "TDA-06.4"
-        - "TDA-06.5"
-        - "TDA-09"
-        - "VPM-01"
-        - "WEB-01"
-        - "RSK-03"
-        - "RSK-04"
-        - "RSK-09"
-        - "PRM-04"
-        - "MON-01"
-        - "CFG-02"
+ 
+
   major_revisions:
     - date: 2023-09-07
       description: Initial version.

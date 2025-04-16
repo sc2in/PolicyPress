@@ -6,6 +6,25 @@ date: 2025-04-16
 weight: 2
 taxonomies:
   SCF:
+    - "CLD-01"
+    - "CLD-07"
+    - "PRI-01.6"
+    - "PRM-02"
+    - "RSK-03"
+    - "RSK-09"
+    - "RSK-09.1"
+    - "TDA-01"
+    - "TDA-02"
+    - "TPM-01"
+    - "TPM-01.1"
+    - "TPM-02"
+    - "TPM-03"
+    - "TPM-04"
+    - "TPM-05"
+    - "TPM-06"
+    - "TPM-08"
+    - "TPM-09"
+    - "TPM-10"
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

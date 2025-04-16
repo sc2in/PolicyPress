@@ -2,12 +2,9 @@
 title: Application Security Policy
 description: The SC2 Privacy Policy Update Policy and Procedure
 summary: This document outlines the Application Security Policy for our applications, which incorporates best practices from leading application security frameworks, including NIST 800-218, the SSDF and the OWASP SAMM.
-date: 2024-07-15
+date: 2025-04-16
 weight: 2
 taxonomies:
-  TSC2017: ["P1.1"]
-  ISO27001:
-    - "2.1"
   SCF:
     - "SEA-01"
     - "SEA-01.2"
@@ -32,11 +29,9 @@ taxonomies:
     - "CFG-02"
 extra:
   owner: SC2
-  last_reviewed: 2024-08-20
- 
-
+  last_reviewed: 2025-04-16
   major_revisions:
-    - date: 2023-09-07
+    - date: 2025-04-16
       description: Initial version.
       revised_by: Ben Craton
       approved_by: Ben Craton

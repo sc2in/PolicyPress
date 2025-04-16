@@ -6,6 +6,25 @@ date: 2025-04-16
 weight: 2
 taxonomies:
   SCF:
+   - "DCH-01"
+   - "DCH-01.2"
+   - "DCH-01.4"
+   - "DCH-02"
+   - "DCH-02.1"
+   - "DCH-03"
+   - "DCH-03.1"
+   - "DCH-03.2"
+   - "DCH-03.3"
+   - "DCH-04"
+   - "DCH-06"
+   - "DCH-06.1"
+   - "DCH-07"
+   - "DCH-08"
+   - "DCH-12"
+   - "DCH-13"
+   - "DCH-13.1"
+   - "DCH-13.2"
+   - "DCH-13.4"
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

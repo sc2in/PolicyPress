@@ -6,6 +6,35 @@ date: 2025-04-16
 weight: 2
 taxonomies:
   SCF:
+    - "IRO-01"
+    - "IRO-02"
+    - "IRO-02.1"
+    - "IRO-02.2"
+    - "IRO-02.4"
+    - "IRO-02.5"
+    - "IRO-03"
+    - "IRO-04"
+    - "IRO-04.1"
+    - "IRO-04.2"
+    - "IRO-05"
+    - "IRO-05.1"
+    - "IRO-05.2"
+    - "IRO-06"
+    - "IRO-06.1"
+    - "IRO-09"
+    - "IRO-10"
+    - "IRO-10.2"
+    - "IRO-10.3"
+    - "IRO-10.4"
+    - "IRO-11"
+    - "IRO-11.2"
+    - "IRO-12"
+    - "IRO-12.1"
+    - "IRO-12.2"
+    - "IRO-12.3"
+    - "IRO-12.4"
+    - "IRO-13"
+    - "IRO-16"
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

@@ -8,30 +8,61 @@
 {{ section.content | safe }}
 {% endif %}
 
-<article class>
+<article>
+
   {% set tax = get_taxonomy(kind="SCF") %}
   {% set data = load_data(path="templates/opencontrols/standards/SCF.yml") %}
-  {% for group, gitems in data | group_by(attribute="domain" ) %}
-  {% set line_items = tax.items | group_by(attribute="name") %}
-  <h2>{{ group }}</h2>
-  {% for key, item in gitems | group_by(attribute="control_id") %}
-  <h3>{{ key }}</h3>
-  {% if key in line_items and 0 < line_items[key] | length %}
-  <ul>
-    {% for line_item in line_items[key] %}
-    {% for policy in line_item.pages %}
-    <li><a href="{{ get_url(path=policy.path) }}">{{ policy.title }}</a></li>
+  <div class="collapsible-group">
+
+    {% for group, gitems in data | group_by(attribute="domain" ) %}
+    {% set line_items = tax.items | group_by(attribute="name") %}
+    <button type="button" class="collapsible">{{group}}</button>
+    <div class="collapsible-content">
+      {% for key, gitem in gitems | group_by(attribute="control_id") %}
+      {% set control = data | filter(attribute="control_id", value=key) | first
+      %}
+      <h2>{{control.control_id}}: {{control.control}}</h2>
+      <p>{{control.description}}</p>
+      {% if key in line_items and 0 < line_items[key] | length %}
+      {% for line_item in line_items[key] %}
+      <ul>
+        {% for policy in line_item.pages %}
+        <li>
+          <a href="{{ get_url(path=policy.path) }}">{{ policy.title}}</a>
+        </li>
+        {% endfor %}
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>No policies found for {{ key }}</p>
+      {% endif %}
+
+      {% endfor %}
+
+    </div>
     {% endfor %}
-    {% endfor %}
-    {# {% for page in map %} #}
-    {# {{name}} #}
-    {# <li><a href="{{ name.url }}">{{ name.title }}</a></li> #}
-    {# {% endfor %} #}
-  </ul>
-  {% else %}
-  <p>No policies found for {{ key }}</p>
-  {% endif %}
-  {% endfor %}
-  {% endfor %}
+  </div>
 </article>
+<script>
+  // Simple JS to toggle collapsible sections
+  document.querySelectorAll('.collapsible').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      // Optionally close other sections for accordion behavior
+      document.querySelectorAll('.collapsible').forEach(function(otherBtn) {
+        if (otherBtn !== btn) {
+          otherBtn.classList.remove('active');
+          otherBtn.nextElementSibling.style.maxHeight = null;
+        }
+      });
+
+      btn.classList.toggle('active');
+      var content = btn.nextElementSibling;
+      if (btn.classList.contains('active')) {
+        content.style.maxHeight = content.scrollHeight + "px";
+      } else {
+        content.style.maxHeight = null;
+      }
+    });
+  });
+</script>
 {% endblock content %}

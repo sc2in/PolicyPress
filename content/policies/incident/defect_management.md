@@ -42,6 +42,7 @@ The process provides:​
 ## Roles & Responsibilities
 
 *Note: Technical Leads are not listed here because the Product Owners manage their work. They can be consulted as required, but the Product Owners will plan the work into a sprint. TPS will typically speak to POs before engaging with the Technical Leads.*
+
 ### Customer Support
 
 - ​Owns Zendesk ticket until resolved​

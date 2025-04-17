@@ -14,6 +14,44 @@ taxonomies:
     - CC8.1
     - CC9.1
     - PI1.1
+  SCF:
+    - AAT-01
+    - AAT-01.1
+    - AAT-01.2
+    - AAT-04
+    - AAT-07
+    - AAT-07.1
+    - AAT-07.2
+    - AAT-10
+    - AAT-11
+    - AAT-12
+    - AAT-12.1
+    - AST-01
+    - AST-02
+    - AST-03.2
+    - AST-04.1
+    - AST-04.2
+    - AST-04.3
+    - AST-10
+    - AST-17
+    - AST-31
+    - AST-31.1
+    - BCD-01
+    - BCD-01.4
+    - BCD-02.4
+    - BCD-05
+    - BCD-06
+    - GOV-01
+    - GOV-01.1
+    - GOV-01.2
+    - GOV-02
+    - GOV-03
+    - GOV-09
+    - GOV-16
+    - GOV-16.1
+    - GOV-16.2
+    - GOV-17
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16
@@ -54,11 +92,7 @@ The staff members who perform the risk assessment should be familiar with comput
 
 The following employees constitute {{ config.extra.organization }}' Risk Assessment Team:
 
-- Marc Huffman, CEO
-- Tim Adair, Chief Product Officer
-- Robin Fleming, Chief Technology Officer
-- Warren McComb, Director of IT & Security
-- Tim Taylor, CFO
+-
 
 Business owners and technical support staff that provide information for the risk assessment do not need to be experienced in either risk assessments or computer security.
 

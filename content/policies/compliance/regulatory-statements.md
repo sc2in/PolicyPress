@@ -7,6 +7,85 @@ taxonomies:
   TSC2017:
     - CC5.1
     - P6.6
+  SCF:
+    - AST-03
+    - AST-03.1
+    - AST-04
+    - CFG-08.1
+    - CPL-01
+    - DCH-01
+    - DCH-01.3
+    - DCH-02
+    - DCH-09.3
+    - DCH-18
+    - DCH-18.1
+    - DCH-18.2
+    - DCH-21
+    - DCH-22.1
+    - DCH-24
+    - DCH-25
+    - GOV-01
+    - GOV-10
+    - IAO-03
+    - PRI-01
+    - PRI-01.1
+    - PRI-01.3
+    - PRI-01.4
+    - PRI-02
+    - PRI-02.1
+    - PRI-02.2
+    - PRI-03
+    - PRI-03.1
+    - PRI-03.2
+    - PRI-03.3
+    - PRI-03.4
+    - PRI-03.6
+    - PRI-03.8
+    - PRI-04
+    - PRI-04.1
+    - PRI-05
+    - PRI-05.1
+    - PRI-05.2
+    - PRI-05.4
+    - PRI-05.5
+    - PRI-05.6
+    - PRI-05.7
+    - PRI-06
+    - PRI-06.1
+    - PRI-06.6
+    - PRI-06.7
+    - PRI-07.4
+    - PRI-09
+    - PRI-10
+    - PRI-10.1
+    - PRI-10.2
+    - PRI-11
+    - PRI-12
+    - PRI-14
+    - PRI-14.1
+    - PRI-14.2
+    - PRI-15
+    - PRI-17
+    - PRM-01
+    - PRM-04
+    - PRM-05
+    - PRM-06
+    - PRM-07
+    - PRM-08
+    - SAT-01
+    - SAT-02
+    - SAT-02.1
+    - SAT-03
+    - SAT-03.1
+    - SAT-03.2
+    - SAT-03.3
+    - SAT-04
+    - SEA-01
+    - SEA-15
+    - TDA-06
+    - TPM-04.4
+    - VPM-04.2
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

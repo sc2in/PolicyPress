@@ -3,8 +3,10 @@
 #}
 {% block content %}
 {% if page %}
+<h1>{{ page.title }}</h1>
 {{ page.content | safe }}
 {% elif section %}
+<h1>{{ section.title }}</h1>
 {{ section.content | safe }}
 {% endif %}
 

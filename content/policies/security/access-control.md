@@ -9,6 +9,19 @@ taxonomies:
     - CC6.2
     - CC6.3
     - CC6.6
+  SCF:
+    - HRS-05.7
+    - HRS-06
+    - HRS-06.1
+    - HRS-13
+    - HRS-13.1
+    - HRS-13.2
+    - HRS-13.3
+    - IAM-01
+    - IAM-02
+    - IAM-16
+    - IAM-17
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

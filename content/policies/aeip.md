@@ -20,6 +20,16 @@ taxonomies:
     - P4.1
     - P4.2
     - P4.3
+  SCF:
+    - DCH-01.2
+    - DCH-01.3
+    - DCH-01.4
+    - DCH-03.3
+    - DCH-04
+    - DCH-04.1
+    - PRI-11
+    - NET-20.9
+
 extra:
   owner: SC2
   last_reviewed: 2025-01-23

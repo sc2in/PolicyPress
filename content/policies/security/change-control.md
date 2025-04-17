@@ -9,6 +9,16 @@ taxonomies:
     - CC5.1
     - CC8.1
     - CC9.1
+  SCF:
+    - AST-02.10
+    - AST-02.11
+    - AST-03
+    - AST-03.1
+    - AST-03.2
+    - AST-04
+    - CFG-03.2
+    - CFG-03.3
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16
@@ -28,12 +38,7 @@ Due to the sensitive nature of the information contained herein, this policy is 
 
 The following employees constitute {{ config.extra.organization }}' Change Control Board (CCB):
 
-- Warren McComb, Director, Security & IT
-- Robin Fleming, CTO
-- Nathan Day, Director, Cloud Platform
-- Forest Everline, Director, Enterprise Architect
-- Justin Noelle, Director, Software Engineering
-- Ben Craton, Compliance Manager
+-
 
 The Change Control Policy for {{ config.extra.organization }} recognizes and affirms the importance of customers, processes, and technology to {{ config.extra.organization }}.
 
@@ -41,7 +46,7 @@ It is the responsibility of each {{ config.extra.organization }} manager and emp
 
 ## Scope
 
-This policy covers resource changes (e.g., RAM, CPU, equipment) and internal IT operational changes for Production environments. For product-related and development-related changes, please refer to the [{{ config.extra.organization }} Secure Agile SDLC Policy and Procedures]({{ < ref "secure-sdlc.md" >}}). For convenience, here's an overview of the {{ config.extra.organization }} Agile Scrum Process:
+This policy covers resource changes (e.g., RAM, CPU, equipment) and internal IT operational changes for Production environments. For product-related and development-related changes, please refer to the [{{ config.extra.organization }} Secure Agile SDLC Policy and Procedures](@/policies/security/secure-sdlc.md). For convenience, here's an overview of the {{ config.extra.organization }} Agile Scrum Process:
 
 - Strategic Planning
 - Inception Deck Creation (Initiation)
@@ -79,13 +84,13 @@ The {{ config.extra.organization }} CCT will meet on a regular basis (no less th
 - Determine why these issues were not under CC
 - Evaluate process improvements or training opportunities
 
-All decisions will be guided by the {{ config.extra.organization }} ISMS/PIMS, esspecially the [Data and Business Intelligence Policy]({{ < ref "data-and-bi.md" >}}), [Secure Agile SDLC Policy and Procedures]({{ < ref "secure-sdlc.md" >}}), and [Incident Response Policy]({{ < ref "/docs/isms/continuity/incident-response-plan.md" >}}).
+All decisions will be guided by the {{ config.extra.organization }} ISMS/PIMS, esspecially the [Data and Business Intelligence Policy]({{ < ref "data-and-bi.md" >}}), [Secure Agile SDLC Policy and Procedures](@/policies/security/secure-sdlc.md) and [Incident Response Policy](@/policies/incident/incident-response-plan.md).
 
 Major decisions of the CCT must be documented in the CCB minutes.
 
 ## Process
 
-Changes that are not covered by the [SDLC process]({{ < ref "secure-sdlc.md" >}}) for product development or the [escalation process]({{ < ref "escalation/index.md" >}}) for customer issues must be submitted to the CCB for review and approval.
+Changes that are not covered by the [SDLC process](@/policies/security/secure-sdlc.md) for product development or the [escalation process](@/policies/security/escalation/index.md) for customer issues must be submitted to the CCB for review and approval.
 
 The CCB will review the change request and determine if it is a minor or major change.
 

@@ -6,6 +6,41 @@ weight: 10
 taxonomies:
   TSC2017:
     - CC3.3
+  SCF:
+    - GOV-02
+    - GOV-03
+    - GOV-04
+    - GOV-04.1
+    - GOV-04.2
+    - GOV-15.3
+    - GOV-15.5
+    - AST-10
+    - AST-26
+    - CHG-01
+    - CHG-02
+    - CHG-02.1
+    - CHG-03
+    - CHG-04
+    - CHG-04.1
+    - CHG-04.3
+    - CPL-02.1
+    - CPL-03
+    - CPL-03.1
+    - CPL-03.2
+    - CPL-04
+    - MON-01
+    - MON-01.3
+    - MON-01.14
+    - MON-01.15
+    - MON-02
+    - MON-02.2
+    - MON-03
+    - MON-03.3
+    - MON-10
+    - MON-12
+    - MON-16
+    - MON-16.1
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

@@ -11,6 +11,46 @@ taxonomies:
     - P6.1
     - P6.2
     - P6.3
+  SCF:
+    - PRI-06.5  
+    - PRI-06  
+    - PRI-06.6  
+    - PRI-06.7  
+    - PRI-03  
+    - PRI-03.2  
+    - PRI-03.4  
+    - PRI-01.6  
+    - CRY-01  
+    - CRY-03  
+    - CRY-05  
+    - DCH-18  
+    - DCH-18.2  
+    - DCH-09.3  
+    - DCH-21  
+    - DCH-01.3  
+    - PRI-11  
+    - PRI-05  
+    - PRI-07.4  
+    - PRI-12  
+    - PRI-06.4  
+    - PRI-03.8  
+    - GOV-01  
+    - GOV-02  
+    - GOV-03  
+    - CPL-01  
+    - CPL-02  
+    - CPL-03  
+    - TPM-01  
+    - TPM-04  
+    - TPM-05  
+    - SEA-01  
+    - SEA-01.1  
+    - IAC-01  
+    - SAT-01  
+    - HRS-05.1  
+    - HRS-05.2  
+    - HRS-07
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

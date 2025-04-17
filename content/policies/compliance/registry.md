@@ -4,6 +4,53 @@ description: "Statements on in-scope regulations"
 weight: 10
 taxonomies:
   SCF:
+    - GOV-01
+    - PRI-01
+    - PRI-01.2
+    - PRI-01.3
+    - PRI-01.4
+    - PRI-02
+    - PRI-02.1
+    - PRI-02.2
+    - PRI-03
+    - PRI-03.1
+    - PRI-03.2
+    - PRI-03.3
+    - PRI-03.4
+    - PRI-03.6
+    - PRI-03.8
+    - PRI-04
+    - PRI-04.1
+    - PRI-05
+    - PRI-05.1
+    - PRI-05.4
+    - PRI-05.5
+    - PRI-05.6
+    - PRI-05.7
+    - PRI-07
+    - PRI-09
+    - PRI-11
+    - PRI-14.2
+    - PRI-15
+    - PRI-17
+    - PRI-17.1
+    - DCH-01
+    - DCH-02
+    - DCH-18.1
+    - DCH-18.2
+    - SAT-01
+    - SAT-02
+    - SAT-02.1
+    - SAT-03
+    - SAT-03.1
+    - SAT-03.2
+    - SAT-03.3
+    - SAT-04
+    - PRM-01
+    - AST-04
+    - CFG-08.1
+    - CPL-01
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

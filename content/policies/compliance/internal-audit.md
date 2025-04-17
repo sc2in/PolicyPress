@@ -8,6 +8,29 @@ taxonomies:
     - CC4.1
     - CC4.2
     - CC7.1
+  SCF:
+    - GOV-01
+    - GOV-01.2
+    - GOV-02
+    - GOV-03
+    - GOV-05
+    - GOV-15
+    - PRI-01.3
+    - PRI-09
+    - PRI-11
+    - PRI-14
+    - PRI-14.1
+    - CPL-02
+    - CPL-03
+    - RSK-04
+    - RSK-11
+    - MON-01
+    - MON-02
+    - IAO-01
+    - IAO-07
+    - CFG-08.1
+    - TDA-09
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

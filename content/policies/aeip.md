@@ -1,5 +1,5 @@
 ---
-title: "All Employee Infoformation Security Policy"
+title: "All Employee InfoSec Policy"
 description:  "Overall security policy for all employees"
 draft: false
 weight: 2

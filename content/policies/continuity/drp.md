@@ -81,7 +81,7 @@ If any corporate server needs to be recovered, {{ config.extra.organization }} u
 
 ### Code Base
 
-OnBoard's code base is contained within Visual Studio Online and stored in the cloud.
+{{ config.extra.organization }}'s code base is contained within Visual Studio Online and stored in the cloud.
 
 ### Physical Location Backup
 

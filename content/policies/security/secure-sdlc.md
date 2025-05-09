@@ -24,6 +24,13 @@ taxonomies:
     - PI1.4
     - P4.1
     - P4.3
+  SCF:
+    - PRM-07
+    - PRM-08
+    - RSK-01
+    - TDA-01.3
+    - TDA-01.4
+    - TDA-02
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

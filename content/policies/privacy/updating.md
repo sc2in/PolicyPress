@@ -8,6 +8,20 @@ taxonomies:
   TSC2017: ["P1.1"]
   ISO27001:
     - "2.1"
+  SCF:
+    - GOV-01
+    - GOV-01.1
+    - GOV-01.2
+    - GOV-04
+    - GOV-04.1
+    - GOV-04.2
+    - PRI-01.7
+    - PRI-02
+    - PRI-02.1
+    - PRI-07.4
+    - PRI-08
+    - PRI-10
+
 extra:
   owner: SC2
   last_reviewed: 2024-08-20

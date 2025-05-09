@@ -12,6 +12,14 @@ taxonomies:
     - P4.1
     - P3.1
     - P3.2
+  SCF:
+    - GOV-01
+    - GOV-01.1
+    - GOV-01.2
+    - DCH-01.2
+    - DCH-01.3
+    - DCH-01.4
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

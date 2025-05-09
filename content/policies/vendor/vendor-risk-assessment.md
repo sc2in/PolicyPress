@@ -9,6 +9,16 @@ taxonomies:
     - CC3.4
     - CC4.2
     - CC9.2
+  SCF:
+    - RSK-10
+    - RSK-11
+    - RSK-12
+    - BCD-04
+    - BCD-04.1
+    - BCD-04.2
+    - TDA-02.6
+    - TDA-03
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

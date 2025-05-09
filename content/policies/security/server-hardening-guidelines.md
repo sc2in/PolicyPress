@@ -10,6 +10,24 @@ taxonomies:
     - PI1.2
     - PI1.3
     - PI1.4
+  SCF:
+    - CFG-02.2
+    - CFG-02.3
+    - CFG-02.4
+    - CFG-03.2
+    - CFG-03.3
+    - CFG-71
+    - CFG-72
+    - CM-21
+    - CM-22
+    - CM-23
+    - CM-61
+    - CM-74
+    - CM-75
+    - SC-184
+    - TDA-02.4
+    - TDA-02.5
+    - END-14
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

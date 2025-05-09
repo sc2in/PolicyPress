@@ -9,6 +9,13 @@ taxonomies:
     - A1.2
     - A1.3
     - CC9.1
+  SCF:
+    - BCD-01.6
+    - BCD-02
+    - BCD-02.1
+    - BCD-05
+    - BCD-06
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

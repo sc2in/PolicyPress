@@ -10,6 +10,13 @@ taxonomies:
     - CC9.2
     - P6.4
     - P6.5
+  SCF:
+    - TPM-03.1
+    - TPM-03.2
+    - TPM-03.3
+    - TPM-05.2
+    - TPM-05.3
+    - TPM-05.4
 extra:
   owner: SC2
   last_reviewed: 2025-04-16
@@ -69,7 +76,7 @@ Upon departure of a vendor or vendor employee from the contract for any reason, 
 
 Appropriate Management and any necessary personnel A) reviews licensing annually, B) tracks changes in the IT Spending Checklist spreadsheet, C) tracks licensing in our Vendor Management system, D) compares any necessary license needs with hardware inventory, and E) works with Accounting to determine any cost reduction that can occur.
 
-## Enforcement:
+## Enforcement
 
 Controls include, but are not limited to, customer satisfaction surveys, keeping track of the frequency of occurrence of breaches, and monitoring activity on {{ config.extra.organization }} networks.
 

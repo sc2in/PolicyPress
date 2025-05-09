@@ -8,6 +8,14 @@ taxonomies:
   TSC2017:
     - A1.2
     - CC9.1
+  SCF:
+    - BCD-01.6
+    - BCD-02
+    - BCD-02.1
+    - BCD-09.2
+    - BCD-09.3
+    - BCD-09.4
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

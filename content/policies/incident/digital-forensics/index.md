@@ -12,6 +12,20 @@ taxonomies:
       - C1.1
       - C1.2
       - CC6.7
+   SCF:
+      - IRO-09
+      - MON-04
+      - MON-05
+      - MON-06
+      - MON-08.1
+      - MON-08.2
+      - MON-08.3
+      - MON-08.4
+      - MON-09
+      - LOG-02
+      - LOG-04
+      - LOG-09
+      - DCH-25.1
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

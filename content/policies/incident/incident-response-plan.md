@@ -10,6 +10,14 @@ taxonomies:
     - CC7.4
     - CC7.5
     - P6.6
+  SCF:
+    - IRO-01
+    - IRO-02
+    - IRO-04
+    - IRO-04.1
+    - IRO-04.2
+    - IRO-06.1
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

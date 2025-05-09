@@ -6,6 +6,13 @@ date: 2024-11-13
 weight: 10
 taxonomies:
   SCF:
+    - GOV-01
+    - GOV-01.1
+    - GOV-01.2
+    - GOV-02
+    - GOV-02.1
+    - GOV-03
+
 extra:
   owner: SC2
   last_reviewed: 2025-04-16

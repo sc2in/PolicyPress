@@ -44,27 +44,27 @@ extra:
 
 ## Overview
 
-In accordance with mandated organizational security requirements set forth and approved by management, {{ config.extra.organization }}, Inc. ("{{ config.extra.organization }}") has established a formal Secure Agile Software Development Life Cycle Policy and supporting procedures. This policy is to be implemented immediately along with all relevant and applicable procedures. Additionally, this policy is to be evaluated on a periodically for ensuring its adequacy and relevancy regarding {{ config.extra.organization }}' needs and goals. {{ config.extra.organization }} is a HIPAA, FERPA and GLBA-Compliant organization. On occasion, customers and prospects, as part of their due diligence, require information regarding our software development. {{ config.extra.organization }} is therefore transparent regarding our software development and security practices.
+In accordance with mandated organizational security requirements set forth and approved by management, {{ org() }}, Inc. ("{{ org() }}") has established a formal Secure Agile Software Development Life Cycle Policy and supporting procedures. This policy is to be implemented immediately along with all relevant and applicable procedures. Additionally, this policy is to be evaluated on a periodically for ensuring its adequacy and relevancy regarding {{ org() }}' needs and goals. {{ org() }} is a HIPAA, FERPA and GLBA-Compliant organization. On occasion, customers and prospects, as part of their due diligence, require information regarding our software development. {{ org() }} is therefore transparent regarding our software development and security practices.
 
 ## Purpose
 
-This policy and supporting procedures are designed to provide {{ config.extra.organization }} with a documented and formalized Secure Agile Software Development Life Cycle Policy that is to be adhered to and utilized throughout the organization at all times. Compliance with the stated policy and supporting procedures helps ensure the Confidentiality, Integrity and Availability (CIA) of Customer data and {{ config.extra.organization }} system resources.
+This policy and supporting procedures are designed to provide {{ org() }} with a documented and formalized Secure Agile Software Development Life Cycle Policy that is to be adhered to and utilized throughout the organization at all times. Compliance with the stated policy and supporting procedures helps ensure the Confidentiality, Integrity and Availability (CIA) of Customer data and {{ org() }} system resources.
 
 ## Scope
 
-This policy and supporting procedures encompasses all system resources that are owned, operated, maintained, and controlled by {{ config.extra.organization }} and all other system resources, both internally and externally, that interact with these systems.
+This policy and supporting procedures encompasses all system resources that are owned, operated, maintained, and controlled by {{ org() }} and all other system resources, both internally and externally, that interact with these systems.
 
-Internal system resources are those owned, operated, maintained, and controlled by {{ config.extra.organization }} and include all network devices (firewalls, routers, switches, load balancers, other network devices), servers (both physical and virtual servers, along with the operating systems and applications that reside on them) and any other system resources deemed in scope.
+Internal system resources are those owned, operated, maintained, and controlled by {{ org() }} and include all network devices (firewalls, routers, switches, load balancers, other network devices), servers (both physical and virtual servers, along with the operating systems and applications that reside on them) and any other system resources deemed in scope.
 
-External system resources are those owned, operated, maintained, and controlled by any entity other than {{ config.extra.organization }}, but for which these very resources may impact the CIA and overall security of {{ config.extra.organization }}' services.
+External system resources are those owned, operated, maintained, and controlled by any entity other than {{ org() }}, but for which these very resources may impact the CIA and overall security of {{ org() }}' services.
 
 ## Policy
 
-{{ config.extra.organization }} is to ensure that the Secure Agile Software Development Life Cycle Policy adheres to the following conditions for purposes of complying with the mandated organizational security requirements set forth and approved by management:
+{{ org() }} is to ensure that the Secure Agile Software Development Life Cycle Policy adheres to the following conditions for purposes of complying with the mandated organizational security requirements set forth and approved by management:
 
 ### Security
 
-{{ config.extra.organization }} engineering teams shall employ a continuous focus on security ensuring the Confidentiality, Integrity, and Availability (CIA) of {{ config.extra.organization }} customers' data and the services we provide to them which enable customer access to data. {{ config.extra.organization }} engineering teams shall adhere to the Open Web Application Security Project (OWASP) standard for Web development and maintain a constant diligence in avoiding the OWASP Top 10 most critical web application security risks.
+{{ org() }} engineering teams shall employ a continuous focus on security ensuring the Confidentiality, Integrity, and Availability (CIA) of {{ org() }} customers' data and the services we provide to them which enable customer access to data. {{ org() }} engineering teams shall adhere to the Open Web Application Security Project (OWASP) standard for Web development and maintain a constant diligence in avoiding the OWASP Top 10 most critical web application security risks.
 
 **OWASP Top 10 (2021)**
 
@@ -83,33 +83,33 @@ See the [OWASP Top 10](https://owasp.org/www-project-top-ten/) project site for 
 
 ### Privacy
 
-{{ config.extra.organization }} commits to the protection of the confidential and private information entrusted to us by our customers. During the development of new products and features, the protection of such information is considered at each step of the SDLC. Personal identifiable information (PII) will never be used for the purposes of testing and will not be copied to any non-production application environment for developmental purposes without express written consent from the customer. Any feature or enhancement which may process PII will be developed with privacy and security of customer confidential information in mind as set forth in the [Privacy Policy](@/policies/privacy/policy.md) and other processes and procedures.
+{{ org() }} commits to the protection of the confidential and private information entrusted to us by our customers. During the development of new products and features, the protection of such information is considered at each step of the SDLC. Personal identifiable information (PII) will never be used for the purposes of testing and will not be copied to any non-production application environment for developmental purposes without express written consent from the customer. Any feature or enhancement which may process PII will be developed with privacy and security of customer confidential information in mind as set forth in the [Privacy Policy](@/policies/privacy/policy.md) and other processes and procedures.
 
-Access to production data, including confidential information and PII, is restricted via {{ config.extra.organization }}' [Access Control Policy](@/policies/security/access-control.md). Data will be stored in a secure manner, and all data will be encrypted at rest and in transit. To the extent possible, data will be stored within a data center located in or near a customer's geographic and jurisdictional region. {{ config.extra.organization }} will comply with all applicable laws and regulations regarding the collection, use, and storage of personal information. See the [Data and Business Intelligence Policy](@/policies/data/data-and-bi.md) for more information.
+Access to production data, including confidential information and PII, is restricted via {{ org() }}' [Access Control Policy](@/policies/security/access-control.md). Data will be stored in a secure manner, and all data will be encrypted at rest and in transit. To the extent possible, data will be stored within a data center located in or near a customer's geographic and jurisdictional region. {{ org() }} will comply with all applicable laws and regulations regarding the collection, use, and storage of personal information. See the [Data and Business Intelligence Policy](@/policies/data/data-and-bi.md) for more information.
 
 ### Automated Systems and Artificial Intelligence
 
-{{ config.extra.organization }} is committed to the responsible use of automated systems and artificial intelligence (AI) in our products and services. No confidential or sensitive information will be used to train AI models, internal or external, without express written consent from the customer. {{ config.extra.organization }} will not use AI to make decisions that affect individuals without human oversight and accountability. We will ensure that any AI systems used in our products and services are transparent, explainable, and auditable and will comply with all applicable laws and regulations regarding the use of AI and automated systems. See the [{{ config.extra.organization }} AI Acceptable Use Policy](@/policies/vendor/generative_ai.md) for more information.
+{{ org() }} is committed to the responsible use of automated systems and artificial intelligence (AI) in our products and services. No confidential or sensitive information will be used to train AI models, internal or external, without express written consent from the customer. {{ org() }} will not use AI to make decisions that affect individuals without human oversight and accountability. We will ensure that any AI systems used in our products and services are transparent, explainable, and auditable and will comply with all applicable laws and regulations regarding the use of AI and automated systems. See the [{{ org() }} AI Acceptable Use Policy](@/policies/vendor/generative_ai.md) for more information.
 
 ### Deployment
 
-{{ config.extra.organization }} engineering teams shall employ practices necessary to facilitate a continuous stream of new functionality, enhancements, and maintenance of our products. This will foster greater sales and a greater sense of assurance with customers that {{ config.extra.organization }} listens to their needs and makes every attempt to provide the highest software industry customer experience and meet the evolving needs of our current and future customers.
+{{ org() }} engineering teams shall employ practices necessary to facilitate a continuous stream of new functionality, enhancements, and maintenance of our products. This will foster greater sales and a greater sense of assurance with customers that {{ org() }} listens to their needs and makes every attempt to provide the highest software industry customer experience and meet the evolving needs of our current and future customers.
 
 ### Quality
 
-{{ config.extra.organization }} engineering teams shall employ such practices as, but not limited to, Test-Driven Development/Behavior-Driven Development, Automated Functional/System and Behavior Testing, automated and manual code review to ensure that we practice the highest software quality standards and deliver the experience our customers expect.
+{{ org() }} engineering teams shall employ such practices as, but not limited to, Test-Driven Development/Behavior-Driven Development, Automated Functional/System and Behavior Testing, automated and manual code review to ensure that we practice the highest software quality standards and deliver the experience our customers expect.
 
 ### Vendor Management
 
-{{ config.extra.organization }} engineering teams shall ensure that any third-party software, services, or components are vetted, licensed, and approved by the appropriate {{ config.extra.organization }} personnel prior to being utilized in any product or service. This includes, but is not limited to, open source software, libraries, and frameworks. Teams are expected to maintain a Software Bill of Materials (SBOM) for each of their projects that includes the license type of each external component. (See the {{ config.extra.organization }} [Vendor Management Policy](@/policies/vendor/vendor-3rd-party-management.md) for more information.)
+{{ org() }} engineering teams shall ensure that any third-party software, services, or components are vetted, licensed, and approved by the appropriate {{ org() }} personnel prior to being utilized in any product or service. This includes, but is not limited to, open source software, libraries, and frameworks. Teams are expected to maintain a Software Bill of Materials (SBOM) for each of their projects that includes the license type of each external component. (See the {{ org() }} [Vendor Management Policy](@/policies/vendor/vendor-3rd-party-management.md) for more information.)
 
 ### Communication
 
-{{ config.extra.organization }} engineering teams shall ensure a common understanding and collaboration is built between the engineers, testers, stakeholders, and all other participants, while keeping management aware of significant issues, concerns, constraints, and risks.
+{{ org() }} engineering teams shall ensure a common understanding and collaboration is built between the engineers, testers, stakeholders, and all other participants, while keeping management aware of significant issues, concerns, constraints, and risks.
 
 ## Secure Agile Software Development Life Cycle
 
-The fast-paced and complex business needs of {{ config.extra.organization }} and our customers demand software solutions much quicker and more efficiently than traditional Software Development Life Cycle (SDLC) methodologies, such as waterfall and other similar methods. Because software requirements often cannot be given in the beginning of an SDLC, agile development methodologies need to be incorporated for allowing speed, collaboration, and flexibility in designing, developing, and deploying software.
+The fast-paced and complex business needs of {{ org() }} and our customers demand software solutions much quicker and more efficiently than traditional Software Development Life Cycle (SDLC) methodologies, such as waterfall and other similar methods. Because software requirements often cannot be given in the beginning of an SDLC, agile development methodologies need to be incorporated for allowing speed, collaboration, and flexibility in designing, developing, and deploying software.
 
 Simply stated, agile methodologies allow for the development of software through an iterative approach, whereby the entire SDLC process is adhered to, but in incremental steps, by dividing the SDLC into modules and sequences (Sprints). At the end of each Sprint, the Development Team delivers incremental work on a given project/product, which ultimately allows for requirements gathering to be a continuous process, thereby ensuring the stakeholders determine the course of the software being developed. Thus, the following phases for SDLC are implemented throughout the agile development process, but not sequentially in terms of traditional SDLC, rather in Sprints and revisited and reassessed as needed throughout the product life cycle.
 
@@ -127,7 +127,7 @@ Traditional SDLC (Waterfall) Process:
 - Maintenance
 - Disposition
 
-{{ config.extra.organization }} Agile Scrum Process:
+{{ org() }} Agile Scrum Process:
 
 - Strategic Planning
 - Inception Deck Creation (Initiation)
@@ -156,7 +156,7 @@ The Scrum Team functions as a single unit through collaboration and experience s
 
 ### Benefits of the Secure Agile Software Development Life Cycle
 
-There are a number of benefits for {{ config.extra.organization }} implementing agile software development, specifically, the following:
+There are a number of benefits for {{ org() }} implementing agile software development, specifically, the following:
 
 - Helps in ultimately speeding up all the relevant and in-scope SDLC phases, thus forgoing steps deemed unnecessary or redundant.
 - Leads to more secure software as more frequent and more intensive manual and automated testing and code review is performed.
@@ -169,7 +169,7 @@ There are a number of benefits for {{ config.extra.organization }} implementing 
 
 ### Agile Manifesto Principles
 
-In using the agile development process, {{ config.extra.organization }} strives all time for adhering to the following best practices as put forth by the Agile Manifesto:
+In using the agile development process, {{ org() }} strives all time for adhering to the following best practices as put forth by the Agile Manifesto:
 
 1. Our highest priority is to satisfy the customer through early and continuous delivery of valuable software.
 1. Welcome changing requirements, even late in development. Agile processes harness change for the customer's competitive advantage.
@@ -183,7 +183,7 @@ In using the agile development process, {{ config.extra.organization }} strives 
 1. Simplicity--the art of maximizing the amount of work not done--is essential.
 1. The best architectures, requirements, and designs emerge from self-organizing teams.
 1. At regular intervals, the team reflects on how to become more effective, then tunes and adjusts its behavior accordingly.
-1. {{ config.extra.organization }} Secure Scrum Process
+1. {{ org() }} Secure Scrum Process
 
 ### Strategic Planning
 
@@ -233,7 +233,7 @@ All features must then be evaluated before they can be considered for developmen
 - Development Feasibility
 - Business Viability
 
-The product manager should employ the assistance of an engineer for the product as well as a designer for purposes of evaluating architecture capabilities, security implications, and other technical considerations. The products of this discovery may then be circulated for internal {{ config.extra.organization }} stakeholder or customers for feedback on the intended solution.
+The product manager should employ the assistance of an engineer for the product as well as a designer for purposes of evaluating architecture capabilities, security implications, and other technical considerations. The products of this discovery may then be circulated for internal {{ org() }} stakeholder or customers for feedback on the intended solution.
 
 Once the product manager has determined the scope and evaluation of the feature to their satisfaction, the feature may move forward within the SDLC.
 
@@ -243,7 +243,7 @@ Once the product manager has determined the scope and evaluation of the feature 
 
 ### Feature Design
 
-Design of a feature is one of the most critical parts of the overall creation process as it will be the overall experience our customers will ultimately have with the product. During this phase, the product manager will, with scope and requirements in hand, work closely with the design team to define and evaluate workflows, interactive elements, and messaging that will become the interface for the feature within the product and solve the problem that the feature sets out to address. These designs and prototypes may be circulated within {{ config.extra.organization }} to key stakeholders and with target customers to elicit feedback to be used at the product manager's discretion.
+Design of a feature is one of the most critical parts of the overall creation process as it will be the overall experience our customers will ultimately have with the product. During this phase, the product manager will, with scope and requirements in hand, work closely with the design team to define and evaluate workflows, interactive elements, and messaging that will become the interface for the feature within the product and solve the problem that the feature sets out to address. These designs and prototypes may be circulated within {{ org() }} to key stakeholders and with target customers to elicit feedback to be used at the product manager's discretion.
 
 Once the product manager has determined that the designs are sufficient for their vision of the feature, the feature may begin engineering development.
 
@@ -298,7 +298,7 @@ During the Sprint:
 - Scope may be clarified and re-negotiated between the Product Manager and Development Team as more is learned
 - Each Sprint may be considered a project with no more than a one-month horizon. Like projects, Sprints are used to accomplish something. Each Sprint has a definition of what is to be built, a design and flexible plan that will guide building it, the work, and the resultant product.
 
-At {{ config.extra.organization }}, Sprint cycles are two weeks in duration. When a Sprint's horizon is too long the definition of what is being built may change, complexity may rise, and risk may increase. Sprints enable predictability by ensuring inspection and adaptation of progress toward a Sprint Goal with each at most every two weeks. Sprints also limit risk to two weeks of cost.
+At {{ org() }}, Sprint cycles are two weeks in duration. When a Sprint's horizon is too long the definition of what is being built may change, complexity may rise, and risk may increase. Sprints enable predictability by ensuring inspection and adaptation of progress toward a Sprint Goal with each at most every two weeks. Sprints also limit risk to two weeks of cost.
 
 At the end of each sprint, the Scrum Team should ideally have produced a Potentially Shippable Product Increment (PSPI). The PSPI should be the deliverable that every sprint outputs and ensures that the Scrum Team is able to deliver value to customers quickly.
 
@@ -335,7 +335,7 @@ In Scrum, on each day of a sprint, the team holds a short daily meeting called t
 
 The purpose of the standup is to resync the Development Team and plan work for the day and to bring up and discuss any impediments the team has encountered. Use of metrics such as a burndown chart (a chart showing the relative progress the team has made day over day during the sprint) may be employed to inform the team of any potential issues with the progress of the sprint. The standup is not intended to be a status meeting.
 
-As communication is a value highly regarded in Scrum, anyone within {{ config.extra.organization }} may attend a daily standup meeting as an observer, but only the listed participants may speak.
+As communication is a value highly regarded in Scrum, anyone within {{ org() }} may attend a daily standup meeting as an observer, but only the listed participants may speak.
 
 **Participants:** Development Team, Product Manager and/or Product Owner (Optional), Scrum Master (Optional)
 
@@ -367,11 +367,11 @@ During development, engineers will follow the following methodology:
 
 #### Continuous Integration, Testing, Continuous Delivery
 
-{{ config.extra.organization }} employs a Continuous Integration/Continuous Delivery practice for code changes with emphasis on automated testing.
+{{ org() }} employs a Continuous Integration/Continuous Delivery practice for code changes with emphasis on automated testing.
 
 ##### Continuous Integration
 
-Continuous Integration (CI) involves producing a clean build of the system several times per day, usually with a CI tool. Agile teams typically configure CI to include automated compilation, unit test execution, and source control integration. This is the model {{ config.extra.organization }} has implemented.
+Continuous Integration (CI) involves producing a clean build of the system several times per day, usually with a CI tool. Agile teams typically configure CI to include automated compilation, unit test execution, and source control integration. This is the model {{ org() }} has implemented.
 
 The purpose of the CI practice is summed up by two objectives:
 
@@ -381,7 +381,7 @@ Be able to deliver a product version suitable for release at any moment
 
 In practice, this dual objective requires an integration procedure which is reproducible and largely automated. Reproducibility and automation are achieved through version control tools, team policies and conventions, and tools specifically designed to help achieve continuous integration.
 
-{{ config.extra.organization }}' Automated Code Validation CI Policy and Practices are outlined below:
+{{ org() }}' Automated Code Validation CI Policy and Practices are outlined below:
 
 - Code Review – Executed when an engineer merges completed code with the shared development branch for a feature. This must be accepted by 2 or more other engineers before continuing
 - CI Trigger – After code review, the pull-request is completed and the code is merged with the common branch. A build is initiated following code check-in.
@@ -400,23 +400,23 @@ Unit tests:
 
 Unit tests run very close to core components in the code. They are the first line of defense in ensuring quality. Unit tests should be easy to write, run fast, closely model the architecture of the code base. Other testing is necessary since unit tests only validate core components of software and don't reflect user workflows which often involve several components working together.
 
-Since a unit test explains how the code should work, {{ config.extra.organization }} developers can review unit tests to get current on that area of the code.
+Since a unit test explains how the code should work, {{ org() }} developers can review unit tests to get current on that area of the code.
 
 API tests:
 
-{{ config.extra.organization }} software is modular, which allows for clearer separation of work across several applications. APIs are the end points where different modules communicate with one another, and API tests validate them by making calls from one module to another. API tests are generally easy to write, run fast, and can easily model how applications will interact with one another.
+{{ org() }} software is modular, which allows for clearer separation of work across several applications. APIs are the end points where different modules communicate with one another, and API tests validate them by making calls from one module to another. API tests are generally easy to write, run fast, and can easily model how applications will interact with one another.
 
 Since APIs are the interfaces between parts of the application, they are especially useful when preparing for a release. Once a release candidate build passes all its API tests, the team can be much more confident releasing it to customers.
 
 Functional tests:
 
-Functional tests work over larger areas of the code base and model user workflows. {{ config.extra.organization }} employs a series of manual and automated system and functional tests per release. A standard battery of tests is run regularly per sprint cycle and full software regression is run prior to each release of new software deployed to customers. Functional tests are more likely to find bugs because they mimic user actions and test the interoperability of multiple components.
+Functional tests work over larger areas of the code base and model user workflows. {{ org() }} employs a series of manual and automated system and functional tests per release. A standard battery of tests is run regularly per sprint cycle and full software regression is run prior to each release of new software deployed to customers. Functional tests are more likely to find bugs because they mimic user actions and test the interoperability of multiple components.
 
 ##### Continuous Delivery
 
-Continuous Delivery (CD) is the practice of using automation to produce releasable software in short iterations, allowing {{ config.extra.organization }}' Development Teams to ship working software more frequently. Along with CI, automated testing, constant monitoring, and analytics feedback, CD gives {{ config.extra.organization }} an increasing the ability to react to change.
+Continuous Delivery (CD) is the practice of using automation to produce releasable software in short iterations, allowing {{ org() }}' Development Teams to ship working software more frequently. Along with CI, automated testing, constant monitoring, and analytics feedback, CD gives {{ org() }} an increasing the ability to react to change.
 
-Since tests are run constantly, and {{ config.extra.organization }} tests are written and reviewed in such a way as to provide a measurable guarantee of quality and security, then it is possible for {{ config.extra.organization }} to release software at any point in time. CD therefore doesn't always mean delivering, but rather it represents a {{ config.extra.organization }} philosophy and commitment to ensuring that our code is always in a release-ready state.
+Since tests are run constantly, and {{ org() }} tests are written and reviewed in such a way as to provide a measurable guarantee of quality and security, then it is possible for {{ org() }} to release software at any point in time. CD therefore doesn't always mean delivering, but rather it represents a {{ org() }} philosophy and commitment to ensuring that our code is always in a release-ready state.
 
 **Tasks** : Create automated Unit, API and Functional tests. Run all automated tests as software is integrated, deliver integrated/tested software to production repository release candidacy.
 
@@ -424,9 +424,9 @@ Since tests are run constantly, and {{ config.extra.organization }} tests are wr
 
 #### Sprint Review
 
-At {{ config.extra.organization }}, each Sprint is required to deliver a potentially shippable product increment (PSPI). This means that at the end of each Sprint, the team will have produced a coded, tested and usable piece of software. So, at the end of each Sprint, a Sprint Review meeting will be held. During this meeting, the Scrum team shows what they accomplished during the Sprint. Typically, this may take the form of a demo of the new features.
+At {{ org() }}, each Sprint is required to deliver a potentially shippable product increment (PSPI). This means that at the end of each Sprint, the team will have produced a coded, tested and usable piece of software. So, at the end of each Sprint, a Sprint Review meeting will be held. During this meeting, the Scrum team shows what they accomplished during the Sprint. Typically, this may take the form of a demo of the new features.
 
-The purpose of the sprint review is to display the PSPI to all stakeholders in order for the stakeholders to inspect the PSPI and assist the Product Manager or Product Owner in adapting the product for future goals. It is also an opportunity for non-Scrum Team {{ config.extra.organization }} employees to become familiar with current and upcoming changes to the product to best prepare their own teams to adapt to these changes.
+The purpose of the sprint review is to display the PSPI to all stakeholders in order for the stakeholders to inspect the PSPI and assist the Product Manager or Product Owner in adapting the product for future goals. It is also an opportunity for non-Scrum Team {{ org() }} employees to become familiar with current and upcoming changes to the product to best prepare their own teams to adapt to these changes.
 
 The Sprint Review meeting will be kept very informal and allowing no more than two hours of preparation time for the meeting. A Sprint Review meeting should not become a distraction or significant detour for the team; rather, it should be a natural result of the Sprint.
 
@@ -466,7 +466,7 @@ As the scrum master is a part of the scrum team, it is also advisable that the f
 
 ### Feature Launch and Application Patches
 
-Feature Launch, which includes application patches, requires many touch-points with each department at {{ config.extra.organization }}. Particular emphasis is placed on Customer Success, Training and Marketing. Prior to Feature Launch, comprehensive manual and automated quality and security checks are performed, including full regression analysis and testing to ensure the confidentiality, integrity and availability (CIA) of the software and environment. Internal "customers" such as Customer Success Managers, Sales staff and Technical Support agents are also trained.
+Feature Launch, which includes application patches, requires many touch-points with each department at {{ org() }}. Particular emphasis is placed on Customer Success, Training and Marketing. Prior to Feature Launch, comprehensive manual and automated quality and security checks are performed, including full regression analysis and testing to ensure the confidentiality, integrity and availability (CIA) of the software and environment. Internal "customers" such as Customer Success Managers, Sales staff and Technical Support agents are also trained.
 
 Once all internal teams are satisfied that their members are ready for feature or patch release, the release team made up of representatives of these teams will hold a "Go/No-Go" launch meeting. If a release team member, speaking on behalf of their team, issues a "no-go," the release team will take appropriate steps to address the cause of the denial of launch. IF all members issue a "Go," the Product Manager, or Product Owner, is then authorized to release the feature or patch to general availability (GA). Once the Feature Launch or "go live" is complete, marketing materials are finalized and sent out, customer training webinars are scheduled and feedback is taken. Feature Launch only is considered complete when all business, security, technical, and operational needs and requirements are ultimately met.
 
@@ -476,8 +476,8 @@ Once all internal teams are satisfied that their members are ready for feature o
 
 ## Maintenance
 
-Maintenance of {{ config.extra.organization }}' software consists of undertaking necessary measures for ensuring all operational, performance, security – and other necessary needs and measures – are being met at all times. Meeting such goals ensures the confidentiality, integrity, and availability (CIA) of the system itself. This requires a structured change management | change control process, one that has well-established and formalized policies, procedures, and supporting practices in place. Please see the {{ config.extra.organization }} Change Control Policy for more information. Furthermore, code reviews and other necessary testing for security measures are to be undertaken on a regular basis. Once operational, performance, security, or architectural changes have been identified and approved by the Change Control Board, the {{ config.extra.organization }}' software Engineering Team follows the Scrum process outlined above in section V.3. {{ config.extra.organization }} Secure Agile Scrum Process to ensure a high level of security, along with meeting the Service Level Objectives outlined in the {{ config.extra.organization }} Service Level Agreement are maintained while allowing for high throughput and quick time-to-market.
+Maintenance of {{ org() }}' software consists of undertaking necessary measures for ensuring all operational, performance, security – and other necessary needs and measures – are being met at all times. Meeting such goals ensures the confidentiality, integrity, and availability (CIA) of the system itself. This requires a structured change management | change control process, one that has well-established and formalized policies, procedures, and supporting practices in place. Please see the {{ org() }} Change Control Policy for more information. Furthermore, code reviews and other necessary testing for security measures are to be undertaken on a regular basis. Once operational, performance, security, or architectural changes have been identified and approved by the Change Control Board, the {{ org() }}' software Engineering Team follows the Scrum process outlined above in section V.3. {{ org() }} Secure Agile Scrum Process to ensure a high level of security, along with meeting the Service Level Objectives outlined in the {{ org() }} Service Level Agreement are maintained while allowing for high throughput and quick time-to-market.
 
 ## Responsibility for Policy Maintenance
 
-The {{ config.extra.organization }} Vice President of Product Management in conjunction with the Chief Information Security Officer and Vice President of Engineering is responsible for ensuring that the aforementioned policy is kept current as needed for purposes of compliance with mandated organizational security requirements set forth and approved by management.
+The {{ org() }} Vice President of Product Management in conjunction with the Chief Information Security Officer and Vice President of Engineering is responsible for ensuring that the aforementioned policy is kept current as needed for purposes of compliance with mandated organizational security requirements set forth and approved by management.

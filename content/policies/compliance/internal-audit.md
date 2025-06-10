@@ -44,15 +44,15 @@ extra:
 
 ## Purpose
 
-{{ config.extra.organization }} recognizes the importance and criticality of maintaining a fully functioning Information Security Management System (ISMS) and Privacy Information Management System (PIMS) in accordance with the ISO-27001:2022 and ISO-27701:2019 standards and requirements respectively. In order to properly maintain the ISMS and PIMS, {{ config.extra.organization }} requires an internal audit of systems, documents, and personnel to take place at specified intervals as defined in ISO-27001:2022 section 9.
+{{ org() }} recognizes the importance and criticality of maintaining a fully functioning Information Security Management System (ISMS) and Privacy Information Management System (PIMS) in accordance with the ISO-27001:2022 and ISO-27701:2019 standards and requirements respectively. In order to properly maintain the ISMS and PIMS, {{ org() }} requires an internal audit of systems, documents, and personnel to take place at specified intervals as defined in ISO-27001:2022 section 9.
 
 ## Frequency
 
-The internal audit for {{ config.extra.organization }} will take place at a minimum of once per annum. The duration of conducting the information gathering portion of the audit should take no longer than one work week.
+The internal audit for {{ org() }} will take place at a minimum of once per annum. The duration of conducting the information gathering portion of the audit should take no longer than one work week.
 
 ## Scope
 
-The internal audit for {{ config.extra.organization }} is limited to those systems, policies and procedures, documents, and departments tasked with handling customer information that resides within the {{ config.extra.organization }}' product or as otherwise declared in the ISMS and PIMS documentation. All physical locations that fall under this scope should be audited on-site. Any departments which fall under this scope should be audited. This includes at least, but is not limited to: Engineering, Technical Support, Human Resources, and Customer Success. 100% of the clauses, ISO-27001:2022 Annex A controls, and ISO-27701:2019 Annex B controls are tested annually.
+The internal audit for {{ org() }} is limited to those systems, policies and procedures, documents, and departments tasked with handling customer information that resides within the {{ org() }}' product or as otherwise declared in the ISMS and PIMS documentation. All physical locations that fall under this scope should be audited on-site. Any departments which fall under this scope should be audited. This includes at least, but is not limited to: Engineering, Technical Support, Human Resources, and Customer Success. 100% of the clauses, ISO-27001:2022 Annex A controls, and ISO-27701:2019 Annex B controls are tested annually.
 
 ## Criteria
 
@@ -67,7 +67,7 @@ The criteria for the audit is that all of the following adhere strictly to the I
 
 ## Methods
 
-The audit for {{ config.extra.organization }} will consist of three main phases.
+The audit for {{ org() }} will consist of three main phases.
 
 ### Planning
 

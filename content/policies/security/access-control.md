@@ -35,7 +35,7 @@ extra:
 
 ## Introduction
 
-{{ config.extra.organization }} is committed to conducting business in compliance with the HIPAA Security Rule and all applicable laws, regulations and organization policies and procedures. The organization has adopted this policy to ensure that access to electronic protected health information (ePHI), Non-Public Personal Information (NPI), or Personally Identifiable Information (PII) **[Collectively referred to as PII]** is only available to those persons or programs that have been appropriately granted such access.
+{{ org() }} is committed to conducting business in compliance with the HIPAA Security Rule and all applicable laws, regulations and organization policies and procedures. The organization has adopted this policy to ensure that access to electronic protected health information (ePHI), Non-Public Personal Information (NPI), or Personally Identifiable Information (PII) **[Collectively referred to as PII]** is only available to those persons or programs that have been appropriately granted such access.
 
 The scope of this policy covers the unique user identification and password, emergency access, automatic logoff, encryption and decryption, firewall, and remote and wireless access procedures that will apply to electronic information systems that maintain PII to assure that such systems are accessed only by those persons or software programs that have been granted access rights.
 
@@ -59,7 +59,7 @@ Firewall and remote access must be configured and managed according to the guide
 
 ## Access Revocation
 
-When a User leaves {{ config.extra.organization }}, all system privileges immediately cease, and access to {{ config.extra.organization }} information must likewise immediately cease. All {{ config.extra.organization }} information disclosed to Users must be returned or destroyed. All work done by Users for {{ config.extra.organization }} is {{ config.extra.organization }}' property, and it too must remain with {{ config.extra.organization }} when a User departs. For instance, a computer program written for {{ config.extra.organization }} is {{ config.extra.organization }} property and must remain with {{ config.extra.organization }}.
+When a User leaves {{ org() }}, all system privileges immediately cease, and access to {{ org() }} information must likewise immediately cease. All {{ org() }} information disclosed to Users must be returned or destroyed. All work done by Users for {{ org() }} is {{ org() }}' property, and it too must remain with {{ org() }} when a User departs. For instance, a computer program written for {{ org() }} is {{ org() }} property and must remain with {{ org() }}.
 
 ## Default System Access
 
@@ -67,11 +67,11 @@ By default, all Users will be provided with basic information systems services n
 
 ## User ID Assignment
 
-Users will be assigned their own unique user-ID to be used to access systems throughout the organization. When a user leaves the organization, the ID will be permanently decommissioned. Re-use of user-IDs is not allowed. User-IDs and related passwords must not be shared with any other individuals (The {{ config.extra.organization }} corporate portal, or other mechanisms for sharing information such as electronic mail or shared folders should be employed). User-IDs are associated with specific people, and are not linked to computer terminals, departments, or job titles. Anonymous user-IDs (such as "guest") are not allowed unless approved in advance by the Information Technology Department.
+Users will be assigned their own unique user-ID to be used to access systems throughout the organization. When a user leaves the organization, the ID will be permanently decommissioned. Re-use of user-IDs is not allowed. User-IDs and related passwords must not be shared with any other individuals (The {{ org() }} corporate portal, or other mechanisms for sharing information such as electronic mail or shared folders should be employed). User-IDs are associated with specific people, and are not linked to computer terminals, departments, or job titles. Anonymous user-IDs (such as "guest") are not allowed unless approved in advance by the Information Technology Department.
 
 ## Access Approval
 
-The access control approval process is initiated by a worker's manager. The privileges granted will remain in effect until the worker's job changes or the worker's employment ends with {{ config.extra.organization }}. The Information Technology Department must be notified upon either event. All non-workers (contractors, consultants, temporaries, outsourcing firms, etc.) must be approved by a similar process. Control requests and authorization of non-workers is to be initiated by the project supervisor. Non-worker privileges must be revoked through the Information Technology Department immediately when the project is complete, or when the non-workers stop working with {{ config.extra.organization }}. The relevant project supervisor must review the need for the continuing privileges of non-workers every six months.
+The access control approval process is initiated by a worker's manager. The privileges granted will remain in effect until the worker's job changes or the worker's employment ends with {{ org() }}. The Information Technology Department must be notified upon either event. All non-workers (contractors, consultants, temporaries, outsourcing firms, etc.) must be approved by a similar process. Control requests and authorization of non-workers is to be initiated by the project supervisor. Non-worker privileges must be revoked through the Information Technology Department immediately when the project is complete, or when the non-workers stop working with {{ org() }}. The relevant project supervisor must review the need for the continuing privileges of non-workers every six months.
 
 ## Remote Office Security
 
@@ -79,5 +79,5 @@ The Information Technology Department must approve the security conditions of an
 
 ## Approval Required for Access to Internal Systems by Third Parties
 
-Prior to connecting to {{ config.extra.organization }} internal systems via VPN, LAN connections, etc. any third party must be approved and authorized to do so. Written approval must be obtained by the Information Technology Department. These third parties include providers such as software companies, marketing or advertising firms, beta development partners, customers, as well as contractors and consultants working on {{ config.extra.organization }} projects.
-Contract Required - Before any third party is given access to {{ config.extra.organization }}' systems, a contract defining the terms and conditions of such access must have been signed by an authorized person at the third party organization and the responsible {{ config.extra.organization }} management. Information Technology Department must approve the terms and conditions of the connection methods.
+Prior to connecting to {{ org() }} internal systems via VPN, LAN connections, etc. any third party must be approved and authorized to do so. Written approval must be obtained by the Information Technology Department. These third parties include providers such as software companies, marketing or advertising firms, beta development partners, customers, as well as contractors and consultants working on {{ org() }} projects.
+Contract Required - Before any third party is given access to {{ org() }}' systems, a contract defining the terms and conditions of such access must have been signed by an authorized person at the third party organization and the responsible {{ org() }} management. Information Technology Department must approve the terms and conditions of the connection methods.

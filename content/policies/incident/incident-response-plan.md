@@ -33,7 +33,7 @@ extra:
 
 ### General information
 
-This manual was developed by and for {{ config.extra.organization }}, Inc. herein referred to as {{ config.extra.organization }}, principally located at 333 N Alabama St, Suite 300, Indianapolis, IN 46202, herein referred to as LOCATION, and it is classified as the confidential property of that entity. Due to the sensitive nature of the information contained herein, this manual is available only to those persons who have been designated as members of one or more incident management teams, or who otherwise play a direct role in the incident response and recovery processes.
+This manual was developed by and for {{ org() }}, Inc. herein referred to as {{ org() }}, principally located at 333 N Alabama St, Suite 300, Indianapolis, IN 46202, herein referred to as LOCATION, and it is classified as the confidential property of that entity. Due to the sensitive nature of the information contained herein, this manual is available only to those persons who have been designated as members of one or more incident management teams, or who otherwise play a direct role in the incident response and recovery processes.
 
 Unless otherwise instructed, each plan recipient will receive and maintain two copies of the plan, stored as follows:
 
@@ -41,13 +41,13 @@ Unless otherwise instructed, each plan recipient will receive and maintain two c
 - One copy at the plan recipient's home
 
 
-The following employees constitute {{ config.extra.organization }}'s Information Security Team:
+The following employees constitute {{ org() }}'s Information Security Team:
 
 - 
 
-The incident management planning effort for {{ config.extra.organization }} recognizes and affirms the importance of people, processes, and technology to the corporation.
+The incident management planning effort for {{ org() }} recognizes and affirms the importance of people, processes, and technology to the corporation.
 
-It is the responsibility of each {{ config.extra.organization }} manager and employee to safeguard and keep confidential all corporate assets and all customer information.
+It is the responsibility of each {{ org() }} manager and employee to safeguard and keep confidential all corporate assets and all customer information.
 
 ## Definitions
 
@@ -69,9 +69,9 @@ While a service disruption may be an incident, not all service disruptions are i
 1. An information security incident is a suspected, attempted, successful, or imminent threat of unauthorized access, use, disclosure, breach, modification, or destruction of information; or interference with information technology operations. Examples of information security incidents:
 
    - Computer system intrusion
-   - Unauthorized or inappropriate disclosure of confidential {{ config.extra.organization }}'s data
-   - Unauthorized or inappropriate disclosure of confidential {{ config.extra.organization }}'s customer data
-   - Suspected or actual breaches, compromises, or other unauthorized access to {{ config.extra.organization }} systems, data, applications, or accounts
+   - Unauthorized or inappropriate disclosure of confidential {{ org() }}'s data
+   - Unauthorized or inappropriate disclosure of confidential {{ org() }}'s customer data
+   - Suspected or actual breaches, compromises, or other unauthorized access to {{ org() }} systems, data, applications, or accounts
    - Unauthorized changes to computers or software
    - Loss or theft of computer equipment or other data storage devices and media (e.g., laptop, USB drive, personally owned device used for university work) used to store private or potentially confidential information
    - Denial of service attack or an attack that prevents or impairs the authorized use of networks, systems, or applications
@@ -81,17 +81,17 @@ While the above definition includes numerous types of incidents, the requirement
 
 Occurrences such as incidental access by employees or other trusted persons where no harm is likely to result will usually not be considered information security incidents.
 
-1. A serious incident is an incident that may pose a substantial threat to {{ config.extra.organization }} resources, stakeholders, and/or services. An incident is designated as serious if it meets one or more of the following criteria:
+1. A serious incident is an incident that may pose a substantial threat to {{ org() }} resources, stakeholders, and/or services. An incident is designated as serious if it meets one or more of the following criteria:
 
-   - Involves potential, accidental, or other unauthorized access or disclosure of confidential {{ config.extra.organization }} information (as defined below)
+   - Involves potential, accidental, or other unauthorized access or disclosure of confidential {{ org() }} information (as defined below)
    - Involves legal issues including criminal activity, or may result in litigation or regulatory investigation
    - May cause severe disruption to mission critical services
    - Involves active threats
    - Is widespread
    - Is likely to be of public interest
-   - Is likely to cause reputational harm to {{ config.extra.organization }} or customers of {{ config.extra.organization }}
+   - Is likely to cause reputational harm to {{ org() }} or customers of {{ org() }}
 
-1. Confidential information is defined as information whose unauthorized disclosure may have serious adverse effect on the {{ config.extra.organization }}'s or {{ config.extra.organization }}'s customer reputation, resources, services, or individuals. [Information protected under federal or state regulations](http://safecomputing.umich.edu/protect-um-data/laws.php) or due to proprietary, ethical, or privacy considerations will typically be classified as confidential. confidential information includes personally identifiable information such as protected health information (PHI), Social Security numbers, credit card numbers, and any other information designated as confidential by {{ config.extra.organization }}.
+1. Confidential information is defined as information whose unauthorized disclosure may have serious adverse effect on the {{ org() }}'s or {{ org() }}'s customer reputation, resources, services, or individuals. [Information protected under federal or state regulations](http://safecomputing.umich.edu/protect-um-data/laws.php) or due to proprietary, ethical, or privacy considerations will typically be classified as confidential. confidential information includes personally identifiable information such as protected health information (PHI), Social Security numbers, credit card numbers, and any other information designated as confidential by {{ org() }}.
 
 ## Incident Response Plan Overview
 
@@ -110,11 +110,11 @@ This plan is designed to minimize operational and financial impacts of such a di
 
 ## Scope
 
-This incident management plan includes initial actions and procedures to respond to events that could impact critical business activities at {{ config.extra.organization }}. This plan is designed to minimize the operational and financial impacts of disasters.
+This incident management plan includes initial actions and procedures to respond to events that could impact critical business activities at {{ org() }}. This plan is designed to minimize the operational and financial impacts of disasters.
 
 ## Policy
 
-1. All users of {{ config.extra.organization }} IT resources must report all information security incidents to the IT Security Officer.
+1. All users of {{ org() }} IT resources must report all information security incidents to the IT Security Officer.
 1. Any event that appears to satisfy the definition of a serious information security incident must be reported to the Information Security Team. A record of the course of events will be kept in our ticket system.
 1. It is expected that incident reporting, from identification to reporting to the Information Security Team (if necessary), will occur within 24 hours.
 
@@ -128,8 +128,8 @@ This incident management plan includes initial actions and procedures to respond
 
 1. Privacy and Confidentiality of confidential Information:
 
-   1. When {{ config.extra.organization }} staff report, track, and respond to information security incidents, they must protect and keep confidential any confidential information.
-   1. Incident data retained for investigation will exclude any confidential information that is not required for incident response, analysis, or by law, regulation, or {{ config.extra.organization }} policy.
+   1. When {{ org() }} staff report, track, and respond to information security incidents, they must protect and keep confidential any confidential information.
+   1. Incident data retained for investigation will exclude any confidential information that is not required for incident response, analysis, or by law, regulation, or {{ org() }} policy.
 
 1. To ensure that the company responds appropriately to service distructions effectively, each business unit shall:
 
@@ -142,11 +142,11 @@ This incident management plan includes initial actions and procedures to respond
 
 ## Preparation
 
-{{ config.extra.organization }} educates employees about the importance of updated security measures and trains them to respond to computer and network security incidents quickly and correctly. {{ config.extra.organization }} requires that all employees comply with the company IT Security Policy.
+{{ org() }} educates employees about the importance of updated security measures and trains them to respond to computer and network security incidents quickly and correctly. {{ org() }} requires that all employees comply with the company IT Security Policy.
 
 ## Identification
 
-The response team is activated to decide whether a particular event is, in fact, a security incident. In the event of a data breach, {{ config.extra.organization }}'s Information Security Team will immediately perform and record a damage assessment, notify the affected customers within 24 hours of the completed damage assessment, and if necessary the appropriate authorities to the affected individuals. {{ config.extra.organization }} will involve a Microsoft support team if necessary.
+The response team is activated to decide whether a particular event is, in fact, a security incident. In the event of a data breach, {{ org() }}'s Information Security Team will immediately perform and record a damage assessment, notify the affected customers within 24 hours of the completed damage assessment, and if necessary the appropriate authorities to the affected individuals. {{ org() }} will involve a Microsoft support team if necessary.
 
 If a notification is required, incorporate as much of the following information as possible: ~~.~~
 
@@ -211,7 +211,7 @@ All data and software will be restored from clean backup files, ensuring that no
 
 - If necessary, the Software Engineering team will restore the backup files of the affected customer data to the database and ensure it is in a clean, fully recovered state for the affected organization(s).
 - The Customer Support and Client Success teams will contact the affected customers to notify them of the recovery and the continued security of their data.
-- If necessary, the appropriate authorities will be notified of the restoration and recovery of {{ config.extra.organization }} customer data.
+- If necessary, the appropriate authorities will be notified of the restoration and recovery of {{ org() }} customer data.
 
 ## Lessons Learned
 

@@ -38,8 +38,8 @@ extra:
 
 ## Purpose
 
-This cloud management policy applies to {{ config.extra.organization }} and is intended to
-provide guidance for evaluation, selection and management of cloud and SaaS vendors by {{ config.extra.organization }}.
+This cloud management policy applies to {{ org() }} and is intended to
+provide guidance for evaluation, selection and management of cloud and SaaS vendors by {{ org() }}.
 
 ## Evaluating and Selecting Cloud Vendors and Services
 
@@ -49,30 +49,30 @@ Assessment teams for each cloud vendor/service can vary but should generally inc
 
 ### Classification
 
-{{ config.extra.organization }} classifies cloud companies into three categories:
+{{ org() }} classifies cloud companies into three categories:
 
 - **SaaS vendors** provide an application to the organization that is fully managed by the vendor. Microsoft Office 365 and Dropbox are examples of SaaS vendors.
-  - Reviews of SaaS vendors should focus on whether they have the capabilities and capacities needed to support {{ config.extra.organization }} and whether their configuration meets {{ config.extra.organization }}’s minimum security requirements.
-  - {{ config.extra.organization }} reassesses SaaS vendors annually.
+  - Reviews of SaaS vendors should focus on whether they have the capabilities and capacities needed to support {{ org() }} and whether their configuration meets {{ org() }}’s minimum security requirements.
+  - {{ org() }} reassesses SaaS vendors annually.
 
 - **PaaS vendors** provide the ability to implement applications with minimal light coding. Microsoft Azure Pipelines and Heroku are examples of PaaS vendors.
-  - Reviews of PaaS vendors should focus on whether they have the capabilities and capacities needed to support {{ config.extra.organization }} and whether their configuration meets {{ config.extra.organization }}’s minimum security requirements. Reviews should include verification that any new capabilities released since the last review are understood and adequately configured.
-  - {{ config.extra.organization }} reassesses PaaS vendors annually.
-- **IaaS vendors** offer complete environments that allow {{ config.extra.organization }} to build complex environments using modern practices like infrastructure as code. Microsoft Azure and Amazon Web Services are examples of IaaS vendors.
-  - Reviews of IaaS vendors should focus on the shared responsibility model offered by each vendor to confirm {{ config.extra.organization }} has appropriate practices in place to meet our requirements within that model.
-  - The use of IaaS vendors additionally requires {{ config.extra.organization }} to identify internal roles and responsibilities for working with the vendor, as aligned to the vendor’s responsibility matrix.
-  - The environments built within the IaaS-provided infrastructure should be considered part of {{ config.extra.organization }}’s control environment and should be assessed accordingly.
-  - {{ config.extra.organization }} reassesses IaaS vendors annually.
+  - Reviews of PaaS vendors should focus on whether they have the capabilities and capacities needed to support {{ org() }} and whether their configuration meets {{ org() }}’s minimum security requirements. Reviews should include verification that any new capabilities released since the last review are understood and adequately configured.
+  - {{ org() }} reassesses PaaS vendors annually.
+- **IaaS vendors** offer complete environments that allow {{ org() }} to build complex environments using modern practices like infrastructure as code. Microsoft Azure and Amazon Web Services are examples of IaaS vendors.
+  - Reviews of IaaS vendors should focus on the shared responsibility model offered by each vendor to confirm {{ org() }} has appropriate practices in place to meet our requirements within that model.
+  - The use of IaaS vendors additionally requires {{ org() }} to identify internal roles and responsibilities for working with the vendor, as aligned to the vendor’s responsibility matrix.
+  - The environments built within the IaaS-provided infrastructure should be considered part of {{ org() }}’s control environment and should be assessed accordingly.
+  - {{ org() }} reassesses IaaS vendors annually.
 
 ## Special Data Rules
 
-Before completing the evaluation process, the nature of the data being used by the vendor should be reviewed. Any vendor working with data classified as [moderate classification level, such as “sensitive” or “confidential”] should be reviewed for both data transmission and storage, as compared to {{ config.extra.organization }}'s data security plan. If the vendor is to work with specific types of data, the following documents should be reviewed prior to providing such data and annually thereafter:
+Before completing the evaluation process, the nature of the data being used by the vendor should be reviewed. Any vendor working with data classified as [moderate classification level, such as “sensitive” or “confidential”] should be reviewed for both data transmission and storage, as compared to {{ org() }}'s data security plan. If the vendor is to work with specific types of data, the following documents should be reviewed prior to providing such data and annually thereafter:
 
 - **PCI data**: PCI DSS Report on Compliance or Attestation of Compliance.
 - **Personally identifying information (PII)**: Service Organization Controls (SOC) 2 Type 2 report or, if not available, an ISO 27000 or a Cloud Security Alliance (CSA) Security Trust Assurance and Risk (STAR) certificate.
 - **PII on European residents**: SOC 2 Type 2 report or, if not available, an ISO 27000 or CSA STAR certificate, as well as a contractual review to ensure compliance with GDPR.
 
-Reviews of such documentation should verify the vendor is able to meet {{ config.extra.organization }}’s security requirements and raise concerns to the appropriate business unit(s) wishing to work with the vendor. Whatever their role, individuals should face no reprisals for raising such concerns.
+Reviews of such documentation should verify the vendor is able to meet {{ org() }}’s security requirements and raise concerns to the appropriate business unit(s) wishing to work with the vendor. Whatever their role, individuals should face no reprisals for raising such concerns.
 
 To approve the use of a cloud vendor, the leader of a business unit should complete the risk acceptance form at [link to form], documenting accepted risks so they may be entered into the risk register at [link to risk register] before proceeding.
 
@@ -100,6 +100,6 @@ Legal should additionally review the contract to identify requirements and verif
 
 ### Post-Termination
 
-After a vendor is terminated, the security team should work with the legal team to ensure all post-termination elements in any contract are fully executed and any {{ config.extra.organization }} data is properly removed. 
+After a vendor is terminated, the security team should work with the legal team to ensure all post-termination elements in any contract are fully executed and any {{ org() }} data is properly removed. 
 
 The security team should collect evidence of any data and resource deletion efforts and provide it to the legal team in case it should be needed later.

@@ -65,17 +65,17 @@ extra:
 
 ## Introduction
 
-This risk assessment policy documents the authority of "{{ config.extra.organization }}" to conduct investigations and take actions as required to assess risks to {{ config.extra.organization }} and take mitigating actions to reduce, eliminate, or manage risks. This Risk Assessment Policy specifies how and when risk assessments will be done and who will be responsible for them.
+This risk assessment policy documents the authority of "{{ org() }}" to conduct investigations and take actions as required to assess risks to {{ org() }} and take mitigating actions to reduce, eliminate, or manage risks. This Risk Assessment Policy specifies how and when risk assessments will be done and who will be responsible for them.
 
-This Risk Assessment Policy is intended to specify how to identify risk in order to remediate it. Risk assessments are conducted under the authority of {{ config.extra.organization }} Chief Technology Officer. {{ config.extra.organization }} Chief Technology Officer appoints staff to conduct risk assessments. All those involved with a risk assessment must fully cooperate with {{ config.extra.organization }} members conducting the assessment. Cooperation must be complete for both the risk assessment and the remediation process since this is a critical business function.
+This Risk Assessment Policy is intended to specify how to identify risk in order to remediate it. Risk assessments are conducted under the authority of {{ org() }} Chief Technology Officer. {{ org() }} Chief Technology Officer appoints staff to conduct risk assessments. All those involved with a risk assessment must fully cooperate with {{ org() }} members conducting the assessment. Cooperation must be complete for both the risk assessment and the remediation process since this is a critical business function.
 
-This Policy is approved by {{ config.extra.organization }}' leadership team.
+This Policy is approved by {{ org() }}' leadership team.
 
 ## Scope
 
-This Risk Assessment Policy applies to all systems and data on {{ config.extra.organization }}' network, owned by {{ config.extra.organization }}, or operated on behalf of {{ config.extra.organization }}. This policy is effective as of August 1, 2018 and does not expire unless superseded by another policy.
+This Risk Assessment Policy applies to all systems and data on {{ org() }}' network, owned by {{ org() }}, or operated on behalf of {{ org() }}. This policy is effective as of August 1, 2018 and does not expire unless superseded by another policy.
 
-Risk assessments should look at services offered by projects such as web sites with specific project functionality or business functionality along with infrastructure such as computer networks, buildings and other infrastructure. The risk assessment should include security risk, privacy risk, and risk due to natural disasters to both infrastructure, equipment, data (confidentiality, integrity, and availability), loss of productivity, loss of revenue, and personnel. Although many risk assessments are specific to systems, the overall risk to {{ config.extra.organization }} should be considered as well as to {{ config.extra.organization }} clientele. Also, a general risk assessment of organizational functions should be periodically evaluated such as risks to {{ config.extra.organization }} network considering its structure and state of security in the world, physical security, risks of natural disasters, risks of man-made disasters, etc.
+Risk assessments should look at services offered by projects such as web sites with specific project functionality or business functionality along with infrastructure such as computer networks, buildings and other infrastructure. The risk assessment should include security risk, privacy risk, and risk due to natural disasters to both infrastructure, equipment, data (confidentiality, integrity, and availability), loss of productivity, loss of revenue, and personnel. Although many risk assessments are specific to systems, the overall risk to {{ org() }} should be considered as well as to {{ org() }} clientele. Also, a general risk assessment of organizational functions should be periodically evaluated such as risks to {{ org() }} network considering its structure and state of security in the world, physical security, risks of natural disasters, risks of man-made disasters, etc.
 
 ## Definitions
 
@@ -83,14 +83,14 @@ Risk assessments should look at services offered by projects such as web sites w
 1. Risk - The chance that a threat or hazard will have an undesirable outcome combined with the amount of harm that may occur.
 1. Risk Assessment - An examination of all possible risk along with implemented and non-implemented solutions to reduce, eliminate, or manage the risk.
 1. Threat - A potential incident or activity which may be deliberate, accidental, or caused by nature which may cause physical harm to a person or financial harm to an organization.
-1. Incident data retained for investigation will exclude any sensitive information that is not required for incident response, analysis, or by law, regulation, or {{ config.extra.organization }} policy.
+1. Incident data retained for investigation will exclude any sensitive information that is not required for incident response, analysis, or by law, regulation, or {{ org() }} policy.
 1. Project – a new Product (e.g., OnSemble Cloud)
 
 ## Risk Assessment Participants and Skills
 
 The staff members who perform the risk assessment should be familiar with computer technology and computer security in particular. The risk assessment leader should be the security officer or one of their staff members. The leader of the risk assessment team should have a minimum of 2 years computer security experience preferably in risk assessment. The other team members should have a minimum of 3 months computer security training and/or 1-year computer security experience.
 
-The following employees constitute {{ config.extra.organization }}' Risk Assessment Team:
+The following employees constitute {{ org() }}' Risk Assessment Team:
 
 -
 
@@ -98,7 +98,7 @@ Business owners and technical support staff that provide information for the ris
 
 ## Risk Assessment Deliverables
 
-Risk assessment deliverables include a risk assessment report with a risk reduction action plan (see {{ config.extra.organization }} Risk Reduction Action Plan Template) to manage or mitigate any unacceptable risks. The action plan may be included with the risk assessment report. The action plan will be an action plan for implementing additional controls and solutions to mitigate or manage risk. The action plan may define participants and actions to be taken during the implementation of the action plan.
+Risk assessment deliverables include a risk assessment report with a risk reduction action plan (see {{ org() }} Risk Reduction Action Plan Template) to manage or mitigate any unacceptable risks. The action plan may be included with the risk assessment report. The action plan will be an action plan for implementing additional controls and solutions to mitigate or manage risk. The action plan may define participants and actions to be taken during the implementation of the action plan.
 
 ## Risk Assessment Requirements
 
@@ -106,7 +106,7 @@ Risk assessment deliverables include a risk assessment report with a risk reduct
 - A risk assessment is required when data associated with a project is stored on a different system than when the last security assessment was performed. This assessment will consider the change in risk due to the change in the storage location for the data and will only need to point out the differences from the last assessment unless the last assessment is inaccurate or out of date.
 - If a risk assessment of any systems or applications has never been done, a risk assessment should be done.
 - A risk assessment is required when the project or application(s) associated with the project are modified enough to add, remove, or modify data such that the sensitivity and security requirements may change.
-- Risk assessments may be used to assess all risks to {{ config.extra.organization }}.
+- Risk assessments may be used to assess all risks to {{ org() }}.
 - A risk assessment should be done or reviewed on systems or applications no less than every two years. Risk assessments should look at services offered by projects such as web sites with specific project functionality or business functionality along with infrastructure such as computer networks, buildings and other infrastructure. The risk assessment should include security risk and risk due to natural disasters to both infrastructure, equipment, data (confidentiality, integrity, and availability), loss of productivity, loss of revenue, and personnel.
 - A risk assessment is required when a new system is being purchased from a vendor or will be operated through a vendor.
 - A risk assessment is required when a risk is perceived that has not been previously assessed.
@@ -118,9 +118,9 @@ The risk assessment method is defined by the risk assessment process. The risk a
 
 ## Accountable Parties
 
-Senior management is responsible for developing a risk assessment framework which can assess, remediate, and manage risk. A specific executive should sponsor risk management and work to communicate its value. The management must be representative of IT and the business functions performed by {{ config.extra.organization }}. Management must buy into the risk assessment and management process, communicate it clearly, and require it to be enforced.
+Senior management is responsible for developing a risk assessment framework which can assess, remediate, and manage risk. A specific executive should sponsor risk management and work to communicate its value. The management must be representative of IT and the business functions performed by {{ org() }}. Management must buy into the risk assessment and management process, communicate it clearly, and require it to be enforced.
 
-A team or unit in {{ config.extra.organization }} should have an enterprise wide responsibility for promoting good risk management practices. This group would normally conduct the risk assessments and must be trained in risk management. The manager of the risk management group has access to all levels of management in {{ config.extra.organization }}. The risk management group manager maintains contact with external risk management and security specialists including those in government and commercial areas. The risk management group manager keeps current on security threats, technologies, and mitigation methods.
+A team or unit in {{ org() }} should have an enterprise wide responsibility for promoting good risk management practices. This group would normally conduct the risk assessments and must be trained in risk management. The manager of the risk management group has access to all levels of management in {{ org() }}. The risk management group manager maintains contact with external risk management and security specialists including those in government and commercial areas. The risk management group manager keeps current on security threats, technologies, and mitigation methods.
 
 Staff members are expected to cooperate with other staff members who are conducting a risk assessment regarding equipment or systems they are responsible for. Remediation measures taken are the joint responsibilities the security officer and the business owner of the systems involved. Staff members that maintain or developed the system may be expected to work with the risk assessment staff to develop a risk remediation plan. Where security issues or risk extends beyond the system of the business owner, the judgement of the security officer will take priority.
 
@@ -136,7 +136,7 @@ Once the risk assessment report is complete, responsible parties must tape appro
 
 - Management defines scope of risk assessment and creates the risk assessment team with a focal point person to guide the process.
 - If risk assessment procedures are not defined, the team should define them. The proper time and method of communicating the selected risk treatment options to the affected IT and business management should be included.
-- Evaluate the system - Determine if the system is critical to {{ config.extra.organization }}' business processes and determine the data classification and security needs of the data on the system considering confidentiality, integrity, and availability needs.
+- Evaluate the system - Determine if the system is critical to {{ org() }}' business processes and determine the data classification and security needs of the data on the system considering confidentiality, integrity, and availability needs.
 - List the threats - List possible threat sources such as an exploitation of a vulnerability
 - Identify vulnerabilities
 - Evaluate security controls
@@ -181,7 +181,7 @@ When the probability of threat materialization times maximum damage amount is le
 
 ## Enforcement
 
-Since risk assessment is an important part of protecting data and systems for {{ config.extra.organization }}, employees that purposely violate this policy may be subject to disciplinary action up to and including denial of access, legal penalties, and/or dismissal. Any employee aware of any violation of this policy is required to report it to their supervisor or other authorized representative.
+Since risk assessment is an important part of protecting data and systems for {{ org() }}, employees that purposely violate this policy may be subject to disciplinary action up to and including denial of access, legal penalties, and/or dismissal. Any employee aware of any violation of this policy is required to report it to their supervisor or other authorized representative.
 
 ## Other Requirements
 
@@ -200,7 +200,7 @@ Since risk assessment is an important part of protecting data and systems for {{
 ## Methodology
 
 The Risk Assessment methodology used in the ISMS Risk Management process is in accord with the methodology described in **ISO 27005:2011 Information technology - Security techniques - Information security risk management**.
-Step One - List all ISMS information security related assets relevant to {{ config.extra.organization }} information security, their owners and location.
+Step One - List all ISMS information security related assets relevant to {{ org() }} information security, their owners and location.
 Step Two - Estimate the value (i.e., cost incurred due to loss of CIA) of the related assets given their role and criticality within the business process.
 Step Three - List vulnerabilities the assets are exposed to and the threats that may exploit those vulnerabilities. Step Four - Calculate the qualitative risk based on the formula: **RISK VALUE = HARM x PROBABILITY.**
 
@@ -232,17 +232,17 @@ Step Three - List vulnerabilities the assets are exposed to and the threats that
 
 This methodology considers 5 options to treat risks:
 
-1. **Mitigate** - The risk is mitigated by controls, policies, procedures or any other means applied by {{ config.extra.organization }}
-1. **Accept** - The risk is accepted by {{ config.extra.organization }} based upon the residual risk value and the risk acceptance criteria.
+1. **Mitigate** - The risk is mitigated by controls, policies, procedures or any other means applied by {{ org() }}
+1. **Accept** - The risk is accepted by {{ org() }} based upon the residual risk value and the risk acceptance criteria.
 1. **Transfer** - The risk is transferred to a third party, e.g. the purchase of an insurance policy.
 1. **Avoid** - The risk is avoided, i.e., the activity is not performed due to the nature of the inherent risk.
-1. **Exclusion** - The risk is excluded because it is not considered in scope for {{ config.extra.organization }}.
+1. **Exclusion** - The risk is excluded because it is not considered in scope for {{ org() }}.
 
 ### Risk Acceptance Criteria
 
-- {{ config.extra.organization }} has decided to apply blanket acceptance of current risks rated less than or equal to 5,
+- {{ org() }} has decided to apply blanket acceptance of current risks rated less than or equal to 5,
 - Based upon the unfavorable cost/benefit ratio of treating current risks in this value range.
-- {{ config.extra.organization }} may also accept values above 5 whenever such risks are fairly justified and accepted,
+- {{ org() }} may also accept values above 5 whenever such risks are fairly justified and accepted,
 - Based on valid business reasons or a highly unfavorable cost/benefit ratio.
 - Independently of the acceptance criteria, all evaluated risks shall be reviewed, and their
 - Acceptance approved, by the ISMS Steering Committee.
@@ -282,7 +282,7 @@ This methodology considers 5 options to treat risks:
 | Effectiveness               | Score | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | --------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Fully Matured or Automated  | 5     | Fully Matured: An enterprise wide risk and control framework based on ISO/IEC 27001 provides continuous and effective risk and control resolution. Internal control and risk management are integrated with enterprise practices, supported by automate real-time monitoring and full accountability for control monitoring, risk management and compliance enforcement. Controls are regularly assessed during internal audits and self-assessments. Root cause analyses is documented and corrective and preventive actions initiated. Employees are proactively involved in control assessments and continuous improvements. |
-| Implemented and managed     | 4     | Implemented & managed: Internal control and risk management systems are effective within the {{ config.extra.organization }}' Environment. A formal, documented evaluation of controls occurs frequently and some of these controls are automated and regularly reviewed. Management detects control issues and consistently follows-up to address identified control weaknesses. Employees are evaluated on an annual basis against security requirements defined within their job descriptions.                                                                                                                                                   |
+| Implemented and managed     | 4     | Implemented & managed: Internal control and risk management systems are effective within the {{ org() }}' Environment. A formal, documented evaluation of controls occurs frequently and some of these controls are automated and regularly reviewed. Management detects control issues and consistently follows-up to address identified control weaknesses. Employees are evaluated on an annual basis against security requirements defined within their job descriptions.                                                                                                                                                   |
 | Implemented but not managed | 3     | Implemented but not managed: Controls are in place and adequately documented. Operational effectiveness is evaluated on a periodic basis with an average number of issues resulting. Management is able to deal predictably with most control issues, however some control weaknesses continue to persist and the results of these impacts can be severe to regular operations. Employees are aware of their responsibilities for control.                                                                                                                                                                                      |
 | Partly implemented          | 2     | Partially Implemented: Controls are in place but are not documented. Their intuitive operation is dependent on tribal knowledge and the motivation of employees to take extra steps during the regular execution of regular tasks. Effectiveness is not adequately evaluated and Management actions to resolve control issues are not prioritized or consistent. Employees may not be aware of their responsibilities.                                                                                                                                                                                                          |
 | Non-existent                | 1     | Non- existent: Control(s) has not been implemented and there is a high risk of multiple incidents and faults.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |

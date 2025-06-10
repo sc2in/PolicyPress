@@ -34,19 +34,19 @@ extra:
 
 **General information**
 
-Due to the sensitive nature of the information contained herein, this policy is available only to those persons who have been designated as members of the Change Control Board or who have signed non-disclosure agreements on file with {{ config.extra.organization }}.
+Due to the sensitive nature of the information contained herein, this policy is available only to those persons who have been designated as members of the Change Control Board or who have signed non-disclosure agreements on file with {{ org() }}.
 
-The following employees constitute {{ config.extra.organization }}' Change Control Board (CCB):
+The following employees constitute {{ org() }}' Change Control Board (CCB):
 
 -
 
-The Change Control Policy for {{ config.extra.organization }} recognizes and affirms the importance of customers, processes, and technology to {{ config.extra.organization }}.
+The Change Control Policy for {{ org() }} recognizes and affirms the importance of customers, processes, and technology to {{ org() }}.
 
-It is the responsibility of each {{ config.extra.organization }} manager and employee to safeguard and keep confidential all corporate assets and any and all customer information.
+It is the responsibility of each {{ org() }} manager and employee to safeguard and keep confidential all corporate assets and any and all customer information.
 
 ## Scope
 
-This policy covers resource changes (e.g., RAM, CPU, equipment) and internal IT operational changes for Production environments. For product-related and development-related changes, please refer to the [{{ config.extra.organization }} Secure Agile SDLC Policy and Procedures](@/policies/security/secure-sdlc.md). For convenience, here's an overview of the {{ config.extra.organization }} Agile Scrum Process:
+This policy covers resource changes (e.g., RAM, CPU, equipment) and internal IT operational changes for Production environments. For product-related and development-related changes, please refer to the [{{ org() }} Secure Agile SDLC Policy and Procedures](@/policies/security/secure-sdlc.md). For convenience, here's an overview of the {{ org() }} Agile Scrum Process:
 
 - Strategic Planning
 - Inception Deck Creation (Initiation)
@@ -72,11 +72,11 @@ Any modification to our products/services stack or other request that can be rea
 
 ## Governance
 
-Change Control (CC) systems and decisions are authorized through {{ config.extra.organization }}' Change Control Board (CCB) which consists of various members throughout the organization.
+Change Control (CC) systems and decisions are authorized through {{ org() }}' Change Control Board (CCB) which consists of various members throughout the organization.
 
 Change Control Team (CCT) membership at a minimum consists of a director (or higher) for: _Security, Platform, and Engineering_. Other managers may be added by CCT as needed.
 
-The {{ config.extra.organization }} CCT will meet on a regular basis (no less than quarterly) to:
+The {{ org() }} CCT will meet on a regular basis (no less than quarterly) to:
 
 - Inspect current CC risks, procedures, and resources
 - Evaluate any new items needed for CC
@@ -84,7 +84,7 @@ The {{ config.extra.organization }} CCT will meet on a regular basis (no less th
 - Determine why these issues were not under CC
 - Evaluate process improvements or training opportunities
 
-All decisions will be guided by the {{ config.extra.organization }} ISMS/PIMS, esspecially the [Data and Business Intelligence Policy]({{ < ref "data-and-bi.md" >}}), [Secure Agile SDLC Policy and Procedures](@/policies/security/secure-sdlc.md) and [Incident Response Policy](@/policies/incident/incident-response-plan.md).
+All decisions will be guided by the {{ org() }} ISMS/PIMS, esspecially the [Data and Business Intelligence Policy]({{ < ref "data-and-bi.md" >}}), [Secure Agile SDLC Policy and Procedures](@/policies/security/secure-sdlc.md) and [Incident Response Policy](@/policies/incident/incident-response-plan.md).
 
 Major decisions of the CCT must be documented in the CCB minutes.
 

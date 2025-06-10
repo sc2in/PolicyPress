@@ -39,7 +39,7 @@ Recovery situation.
 
 1. This document will be reviewed and updated on an annual basis or as needed depending on any changes to infrastructure or organization policy.
 1. The critical elements of this disaster recovery plan should be tested on an annual basis.
-1. All vendors' recovery plans are carefully reviewed and meet {{ config.extra.organization }} recovery standards.
+1. All vendors' recovery plans are carefully reviewed and meet {{ org() }} recovery standards.
 
 ### Disaster Definition
 
@@ -50,7 +50,7 @@ operations by limiting or prohibiting access to any of the included systems.**
 
 ### Disaster Declaration Criteria
 
-For the processes and procedures in this document to be initiated, a disaster must be declared by one or a combination of the following {{ config.extra.organization }} staff:
+For the processes and procedures in this document to be initiated, a disaster must be declared by one or a combination of the following {{ org() }} staff:
 
 - CEO, Marc Huffman
 - CFO, Tim Taylor
@@ -64,37 +64,37 @@ For the processes and procedures in this document to be initiated, a disaster mu
 
 ## Recovery Strategy
 
-In the event of a disaster, client data would be in no way affected. All client data is maintained offsite and managed by Microsoft Azure. All other client portal data is maintained by the client and would not be affected by a disaster at {{ config.extra.organization }} corporate offices.
+In the event of a disaster, client data would be in no way affected. All client data is maintained offsite and managed by Microsoft Azure. All other client portal data is maintained by the client and would not be affected by a disaster at {{ org() }} corporate offices.
 
 In most circumstances, recovery of networking connectivity and/or phone systems will be carried out in parallel to other recovery efforts.
 
 ### Application and System Recovery
 
-If any corporate server needs to be recovered, {{ config.extra.organization }} utilizes offsite cloud storage.
+If any corporate server needs to be recovered, {{ org() }} utilizes offsite cloud storage.
 
 ### Network Recovery
 
-1. If the corporate offices should lose connectivity to primary internet connection for an extended period, resulting in a severe impact to business, {{ config.extra.organization }} systems are accessible to staff from any location with an internet connection. Employees will resume normal business operations from an alternative location.
+1. If the corporate offices should lose connectivity to primary internet connection for an extended period, resulting in a severe impact to business, {{ org() }} systems are accessible to staff from any location with an internet connection. Employees will resume normal business operations from an alternative location.
 1. If network connectivity is impacted, the Operations Team will work with vendors to restore connectivity as quickly as possible.
 
 ### Telecommunications Recovery
 
-1. Should there be a temporary phone system failure, {{ config.extra.organization }} will work with the vendor to re-establish the system. Technical Support maintains and emergency support phone that will be available if the main phone system fails.
-1. In the event of an extended phone system failure, {{ config.extra.organization }} staff will use personal and company provided cell phones to respond to calls.
+1. Should there be a temporary phone system failure, {{ org() }} will work with the vendor to re-establish the system. Technical Support maintains and emergency support phone that will be available if the main phone system fails.
+1. In the event of an extended phone system failure, {{ org() }} staff will use personal and company provided cell phones to respond to calls.
 
 ### Support Center Recovery
 
-1. Our help center, which is managed through Zendesk, is in the cloud. Staff can access Zendesk anywhere there is an internet connection. Any disaster to {{ config.extra.organization }} physical location would not affect our access to the help center.
-1. Our customer records are in Salesforce, whose data is managed in the cloud. Staff can access Salesforce anywhere there is an internet connection. Any disaster to {{ config.extra.organization }} physical location would not affect our access to this information.
+1. Our help center, which is managed through Zendesk, is in the cloud. Staff can access Zendesk anywhere there is an internet connection. Any disaster to {{ org() }} physical location would not affect our access to the help center.
+1. Our customer records are in Salesforce, whose data is managed in the cloud. Staff can access Salesforce anywhere there is an internet connection. Any disaster to {{ org() }} physical location would not affect our access to this information.
 
 ### Code Base
 
-{{ config.extra.organization }}'s code base is contained within Visual Studio Online and stored in the cloud.
+{{ org() }}'s code base is contained within Visual Studio Online and stored in the cloud.
 
 ### Physical Location Backup
 
-1. Should there be a total site loss at any {{ config.extra.organization }} office, alternative office locations have been identified.
-1. If corporate offices are temporarily inaccessible, {{ config.extra.organization }} staff are equipped to work from remote locations and all systems can be accessed offsite.
+1. Should there be a total site loss at any {{ org() }} office, alternative office locations have been identified.
+1. If corporate offices are temporarily inaccessible, {{ org() }} staff are equipped to work from remote locations and all systems can be accessed offsite.
 
 ## Notification Procedures
 

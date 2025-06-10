@@ -31,17 +31,17 @@ extra:
 
 ### Purpose
 
-In the event of a disaster which interferes with {{ config.extra.organization }}'s ability to conduct business, this plan is to be used by the responsible individuals to coordinate the business recovery. The plan is designed to contain, or provide reference to, all the information that might be needed at the time of a business recovery.
+In the event of a disaster which interferes with {{ org() }}'s ability to conduct business, this plan is to be used by the responsible individuals to coordinate the business recovery. The plan is designed to contain, or provide reference to, all the information that might be needed at the time of a business recovery.
 
 [Introduction](#introduction) contains general statements about the organization of the plan. It also establishes responsibilities for the testing (exercising), training, and maintenance activities that are necessary to guarantee the ongoing viability of the plan.
 
-[Business Continuity Strategy](#business-continuity-strategy),describes the strategy that {{ config.extra.organization }} will implement to maintain business continuity in the event of a facility disruption. These decisions determine the content of the action plans, and if they change at any time, the plans should be changed accordingly.
+[Business Continuity Strategy](#business-continuity-strategy),describes the strategy that {{ org() }} will implement to maintain business continuity in the event of a facility disruption. These decisions determine the content of the action plans, and if they change at any time, the plans should be changed accordingly.
 
-[IT Disaster Recovery Plan](#it-disaster-recovery-plan), describes the plan that {{ config.extra.organization }} will implement to help the company recover as quickly and effectively as possible from an unforeseen disaster or emergency which interrupts information systems and business operations (including critical applications, databases, servers, or other required technology infrastructure). It shows what activities and tasks are to be taken, in what order, and by whom to affect the recovery. It also contains all the other information needed to carry out the plan.
+[IT Disaster Recovery Plan](#it-disaster-recovery-plan), describes the plan that {{ org() }} will implement to help the company recover as quickly and effectively as possible from an unforeseen disaster or emergency which interrupts information systems and business operations (including critical applications, databases, servers, or other required technology infrastructure). It shows what activities and tasks are to be taken, in what order, and by whom to affect the recovery. It also contains all the other information needed to carry out the plan.
 
 ### Objectives
 
-The objective of the Business Continuity and IT Disaster Recovery Plan is to coordinate recovery of critical business functions in the event of a facilities (office building) disruption/disaster or an unforeseen disaster or emergency which interrupts information systems and business operations. This can include short or long-term disasters or other disruptions, such as fires, floods, pandemics, earthquakes, explosions, terrorism, tornadoes, extended power interruptions, hazardous chemical spills, and other natural or man-made disasters, as well as interruptions of critical applications, databases, servers, or other required technology infrastructure due to proximate (e.g., {{ config.extra.organization }} systems) or remote (e.g., compromise of a third-party) security attacks such as malware, cyber-attacks, APTs (Advanced Persistent Threats), or data destruction/corruption.
+The objective of the Business Continuity and IT Disaster Recovery Plan is to coordinate recovery of critical business functions in the event of a facilities (office building) disruption/disaster or an unforeseen disaster or emergency which interrupts information systems and business operations. This can include short or long-term disasters or other disruptions, such as fires, floods, pandemics, earthquakes, explosions, terrorism, tornadoes, extended power interruptions, hazardous chemical spills, and other natural or man-made disasters, as well as interruptions of critical applications, databases, servers, or other required technology infrastructure due to proximate (e.g., {{ org() }} systems) or remote (e.g., compromise of a third-party) security attacks such as malware, cyber-attacks, APTs (Advanced Persistent Threats), or data destruction/corruption.
 
 **A disaster is defined as any event that interferes with the organization's ability to deliver essential business services.**
 
@@ -55,15 +55,15 @@ The objective of the Business Continuity and IT Disaster Recovery Plan is to coo
 
 ### Scope
 
-The Business Continuity and IT Disaster Recovery Plan is limited in scope to recovery and business continuance from a serious disruption in activities due to non-availability of {{ config.extra.organization }}'s facilities and IT systems. The plan includes procedures for all phases of recovery as defined in the Business Continuity Strategy and Disaster Recovery sections of this document.
+The Business Continuity and IT Disaster Recovery Plan is limited in scope to recovery and business continuance from a serious disruption in activities due to non-availability of {{ org() }}'s facilities and IT systems. The plan includes procedures for all phases of recovery as defined in the Business Continuity Strategy and Disaster Recovery sections of this document.
 
 This plan is not intended to cover major national disasters such as hurricanes, war, or nuclear holocaust. However, it can provide guidance in the event of a large-scale disaster.
 
 ### Risk Management Policy
 
-There are many potential disruptive threats which can occur at any time and affect the normal business process and services {{ config.extra.organization }} provides to its customers. We have developed a risk management policy to better understand and analyze where specific risks to {{ config.extra.organization }}'s business lie. This policy also helps to determine appropriate controls, risk mitigation strategies, potential consequences, and remedial actions for each risk. The risk assessment process is conducted annually to ensure the business stays up to date and has a plan for all potential threats.
+There are many potential disruptive threats which can occur at any time and affect the normal business process and services {{ org() }} provides to its customers. We have developed a risk management policy to better understand and analyze where specific risks to {{ org() }}'s business lie. This policy also helps to determine appropriate controls, risk mitigation strategies, potential consequences, and remedial actions for each risk. The risk assessment process is conducted annually to ensure the business stays up to date and has a plan for all potential threats.
 
-The risk assessment process is as follows (use the {{ config.extra.organization }} Risk Assessment Template as a tool to aid in this process):
+The risk assessment process is as follows (use the {{ org() }} Risk Assessment Template as a tool to aid in this process):
 
 1. Use a brainstorming process to identify the issues, uncertainties, and risks that may be of concern to the business. At this stage, do not worry about the likelihood of it occurring. When done, place these "issues/risks" in the column called Issue/Risk. Optionally, group into common categories. If grouped, place the category label in the column called "Category."
 
@@ -73,7 +73,7 @@ The risk assessment process is as follows (use the {{ config.extra.organization 
 
 1. Consider the likelihood of adverse consequences occurring with the current policies, procedures, practices, and technology in place to manage the risks. Rank the likelihood of impact from 1 (Low) to 5 (High).
 
-1. As steps 3 and 4 are completed, the risk assessment will automatically calculate the "Risk Ranking" of the issue/risk by multiplying the impact of the risk by its likelihood of occurrence. The higher the number, the greater the risk to {{ config.extra.organization }}.
+1. As steps 3 and 4 are completed, the risk assessment will automatically calculate the "Risk Ranking" of the issue/risk by multiplying the impact of the risk by its likelihood of occurrence. The higher the number, the greater the risk to {{ org() }}.
 
 1. Identify who or what organization is managing the risk currently. Place the name in the column called "Primary Point of Contact to Mitigate This Risk."
 
@@ -87,29 +87,29 @@ When we identify a risk, we work to understand the potential business impact. If
 
 This process is conducted annually. Results from the 2019 Risk Assessment will be completed and available for review by March 2019. As future risk assessments take place, they will be stored in and accessed through the same place.
 
-After the risk assessment is complete, analysis will be conducted to select controls, systems, and procedures that help {{ config.extra.organization }} to avoid, mitigate, or transfer risk.
+After the risk assessment is complete, analysis will be conducted to select controls, systems, and procedures that help {{ org() }} to avoid, mitigate, or transfer risk.
 
 ## Roles and Responsibilities
 
-The {{ config.extra.organization }} Security and Continuity Team, PSCT, provides direction, decision-making and communication for recovery and/or restoration, which may include the data centers, other facilities and associated equipment and supplies. This is the primary team who is empowered to provide both strategic and tactical direction for managing communication of the emergency when an incident is declared by the appropriate authority. At the time of the incident, the Incident Team leader assumes the lead role. The Incident Command Group maintains a constant presence and authority over the incident until the organization returns to normal operating posture. The table below defines each role, individual assigned, and key responsibilities:
+The {{ org() }} Security and Continuity Team, PSCT, provides direction, decision-making and communication for recovery and/or restoration, which may include the data centers, other facilities and associated equipment and supplies. This is the primary team who is empowered to provide both strategic and tactical direction for managing communication of the emergency when an incident is declared by the appropriate authority. At the time of the incident, the Incident Team leader assumes the lead role. The Incident Command Group maintains a constant presence and authority over the incident until the organization returns to normal operating posture. The table below defines each role, individual assigned, and key responsibilities:
 
 | Command Role| Name| Key Responsibilities|
 | -- | -- | -- |
 | Incident Command Team Leader| TBD(At Time of Incident)| <ul><li>Serve as the primary point of contact for the Incident Command Team Leader on all disaster related matters related to the incident </li><li>Maintain overall authority and decision-making power throughout the lifespan of the incident </li><li>Be accountable for all decisions, actions, and communications related to the BCP, and DRP</li></ul>|
 | BCP and DRP Coordinator| {{<redact>}}Primary: <br/>Alternate: {{</redact>}} | <ul><li>Upon receiving approval to activate the BCP or DRP, review the business process priorities and resources required to sustain operations</li><li>Direct the restoration and recover activities related to affected facilities</li><li>Provide updates to the Incident Command Team relevant to the safe tenancy of facilities affected by an incident</li><li>Provide status of recovery operations and/or impediments</li><li>Document recovery activities utilizing appropriate Appendixes, located in Appendix section of thisdocument</li><li>Perform recovery of system utilizing Appendix D</li><li>Coordinate with the Incident Command Team to continue to evaluate business impact caused by the technology or communications outage</li></ul> |
 | Building Management | {{<redact>}}Primary: <br/>Alternates: {{</redact>}} | <ul><li>Coordinate with the Incident Command Team to perform a facility damage assessment and determine the affected asset recovery activities</li><li>Communicate with buildingmanagement vendors to invoke SLAs or other emergency procedures, in support of recovery and/or restoration efforts</li><li>Ensure compliance with HIPAA and any other compliant reporting </li></ul>|
-| Finance| {{ config.extra.organization }} Finance Team – {{<redact>}}Primary: <br/>Alternate: {{</redact>}} | <ul><li>Allocates emergency funding as required, at the direction of the Incident Command Team</li><li>Advise the Incident Command Team Leader regarding the potential significant financial lossesresulting from loss businessfunctions and /or IT failure </li></ul>|
+| Finance| {{ org() }} Finance Team – {{<redact>}}Primary: <br/>Alternate: {{</redact>}} | <ul><li>Allocates emergency funding as required, at the direction of the Incident Command Team</li><li>Advise the Incident Command Team Leader regarding the potential significant financial lossesresulting from loss businessfunctions and /or IT failure </li></ul>|
 | Human Resources/People Operations | {{<redact>}}Primary: <br/>Alternates:{{</redact>}}|<ul><li>Accumulate and report personnel accountability results following theincident </li><li>Coordinate assistance with hospital staff, family members, and theIncident Command Team Leader or the BCP and DRP Coordinator for employees taken to hospitals </li><li>As needed, assist with the sourcing of personnel (temporary orpermanent) from other sites,businesses or third parties </li><li>Source and provide crisiscounseling or other approvedgrievance benefits to personnel and families affected by the disruptiveevent, as identified by the BCP and DRP Coordinator </li></ul> |
 | Legal | {{<redact>}} Primary: <br/>Alternate: {{</redact>}} | <ul><li>Advise the Incident Command Team Leader regarding legal implications of crisis decision making,as well as the crisis's effecton contractual/regulatory matters and current litigation </li><li>Serve as liaison for outside legal counsel as required</li><li>Serve as liaison for the insurance company as required </li></ul>|
 | Public Relations| {{<redact>}}Primary: <br/>Alternate: {{</redact>}} | <ul><li>Facilitate the means for single and/or mass communicationsamong all members of the Incident Command Team </li><li>Receive, correlate, and archive all communications relevant to the incident </li><li>Convey or deliver messages via the appropriate mean and as directed by the Incident Command Team Leader, to the BCP and DRPCoordinators, executives, and other Stakeholders </li></ul>|
 
 ### Changes to the Plan/Maintenance Responsibilities
 
-Maintenance of this plan is the responsibility of the {{ config.extra.organization }} Security and Continuity Team (PSCT)
+Maintenance of this plan is the responsibility of the {{ org() }} Security and Continuity Team (PSCT)
 
 PSCT is responsible for:
 
-1. Annually reviewing the adequacy and appropriateness of {{ config.extra.organization }}'s Business Continuity and IT Disaster Recovery strategies in a structured and controlled manner, updating the master plan accordingly. (When changes occur, it will involve the use of formalized change control procedures.)
+1. Annually reviewing the adequacy and appropriateness of {{ org() }}'s Business Continuity and IT Disaster Recovery strategies in a structured and controlled manner, updating the master plan accordingly. (When changes occur, it will involve the use of formalized change control procedures.)
 
 1. Assessing the impact of additions or changes to existing business functions, procedures, equipment, systems, and facilities requirements. Any changes must be fully tested, with adjustments made to any relevant training material.
 
@@ -121,7 +121,7 @@ PSCT is responsible for:
 
 #### Plan Testing Procedures and Responsibilities
 
-PSCT is responsible for ensuring the workability of the {{ config.extra.organization }} Business Continuity and IT Disaster Recovery Plan. The plan shall be tested at least annually in a simulated environment to ensure that it can be appropriately implemented in emergency situations and that the management and staff understand how it is to be executed.
+PSCT is responsible for ensuring the workability of the {{ org() }} Business Continuity and IT Disaster Recovery Plan. The plan shall be tested at least annually in a simulated environment to ensure that it can be appropriately implemented in emergency situations and that the management and staff understand how it is to be executed.
 
 For each planned test, there will be four phases: pre-test planning, test execution, post-test review, and final report presentation. Pre-test planning is essential in identifying the type of test desired, time and budget to dedicate to the test, and any activities or scripts necessary (because each type of test will require something different). Post-test review and final report presentation may be the most valuable part of testing. If a test "fails," it is actually a good thing because it means the team has identified holes in the systems and procedures that can then be rectified before a real incident occurs. Documentation should be updated accordingly, using lessons learned to improve the plan and modify future test accordingly.
 
@@ -143,7 +143,7 @@ Copies of this plan will be stored in secure locations to be defined by the comp
 
 ### Media
 
-All requests made by members of the media for any information, comments, details, etc., concerning {{ config.extra.organization }} are to be referred to the Public Relations (PR)/Marketing Department. No employee of {{ config.extra.organization }} may speak to the media on behalf of, about, or concerning {{ config.extra.organization }} without the prior consent of the PR Department.
+All requests made by members of the media for any information, comments, details, etc., concerning {{ org() }} are to be referred to the Public Relations (PR)/Marketing Department. No employee of {{ org() }} may speak to the media on behalf of, about, or concerning {{ org() }} without the prior consent of the PR Department.
 
 ### Financial and Legal Issues
 
@@ -171,7 +171,7 @@ The Financial department shall prepare an initial assessment of the impact of th
 
 #### Legal Actions
 
-{{ config.extra.organization }}'s legal team and company management will jointly review the aftermath of the incident and decide whether there may be legal actions resulting from the event; in particular, the possibility of claims by or against the company for regulatory violations, etc.
+{{ org() }}'s legal team and company management will jointly review the aftermath of the incident and decide whether there may be legal actions resulting from the event; in particular, the possibility of claims by or against the company for regulatory violations, etc.
 
 ### Insurance
 
@@ -181,7 +181,7 @@ As part of the company's disaster recovery and business continuity strategies, a
 
 ### Introduction
 
-This section of the {{ config.extra.organization }} Business Continuity and IT Disaster Recovery Plan describes the strategy devised to maintain business continuity in the event of a facilities disruption. This strategy would be invoked should the {{ config.extra.organization }} primary facility somehow be damaged or inaccessible.
+This section of the {{ org() }} Business Continuity and IT Disaster Recovery Plan describes the strategy devised to maintain business continuity in the event of a facilities disruption. This strategy would be invoked should the {{ org() }} primary facility somehow be damaged or inaccessible.
 
 ### Relocation Strategy and Alternate Business Site
 
@@ -212,7 +212,7 @@ Assessment of Disaster
 
 Activation of Plan
 
-1. When instructed by {{ config.extra.organization }} Management Team, employees should arrange to work remotely (if disaster / damage is short term) or to commute / travel to the alternate site (if disaster / damage is long term).
+1. When instructed by {{ org() }} Management Team, employees should arrange to work remotely (if disaster / damage is short term) or to commute / travel to the alternate site (if disaster / damage is long term).
 
 1. The PSCT team will meet at designated command center location (identify an alternate secure site) or conference call number.
 
@@ -224,7 +224,7 @@ Activation of Plan
 
    - **[Appendix C: Disaster Recovery Event Recording Form](#appendix-c-disaster-recovery-event-recording-form)**
 
-1. {{ config.extra.organization }} employees should stay available and connected to network communication systems (MS Teams, Zoom, Email, Mobile Phone) to receive further instruction. Delays in waiting for direct communications can have a negative impact on {{ config.extra.organization }}'s ability to recover vital services.
+1. {{ org() }} employees should stay available and connected to network communication systems (MS Teams, Zoom, Email, Mobile Phone) to receive further instruction. Delays in waiting for direct communications can have a negative impact on {{ org() }}'s ability to recover vital services.
 
 1. Determine flexible working schedules for staff to ensure that client and business needs are met, but also to enable effective use of space and resources.
 
@@ -232,7 +232,7 @@ Activation of Plan
 
 1. Develop prioritized work activities, especially if all staff members or necessary systems are not available.
 
-1. VP Sales (and any PR/Marketing partner) will work together to coordinate communications with customers to notify them of the disaster situation and how {{ config.extra.organization }} is responding. Employees should not contact customers until the VP Marketing / PR team has given directions and scripts / guidance on how to discuss the disaster with customers, to provide assurance that their confidence in {{ config.extra.organization }} should be maintained.
+1. VP Sales (and any PR/Marketing partner) will work together to coordinate communications with customers to notify them of the disaster situation and how {{ org() }} is responding. Employees should not contact customers until the VP Marketing / PR team has given directions and scripts / guidance on how to discuss the disaster with customers, to provide assurance that their confidence in {{ org() }} should be maintained.
 
 1. Determine equipment and/or supplies restoration and recovery requirements.
 
@@ -258,9 +258,9 @@ At the successful completion of the validation testing, the Incident Command Tea
 
 ### Vital Records Backup
 
-All vital records for {{ config.extra.organization }} that would be affected by a facilities disruption are maintained and controlled by PSCT, as described individually below in the Crucial Systems Backup Strategy.
+All vital records for {{ org() }} that would be affected by a facilities disruption are maintained and controlled by PSCT, as described individually below in the Crucial Systems Backup Strategy.
 
-### Online Access to {{ config.extra.organization }} Systems
+### Online Access to {{ org() }} Systems
 
 See [IT Disaster Recovery Plan](#it-disaster-recovery-plan)
 
@@ -268,7 +268,7 @@ See [IT Disaster Recovery Plan](#it-disaster-recovery-plan)
 
 ### Information Technology Statement of Intent / Introduction
 
-This section of the document delineates {{ config.extra.organization }}'s policies and procedures for IT disaster recovery, as well as our process-level plans for recovering all critical and essential technology platforms and infrastructure. This document summarizes our recommended procedures. In the event of an actual emergency, modifications to this document may be made to ensure physical safety of people, systems, and data. Additionally, and as noted in Section I, the IT Disaster Recovery Plan will be tested at least annually in a simulated environment to ensure that it can be appropriately implemented in emergency situations and that the management and staff understand how it is to be executed. The mission in implementing the IT Disaster Recovery Plan is to ensure information system uptime, data integrity and availability, and business continuity.
+This section of the document delineates {{ org() }}'s policies and procedures for IT disaster recovery, as well as our process-level plans for recovering all critical and essential technology platforms and infrastructure. This document summarizes our recommended procedures. In the event of an actual emergency, modifications to this document may be made to ensure physical safety of people, systems, and data. Additionally, and as noted in Section I, the IT Disaster Recovery Plan will be tested at least annually in a simulated environment to ensure that it can be appropriately implemented in emergency situations and that the management and staff understand how it is to be executed. The mission in implementing the IT Disaster Recovery Plan is to ensure information system uptime, data integrity and availability, and business continuity.
 
 ### Objectives
 
@@ -408,7 +408,7 @@ The Disaster Recovery Event Record log will be maintained by the PSCT to create 
 
 ### Appendix E: Disaster Recovery Activity Report
 
-Once the disaster is declared over, all systems / facilities have been recovered, and normal business activity has resumed, the PSCT should prepare a report on all the activities undertaken. The report should contain information on the disaster / emergency, who was notified and when, what actions were taken, and the outcomes that arose from those actions. The report should also contain an assessment of the impact to normal business operations, as well as of the effectiveness of the Business Continuity and Disaster Recovery Plan and the lessons learned from carrying it out. If there were any issues with the plan or processes encountered, the report should identify them and provide suggestions for enhancing the plan. The report will be shared with {{ config.extra.organization }} management and stored with the Business Continuity and Disaster Recovery Plan for future reference. It will also be used to update the plan accordingly.
+Once the disaster is declared over, all systems / facilities have been recovered, and normal business activity has resumed, the PSCT should prepare a report on all the activities undertaken. The report should contain information on the disaster / emergency, who was notified and when, what actions were taken, and the outcomes that arose from those actions. The report should also contain an assessment of the impact to normal business operations, as well as of the effectiveness of the Business Continuity and Disaster Recovery Plan and the lessons learned from carrying it out. If there were any issues with the plan or processes encountered, the report should identify them and provide suggestions for enhancing the plan. The report will be shared with {{ org() }} management and stored with the Business Continuity and Disaster Recovery Plan for future reference. It will also be used to update the plan accordingly.
 
 **Report Checklist:**
 

@@ -56,10 +56,10 @@ extra:
 
 ## Purpose
 
-In today’s digital landscape, safeguarding application security is not just a technical necessity, but a fundamental aspect of organizational integrity. This application security standard, tailored for {{ config.extra.organization }}, outlines our commitment to implementing and maintaining extensive security practices throughout our software development lifecycle. It serves as a comprehensive guide, establishing clear policies, procedures and best practices to mitigate
+In today’s digital landscape, safeguarding application security is not just a technical necessity, but a fundamental aspect of organizational integrity. This application security standard, tailored for {{ org() }}, outlines our commitment to implementing and maintaining extensive security practices throughout our software development lifecycle. It serves as a comprehensive guide, establishing clear policies, procedures and best practices to mitigate
 risks and protect sensitive information in our software applications.
 
-This standard is designed to evolve with emerging security threats and technological advancements, ensuring {{ config.extra.organization }} remains at the forefront of application security.
+This standard is designed to evolve with emerging security threats and technological advancements, ensuring {{ org() }} remains at the forefront of application security.
 
 ## Secure Software Development Lifecycle (SSDL)
   

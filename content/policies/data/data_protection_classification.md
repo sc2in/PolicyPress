@@ -38,13 +38,13 @@ extra:
 
 ## Purpose
 
-This policy is created to establish universal standards for {{ config.extra.organization }} to facilitate data protection. This policy further defines data protection, data classification levels and standards for data processing.
+This policy is created to establish universal standards for {{ org() }} to facilitate data protection. This policy further defines data protection, data classification levels and standards for data processing.
 
 ## Scope
 
-This policy applies to each of {{ config.extra.organization }}’s workforce members who has contact or potentially may have contact with {{ config.extra.organization }}’s data, applications and computing resources. Workforce members include, but are not limited to, employees, contractors, vendors, service providers, volunteers or any others who have or may come into contact with this organization’s data, whether in a paid or unpaid capacity.
+This policy applies to each of {{ org() }}’s workforce members who has contact or potentially may have contact with {{ org() }}’s data, applications and computing resources. Workforce members include, but are not limited to, employees, contractors, vendors, service providers, volunteers or any others who have or may come into contact with this organization’s data, whether in a paid or unpaid capacity.
 
-This policy refers to all information in the care of {{ config.extra.organization }}, including, but not limited to, third-party information, personal data, workforce member’s data and other data entrusted in {{ config.extra.organization }}’s care. This policy aims to protect all information assets including, but not limited to:
+This policy refers to all information in the care of {{ org() }}, including, but not limited to, third-party information, personal data, workforce member’s data and other data entrusted in {{ org() }}’s care. This policy aims to protect all information assets including, but not limited to:
 
 - Physical media such as paper documents, faxes, etc.
 - Storage such as removable drives, CDs, DVDs and USBs.
@@ -59,7 +59,7 @@ This policy refers to all information in the care of {{ config.extra.organizatio
 - Applying technical and administrative controls to reduce or mitigate the risk of unauthorized access to or disclosure of sensitive data.
 - Protecting data from accidental loss or unauthorized modification or destruction.
 
-{{ config.extra.organization }} will maintain an up-to-date inventory of all sensitive and confidential information assets, including those located at remote services providers.
+{{ org() }} will maintain an up-to-date inventory of all sensitive and confidential information assets, including those located at remote services providers.
 
 An assessment of information assets will be performed at least yearly to identify new information assets and assign appropriate labels to information assets.
 
@@ -67,25 +67,25 @@ All sensitive information will be encrypted at rest using a tool that requires a
 
 ## Data Classification
 
-All data will be classified and labeled. Any data not explicitly classified will be automatically classified and labeled as confidential information. {{ config.extra.organization }}’s data classifications include:
+All data will be classified and labeled. Any data not explicitly classified will be automatically classified and labeled as confidential information. {{ org() }}’s data classifications include:
 
 - **Public data**, which includes information that receives widespread disclosure and does not require controls to limit access to it. While public information does not have high sensitivity or confidentiality requirements, care should be taken to protect the integrity of the information.
-- **Sensitive data**, which includes information that is intended for use by {{ config.extra.organization }}’s workforce members who have contact or potentially may have contact with this information, such as:
+- **Sensitive data**, which includes information that is intended for use by {{ org() }}’s workforce members who have contact or potentially may have contact with this information, such as:
   - Departmental phone directories that do not include personal information.
-  - Human resources information, such as salary ranges, policies and benefits. This information is limited to workforce members only. Exceptions will be managed in accordance with {{ config.extra.organization }}’s Control Exception Policy. This information requires appropriate access controls applied to limit the chance of inadvertent exposure.
-- **Confidential data**, which includes both sensitive personal data and sensitive business information. Unauthorized access to or modification of confidential information may result in an incident. Unauthorized access may expose customers, workforce members, data subjects and {{ config.extra.organization }} to significant risk.
+  - Human resources information, such as salary ranges, policies and benefits. This information is limited to workforce members only. Exceptions will be managed in accordance with {{ org() }}’s Control Exception Policy. This information requires appropriate access controls applied to limit the chance of inadvertent exposure.
+- **Confidential data**, which includes both sensitive personal data and sensitive business information. Unauthorized access to or modification of confidential information may result in an incident. Unauthorized access may expose customers, workforce members, data subjects and {{ org() }} to significant risk.
 - **Additional labeling for confidential data**: Some types of data are predefined by a regulation or standard and may require additional labeling and additional procedures for processing and protecting that data. These types of data require appropriate access controls and labels applied to limit the chance of inadvertent
 exposure.
 
 Any and all data covered by federal or state laws or regulations or contractual agreements must meet the security requirements defined by those laws, regulations or contracts.
 
-All workforce members who suspect confidential data may have been misplaced, lost, stolen or altered in a suspicious way must immediately report the incident to the help desk or an IT leader in accordance with {{ config.extra.organization }}’s Incident Management Policy.
+All workforce members who suspect confidential data may have been misplaced, lost, stolen or altered in a suspicious way must immediately report the incident to the help desk or an IT leader in accordance with {{ org() }}’s Incident Management Policy.
 
 ## Data Owners
 
-{{ config.extra.organization }}’s managers will be responsible for identifying how information is being used in {{ config.extra.organization }} and identifying data owners.
+{{ org() }}’s managers will be responsible for identifying how information is being used in {{ org() }} and identifying data owners.
 
-The **data owner** is the individual who has ultimate responsibility for data protection and is held responsible when it comes to protecting {{ config.extra.organization }}’s information. The data owner is responsible for identifying, classifying and labeling all data assets. Other data owner responsibilities include:
+The **data owner** is the individual who has ultimate responsibility for data protection and is held responsible when it comes to protecting {{ org() }}’s information. The data owner is responsible for identifying, classifying and labeling all data assets. Other data owner responsibilities include:
 
 - The data owner is responsible for determining how confidential information should be protected in accordance with this policy.
 - All business information must be destroyed or disposed of when no longer needed for business purposes. Data owners must review the value and usefulness of information on an annual basis.
@@ -120,7 +120,7 @@ Confidential information assets are classified and labeled as confidential. For 
 - Persons other than those specifically invited must not attend meetings where confidential Information will be discussed.
 - A statement about confidential data levels must be made on all teleconferences or telephone conference calls before the confidential information is discussed.
 
-Confidential information will be destroyed in a manner that prevents re-creation of the information. Confidential information will not be stored on laptop computers, removable media such as USB drives, smartphones, tablets or other smart devices unless the devices are encrypted and password-protected according to {{ config.extra.organization }}’s Removable Media Policy.
+Confidential information will be destroyed in a manner that prevents re-creation of the information. Confidential information will not be stored on laptop computers, removable media such as USB drives, smartphones, tablets or other smart devices unless the devices are encrypted and password-protected according to {{ org() }}’s Removable Media Policy.
 
 Confidential information will not be stored on an electronic device owned by a workforce member.
 

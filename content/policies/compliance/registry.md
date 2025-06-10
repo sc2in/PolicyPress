@@ -63,7 +63,7 @@ extra:
 
 ---
 
-The following document summarizes the regulatory, statutory, and contractual requirements that {{ config.extra.organization }} must comply with. The table is organized by region and includes the type of requirement, owner, scope, source, encryption standards, and the date the requirement came into force.
+The following document summarizes the regulatory, statutory, and contractual requirements that {{ org() }} must comply with. The table is organized by region and includes the type of requirement, owner, scope, source, encryption standards, and the date the requirement came into force.
 
 ## United States
 ### Azure
@@ -137,7 +137,7 @@ Legal tort action
 
 Requirements required as HIPAA compliant Business Associate; need to abide by Security (Technical, Physical, Administrative) and Privacy Rules.
 
-[{{ config.extra.organization }} Statements about HIPAA GLBA FERPA]({{< ref "./regulatory-statements.md" >}})
+[{{ org() }} Statements about HIPAA GLBA FERPA]({{< ref "./regulatory-statements.md" >}})
 
 #### Consequences
 
@@ -165,7 +165,7 @@ According to [Ed.gov](https://studentprivacy.ed.gov/ferpa), a FERPA-Compliant Th
 > - Is under the direct control of the agency or institution with respect to the use and maintenance of education records; and
 > - Uses education records only for authorized purposes and may not re-disclose PII from education records to other parties, unless the provider has specific authorization from the school or district to do so and it is otherwise permitted by FERPA. (See 34 CFR § 99.31(a)(1)(i))."
 
-[{{ config.extra.organization }} Statements about HIPAA GLBA FERPA]({{< ref "./regulatory-statements.md" >}})
+[{{ org() }} Statements about HIPAA GLBA FERPA]({{< ref "./regulatory-statements.md" >}})
 
 #### Consequences
 
@@ -181,10 +181,10 @@ Fines up to $1.5m not exceeding 10% of annual budget
 Privacy and Safeguard Rules
 
 #### Description
-> Because {{ config.extra.organization }} is not a financial institution, we do not need to be, and cannot be, GLBA compliant.
+> Because {{ org() }} is not a financial institution, we do not need to be, and cannot be, GLBA compliant.
 > However, because we receive and store NPI from financial institutions, we are limited by proxy in how we use that NPI."
 
-[{{ config.extra.organization }} Statements about HIPAA GLBA FERPA]({{< ref "./regulatory-statements.md" >}})
+[{{ org() }} Statements about HIPAA GLBA FERPA]({{< ref "./regulatory-statements.md" >}})
 
 #### Consequences
 
@@ -200,7 +200,7 @@ Fines of up to $100,000 per violation, with fines for officers and directors of 
 Notification to NY customers of breaches within 72 hours
 
 #### Description
-{{ config.extra.organization }}' products hold confidential information of NY customers. Therefore, {{ config.extra.organization }} complies with the NYDFS 500 Part 23 requirements for data protection and notification.
+{{ org() }}' products hold confidential information of NY customers. Therefore, {{ org() }} complies with the NYDFS 500 Part 23 requirements for data protection and notification.
 
 #### Consequences
 
@@ -290,7 +290,7 @@ See also: [OneTrust](https://www.onetrust.com/blog/quebecs-law-25-what-is-it-and
 
 Law 25 increases the fines for non-compliance with privacy legislation. Private-sector entities are subject to fines ranging from $15,000 to $25,000,000 CAD, or an amount corresponding to four percent of worldwide turnover for the preceding fiscal year (whichever is greater).
 
-The registry currently lacks dedicated sections for emerging AI governance frameworks. Based on {{ config.extra.organization }}' operations and product capabilities, the following additions are recommended:
+The registry currently lacks dedicated sections for emerging AI governance frameworks. Based on {{ org() }}' operations and product capabilities, the following additions are recommended:
 
 ### NIST AI Risk Management Framework (AI RMF)
 
@@ -337,7 +337,7 @@ Complements existing infosec programs with:
 - **Enforcement**: Subject to oversight by the U.S. Federal Trade Commission (FTC) and cooperation with EU/UK/Swiss authorities.  
 
 #### Description  
-The **EU-U.S. DPF**, **UK Extension**, and **Swiss-U.S. DPF** are adequacy frameworks enabling lawful data transfers between the EU, UK, Switzerland, and U.S. organizations. {{ config.extra.organization }}, Inc. has certified adherence to these frameworks, ensuring personal data receives protections comparable to GDPR, UK GDPR, and Swiss FADP. These frameworks replace the invalidated Privacy Shield and require organizations to implement safeguards like encryption (AES-256/RSA 4096), breach notification, and third-party accountability.  
+The **EU-U.S. DPF**, **UK Extension**, and **Swiss-U.S. DPF** are adequacy frameworks enabling lawful data transfers between the EU, UK, Switzerland, and U.S. organizations. {{ org() }}, Inc. has certified adherence to these frameworks, ensuring personal data receives protections comparable to GDPR, UK GDPR, and Swiss FADP. These frameworks replace the invalidated Privacy Shield and require organizations to implement safeguards like encryption (AES-256/RSA 4096), breach notification, and third-party accountability.  
 
 #### Consequences  
 
@@ -356,7 +356,7 @@ The **EU-U.S. DPF**, **UK Extension**, and **Swiss-U.S. DPF** are adequacy frame
 
 > Data protection and privacy of personal information; right-to-be-forgotten, mandatory data breach notifications, mandatory data protection officers and fines of 4% or €20m; Align privacy policy with the new regulations
 > Based on the IP address, ask site visitors to provide explicit permission for continued contact whenever they fill out a form to download a gated asset.
-> Allow site visitors to specify what types of content they'd like to receive from {{ config.extra.organization }}.
+> Allow site visitors to specify what types of content they'd like to receive from {{ org() }}.
 
 #### Description
 
@@ -398,7 +398,7 @@ Applies to providers and deployers of AI systems affecting EU markets, requiring
 
 | Type        | Owner        | Scope                                 | Source                                                              | Encryption standards | In force     |
 | ----------- | ------------ | ------------------------------------- | ------------------------------------------------------------------- | -------------------- | ------------ |
-| Legislation | InfoSec Team | {{ config.extra.organization }} customers residing in Germany | [BDSG](https://www.gesetze-im-internet.de/englisch_bdsg/index.html) | RSA 4096; AES-256    | 2018-current |
+| Legislation | InfoSec Team | {{ org() }} customers residing in Germany | [BDSG](https://www.gesetze-im-internet.de/englisch_bdsg/index.html) | RSA 4096; AES-256    | 2018-current |
 
 #### Requirement
 "Privacy protection, with the following explanation:
@@ -449,7 +449,7 @@ Section 109 sets a fine maximum of ZAR1 10 million (roughly $651,012.00).
 
 | Type        | Owner        | Scope                                   | Source                                                               | Encryption standards | In force     |
 | ----------- | ------------ | --------------------------------------- | -------------------------------------------------------------------- | -------------------- | ------------ |
-| Legislation | InfoSec Team | {{ config.extra.organization }} customers residing in Australia | [Privacy Act 1988](https://www.oaic.gov.au/privacy/the-privacy-act/) | RSA 4096; AES-256    | 1988-current |
+| Legislation | InfoSec Team | {{ org() }} customers residing in Australia | [Privacy Act 1988](https://www.oaic.gov.au/privacy/the-privacy-act/) | RSA 4096; AES-256    | 1988-current |
 
 #### Requirement
 Privacy rules and principles
@@ -509,7 +509,7 @@ Provides companies on both sides of the Atlantic with a mechanism to comply with
 
 #### Description
 
-The EU–US Privacy Shield (PS) was a framework for regulating transatlantic exchanges of personal data for commercial purposes between the European Union and the United States. One of its purposes was to enable US companies to more easily receive personal data from EU entities under EU privacy laws meant to protect European Union citizens. Even though PS is being contested, {{ config.extra.organization }} maintains the PS standards to better assure customers of the privacy of EU customer data.
+The EU–US Privacy Shield (PS) was a framework for regulating transatlantic exchanges of personal data for commercial purposes between the European Union and the United States. One of its purposes was to enable US companies to more easily receive personal data from EU entities under EU privacy laws meant to protect European Union citizens. Even though PS is being contested, {{ org() }} maintains the PS standards to better assure customers of the privacy of EU customer data.
 
 
 #### Consequences

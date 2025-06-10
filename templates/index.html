@@ -1,25 +1,26 @@
 {% import "macros.html" as macros %}
 {% if get_env(name="BUILD_TYPE", default="web") != "pandoc" %}
 
-
 <!DOCTYPE HTML>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="{{ get_url(path="main.css") | safe }}">
-    {% if config.extra.favicon -%}
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="{{ get_url(path="main.css") | safe }}">
+        {% if config.extra.favicon -%}
         {% set _favicon = config.extra.favicon -%}
         {% if (_favicon is starting_with("http")) == false -%}
-            {% set _favicon = get_url(path=config.extra.favicon) -%}
+        {% set _favicon = get_url(path=config.extra.favicon) -%}
         {% endif -%}
         <link rel="icon" href="{{ _favicon | safe }}">
-    {% endif -%}
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-    <title>{% block title %}{{ config.title }}{% endblock title %}</title>
-</head>
-<body>
-{% if config.extra.release -%}
-    <script>
+        {% endif -%}
+
+        <meta name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1">
+        <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+    </head>
+    <body>
+        {% if config.extra.release -%}
+        <script>
         fetch('{{ config.extra.release | safe }}')
             .then((response) => {
                 return response.json();
@@ -30,81 +31,96 @@
                 release.innerHTML = `<a href='${html_url}'>${release_name}</a>`;
             });
     </script>
-{% endif -%}
-<main>
-    {# Create variable to allow appending index.html at end of links if set in config #}
-    {% if not config.extra.easydocs_uglyurls or config.mode == "serve" or config.mode == "Serve" -%}
-        {% set _ugly_url = "" -%}
-    {% else %}
-        {% set _ugly_url = "index.html" -%}
-    {% endif -%}
+        {% endif -%}
+        <main>
+            {# Create variable to allow appending index.html at end of links if
+            set in config #}
+            {% if not config.extra.easydocs_uglyurls or config.mode == "serve"
+            or config.mode == "Serve" -%}
+            {% set _ugly_url = "" -%}
+            {% else %}
+            {% set _ugly_url = "index.html" -%}
+            {% endif -%}
 
-    {%- block nav -%}
-        <nav>
-            {% if config.extra.logo -%}
+            {%- block nav -%}
+            <nav>
+                {% if config.extra.logo -%}
                 {% set _logo = config.extra.logo -%}
                 {% if (_logo is starting_with("http")) == false -%}
-                    {% set _logo = get_url(path=config.extra.logo) -%}
+                {% set _logo = get_url(path=config.extra.logo) -%}
                 {% endif -%}
-                {% if current_path == "/" and not config.extra.easydocs_logo_always_clickable -%}
-                    <img src="{{ _logo | safe }}" alt="logo"/>
+                {% if current_path == "/" and not
+                config.extra.easydocs_logo_always_clickable -%}
+                <img src="{{ _logo | safe }}" alt="logo" />
                 {% else -%}
-                    <a href="{{ config.base_url }}{{ _ugly_url }}">
-                        <img src="{{ _logo | safe }}" alt="logo"/>
-                    </a>
+                <a href="{{ config.base_url }}{{ _ugly_url }}">
+                    <img src="{{ _logo | safe }}" alt="logo" />
+                </a>
                 {% endif -%}
 
-            {% else -%}
-                <h1><a href="{{ config.base_url }}{{ _ugly_url }}">{{ config.title }}</a></h1>
-            {% endif -%}
+                {% else -%}
+                <h1><a href="{{ config.base_url }}{{ _ugly_url }}">{{
+                        config.title }}</a></h1>
+                {% endif -%}
 
-            {% if config.extra.release -%}
+                {% if config.extra.release -%}
                 <div id="release"></div>
-            {% endif -%}
+                {% endif -%}
 
-            <a href="javascript:void(0);" onclick="burger()" id="mobile" class="ms-Icon--GlobalNavButton"></a>
-            <div id="trees">
-                {{ macros::render_nav_tree(start_path="_index.md", depth=2, level=0, render_root=false) }}
-            </div>
-        </nav>
-    {% endblock nav -%}
-
-    <section>
-
-        {% if config.build_search_index -%}
-            <div id="on_right">
-                <span id="search-ico" class="ms-Icon--Search"></span>
-            </div>
-            <div class="search-container">
-                <input id="search" type="search" placeholder="Search as you type...">
-                <div class="search-results">
-                    <div class="search-results__header"></div>
-                    <ul class="search-results__items"></ul>
+                <a href="javascript:void(0);" onclick="burger()" id="mobile"
+                    class="ms-Icon--GlobalNavButton"></a>
+                <div id="trees">
+                    {{ macros::render_nav_tree(start_path="_index.md", depth=2,
+                    level=0, render_root=false) }}
                 </div>
-            </div>
+            </nav>
+            {% endblock nav -%}
+
+            <section>
+
+                {% if config.build_search_index -%}
+                <div id="on_right">
+                    <span id="search-ico" class="ms-Icon--Search"></span>
+                </div>
+                <div class="search-container">
+                    <input id="search" type="search"
+                        placeholder="Search as you type...">
+                    <div class="search-results">
+                        <div class="search-results__header"></div>
+                        <ul class="search-results__items"></ul>
+                    </div>
+                </div>
+                {% endif -%}
+
+                <div id="wrap">
+                    {% block content -%}
+                    {%- if section.word_count -%}
+                    {{ section.content |safe }}
+                    {%- else -%}
+                    {%- include "sec_toc_2_level.html" -%}
+                    {% endif -%}
+                    {% endblock content %}
+                </div>
+
+            </section>
+        </main>
+
+        {% if config.build_search_index %}
+        <script type="text/javascript"
+            src="{{ get_url(path="elasticlunr.min.js") | safe }}"
+            defer></script>
+        <script type="text/javascript"
+            src="{{ get_url(path="search_index.en.js") | safe }}"
+            defer></script>
         {% endif -%}
 
-        <div id="wrap">
-            {% block content -%}
-                {%- if section.word_count -%}
-                    {{ section.content |safe }}
-                {%- else -%}
-                    {%- include "sec_toc_2_level.html" -%}
-                {% endif -%}
-            {% endblock content %}
-        </div>
-
-    </section>
-</main>
-
-{% if config.build_search_index %}
-    <script type="text/javascript" src="{{ get_url(path="elasticlunr.min.js") | safe }}" defer></script>
-    <script type="text/javascript" src="{{ get_url(path="search_index.en.js") | safe }}" defer></script>
-{% endif -%}
-
-    <script type="text/javascript" src="{{ get_url(path="js.js") | safe }}" defer></script>
-
-</body>
+        <script type="text/javascript" src="{{ get_url(path="js.js") | safe }}"
+            defer></script>
+        <script type="module">
+                import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+                mermaid.initialize({ startOnLoad: true, securityLevel: 'loose', logLevel: 'debug' });
+            </script>
+    </body>
 </html>
 
 {% else %}

@@ -291,5 +291,5 @@ wrapper.appendChild(highlightDiv);
 }
 
 document
-.querySelectorAll("pre")
+.querySelectorAll('pre:not(.mermaid)')
 .forEach((highlightDiv) => createCopyButton(highlightDiv));

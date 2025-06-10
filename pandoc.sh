@@ -109,6 +109,8 @@ for FILE in ${FILES[@]}; do
   # Build the PDF
   pandoc "${args[@]}"
 
+  rm -f "$tmpfile"
+  
   if [ $? -ne 0 ]; then
     echo "${ERROR_COLOR}Error: Failed to build PDF for ${FILE}${NO_COLOR}"
   fi

@@ -73,11 +73,15 @@ for FILE in ${FILES[@]}; do
   tmpfile=$(mktemp --suffix .md)
   trap 'rm -f "$tmpfile"' EXIT
 
+  # Shortcode emulation
+  # mermaid shortcode emulation
   awk '
       /{%\s*mermaid\(\)\s*%}/ { print "~~~mermaid"; in_mermaid=1; next }
       in_mermaid && /{%\s*end\s*%}/ { print "~~~"; in_mermaid=0; next }
       { print }
-' "${FILE}" > "$tmpfile"
+  ' "${FILE}" > "$tmpfile"
+  # Replace org() shortcode with the organization name
+  sed -i 's/{{ org() }}/'"${ORG}"'/g' "$tmpfile"
 
   VERSION=$(yq --front-matter extract -r '.extra.major_revisions | sort_by("date")| .[0].version' "${tmpfile}")
 
@@ -105,7 +109,6 @@ for FILE in ${FILES[@]}; do
   # Build the PDF
   pandoc "${args[@]}"
 
-  rm -f "$tmpfile"
   if [ $? -ne 0 ]; then
     echo "${ERROR_COLOR}Error: Failed to build PDF for ${FILE}${NO_COLOR}"
   fi

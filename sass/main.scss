@@ -7,7 +7,7 @@ html {
 }
 
 body {
-  margin: $baseline 0;
+  margin: $baseline 2rem;
   font-size: $font-size;
   font-family: $font-family;
   line-height: $line-height;
@@ -122,8 +122,7 @@ nav {
   top: $baseline;
   left: $baseline;
   bottom: $baseline;
-  padding-right: $baseline;
-  width: 20rem;
+  min-width: 15rem;
 
   img {
     width: 128px;
@@ -361,3 +360,4 @@ blockquote {
 @import "contributors";
 @import "cards";
 @import "banner";
+@import "collapasible";

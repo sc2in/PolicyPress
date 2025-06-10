@@ -14,7 +14,10 @@
     "cargo@latest",
     "imagemagick@latest",
     "yj@latest",
-    "mermaid-filter@latest"
+    "mermaid-filter@latest",
+    "zig@latest",
+    "zls@latest",
+    "watchexec@latest"
   ],
   "shell": {
     "init_hook": [

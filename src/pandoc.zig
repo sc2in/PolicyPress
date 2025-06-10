@@ -87,7 +87,7 @@ fn replace_org(txt: *Array(u8)) !void {
 }
 
 fn replace_mermaid(txt: *Array(u8)) !void {
-    const mermaid: mvzr.Regex = mvzr.compile("\\{%\\s*mermaid\\(\\)\\s*%\\}").?;
+    const mermaid: mvzr.Regex = mvzr.compile("\\{%\\s*mermaid\\(\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;
     // const mermaid_end: mvzr.Regex = mvzr.compile("\\{%\\s*end\\s*\\}").?;
 
     var replacements = Array(mvzr.Match).init(txt.allocator);
@@ -103,22 +103,23 @@ fn replace_mermaid(txt: *Array(u8)) !void {
         total += m.end - m.start;
     }
 
-    const replace_with = "~~~mermaid";
-    const replacement_total = replace_with.len * replacements.items.len;
-    const new = try alloc.alloc(u8, txt.items.len + replacement_total);
-
     for (replacements.items) |m| {
-        _ = std.mem.replace(u8, txt.items, m.slice, replace_with, new);
+        const s = std.mem.indexOf(u8, m.slice, "%}") orelse return error.InvalidShortCode;
+        const e = std.mem.lastIndexOf(u8, m.slice, "{%") orelse return error.InvalidShortCode;
+        const inner = m.slice[s + 2 .. e - 2];
+        const replace = try std.fmt.allocPrint(alloc, "~~~mermaid\n{s}\n~~~\n", .{inner});
+        defer alloc.free(replace);
+
+        const size = std.mem.replacementSize(u8, txt.items, m.slice, replace);
+        const new = try alloc.alloc(u8, size);
+        _ = std.mem.replace(u8, txt.items, m.slice, replace, new);
+        txt.deinit();
+        txt.* = .{
+            .allocator = alloc,
+            .capacity = new.len,
+            .items = new,
+        };
     }
-    if (replacements.items.len > 0) {
-        std.debug.print("{s}", .{new});
-    }
-    txt.deinit();
-    txt.* = .{
-        .allocator = alloc,
-        .capacity = new.len,
-        .items = new,
-    };
 }
 
 pub fn find_md_files(root: std.fs.Dir, policy_dir: []const u8) ![]std.fs.File {

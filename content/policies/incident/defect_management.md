@@ -107,7 +107,17 @@ The process provides:â€‹
 
 ## The Defect Workflow
 
-```mermaid
+{% mermaid() %}
+flowchart TD
+    A[Enter Chart Definition] --> B(Preview)
+    B --> C{decide}
+    C --> D[Keep]
+    C --> E[Edit Definition]
+    E --> B
+    D --> F[Save Image and Code]
+    F --> B
+{% end %}
+{% mermaid() %}
 flowchart TB
     ztc["Zendesk Ticket Creation"]
     ztc --> validate
@@ -115,7 +125,6 @@ flowchart TB
         validate["Validate + take steps to resolve issue with client"]
         is_resolved["Resolve issue?"]
         manage["Manage client + close Zendesk ticket"]
-        
         validate --> is_resolved
         is_resolved --"Yes"--> manage
     end
@@ -166,7 +175,7 @@ flowchart TB
     %% class ado_ticket technicalSupport;
     %% class ado_ticket technicalSupport;
     
-```
+{% end %}
 
 ## Prioritization
 
@@ -222,7 +231,7 @@ If a defect has not been resolved after 9 months and users are not affected, itâ
 
 ## Critical Incident Process
 
-```mermaid
+{% mermaid() %}
 flowchart TB
 
 raise["Defect Raise by Customer / Stakeholder"]
@@ -262,7 +271,8 @@ team_call --> action_plan_comms
 action_plan_comms --> cs_manage
 action_plan_comms --> daily_comms
 daily_comms --> cs_manage
-```
+
+{% end %}
 
 ## Appendices
 

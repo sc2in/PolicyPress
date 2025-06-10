@@ -1,7 +1,7 @@
 +++
 title = "SCF Report"
 description = "The SC2 Secure Controls Framework Report"
-template = "SCF/list.html"
+# template = "SCF/list.html"
 weight = 1
 [extra]
 +++

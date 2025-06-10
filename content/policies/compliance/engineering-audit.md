@@ -54,11 +54,11 @@ extra:
 
 ## Purpose
 
-From time to time, an engineering member with deep ties to the system as a whole may be separated from {{ config.extra.organization }}. At that time, depending on the nature of the separation, it may be prudent to perform an audit of the work of that employee prior to, or after, their departure to determine if any suspicious or malicious activity was performed. The purpose of this document is to codify the policy and procedure for performing such an audit.
+From time to time, an engineering member with deep ties to the system as a whole may be separated from {{ org() }}. At that time, depending on the nature of the separation, it may be prudent to perform an audit of the work of that employee prior to, or after, their departure to determine if any suspicious or malicious activity was performed. The purpose of this document is to codify the policy and procedure for performing such an audit.
 
 ## Policy
 
-Upon initiating separation of an engineering employee from {{ config.extra.organization }}, engineering leadership will determine if the scope of system access the employee was granted warrants a review of work of the employee.
+Upon initiating separation of an engineering employee from {{ org() }}, engineering leadership will determine if the scope of system access the employee was granted warrants a review of work of the employee.
 
 ### Amicable Separation
 

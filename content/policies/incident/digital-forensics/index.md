@@ -40,7 +40,7 @@ extra:
 
 ## Purpose
 
-If {{ config.extra.organization }} faces an event that requires a time-sensitive search, review and extraction of large volumes of communications content, those involved need guidance regarding secure, timely, and immutable collection of relevant data. These events can be spurred by audits, regulatory investigations or litigation, which can often happen concurrently. Those involved include but are not limited to {{ config.extra.organization }} management, law enforcement, and litigation specialists.
+If {{ org() }} faces an event that requires a time-sensitive search, review and extraction of large volumes of communications content, those involved need guidance regarding secure, timely, and immutable collection of relevant data. These events can be spurred by audits, regulatory investigations or litigation, which can often happen concurrently. Those involved include but are not limited to {{ org() }} management, law enforcement, and litigation specialists.
 
 ## Scope
 
@@ -82,7 +82,7 @@ The scope of the evidence collected will be guided by the following, including b
 
 ## Evidentiary Principles
 
-In order to Acquire _(Identify, Collect, and Preserve)_ information that could serve as evidence, the following 4 principles must be followed by forensic examiners and {{ config.extra.organization }} personnel:
+In order to Acquire _(Identify, Collect, and Preserve)_ information that could serve as evidence, the following 4 principles must be followed by forensic examiners and {{ org() }} personnel:
 
 1. Do not change any data _(e.g., forensic copy with hashed verification)_
 1. Only access the original data in exceptional circumstances
@@ -94,7 +94,7 @@ In order to Acquire _(Identify, Collect, and Preserve)_ information that could s
 
 ### Physical Hard Disk/SDD Digital Forensics
 
-For legal cases (beyond any internal investigation for non-judicial proceedings), {{ config.extra.organization }} opts to employ a private business due to that business having up-to-date industry standard forensics tools and Digital Evidence First Responder expertise, rather than using in-house expertise.
+For legal cases (beyond any internal investigation for non-judicial proceedings), {{ org() }} opts to employ a private business due to that business having up-to-date industry standard forensics tools and Digital Evidence First Responder expertise, rather than using in-house expertise.
 
 The following are characteristics that are necessary in selecting a forensics business who would make a proper copy of an HDD/SD:
 
@@ -108,12 +108,12 @@ The following are characteristics that are necessary in selecting a forensics bu
 
 5. Agreed upon by the litigating parties (if applicable)
 
-As of June 9, 2020, the following companies are possibilities. {{ config.extra.organization }} reserves the right to update this list without noting it here, and even to choose a company not listed, in the event of an incident and/or upon recommendations or requirements by legal authorities.
+As of June 9, 2020, the following companies are possibilities. {{ org() }} reserves the right to update this list without noting it here, and even to choose a company not listed, in the event of an incident and/or upon recommendations or requirements by legal authorities.
 
 
 ### Virtual Digital Forensics (Azure)
 
-With Azure, Network Forensics must be performed because {{ config.extra.organization }} personnel do not have access to obtain a digital copy of the services or virtual machines for offline investigation.
+With Azure, Network Forensics must be performed because {{ org() }} personnel do not have access to obtain a digital copy of the services or virtual machines for offline investigation.
 
 ## Appendix A – Definitions (Digital Forensics terms)
 

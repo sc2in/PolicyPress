@@ -99,7 +99,7 @@ extra:
 
 ## HIPAA
 
-Our products and other {{ config.extra.organization }} systems may hold PHI/ePHI; therefore, {{ config.extra.organization }} is HIPAA compliant as a Business Associate. Throughout our policies we include the requirements noted in the following section.
+Our products and other {{ org() }} systems may hold PHI/ePHI; therefore, {{ org() }} is HIPAA compliant as a Business Associate. Throughout our policies we include the requirements noted in the following section.
 
 What are the requirements to attain and maintain HIPAA compliance (not certification) as a Business Associate?
 
@@ -117,7 +117,7 @@ According to the U.S. Department of Health & Human Services _(_[_https://www.hhs
 
 "The Privacy Rule allows covered providers and health plans to disclose protected health information to these "business associates" if the providers or plans obtain satisfactory assurances that the business associate will use the information only for the purposes for which it was engaged by the covered entity, will safeguard the information from misuse, and will help the covered entity comply with some of the covered entity's duties under the Privacy Rule. Covered entities may disclose protected health information to an entity in its role as a business associate only to help the covered entity carry out its health care functions – not for the business associate's independent use or purposes, except as needed for the proper management and administration of the business associate."
 
-In the case of holding data for a Covered Entity, {{ config.extra.organization }} has a Business Associate Contract available.
+In the case of holding data for a Covered Entity, {{ org() }} has a Business Associate Contract available.
 
 We safeguard data in the following ways:
 
@@ -144,11 +144,11 @@ There are 5 standards listed under the Technical Safeguards section.
 1. **Authentication**
 1. **Transmission Security**
 
-When you break down the 5 standards there are 9 things that need to be implemented, and that {{ config.extra.organization }} has implemented:
+When you break down the 5 standards there are 9 things that need to be implemented, and that {{ org() }} has implemented:
 
 1. **Access Control** - **Unique User Identification** : Assign a unique name and/or number for identifying and tracking user identity.
 1. **Access Control** - **Emergency Access Procedure:** Establish (and implement as needed) procedures for obtaining necessary ePHI during an emergency.
-1. **Access Control - Automatic Logoff:** Implement electronic procedures that terminate an electronic session after a predetermined time of inactivity.{{ config.extra.organization }} NOTE re: compensating control: As allowed by the safeguard standards (see page 6 here: [https://www.hhs.gov/sites/default/files/ocr/privacy/hipaa/administrative/securityrule/techsafeguards.pdf](https://www.hhs.gov/sites/default/files/ocr/privacy/hipaa/administrative/securityrule/techsafeguards.pdf)) while we don't terminate all sessions, we do the following to protect ePHI:
+1. **Access Control - Automatic Logoff:** Implement electronic procedures that terminate an electronic session after a predetermined time of inactivity.{{ org() }} NOTE re: compensating control: As allowed by the safeguard standards (see page 6 here: [https://www.hhs.gov/sites/default/files/ocr/privacy/hipaa/administrative/securityrule/techsafeguards.pdf](https://www.hhs.gov/sites/default/files/ocr/privacy/hipaa/administrative/securityrule/techsafeguards.pdf)) while we don't terminate all sessions, we do the following to protect ePHI:
    1. After 15 minutes of inactivity, computers automatically lock so that any ePHI that might be displayed is hidden from view.
    1. Educate and reinforce that employees are to lock their computer when leaving their desks.
    1. For multi-user workstations, all logged-in sessions are terminated after working hours.
@@ -168,7 +168,7 @@ There are 4 standards in the Physical Safeguards section.
 1. **Workstation Security**
 1. **Device and Media Controls**
 
-When you break down the 4 standards there are 10 things that need to be implemented, and that {{ config.extra.organization }} has implemented:
+When you break down the 4 standards there are 10 things that need to be implemented, and that {{ org() }} has implemented:
 
 1. **Facility Access Controls** - Contingency Operations: Establish (and implement as needed) procedures that allow facility access in support of restoration of lost data under the disaster recovery plan and emergency mode operations plan in the event of an emergency.
 1. **Facility Access Controls** - **Facility Security Plan** : Implement policies and procedures to safeguard the facility and the equipment therein from unauthorized physical access, tampering, and theft.
@@ -195,7 +195,7 @@ There are 9 standards under the Administrative Safeguards section.
 1. **Evaluation**
 1. **Business Associate Contracts and Other Arrangements**
 
-When you break down the 9 standards there are 18 things that {{ config.extra.organization }} needs to implement, and have been implemented:
+When you break down the 9 standards there are 18 things that {{ org() }} needs to implement, and have been implemented:
 
 1. **Security Management Process - Risk Analysis** : Perform and document a risk analysis to see where PHI is being used and stored in order to determine all the ways that HIPAA could be violated.
 1. **Security Management Process - Risk Management**: Implement sufficient measures to reduce these risks to an appropriate level.
@@ -235,7 +235,7 @@ The need to abide by GLBA's Privacy Rule
 
 [https://digitalguardian.com/blog/what-glba-compliance-understanding-data-protection-requirements-gramm-leach-bliley-act](https://digitalguardian.com/blog/what-glba-compliance-understanding-data-protection-requirements-gramm-leach-bliley-act)
 
-Because {{ config.extra.organization }} is not a financial institution, we do not need to be, and cannot be, GLBA compliant.
+Because {{ org() }} is not a financial institution, we do not need to be, and cannot be, GLBA compliant.
 
 However, because we receive and store NPI from financial institutions, we are limited by proxy in how we use that NPI. We demonstrate our commitment to safeguarding that NPI in the following manners:
 
@@ -254,7 +254,7 @@ However, because we receive and store NPI from financial institutions, we are li
 
 1. We never distribute (give away or sell) customer data to third-parties, which includes how we treat customers' consumer data (which may contain NPI).
 
-1. Our IT Security Protocol clearly details how we abide by all the above rules. Also, the OnBoard MSA shows that ALL posted content is solely owned by the customer and that {{ config.extra.organization }} has no inherent rights to it.
+1. Our IT Security Protocol clearly details how we abide by all the above rules. Also, the OnBoard MSA shows that ALL posted content is solely owned by the customer and that {{ org() }} has no inherent rights to it.
 
 ### What NPI is and is not
 
@@ -280,11 +280,11 @@ According to **Ed.gov** a FERPA-Compliant Third-Party provider:
 - Is under the direct control of the agency or institution with respect to the use and maintenance of education records, and
 - Uses education records only for authorized purposes and may not re-disclose PII from education records to other parties, unless the provider has specific authorization from the school or district to do so and it is otherwise permitted by FERPA. (See [here](https://www.ecfr.gov/current/title-34/part-99) for more details).
 
-Our _"{{ config.extra.organization }} IT Security Protocol"_ clearly details how we abide by all the requirements necessary to safeguard PII. This is available in our Trust Center (upon a signed MNDA).
+Our _"{{ org() }} IT Security Protocol"_ clearly details how we abide by all the requirements necessary to safeguard PII. This is available in our Trust Center (upon a signed MNDA).
 
 We never distribute (give away or sell) customer data to third parties, which includes how we treat customers' consumer data (which may contain PII or FERPA-protected data)
 
-The OnBoard Master Subscription Agreement shows that ALL posted content is solely owned by the customer and that {{ config.extra.organization }} has no inherent rights to it.
+The OnBoard Master Subscription Agreement shows that ALL posted content is solely owned by the customer and that {{ org() }} has no inherent rights to it.
 
 For Microsoft's overview of their FERPA compliance, please see here:
 
@@ -296,4 +296,4 @@ For Azure's compliance offerings, including FERPA, please see the PDF available 
 
 ## Quebec Bill 64 (Law 25)
 
-Per the [text of the law](https://www.publicationsduquebec.gouv.qc.ca/fileadmin/Fichiers_client/lois_et_reglements/LoisAnnuelles/en/2021/2021C25A.PDF) {{ config.extra.organization }} commits to sending data breach notifications to [Le Commission d’accès à l’information du Quebec](https://www.cai.gouv.qc.ca/english/), as well as to any affected individuals in the event of a breech involving PII or other confidential information stored in {{ config.extra.organization }}' systems. Notifications will be sent as soon as possible after the incident occurs. {{ config.extra.organization }} will also maintain a record of all security incidents.
+Per the [text of the law](https://www.publicationsduquebec.gouv.qc.ca/fileadmin/Fichiers_client/lois_et_reglements/LoisAnnuelles/en/2021/2021C25A.PDF) {{ org() }} commits to sending data breach notifications to [Le Commission d’accès à l’information du Quebec](https://www.cai.gouv.qc.ca/english/), as well as to any affected individuals in the event of a breech involving PII or other confidential information stored in {{ org() }}' systems. Notifications will be sent as soon as possible after the incident occurs. {{ org() }} will also maintain a record of all security incidents.

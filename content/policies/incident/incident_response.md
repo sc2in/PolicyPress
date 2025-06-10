@@ -48,7 +48,7 @@ extra:
 
 ## Purpose
 
-This document is an IRP intended to serve as an operational guide for handling cybersecurity incidents at {{ config.extra.organization }}.
+This document is an IRP intended to serve as an operational guide for handling cybersecurity incidents at {{ org() }}.
 
 The IRP follows the structure of the Incident Handling Guide published by NIST ([SP 800-61 Rev. 3](https://csrc.nist.gov/pubs/sp/800/61/r3/final)). General procedural guidance is provided in the body of the document, while incident scenario-specific guidance is listed on a case-by-case basis at the end.
 
@@ -60,13 +60,13 @@ The general process guidance spans the full spectrum of incident handling activi
 
 Effective IR begins with advance planning prior to incidents.
 
-Preparation should include building and operating a comprehensive, modern security infrastructure with appropriate security sensors and event monitoring capabilities. At {{ config.extra.organization }}, these tasks are largely outsourced to an MSSP. {{ config.extra.organization }} provides a clear set of operational standards that external vendors must meet.
+Preparation should include building and operating a comprehensive, modern security infrastructure with appropriate security sensors and event monitoring capabilities. At {{ org() }}, these tasks are largely outsourced to an MSSP. {{ org() }} provides a clear set of operational standards that external vendors must meet.
 
-Additionally, the preparation stage should include infrastructure, equipment and processes for handling security incidents as they occur. In the current system, MSSP X’s monitoring team runs a SIEM, where it monitors for security events. When detected, MSSP X notifies {{ config.extra.organization }}, which then enters the information into a trouble ticket management system. (More details on this process can be found in the Detection and Analysis section below.)
+Additionally, the preparation stage should include infrastructure, equipment and processes for handling security incidents as they occur. In the current system, MSSP X’s monitoring team runs a SIEM, where it monitors for security events. When detected, MSSP X notifies {{ org() }}, which then enters the information into a trouble ticket management system. (More details on this process can be found in the Detection and Analysis section below.)
 
-Thus, the detection preparations are largely taken care of by the above vendors. Additional advance planning preparations should be handled on a case-by-case basis and driven by existing threat intelligence inputs. The incident handling preparations are handled at {{ config.extra.organization }} directly.
+Thus, the detection preparations are largely taken care of by the above vendors. Additional advance planning preparations should be handled on a case-by-case basis and driven by existing threat intelligence inputs. The incident handling preparations are handled at {{ org() }} directly.
 
-With the current low number of incidents being handled, tracking them is mostly ad hoc and easy to accomplish via {{ config.extra.organization }}’s trouble ticket handling system.
+With the current low number of incidents being handled, tracking them is mostly ad hoc and easy to accomplish via {{ org() }}’s trouble ticket handling system.
 
 In addition to detection prep, legislation and regulations are increasingly affecting incident reporting requirements. What needs to be reported, when and how are specific to each requirement and type of incident. (The new SEC cybersecurity rule is dealt with specifically in Appendix A.)
 
@@ -81,36 +81,36 @@ A complete discussion of this process is out of scope of this document, but thre
 
 ## Incident Severity
 
-Modeled after {{ config.extra.organization }}’s operational environment, {{ config.extra.organization }} has four quantified tiers of security incident severity. These severity tiers serve to guide the staff to ensure appropriate steps are taken that are commensurate with each incident’s severity level or risk level to the company. The severity levels are as follows, in descending
+Modeled after {{ org() }}’s operational environment, {{ org() }} has four quantified tiers of security incident severity. These severity tiers serve to guide the staff to ensure appropriate steps are taken that are commensurate with each incident’s severity level or risk level to the company. The severity levels are as follows, in descending
 order:
 
-- Critical (P-1): Priority level 1 is the highest tier of incident. These incidents represent the highest level of risk to the company. They impact or have the potential to impact multiple (and possibly all) {{ config.extra.organization }} customers. Critical decisions on Sev-1 incidents are generally escalated to executive management and are typically managed in real time via direct communications (e.g., over the incident phone bridge).
-- High (P-2): Priority level 2 also has the potential of directly impacting {{ config.extra.organization }} customers. Generally, outages or security incidents that directly impact a single customer are ranked at Sev-2. If or when they impact multiple customers, the severity is increased to Sev-1. Similar to Sev-1, critical decisions on Sev-2 incidents are generally escalated to executive management.
-- Medium (P-3) and Low (P-4): These are considered low-grade incidents, likely without any direct impact on {{ config.extra.organization }} customers. Lower-grade incidents are still managed, but the SLA-prescribed time margins are longer.
+- Critical (P-1): Priority level 1 is the highest tier of incident. These incidents represent the highest level of risk to the company. They impact or have the potential to impact multiple (and possibly all) {{ org() }} customers. Critical decisions on Sev-1 incidents are generally escalated to executive management and are typically managed in real time via direct communications (e.g., over the incident phone bridge).
+- High (P-2): Priority level 2 also has the potential of directly impacting {{ org() }} customers. Generally, outages or security incidents that directly impact a single customer are ranked at Sev-2. If or when they impact multiple customers, the severity is increased to Sev-1. Similar to Sev-1, critical decisions on Sev-2 incidents are generally escalated to executive management.
+- Medium (P-3) and Low (P-4): These are considered low-grade incidents, likely without any direct impact on {{ org() }} customers. Lower-grade incidents are still managed, but the SLA-prescribed time margins are longer.
 
 ## Incident Handler Communications and Facilities
 
-{{ config.extra.organization }} has in place or is building each of the following tools and information repositories for handling incidents,
+{{ org() }} has in place or is building each of the following tools and information repositories for handling incidents,
 per NIST SP 800-61 Rev. 3:
 
 - Contact information is maintained for all key stakeholders likely to be involved in handling security incidents. These include 24/7 contacts for key decision-makers, vendor support, the operations team, corporate communications, corporate counsel and others. The contact list is readily available to all members of this core team.
 - On-call information is maintained to indicate who is “on point” for handling security incidents at any given time. Although the incident handling staff is currently small, building this tracking will be essential if and when the current staffing level increases.
-- Incident reporting mechanisms are available to all {{ config.extra.organization }} staff and vendors, should any of them need to report a security incident.
-- Issue tracking systems are maintained across the different data centers and corporate staff for tracking of operations and security incidents. Currently, the MSSP data center uses a Jira-based tracking system. The MSSP security operations center (SOC) team uses a proprietary incident management system, but when it notifies {{ config.extra.organization }} of security incidents, {{ config.extra.organization }} help desk staff enter the trouble ticket information into its own tracking tool. While seemingly complex and disparate, the systems are not currently over-burdened by {{ config.extra.organization }}’s relatively low number of security incidents.
+- Incident reporting mechanisms are available to all {{ org() }} staff and vendors, should any of them need to report a security incident.
+- Issue tracking systems are maintained across the different data centers and corporate staff for tracking of operations and security incidents. Currently, the MSSP data center uses a Jira-based tracking system. The MSSP security operations center (SOC) team uses a proprietary incident management system, but when it notifies {{ org() }} of security incidents, {{ org() }} help desk staff enter the trouble ticket information into its own tracking tool. While seemingly complex and disparate, the systems are not currently over-burdened by {{ org() }}’s relatively low number of security incidents.
 - Team communications are available to keep the incident handling team abreast of actions, progress and other incident operations information. Multiple tools are used for this, starting with the individuals’ smart phones. An email alias for security staff is available to rapidly disseminate emailed information. A phone bridge is employed during incidents so all the key staff can immediately communicate verbally to the team members. Multiple redundant systems are available should any of the above fail during an incident.
-- Encryption is not currently used by the {{ config.extra.organization }} (and vendor) team for secure IR-related communications. However, most communications take place over an internal email service.
+- Encryption is not currently used by the {{ org() }} (and vendor) team for secure IR-related communications. However, most communications take place over an internal email service.
 - War room facilities are available in the form of ample conference rooms, as needed.
-- Secure storage for sensitive incident data (e.g., evidence) can be made available on demand via {{ config.extra.organization }}’s general counsel’s office or at an authorized third party at {{ config.extra.organization }}’s discretion.
+- Secure storage for sensitive incident data (e.g., evidence) can be made available on demand via {{ org() }}’s general counsel’s office or at an authorized third party at {{ org() }}’s discretion.
 
 ## Incident Prevention Program
 
-As part of an ongoing information security program, {{ config.extra.organization }} has or is implementing each of the following
+As part of an ongoing information security program, {{ org() }} has or is implementing each of the following
 prevention steps:
 
 - Risk assessments should be performed at least annually to ensure the identified business risks are being appropriately addressed on all IT systems. These should be business-oriented but should be supported by a thorough understanding of topical technical threats. Input sources for risk assessments should come from reputable threat intelligence sources such as Verizon’s Data Breach Investigations Reports, available freely from Verizon.
 - Host security should be assessed annually and after all major software upgrades. As with the business risk assessments, they should ensure current and reasonably foreseeable threats are addressed and key business assets are adequately protected.
 - Network security should similarly be assessed annually.
-- Malware prevention methods should be in place. As malware delivered via email in the form of phishing attacks remains among the most common means of delivering malware to its victims, {{ config.extra.organization }} should take substantial steps to screen incoming and outgoing email for potential malware.
+- Malware prevention methods should be in place. As malware delivered via email in the form of phishing attacks remains among the most common means of delivering malware to its victims, {{ org() }} should take substantial steps to screen incoming and outgoing email for potential malware.
 - User awareness and training should be provided to all new employees, as well as on a recurring basis to all existing employees. The training should emphasize current threats, how to identify and avoid them, and what to do when an employee believes they have witnessed a threat.
 
 ## Detection and Analysis
@@ -119,19 +119,19 @@ This section covers the first operational phases of incident response.
 
 ### Detection
 
-Incident detection at {{ config.extra.organization }} generally comes from events detected by the SOC staff at one of {{ config.extra.organization }}’s vendors (i.e., MSSP), using automated event monitoring tools or employees and end users who notice and report incidents.
+Incident detection at {{ org() }} generally comes from events detected by the SOC staff at one of {{ org() }}’s vendors (i.e., MSSP), using automated event monitoring tools or employees and end users who notice and report incidents.
 
-MSSP’s SOC monitoring capabilities include event monitoring that has log information inputs from the corporate data center. When security incidents are detected on MSSP’s SIEM (or other systems), the MSSP team follows their internal escalation process to comply with their SLA with {{ config.extra.organization }}. That process includes notifying {{ config.extra.organization }}’s help desk staff. The {{ config.extra.organization }} staff then enters pertinent information about the incident into the trouble ticket handling system.
+MSSP’s SOC monitoring capabilities include event monitoring that has log information inputs from the corporate data center. When security incidents are detected on MSSP’s SIEM (or other systems), the MSSP team follows their internal escalation process to comply with their SLA with {{ org() }}. That process includes notifying {{ org() }}’s help desk staff. The {{ org() }} staff then enters pertinent information about the incident into the trouble ticket handling system.
 
-Once the initial data has been collected and verified, {{ config.extra.organization }} follows a triage process that determines the likely severity of the incident and assigns it to the appropriate action handler within {{ config.extra.organization }}. Once notified, the action handler is the principal point of contact or “owner” of the incident response process.
+Once the initial data has been collected and verified, {{ org() }} follows a triage process that determines the likely severity of the incident and assigns it to the appropriate action handler within {{ org() }}. Once notified, the action handler is the principal point of contact or “owner” of the incident response process.
 
 Similarly, if an incident is reported directly by an employee or contractor, the incident should be reported to the security authority or to human resources, which then enters it into the trouble ticket handling system. At that point, the remainder of the process is unchanged.
 
-All {{ config.extra.organization }} staff and contractors should be actively encouraged to report potential security breaches. As described briefly in the Preparation section of this document, users should receive recurrent training on how to spot security breaches—preferably before they cause any damage. Every {{ config.extra.organization }} employee and contractor should know who to contact in the event of a security breach.
+All {{ org() }} staff and contractors should be actively encouraged to report potential security breaches. As described briefly in the Preparation section of this document, users should receive recurrent training on how to spot security breaches—preferably before they cause any damage. Every {{ org() }} employee and contractor should know who to contact in the event of a security breach.
 
 ### Analysis
 
-After a security event has been validated to be a security incident, {{ config.extra.organization }} incident response staff should gather and verify as much available data as possible. That data should be validated and analyzed to develop a prudent course of action. This process should be heavily influenced by the severity level of each incident, naturally, and will likely vary among the different severity levels.
+After a security event has been validated to be a security incident, {{ org() }} incident response staff should gather and verify as much available data as possible. That data should be validated and analyzed to develop a prudent course of action. This process should be heavily influenced by the severity level of each incident, naturally, and will likely vary among the different severity levels.
 
 Additional guidance is provided below in the Scenario Examples section, as well as in the NIST 800-61 Rev. 3 document. However, at a general level, incident response staff should seek to collect:
 
@@ -139,7 +139,7 @@ Additional guidance is provided below in the Scenario Examples section, as well 
 - **Detection method**: How was the incident detected? Was the detection automated or did a human notice something abnormal?
 - **Systems affected**: Which computer systems were affected, and to what degree, by the incident? This list will often grow over time, but it should be as comprehensive as can feasibly be determined.
 - **Applications affected**: It is not adequate to merely list the computer systems, but also the businessapplications that are believed to have been affected by an incident.
-- **Customers affected**: Which, if any, {{ config.extra.organization }} customers were affected?
+- **Customers affected**: Which, if any, {{ org() }} customers were affected?
 - **Symptoms**: What led the tool or human to believe there may be a security incident? If a system, from a desktop to a server, was “behaving strangely,” those symptoms should be thoroughly recorded, even if the security team believes them to be in error. User statements should be recorded verbatim.
 - **Targeted or untargeted incidents**: In most security incidents, the victims are not directly targeted. Theywere simply unlucky. In those cases, it is quite sufficient to remove any offending vulnerabilities, attack tools,etc., and get on with business. By contrast, when actually targeted, it becomes far more important toperform a deep and thorough analysis of any tools that were used. It is not always easy or even feasible toknow the answer for certain, but it is worth analyzing the available information and attempting to ascertainthe answer.
 - **Security device alert data**: If a security appliance (e.g., an intrusion detection system) detected an incident, all alert data should be stored along with other incident data. The device itself no doubt stored the information either by itself or via a SIEM or console system, but all incident-specific data should be separately collected and stored.
@@ -147,7 +147,7 @@ Additional guidance is provided below in the Scenario Examples section, as well 
 
 ### Triage
 
-As early on as possible in the detection and preliminary analysis process, a basic triage should be done. The purpose of triage is to assign a preliminary severity level to each incident and to assign staff to handle the incident. In a small organization such as {{ config.extra.organization }}, the triage step may be short and almost trivial but should nonetheless be done as a separate step for each and every incident. The reason for this is to be prepared for major incidents, many simultaneous incidents or a combination of these things.
+As early on as possible in the detection and preliminary analysis process, a basic triage should be done. The purpose of triage is to assign a preliminary severity level to each incident and to assign staff to handle the incident. In a small organization such as {{ org() }}, the triage step may be short and almost trivial but should nonetheless be done as a separate step for each and every incident. The reason for this is to be prepared for major incidents, many simultaneous incidents or a combination of these things.
 
 It is likely each severity level will trigger different reporting and disclosure requirements (see Appendix A).
 
@@ -155,9 +155,9 @@ It is likely each severity level will trigger different reporting and disclosure
 
 The following list provides guidance on how incident severity levels should be determined in the triage process:
 
-- P-1 is indicated whenever an incident affects or has the potential to affect multiple {{ config.extra.organization }} customers.
-- P-2 is indicated whenever an incident affects or has the potential to affect a single {{ config.extra.organization }} customer or a major internal business function.
-- P-3 and P-4 incidents are generally internal issues that do not affect {{ config.extra.organization }} customers and have limited impact on internal business functions.
+- P-1 is indicated whenever an incident affects or has the potential to affect multiple {{ org() }} customers.
+- P-2 is indicated whenever an incident affects or has the potential to affect a single {{ org() }} customer or a major internal business function.
+- P-3 and P-4 incidents are generally internal issues that do not affect {{ org() }} customers and have limited impact on internal business functions.
 
 ### Escalation and Notification
 
@@ -192,7 +192,7 @@ Along with the notification process defined above, several steps should be taken
 
 - Evidence handling processes, including secure storage, should be initiated. All staff handling the incident should be issued guidelines for collecting and handling evidence in order to ensure the chain of custody is not broken. Once it is authoritatively determined that an incident will not result in a criminal or civil investigation, these procedures can be revoked and any information stored can be removed from storage. If necessary, incident handling staff should be prepared to hand over any evidence to legal or to a legal- appointed third party.
 - Time tracking should be initiated to track all staff labor spent on handling the incident. The tracking should be able to uniquely quantify the labor on a per-incident basis, as well as calculate a cost based on fully loaded labor hours spent directly on handling the incident.
-- Note-keeping procedures should be initiated so that staff record their actions, including what information is being gathered and which tools are being used to gather the information. {{ config.extra.organization }} counsel should advise operations staff on how to separate and mark their notes so incident notes are isolated from other general notes and so they are protected from discovery when applicable. Similarly, all incident notes should be protected to ensure chain of custody and confidentiality is maintained.
+- Note-keeping procedures should be initiated so that staff record their actions, including what information is being gathered and which tools are being used to gather the information. {{ org() }} counsel should advise operations staff on how to separate and mark their notes so incident notes are isolated from other general notes and so they are protected from discovery when applicable. Similarly, all incident notes should be protected to ensure chain of custody and confidentiality is maintained.
 - Incident communications should be initiated among assigned staff so they can easily remain informed on current actions and status. Backup communications should be available in the event of a primary system failure. The incident handling staff should take care to communicate only with team members and stakeholders whose involvement is required.
 - Action tracking should be performed that clearly assigns task leadership to individual staff and tracks the task status from beginning through task completion. All task tracking should also be maintained for historic tracking purposes.
 
@@ -217,7 +217,7 @@ The questions and issues to carefully consider during this phase include the fol
 - **Is the incident due to an automated or manual attack?** In analyzing the incident data, it is helpful to know whether the incident was carried out manually by one or more adversaries or whether it is the result of an automated tool or collection of tools. If the incident is due to a manual attack, containing it should be relatively easy to achieve by merely blocking the attacker’s access—and, thereby, closing the attack surface—to the affected system(s). Of course, blocking an attacker’s network access to an application may also involve blocking customer access to that same system, so this decision must be made with a full understanding of the application and how it is used by customers.
 - **Have the underlying root causes been addressed?** Of vital concern in the analysis and early response process is how the attacker was able to gain access to the affected system(s) in the first place. If a system or application vulnerability was exploited, then that or those vulnerabilities need to be remediated with corrective controls, or else the attacker may return at some point in the future. If the attacker gained access to a legitimate user’s account by entering correct authentication credentials, then it’s likely the user’s password (or other authentication credentials) can be changed. Even in such a case, however, it is important to know, again with a high degree of confidence, how the attacker got the user’s credentials in the first place. It’s possible that changing the user’s password will only delay the attacker somewhat. These things should be well understood in order to effectively contain the attack and prevent further damage.
 - **Can the attacker and/or the attackers’ tools be isolated to prevent further spread?** It may seem like a simple question, but knowing whether containment or isolation is even possible is vital. One must start with a deep understanding of the incident’s tools, techniques and additional capabilities. That may not be easy to ascertain early on in the analysis process, so it may be necessary to block network or system access in a way that impacts all the system’s users.
-- **What is the business impact?** Many of the courses of action described here will likely cause some amount of adverse business impact, quite possibly beyond the attack itself. In assessing what course of action to take, it is essential to understand what the business impact is likely to be. That should include direct impact to revenue, as well as more abstract aspects, such as potential harm to {{ config.extra.organization }}’s reputation. Note that sometimes an adverse business impact due to shutting a system down may, in fact, be preferable to the impact the incident may otherwise cause.
+- **What is the business impact?** Many of the courses of action described here will likely cause some amount of adverse business impact, quite possibly beyond the attack itself. In assessing what course of action to take, it is essential to understand what the business impact is likely to be. That should include direct impact to revenue, as well as more abstract aspects, such as potential harm to {{ org() }}’s reputation. Note that sometimes an adverse business impact due to shutting a system down may, in fact, be preferable to the impact the incident may otherwise cause.
 - **What is the potential for further business impact?** If the full nature of the attack or its tools is notunderstood, it is quite likely further damage will take place. Thus, the responders should critically analyzewhether further business damage is likely or not.
 - **Should we engage the legal department?** The answer to this question will be determined by assessingthe situation for real or potential liability to the company. Liabilities can occur from a number of factors, suchas mandatory incident reporting laws, exposure of customer or other personally identifiable information and so on.
 - **Should we call law enforcement?** The answer to this question is far from simple or one-dimensional. The mere presence of a crime does not mean it will get any significant attention from a law enforcement agency, for example. A key issue for the law enforcement agency will be how much damage has occurred and how much of it can be proven in court. Proving something in court carries with it a high burden on the investigators. Not only does all evidence need to be collected and safeguarded properly to maintain the chain of custody, but the actual damages need to be quantified in a clear and objective manner. A revenue- producing system facing downtime is the easiest to quantify, but many losses are far more difficult to quantify than that. Losses should include staff labor costs. (For more on the role of law enforcement during an incident, see Appendix A.)
@@ -269,11 +269,11 @@ Strong access control begins with strong identification and authentication of al
 
 Systems containing sensitive business data should be assessed by competent security staff to ensure those controls are in place across the system.
 
-Access control is only the first step. If a user attempts to gain access to data for which they are not authorized, the access controller should notify the system owner. At {{ config.extra.organization }}, any system that experiences an access control violation, whether successful or not, should send an alert to the MSSP monitoring staff. That notification should include the pertinent data (who, what, when, where and how) so the security staff can determine what has taken place.
+Access control is only the first step. If a user attempts to gain access to data for which they are not authorized, the access controller should notify the system owner. At {{ org() }}, any system that experiences an access control violation, whether successful or not, should send an alert to the MSSP monitoring staff. That notification should include the pertinent data (who, what, when, where and how) so the security staff can determine what has taken place.
 
 Further, systems with highly sensitive data should be given the ability to take evasive action when such a violation occurs. The specific evasive actions should be determined on a case-by-case basis for each major application. Some actions to consider, however, include the following list:
 
-- Lock account after some predetermined number of failed login attempts, possibly for a duration of time or until the legitimate account holder contacts {{ config.extra.organization }} security authority.
+- Lock account after some predetermined number of failed login attempts, possibly for a duration of time or until the legitimate account holder contacts {{ org() }} security authority.
 - Lock sensitive account data from being deleted or altered. This may include preventing a user from changing the owner of a registered toll-free phone number, for example.
 - Invoke additional and rigorous logging of the offending user’s activity, along with an explicit notice to the user that their actions are being recorded above and beyond normal levels of logging.
 - Force the user to reauthenticate with existing credentials, MFA (if applicable), security questions, etc.
@@ -284,7 +284,7 @@ In addition to strong authentication and authorization controls, a fundamental p
 
 Intrusions in which data is stolen are usually not easy to detect. Some intrusion detection systems (IDS) and DLP tools can look for statistically anomalous behavior, but all such systems can be duped by a knowledgeable adversary. Traditional signature-based IDS and intrusion prevention system products, as a general rule, are not how data theft incidents get detected. Deep analysis of NetFlow data can help.
 
-Once such an incident is detected, the preliminary analysis should focus on gathering all pertinent event log data. The analysis should further seek to determine what kind of data the intruder appears to have taken or tried to take. From that analysis, {{ config.extra.organization }} should be able to triage and assign a preliminary severity level to the incident. That severity level should be determined by the relative sensitivity and volume of the target data, as it is likely the incident would not have any direct impact on any {{ config.extra.organization }} customers, at least initially.
+Once such an incident is detected, the preliminary analysis should focus on gathering all pertinent event log data. The analysis should further seek to determine what kind of data the intruder appears to have taken or tried to take. From that analysis, {{ org() }} should be able to triage and assign a preliminary severity level to the incident. That severity level should be determined by the relative sensitivity and volume of the target data, as it is likely the incident would not have any direct impact on any {{ org() }} customers, at least initially.
 
 Often, external intrusions do not result in media inquiries, but if the breach involves customer or private information, the customer engagement team should be immediately involved, allowing them to prepare eventual responses or press releases.
 
@@ -306,7 +306,7 @@ As long as no other malicious activity has taken place, the recovery step should
 Apart from addressing standard incident response operations, the principal post-incident activity in such an incident is to address the root cause.
 
 - Was it a point failure, a systemic failure or something else entirely?
-- How can {{ config.extra.organization }} ensure the same sort of incident won’t happen again?
+- How can {{ org() }} ensure the same sort of incident won’t happen again?
 - If it cannot be prevented, how about building better detection?
 
 ### Intentional Disclosure by an Insider
@@ -321,11 +321,11 @@ Strong access control begins with strong identification and authentication of al
 
 Systems containing sensitive business data should be assessed by competent security staff to ensure the appropriate accountability and nonrepudiation controls are in place across each system. These should include rigorous application-level logging of user actions, along with session-specific details of who is logged in, from where, how they are authenticated and so on. Additional network-level logging of attributes such as SSL/TLS cipher in use, length of session key, ID of client-side certificate (if applicable) may also be recommended, depending on the nature of each application, again, on a case-by-case basis.
 
-Access control is only the first step. If a user attempts to gain access to data for which they are not authorized, the access controller should notify the system owner. At {{ config.extra.organization }}, any system that experiences an access control violation, whether successful or not, should send an alert to the MSSP monitoring staff. That notification should include the pertinent data (who, what, where, when and how) so the security staff can determine what has taken place. For accountability and nonrepudiation, all data accesses—not just the policy violations—should be logged, and the logs should be stored where users cannot access them.
+Access control is only the first step. If a user attempts to gain access to data for which they are not authorized, the access controller should notify the system owner. At {{ org() }}, any system that experiences an access control violation, whether successful or not, should send an alert to the MSSP monitoring staff. That notification should include the pertinent data (who, what, where, when and how) so the security staff can determine what has taken place. For accountability and nonrepudiation, all data accesses—not just the policy violations—should be logged, and the logs should be stored where users cannot access them.
 
 Further, systems with highly sensitive data should be given the ability to take evasive action when such a violation occurs. The specific evasive actions should be determined on a case-by-case basis for each major application. Some actions to consider, however, include the following list:
 
-- Lock account after some predetermined number of failed login attempts, possibly for a duration of time or until the legitimate account holder contacts {{ config.extra.organization }} security authority.
+- Lock account after some predetermined number of failed login attempts, possibly for a duration of time or until the legitimate account holder contacts {{ org() }} security authority.
 - Lock sensitive account data from being deleted or altered. This may include preventing a user from changing the owner of a registered toll-free phone number, for example.
 - Invoke additional and rigorous logging of the offending user’s activity, along with an explicit notice to the user that their actions are being recorded above and beyond normal levels of logging.
 
@@ -344,14 +344,14 @@ Further, the method of data exfiltration should be determined. How did the emplo
 The incident severity level should generally be determined by a combination of the type of data leaked and the scope of the disclosure. Questions to consider include the following:
 
 - Was the data published via a highly public channel, such as Wikileaks or even the mainstream media?
-- How did {{ config.extra.organization }} first learn of the leak itself? Was it merely posted to a user’s social network page?
+- How did {{ org() }} first learn of the leak itself? Was it merely posted to a user’s social network page?
 - What is the readership scope of the channel through which the data was publicized?
 
 In the latter case, it’s possible the social network will assist in restricting access to the disclosed information. Did the data include company proprietary or customer private information?
 
-Depending on the nature of the data disclosure, it is quite likely this sort of incident will attract the attention of the media. The customer engagement/communications team should most certainly be alerted so they can have a plan in place. Depending on the nature of the disclosed information, {{ config.extra.organization }} may be required to disclose the breach. Legal counsel should be consulted to ensure all relevant data disclosure laws are being complied with (see Appendix B). Legal will also make the determination of whether a third-party forensics company should be engaged.
+Depending on the nature of the data disclosure, it is quite likely this sort of incident will attract the attention of the media. The customer engagement/communications team should most certainly be alerted so they can have a plan in place. Depending on the nature of the disclosed information, {{ org() }} may be required to disclose the breach. Legal counsel should be consulted to ensure all relevant data disclosure laws are being complied with (see Appendix B). Legal will also make the determination of whether a third-party forensics company should be engaged.
 
-Similarly, the question of whether to involve law enforcement should be critically and thoughtfully considered here. Beyond statutory reporting requirements (see Appendix B), {{ config.extra.organization }} will need to determine if the damage was sufficient to call in law enforcement. To make that decision, it is best to consult senior management and competent legal counsel.
+Similarly, the question of whether to involve law enforcement should be critically and thoughtfully considered here. Beyond statutory reporting requirements (see Appendix B), {{ org() }} will need to determine if the damage was sufficient to call in law enforcement. To make that decision, it is best to consult senior management and competent legal counsel.
 
 #### Containment, Eradication and Recovery
 
@@ -361,14 +361,14 @@ Intentional employee breaches may result in either criminal or civil legal proce
 
 Similarly, in this type of incident, the eradication phase may be a fairly simple one. Ensure the employees who need access to the data have access. If the data was on shared storage, such as a file share server, it could be valuable to ensure the data has not been tampered with. It is also a good idea to verify files were not removed.
 
-If the incident involved a {{ config.extra.organization }} contractor with access to proprietary or other sensitive data, the process would likely include not only the above steps, but also contractual remedies that are available. If the contractor was using an endpoint computer provided by the contractor, for example, then {{ config.extra.organization }} will need to ensure it has the necessary authority to collect evidence from that system. While these details should be predetermined in the contract language, they should be verified during any such incident. The contractor’s management will also need to be actively engaged in the process.
+If the incident involved a {{ org() }} contractor with access to proprietary or other sensitive data, the process would likely include not only the above steps, but also contractual remedies that are available. If the contractor was using an endpoint computer provided by the contractor, for example, then {{ org() }} will need to ensure it has the necessary authority to collect evidence from that system. While these details should be predetermined in the contract language, they should be verified during any such incident. The contractor’s management will also need to be actively engaged in the process.
 
 #### Post-Incident Activity
 
 Apart from addressing standard incident response operations, the principal post-incident activity in such an incident is to address the root cause of the incident:
 
 - Was it a point failure, a systemic failure or something else entirely?
-- How can {{ config.extra.organization }} ensure the same sort of incident won’t happen again?
+- How can {{ org() }} ensure the same sort of incident won’t happen again?
 - If it cannot be prevented, how about building better detection?
 - Was the employee given an overly broad set of data access permissions or was the authorized access appropriate?
 - Were there indications of potential insider threat that went unnoticed?

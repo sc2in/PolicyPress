@@ -16,6 +16,10 @@ render = true
 name = "ISO27001"
 feed  = false
 render = false 
+[[taxonomies]]
+name = "SCF"
+feed  = false
+render = false 
 
 [extra]
 policy_root = "policies/_index.md"

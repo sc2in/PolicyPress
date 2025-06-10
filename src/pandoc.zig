@@ -6,12 +6,13 @@ const math = std.math;
 const tomlz = @import("tomlz");
 const Yaml = @import("yaml").Yaml;
 const ctime = @cImport(@cInclude("time.h"));
-
+const mvzr = @import("mvzr");
 var alloc: Allocator = undefined;
 var org: []const u8 = undefined;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
     alloc = gpa.allocator();
 
     var dt_str_buf: [40]u8 = undefined;
@@ -68,7 +69,8 @@ fn process_md_file(md: std.fs.File) !void {
     defer contents.deinit();
 
     try replace_org(&contents);
-    std.debug.print("{s}", .{contents.items});
+    std.debug.print("{}\n", .{contents.items.len});
+    try replace_mermaid(&contents);
 }
 
 fn replace_org(txt: *Array(u8)) !void {
@@ -81,6 +83,41 @@ fn replace_org(txt: *Array(u8)) !void {
         .allocator = alloc,
         .capacity = buf.len,
         .items = buf,
+    };
+}
+
+fn replace_mermaid(txt: *Array(u8)) !void {
+    const mermaid: mvzr.Regex = mvzr.compile("\\{%\\s*mermaid\\(\\)\\s*%\\}").?;
+    // const mermaid_end: mvzr.Regex = mvzr.compile("\\{%\\s*end\\s*\\}").?;
+
+    var replacements = Array(mvzr.Match).init(txt.allocator);
+    defer {
+        for (replacements.items) |r|
+            r.deinit(alloc);
+        replacements.deinit();
+    }
+    var iter = mermaid.iterator(txt.items);
+    var total: usize = 0;
+    while (iter.next()) |m| {
+        try replacements.append(try m.toOwnedMatch(alloc));
+        total += m.end - m.start;
+    }
+
+    const replace_with = "~~~mermaid";
+    const replacement_total = replace_with.len * replacements.items.len;
+    const new = try alloc.alloc(u8, txt.items.len + replacement_total);
+
+    for (replacements.items) |m| {
+        _ = std.mem.replace(u8, txt.items, m.slice, replace_with, new);
+    }
+    if (replacements.items.len > 0) {
+        std.debug.print("{s}", .{new});
+    }
+    txt.deinit();
+    txt.* = .{
+        .allocator = alloc,
+        .capacity = new.len,
+        .items = new,
     };
 }
 

@@ -11,13 +11,19 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
+    const yaml = b.dependency("yaml", .{
+        .target = target,
+        .optimize = optimize,
+    });
 
     const pandoc_sh_mod = b.addModule("pandocsh", .{
         .root_source_file = b.path("src/pandoc.zig"),
         .target = target,
         .optimize = optimize,
+        .link_libc = true,
     });
     pandoc_sh_mod.addImport("tomlz", tomlz.module("tomlz"));
+    pandoc_sh_mod.addImport("yaml", yaml.module("yaml"));
     const exe = b.addExecutable(.{
         .root_module = pandoc_sh_mod,
         .name = "pandoc_sh",

@@ -16,3 +16,5 @@ tmp.*
 .pnpm*
 .zig-cache
 zig-out
+*.err
+.devbox

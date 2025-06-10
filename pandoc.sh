@@ -49,7 +49,7 @@ global_arguments=(
   --pdf-engine=xelatex # Use xelatex engine
   --data-dir=$DEVBOX_PROJECT_ROOT  # Set data directory to use the custom template
   --resource-path=$DEVBOX_PROJECT_ROOT # Set resource path
-  # -F mermaid-filter  # Use mermaid filter https://github.com/raghur/mermaid-filter
+  -F mermaid-filter  # Use mermaid filter https://github.com/raghur/mermaid-filter
 )
 
 if [ $DRAFT -eq 1 ]; then
@@ -70,10 +70,18 @@ for FILE in ${FILES[@]}; do
 
   echo "Processing file ${FILE_COUNT}/${TOTAL_FILES}: ${FILE}"
 
+  tmpfile=$(mktemp --suffix .md)
+  trap 'rm -f "$tmpfile"' EXIT
 
-  VERSION=$(yq --front-matter extract -r '.extra.major_revisions | sort_by("date")| .[0].version' "${FILE}")
+  awk '
+      /{%\s*mermaid\(\)\s*%}/ { print "~~~mermaid"; in_mermaid=1; next }
+      in_mermaid && /{%\s*end\s*%}/ { print "~~~"; in_mermaid=0; next }
+      { print }
+' "${FILE}" > "$tmpfile"
 
-  TITLE=$(yq --front-matter extract -r  '.title' "${FILE}" )
+  VERSION=$(yq --front-matter extract -r '.extra.major_revisions | sort_by("date")| .[0].version' "${tmpfile}")
+
+  TITLE=$(yq --front-matter extract -r  '.title' "${tmpfile}" )
   echo "Title: ${TITLE}, Date: ${LAST_REVIEW_DATE}, Version: ${VERSION}"
   if [ $REDACT -eq 1 ]; then
     TITLE="${TITLE} (Redacted)"
@@ -87,7 +95,7 @@ for FILE in ${FILES[@]}; do
   FILEDIR=$(dirname "${FILE}")
 
   local_args=(
-    "${FILE}" -o "${OUTPUT_FILE}"   # Input and output_FILE files
+    "${tmpfile}" -o "${OUTPUT_FILE}"   # Input and output_FILE files
     --resource-path="${FILEDIR}" # Set resource path for current file's directory
   );
 
@@ -97,7 +105,7 @@ for FILE in ${FILES[@]}; do
   # Build the PDF
   pandoc "${args[@]}"
 
-
+  rm -f "$tmpfile"
   if [ $? -ne 0 ]; then
     echo "${ERROR_COLOR}Error: Failed to build PDF for ${FILE}${NO_COLOR}"
   fi

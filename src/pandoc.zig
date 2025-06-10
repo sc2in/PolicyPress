@@ -59,6 +59,24 @@ pub fn main() !void {
     }
 }
 
+fn get_metadata(txt: *Array(u8)) !void {
+    const end_fm = std.mem.indexOfPos(u8, txt.items, 3, "---") orelse return error.InvalidFrontMatter;
+    var y: Yaml = .{ .source = txt.items[3..end_fm] };
+    defer y.deinit(alloc);
+
+    y.load(alloc) catch |err| switch (err) {
+        error.ParseFailure => {
+            std.debug.assert(y.parse_errors.errorMessageCount() > 0);
+            // y.parse_errors.renderToStdErr(.{ .ttyconf = std.io.tty.detectConfig(std.io.getStdErr()) });
+            return error.ParseFailure;
+        },
+        else => return err,
+    };
+    const map = y.docs.items[0].map;
+    std.debug.print("{s}\n", .{map.get("title").?.string});
+    // try y.stringify(std.io.getStdOut().writer());
+}
+
 fn process_md_file(md: std.fs.File) !void {
     const raw = try md.readToEndAlloc(alloc, 100_000_000);
     var contents = Array(u8){
@@ -71,6 +89,7 @@ fn process_md_file(md: std.fs.File) !void {
     try replace_org(&contents);
     std.debug.print("{}\n", .{contents.items.len});
     try replace_mermaid(&contents);
+    try get_metadata(&contents);
 }
 
 fn replace_org(txt: *Array(u8)) !void {

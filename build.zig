@@ -15,6 +15,10 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
+    const mvzr = b.dependency("mvzr", .{
+        .target = target,
+        .optimize = optimize,
+    });
 
     const pandoc_sh_mod = b.addModule("pandocsh", .{
         .root_source_file = b.path("src/pandoc.zig"),
@@ -24,6 +28,7 @@ pub fn build(b: *std.Build) !void {
     });
     pandoc_sh_mod.addImport("tomlz", tomlz.module("tomlz"));
     pandoc_sh_mod.addImport("yaml", yaml.module("yaml"));
+    pandoc_sh_mod.addImport("mvzr", mvzr.module("mvzr"));
     const exe = b.addExecutable(.{
         .root_module = pandoc_sh_mod,
         .name = "pandoc_sh",

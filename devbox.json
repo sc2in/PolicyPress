@@ -13,7 +13,8 @@
     "zola@latest",
     "cargo@latest",
     "imagemagick@latest",
-    "yj@latest"
+    "yj@latest",
+    "mermaid-filter@latest"
   ],
   "shell": {
     "init_hook": [
@@ -33,7 +34,7 @@
         "export POLICY_ROOT=$(dirname `tomlq -r '.extra.policy_root' config.toml` )",
         "mkdir -p public/pdfs/",
         "for file in $(find public/${POLICY_ROOT} -type f -name \"*.html\" -not -name \"_index.md\"); do",
-        "pandoc --from html --to pdf --pdf-engine=xelatex $file -o ${file%.html}.pdf",
+        "pandoc -F mermaid-filter --from html --to pdf --pdf-engine=xelatex $file -o ${file%.html}.pdf",
         "done"
       ],
       "build-pdfs-draft": [

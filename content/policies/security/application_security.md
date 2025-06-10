@@ -71,13 +71,15 @@ To enable the organization to adopt a foundational policy for secure application
 
 Enhanced practices rely on the foundations established in the previous section. However, enhanced practices operate through three Ps of secure software development (see Figure 1).
 
-```mermaid
-The 3 Ps of Secure Software Development
+{% mermaid() %}
+---
+title: The 3 Ps of Secure Software Development
+---
 flowchart TD
     A[Protect] --> B[Produce]
     B --> C[Patch]
     C --> A
-```
+{% end %}
 
 This continuous cycle of monitoring and remediation throughout the SDLC is driven by {{ config.extra.organization }} secure development standards and test scripts to validate compliance with application security requirements. Security requirements are specific and identified during the design phase, with inputs from customers, business units and regulatory requirements. Requirements are then incorporated into test scripts to ensure application security and functionality through manual and automated testing.
 

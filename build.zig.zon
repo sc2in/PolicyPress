@@ -44,6 +44,10 @@
             .url = "https://github.com/kubkon/zig-yaml/archive/refs/tags/0.1.1.tar.gz",
             .hash = "zig_yaml-0.1.0-C1161miEAgBCwL3YAEQZwV_4GyaaT2Xqj9nKB6hNe_TL",
         },
+        .mvzr = .{
+            .url = "https://github.com/mnemnion/mvzr/archive/refs/tags/v0.3.4.tar.gz",
+            .hash = "mvzr-0.3.4-ZSOky2RnAQDtFSuVhbh2fP1s4PwRvTQ-DDw2lixvvA7T",
+        },
     },
     .paths = .{
         "build.zig",

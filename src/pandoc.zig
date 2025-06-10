@@ -53,6 +53,35 @@ pub fn main() !void {
     }
     const total_files = md_files.len;
     std.debug.print("Building PDFs from {} markdown files in {s} .. \n", .{ total_files, policy_root });
+    for (md_files) |file| {
+        try process_md_file(file);
+    }
+}
+
+fn process_md_file(md: std.fs.File) !void {
+    const raw = try md.readToEndAlloc(alloc, 100_000_000);
+    var contents = Array(u8){
+        .items = raw,
+        .allocator = alloc,
+        .capacity = raw.len,
+    };
+    defer contents.deinit();
+
+    try replace_org(&contents);
+    std.debug.print("{s}", .{contents.items});
+}
+
+fn replace_org(txt: *Array(u8)) !void {
+    const size = std.mem.replacementSize(u8, txt.items, "{{ org() }}", org);
+    const buf = try alloc.alloc(u8, size);
+
+    _ = std.mem.replace(u8, txt.items, "{{ org() }}", org, buf);
+    txt.deinit();
+    txt.* = .{
+        .allocator = alloc,
+        .capacity = buf.len,
+        .items = buf,
+    };
 }
 
 pub fn find_md_files(root: std.fs.Dir, policy_dir: []const u8) ![]std.fs.File {

@@ -4,6 +4,8 @@ const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
 const tomlz = @import("tomlz");
+const Yaml = @import("yaml").Yaml;
+const ctime = @cImport(@cInclude("time.h"));
 
 var alloc: Allocator = undefined;
 var org: []const u8 = undefined;
@@ -12,6 +14,14 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     alloc = gpa.allocator();
 
+    var dt_str_buf: [40]u8 = undefined;
+    const t = ctime.time(null);
+    const lt = ctime.localtime(&t);
+    const format = "%Y";
+    const dt_str_len = ctime.strftime(&dt_str_buf, dt_str_buf.len, format, lt);
+    const current_year = dt_str_buf[0..dt_str_len];
+
+    std.debug.print("{s}\n", .{current_year});
     var workDir = try std.fs.openDirAbsolute(
         std.posix.getenv("DEVBOX_PROJECT_ROOT") orelse return error.ProjectRootNotFoundInEnv,
         .{
@@ -41,9 +51,8 @@ pub fn main() !void {
             f.close();
         alloc.free(md_files);
     }
-    for (md_files) |file| {
-        std.debug.print("{}b\n", .{(try file.stat()).size});
-    }
+    const total_files = md_files.len;
+    std.debug.print("Building PDFs from {} markdown files in {s} .. \n", .{ total_files, policy_root });
 }
 
 pub fn find_md_files(root: std.fs.Dir, policy_dir: []const u8) ![]std.fs.File {

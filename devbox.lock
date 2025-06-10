@@ -401,6 +401,34 @@
         }
       }
     },
+    "mermaid-filter@latest": {
+      "last_modified": "2025-05-28T04:23:31Z",
+      "resolved": "github:NixOS/nixpkgs/3d1f29646e4b57ed468d60f9d286cde23a8d1707#mermaid-filter",
+      "source": "devbox-search",
+      "version": "1.4.7",
+      "systems": {
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ss0c3dqfwwy9nqa6kljfxqlqyq9azg54-mermaid-filter-1.4.7",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/ss0c3dqfwwy9nqa6kljfxqlqyq9azg54-mermaid-filter-1.4.7"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ffrw7kjsw4lfqq609zy5jq142cibnngd-mermaid-filter-1.4.7",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/ffrw7kjsw4lfqq609zy5jq142cibnngd-mermaid-filter-1.4.7"
+        }
+      }
+    },
     "nodejs_18@latest": {
       "last_modified": "2024-11-13T20:59:08Z",
       "plugin_version": "0.0.2",

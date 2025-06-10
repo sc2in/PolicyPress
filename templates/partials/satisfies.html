@@ -1,15 +1,16 @@
+{% set page_tax = page.taxonomies %}
 <div class="satisfies">
   <h3>Satisfies</h3>
+  {% for key, tax in page_tax %}
+  <h4>{{key}}</h4>
   <ul>
-    {# {% for standard in page.extra.satisfies %}
-    <li>{{standard.name}}</li>
+
+    {% for line_item in tax %}
     <li>
-      <ul>
-      {% for item in standard.line_items %}
-        <li>{{item}}</li>
-      {% endfor %}
-    </ul>
-  </li>
-    {% endfor %} #}
+      {{ line_item }}
+    </li>
+    {% endfor %}
   </ul>
+  {% endfor %}
+
 </div>

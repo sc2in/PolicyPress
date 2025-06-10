@@ -30,9 +30,9 @@ extra:
 
 This Customer Support Escalation Policy and Procedures document outlines the practices and procedures that govern the handling of customer technical support and customer success interactions, ensuring the best service and experience for our customers. This policy is complementary to existing terms and conditions governing our Services.
 
-Our objective at {{ config.extra.organization }} is to deliver timely and high-quality service to our customers, addressing each case in a professional manner that meets customer needs.
+Our objective at {{ org() }} is to deliver timely and high-quality service to our customers, addressing each case in a professional manner that meets customer needs.
 
-{{ config.extra.organization }} has established the following steps for each issue brought in by a customer:
+{{ org() }} has established the following steps for each issue brought in by a customer:
 
 - Have someone in our customer's corner
 - Be proactive when communicating
@@ -40,9 +40,9 @@ Our objective at {{ config.extra.organization }} is to deliver timely and high-q
 - Follow-up
 - Communicate internally
 
-It is the responsibility of each {{ config.extra.organization }} manager and employee to abide by this escalation policy and contact the appropriate escalation team member in a timely manner in order to keep customer expectations high and deliver the best experience to them that we possibly can.
+It is the responsibility of each {{ org() }} manager and employee to abide by this escalation policy and contact the appropriate escalation team member in a timely manner in order to keep customer expectations high and deliver the best experience to them that we possibly can.
 
-It is futher the responsiblity of each {{ config.extra.organization }} business unit to define, maintain, and improve internal escalation procedures relevant to their business objectives and resources in compliance with this policy.
+It is futher the responsiblity of each {{ org() }} business unit to define, maintain, and improve internal escalation procedures relevant to their business objectives and resources in compliance with this policy.
 
 ## Definitions
 
@@ -54,7 +54,7 @@ This escalation policy applies solely to defects and outages.
 
 ## Escalation Tier Definitions
 
-The following tiers shall be used in reference to the severity and scope of an issue as it becomes apparent to the {{ config.extra.organization }} team member handling a customer issue.
+The following tiers shall be used in reference to the severity and scope of an issue as it becomes apparent to the {{ org() }} team member handling a customer issue.
 
 ### Tier III - Red - Total Outage
 
@@ -63,7 +63,7 @@ A tier III or Red level issue is one that either involves:
 1. A widespread product outage in which the product ceases to function and/or
 2. A product has been rendered inoperable for a large segment of the customer base.
 
-A situation of this level is the highest severity and will require a prompt response by most or all departments and management staff within {{ config.extra.organization }}
+A situation of this level is the highest severity and will require a prompt response by most or all departments and management staff within {{ org() }}
 
 
 _Examples: No customers are able to authenticate and login to the product. All eScribe customers are getting a sever error on the main landing page._
@@ -131,7 +131,7 @@ In brief, an escalation should be triaged by the technical support manager who w
 - **Resolution Announcement:** Once resolved, a final update is sent to affected customers, highlighting the fix and preventive measures.
 - **Press Release:** If the issue is of significant impact, a press release is drafted with assistance from marketing leadership.
 
-Any request for comment about an issue from an inteity that {{ config.extra.organization }} does not have a prior relationship with, (e.g the media), should be directed to the Chief Marketing Officer.
+Any request for comment about an issue from an inteity that {{ org() }} does not have a prior relationship with, (e.g the media), should be directed to the Chief Marketing Officer.
 
 ## Special Cases
 

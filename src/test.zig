@@ -24,7 +24,7 @@ test "replace_org replaces organization shortcode" {
 
     var arr = Array(u8).init(allocator);
     defer arr.deinit();
-    try arr.appendSlice("Welcome to {% org() %}!");
+    try arr.appendSlice("Welcome to {{ org() }}!");
 
     var dummy_progress = DummyProgress{};
 

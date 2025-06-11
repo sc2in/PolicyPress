@@ -34,9 +34,9 @@ pub fn build(b: *std.Build) !void {
         .name = "pandoc_sh",
     });
     b.installArtifact(exe);
-    const run_step = b.step("run", "run pandoc.sh");
-    const run_exe = b.addRunArtifact(exe);
-    run_step.dependOn(&run_exe.step);
+    const pandoc_step = b.step("pdf", "run pandoc.sh");
+    const pandoc_exe = b.addRunArtifact(exe);
+    pandoc_step.dependOn(&pandoc_exe.step);
 
     const docs_step = b.step("docs", "Build Documentation");
     const docs_install = b.addInstallDirectory(.{

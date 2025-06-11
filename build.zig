@@ -37,4 +37,12 @@ pub fn build(b: *std.Build) !void {
     const run_step = b.step("run", "run pandoc.sh");
     const run_exe = b.addRunArtifact(exe);
     run_step.dependOn(&run_exe.step);
+
+    const docs_step = b.step("docs", "Build Documentation");
+    const docs_install = b.addInstallDirectory(.{
+        .install_dir = .prefix,
+        .install_subdir = "docs",
+        .source_dir = exe.getEmittedDocs(),
+    });
+    docs_step.dependOn(&docs_install.step);
 }

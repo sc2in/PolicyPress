@@ -10,7 +10,33 @@ const mvzr = @import("mvzr");
 var alloc: Allocator = undefined;
 var org: []const u8 = undefined;
 
+pub const std_options: std.Options = .{
+    .log_level = .info,
+    .log_scope_levels = &[_]std.log.ScopeLevel{
+        .{ .scope = .parser, .level = .debug },
+        .{ .scope = .pandoc, .level = .info },
+    },
+    .logFn = logFn,
+};
+pub fn logFn(
+    comptime level: std.log.Level,
+    comptime scope: @TypeOf(.EnumLiteral),
+    comptime format: []const u8,
+    args: anytype,
+) void {
+    switch (scope) {
+        .parser => {},
+        else => switch (level) {
+            inline else => std.debug.print(format, args),
+        },
+    }
+}
+
+const panlog = std.log.scoped(.pandoc);
+
 pub fn main() !void {
+    panlog.info("Hello from my_scope", .{});
+    panlog.info("Hello from default scope", .{});
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     alloc = gpa.allocator();
@@ -59,7 +85,7 @@ pub fn main() !void {
     }
 }
 
-fn get_metadata(txt: *Array(u8)) !void {
+fn get_metadata(txt: *Array(u8)) !FrontMatter {
     const end_fm = std.mem.indexOfPos(u8, txt.items, 3, "---") orelse return error.InvalidFrontMatter;
     var y: Yaml = .{ .source = txt.items[3..end_fm] };
     defer y.deinit(alloc);
@@ -73,8 +99,59 @@ fn get_metadata(txt: *Array(u8)) !void {
         else => return err,
     };
     const map = y.docs.items[0].map;
-    std.debug.print("{s}\n", .{map.get("title").?.string});
-    // try y.stringify(std.io.getStdOut().writer());
+    std.debug.print("Procesing: {s}\n", .{map.get("title").?.string});
+    const extra = map.get("extra").?.map;
+    const major_revisions = extra.get("major_revisions").?.list;
+    std.mem.sort(
+        Yaml.Value,
+        major_revisions,
+        .{},
+        revisions_lt,
+    );
+
+    const most_recent = major_revisions[0];
+    const m = try most_recent.asMap();
+    return .{
+        .title = try alloc.dupe(u8, map.get("title").?.string),
+        .last_reviewed = try alloc.dupe(u8, extra.get("last_reviewed").?.string),
+        .most_recent_version = switch (m.get("version").?) {
+            .string => |s| try alloc.dupe(u8, s),
+            .float => |f| try std.fmt.allocPrint(alloc, "{d:0.1}", .{f}),
+            else => return error.InvalidVersionType,
+        },
+    };
+}
+const FrontMatter = struct {
+    title: []u8,
+    most_recent_version: []u8,
+    last_reviewed: []u8,
+
+    pub fn format(self: FrontMatter, comptime _: []const u8, _: anytype, writer: anytype) !void {
+        try writer.print(
+            "{s}\n\tVersion: {s}\tLast Reviewed: {s}\n",
+            .{
+                self.title,
+                self.most_recent_version,
+                self.last_reviewed,
+            },
+        );
+    }
+
+    pub fn deinit(self: *FrontMatter) void {
+        alloc.free(self.title);
+        alloc.free(self.last_reviewed);
+        alloc.free(self.most_recent_version);
+    }
+};
+
+fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
+    const as = a.string;
+    const bs = b.string;
+
+    for (as, 0..) |ac, i| {
+        if (ac < bs[i]) return true;
+    }
+    return false;
 }
 
 fn process_md_file(md: std.fs.File) !void {
@@ -89,7 +166,10 @@ fn process_md_file(md: std.fs.File) !void {
     try replace_org(&contents);
     std.debug.print("{}\n", .{contents.items.len});
     try replace_mermaid(&contents);
-    try get_metadata(&contents);
+    var fm = try get_metadata(&contents);
+    defer fm.deinit();
+
+    std.debug.print("{}\n", .{fm});
 }
 
 fn replace_org(txt: *Array(u8)) !void {

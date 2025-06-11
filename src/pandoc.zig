@@ -23,11 +23,12 @@ var global_config: struct {
     root: []const u8 = undefined,
     is_draft: bool = false,
     redact: bool = false,
-
-    pub fn deinit(self: @This()) void {
+    build_dir: []const u8 = undefined,
+    pub fn deinit(self: *@This()) void {
         alloc.free(self.org);
         alloc.free(self.logo_path);
         alloc.free(self.color);
+        alloc.free(self.build_dir);
     }
 } = .{};
 
@@ -80,6 +81,9 @@ pub fn main() !void {
         },
     );
     defer workDir.close();
+    global_config.build_dir = try workDir.realpathAlloc(alloc, "public/pdf");
+    defer global_config.deinit();
+
     var conf_file = try workDir.openFile("config.toml", .{ .mode = .read_only });
     defer conf_file.close();
 
@@ -101,7 +105,6 @@ pub fn main() !void {
     global_config.org = try alloc.dupe(u8, extra.getString("organization") orelse return error.NoOrgInExtra);
     global_config.color = try get_logo_color(global_config.logo_path, &root_progress);
 
-    defer global_config.deinit();
     // const redact = b.option(bool, "redact", "Redact PDFs") orelse false;
     // const draft = b.option(bool, "redact", "Redact PDFs") orelse false;
 
@@ -113,7 +116,6 @@ pub fn main() !void {
     }
 
     try create_global_args(&global_args);
-    //TODO: Add output directory
 
     const md_files = try find_md_files(workDir, policy_root, &root_progress);
     defer {
@@ -155,6 +157,9 @@ pub fn create_global_args(args: *Array([]const u8)) !void {
     const color = try std.fmt.allocPrint(alloc, "titlepage-rule-color={s}", .{global_config.color[1..7]});
     try args.appendSlice(&.{ "-V", color });
 
+    const mermaid = try std.fmt.allocPrint(alloc, "{s}/.devbox/nix/profile/default/bin/mermaid-filter", .{global_config.root});
+    try args.appendSlice(&.{ "-F", mermaid });
+
     try args.appendSlice(&.{ "-V", "papersize=letter" });
     try args.appendSlice(&.{ "-V", "titlepage=true" });
     try args.appendSlice(&.{ "-V", "table-use-row-colors=true " });
@@ -172,8 +177,6 @@ pub fn create_global_args(args: *Array([]const u8)) !void {
         try args.appendSlice(&.{ "-V", "page-background=static/draft.png" });
         try args.appendSlice(&.{ "-V", "page-background-opacity=0.8" });
     }
-    //TODO
-    // try args.append("-F mermaid-filter");
 }
 /// Processes a single markdown file: loads contents, applies replacements, extracts metadata, writes a temporary file, and invokes Pandoc to generate the PDF.
 pub fn process_md_file(a: Allocator, md: MDFile, prog: *std.Progress.Node) !void {
@@ -289,7 +292,7 @@ const FrontMatter = struct {
     }
     /// Generates a PDF filename from the title and most recent version in the front matter.
     pub fn filename(self: FrontMatter, a: Allocator) ![]u8 {
-        return std.fmt.allocPrint(a, "{s} - v{s}.pdf", .{ self.title, self.most_recent_version });
+        return std.fmt.allocPrint(a, "{s}/{s} - v{s}.pdf", .{ global_config.build_dir, self.title, self.most_recent_version });
     }
 
     pub fn deinit(self: *FrontMatter) void {
@@ -481,6 +484,15 @@ pub fn run_pandoc(a: Allocator, args: Array([]const u8), prog: *std.Progress.Nod
     var child = std.process.Child.init(args.items, a);
     child.stdout_behavior = .Pipe;
     child.stderr_behavior = .Pipe;
+    var env_map = try std.process.getEnvMap(alloc);
+    defer env_map.deinit();
+    child.env_map = &env_map;
+    // Optionally, print or check the PATH in env_map
+    if (env_map.get("PATH")) |path| {
+        panlog.debug("Child PATH: {s}\n", .{path});
+    } else {
+        panlog.debug("No PATH in env_map!\n", .{});
+    }
     var out: std.ArrayListUnmanaged(u8) = .empty;
     var err: std.ArrayListUnmanaged(u8) = .empty;
     defer {

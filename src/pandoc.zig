@@ -54,7 +54,7 @@ pub const Config = struct {
                 .iterate = true,
             },
         );
-
+        try self.work_dir.makePath("public/pdf");
         self.build_dir = try self.work_dir.realpathAlloc(a, "public/pdf");
 
         return self;
@@ -405,13 +405,15 @@ pub fn find_md_files(a: Allocator, root: std.fs.Dir, policy_dir: []const u8, pro
     var p = prog.start("Searching for markdown files in policy root", 1);
     defer p.end();
 
-    panlog.info("Reading in policies from: {s}\n", .{policy_dir});
+    panlog.debug("Reading in policies from: {s}\n", .{policy_dir});
     var files = Array(MDFile).init(a);
     defer files.deinit();
+
+    const dir = std.fs.path.dirname(policy_dir) orelse return error.InvalidPolicyRoot;
     var policy_root = try (try root.openDir("content", .{
         .access_sub_paths = true,
         .iterate = true,
-    })).openDir(policy_dir, .{
+    })).openDir(dir, .{
         .access_sub_paths = true,
         .iterate = true,
     });

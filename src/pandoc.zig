@@ -1,9 +1,9 @@
-///! This program automates the process of converting Markdown policy documents into styled PDF files.
-///! It loads configuration from a TOML file, processes Markdown files (including YAML front matter and custom placeholders),
-///! applies organization branding, and invokes Pandoc with a set of dynamically constructed arguments to generate PDFs.
-///! The build is highly configurable, supporting custom logos, organization names, color extraction from images,
-///! and options for draft/redacted document states. The system is designed for batch processing of policy directories,
-///! with robust error handling and logging at multiple stages of the pipeline.
+//! This program automates the process of converting Markdown policy documents into styled PDF files.
+//! It loads configuration from a TOML file, processes Markdown files (including YAML front matter and custom placeholders),
+//! applies organization branding, and invokes Pandoc with a set of dynamically constructed arguments to generate PDFs.
+//! The build is highly configurable, supporting custom logos, organization names, color extraction from images,
+//! and options for draft/redacted document states. The system is designed for batch processing of policy directories,
+//! with robust error handling and logging at multiple stages of the pipeline.
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
@@ -35,7 +35,7 @@ pub const std_options: std.Options = .{
     .log_level = .info,
     .log_scope_levels = &[_]std.log.ScopeLevel{
         .{ .scope = .parser, .level = .debug },
-        .{ .scope = .pandoc, .level = .debug },
+        .{ .scope = .pandoc, .level = .info },
     },
     .logFn = logFn,
 };
@@ -88,12 +88,19 @@ pub fn main() !void {
 
     var config = try tomlz.parse(alloc, config_contents);
     defer config.deinit(alloc);
+    var root_progress = Progress.start(.{
+        .estimated_total_items = 0,
+        .root_name = "Building PDFs from Markdown files",
+    });
+    defer root_progress.end();
 
     const extra = config.getTable("extra") orelse return error.NoExtraInConfig;
     const policy_root = extra.getString("policy_root") orelse return error.NoPolicyRootInExtra;
     const logo = extra.getString("logo") orelse return error.NoLogoInExtra;
     global_config.logo_path = try std.fmt.allocPrint(alloc, "static/{s}", .{logo});
     global_config.org = try alloc.dupe(u8, extra.getString("organization") orelse return error.NoOrgInExtra);
+    global_config.color = try get_logo_color(global_config.logo_path, &root_progress);
+
     defer global_config.deinit();
     // const redact = b.option(bool, "redact", "Redact PDFs") orelse false;
     // const draft = b.option(bool, "redact", "Redact PDFs") orelse false;
@@ -108,23 +115,24 @@ pub fn main() !void {
     try create_global_args(&global_args);
     //TODO: Add output directory
 
-    const md_files = try find_md_files(workDir, policy_root);
+    const md_files = try find_md_files(workDir, policy_root, &root_progress);
     defer {
         for (md_files) |f|
-            f.close();
+            f.deinit(alloc);
         alloc.free(md_files);
     }
     const total_files = md_files.len;
-    std.debug.print("Building PDFs from {} markdown files in {s} .. \n", .{ total_files, policy_root });
-    for (md_files) |f|
-        try process_md_file(alloc, f);
+    root_progress.setEstimatedTotalItems(total_files);
+    panlog.debug("Building PDFs from {} markdown files in {s} .. \n", .{ total_files, policy_root });
+
+    for (md_files) |f| {
+        try process_md_file(alloc, f, &root_progress);
+    }
     // try process_md_files_parallel(alloc, md_files);
 }
 
 ///Populates the global_args array with command-line arguments for Pandoc, based on the current global configuration
-fn create_global_args(args: *Array([]const u8)) !void {
-    global_config.color = try get_logo_color(global_config.logo_path);
-
+pub fn create_global_args(args: *Array([]const u8)) !void {
     const data_dir = try std.fmt.allocPrint(alloc, "--data-dir={s}", .{global_config.root});
     try args.append(data_dir);
 
@@ -168,8 +176,17 @@ fn create_global_args(args: *Array([]const u8)) !void {
     // try args.append("-F mermaid-filter");
 }
 /// Processes a single markdown file: loads contents, applies replacements, extracts metadata, writes a temporary file, and invokes Pandoc to generate the PDF.
-fn process_md_file(a: Allocator, md: std.fs.File) !void {
-    const raw = try md.readToEndAlloc(alloc, 100_000_000);
+pub fn process_md_file(a: Allocator, md: MDFile, prog: *std.Progress.Node) !void {
+    var buf: [128]u8 = undefined;
+
+    const fname = try std.fmt.bufPrint(&buf, "{s}/{s}", .{
+        std.fs.path.basename((std.fs.path.dirname(md.path) orelse ".")),
+        std.fs.path.basename(md.path),
+    });
+
+    var p = prog.start(fname, 4);
+    defer p.end();
+    const raw = try md.file.readToEndAlloc(alloc, 100_000_000);
     var contents = Array(u8){
         .items = raw,
         .allocator = a,
@@ -179,9 +196,9 @@ fn process_md_file(a: Allocator, md: std.fs.File) !void {
     var local = try global_args.clone();
     defer local.deinit();
 
-    try replace_org(&contents);
-    try replace_mermaid(&contents);
-    var fm = try get_metadata(&contents);
+    try replace_org(&contents, &p);
+    try replace_mermaid(&contents, &p);
+    var fm = try get_metadata(&contents, &p);
     defer fm.deinit();
 
     const tmp = try std.fs.cwd().createFile("tmp.md", .{});
@@ -198,11 +215,14 @@ fn process_md_file(a: Allocator, md: std.fs.File) !void {
 
     try local.appendSlice(&.{ "tmp.md", "-o", out_file });
     //TODO: Add the local resource folder
-    try run_pandoc(a, local);
+    try run_pandoc(a, local, &p);
 }
 
 /// Parses YAML front matter from a markdown file, extracts document metadata, formats the title, and returns a FrontMatter struct.
-fn get_metadata(txt: *Array(u8)) !FrontMatter {
+pub fn get_metadata(txt: *Array(u8), prog: *std.Progress.Node) !FrontMatter {
+    const p = prog.start("Get Metadata", 1);
+    defer p.end();
+
     const end_fm = std.mem.indexOfPos(u8, txt.items, 3, "---") orelse return error.InvalidFrontMatter;
     var y: Yaml = .{ .source = txt.items[3..end_fm] };
     defer y.deinit(alloc);
@@ -216,7 +236,7 @@ fn get_metadata(txt: *Array(u8)) !FrontMatter {
         else => return err,
     };
     const map = y.docs.items[0].map;
-    panlog.info("Procesing: {s}\n", .{map.get("title").?.string});
+    panlog.debug("Procesing: {s}\n", .{map.get("title").?.string});
     const extra = map.get("extra").?.map;
     const major_revisions = extra.get("major_revisions").?.list;
     std.mem.sort(
@@ -242,7 +262,6 @@ fn get_metadata(txt: *Array(u8)) !FrontMatter {
         try std.fmt.allocPrint(alloc, d, .{t})
     else
         try std.fmt.allocPrint(alloc, e, .{t});
-
     return .{
         .title = title,
         .last_reviewed = try alloc.dupe(u8, extra.get("last_reviewed").?.string),
@@ -281,7 +300,7 @@ const FrontMatter = struct {
 };
 
 /// Comparator function for sorting YAML revision values in ascending order.
-fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
+pub fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
     const as = a.string;
     const bs = b.string;
 
@@ -292,7 +311,10 @@ fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
 }
 
 /// Replaces all instances of the organization placeholder in the markdown text with the actual organization name from the global configuration.
-fn replace_org(txt: *Array(u8)) !void {
+pub fn replace_org(txt: *Array(u8), prog: *std.Progress.Node) !void {
+    const p = prog.start("Replace Organization Shortcode", 1);
+    defer p.end();
+
     const size = std.mem.replacementSize(
         u8,
         txt.items,
@@ -317,7 +339,9 @@ fn replace_org(txt: *Array(u8)) !void {
 }
 
 /// Finds and replaces custom Mermaid code blocks in the markdown with a standardized code block format.
-fn replace_mermaid(txt: *Array(u8)) !void {
+pub fn replace_mermaid(txt: *Array(u8), prog: *std.Progress.Node) !void {
+    const p = prog.start("Replace Mermaid Shortcode", 1);
+    defer p.end();
     const mermaid: mvzr.Regex = mvzr.compile("\\{%\\s*mermaid\\(\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;
     // const mermaid_end: mvzr.Regex = mvzr.compile("\\{%\\s*end\\s*\\}").?;
 
@@ -353,10 +377,22 @@ fn replace_mermaid(txt: *Array(u8)) !void {
     }
 }
 
+pub const MDFile = struct {
+    path: []u8,
+    file: std.fs.File,
+    pub fn deinit(self: MDFile, a: Allocator) void {
+        self.file.close();
+        a.free(self.path);
+    }
+};
+
 /// Recursively finds and opens all markdown files in the specified policy directory, returning them as an array of files.
-pub fn find_md_files(root: std.fs.Dir, policy_dir: []const u8) ![]std.fs.File {
+pub fn find_md_files(root: std.fs.Dir, policy_dir: []const u8, prog: *std.Progress.Node) ![]MDFile {
+    var p = prog.start("Searching for markdown files in policy root", 1);
+    defer p.end();
+
     panlog.info("Reading in policies from: {s}\n", .{policy_dir});
-    var files = Array(std.fs.File).init(alloc);
+    var files = Array(MDFile).init(alloc);
     defer files.deinit();
     var policy_root = try (try root.openDir("content", .{
         .access_sub_paths = true,
@@ -367,23 +403,36 @@ pub fn find_md_files(root: std.fs.Dir, policy_dir: []const u8) ![]std.fs.File {
     });
     defer policy_root.close();
 
-    try find_inner(&files, policy_root);
+    try find_inner(&files, policy_root, &p);
     return try files.toOwnedSlice();
 }
 /// Helper function to recursively traverse directories and append markdown files to the provided array.
-fn find_inner(files: *Array(std.fs.File), start: std.fs.Dir) !void {
+pub fn find_inner(files: *Array(MDFile), start: std.fs.Dir, prog: *std.Progress.Node) !void {
+    var num: usize = 0;
     var iter = start.iterate();
+    while (try iter.next()) |_| {
+        num += 1;
+    }
+    var buf: [128]u8 = undefined;
+    const dname = try start.realpath(".", &buf);
+    var p = prog.start(dname, num);
+    defer p.end();
+
+    iter.reset();
     while (try iter.next()) |entry| {
         switch (entry.kind) {
             .file => {
                 if (!std.mem.startsWith(u8, entry.name, "_") and
                     std.mem.endsWith(u8, entry.name, ".md"))
-                    try files.append(try start.openFile(entry.name, .{ .mode = .read_only }));
+                    try files.append(.{
+                        .file = try start.openFile(entry.name, .{ .mode = .read_only }),
+                        .path = try start.realpathAlloc(files.allocator, entry.name),
+                    });
             },
             .directory => {
                 var sub = try start.openDir(entry.name, .{ .access_sub_paths = true, .iterate = true });
                 defer sub.close();
-                try find_inner(files, sub);
+                try find_inner(files, sub, &p);
             },
             else => {},
         }
@@ -391,7 +440,9 @@ fn find_inner(files: *Array(std.fs.File), start: std.fs.Dir) !void {
 }
 
 /// Runs an external command to extract the dominant color from the logo image and returns it as a string.
-fn get_logo_color(path: []const u8) ![]u8 {
+pub fn get_logo_color(path: []const u8, prog: *std.Progress.Node) ![]u8 {
+    const p = prog.start("Get Color From Logo", 1);
+    defer p.end();
     const argv = [_][]const u8{
         "magick",
         path,
@@ -420,7 +471,10 @@ fn get_logo_color(path: []const u8) ![]u8 {
 }
 
 /// Spawns a Pandoc process with the provided arguments, collects output, and logs errors or results as needed.
-fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
+pub fn run_pandoc(a: Allocator, args: Array([]const u8), prog: *std.Progress.Node) !void {
+    const p = prog.start("Executing Pandoc", 1);
+    defer p.end();
+
     panlog.debug("Running pandoc with args:\n", .{});
     for (args.items) |arg|
         panlog.debug("\t{s}\n", .{arg});
@@ -447,7 +501,7 @@ fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
 
 const Progress = std.Progress;
 
-fn process_md_files_parallel(allocator: Allocator, files: []std.fs.File) !void {
+pub fn process_md_files_parallel(allocator: Allocator, files: []std.fs.File) !void {
     const total_files = files.len;
     var root_progress = Progress.start(.{
         .estimated_total_items = total_files,

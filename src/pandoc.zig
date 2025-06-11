@@ -63,6 +63,8 @@ pub const Config = struct {
 
 // TODO: Add more robust error propegation from pandoc/mermaid-filter
 // TODO: Add threading support
+// TODO: Add CLI args
+// TODO?: Link against pandoc directly at somepoint
 
 pub const std_options: std.Options = .{
     .log_level = .info,

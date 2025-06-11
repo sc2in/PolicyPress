@@ -67,6 +67,22 @@
         "else",
         "devbox run build-pdfs-draft",
         "fi"
+      ],
+      "cross-test": [
+        "zig build -Doptimize=Debug -Dtarget=x86_64-linux test",
+        "zig build -Doptimize=Debug -Dtarget=x86_64-windows test",
+        "zig build -Doptimize=Debug -Dtarget=x86_64-macos test",
+        "zig build -Doptimize=Debug -Dtarget=aarch64-macos test",
+        "zig build -Doptimize=Debug -Dtarget=aarch64-linux test",
+        "zig build -Doptimize=Debug -Dtarget=aarch64-windows test"
+      ],
+      "release": [
+        "zig build -Doptimize=ReleaseSafe -Dtarget=x86_64-linux",
+        "zig build -Doptimize=ReleaseSafe -Dtarget=x86_64-windows",
+        "zig build -Doptimize=ReleaseSafe -Dtarget=x86_64-macos",
+        "zig build -Doptimize=ReleaseSafe -Dtarget=aarch64-macos",
+        "zig build -Doptimize=ReleaseSafe -Dtarget=aarch64-linux",
+        "zig build -Doptimize=ReleaseSafe -Dtarget=aarch64-windows"
       ]
     }
   }

@@ -66,7 +66,7 @@ test "create_global_args constructs correct arguments" {
     const allocator = testing.allocator;
 
     // Minimal config for test
-    main.global_config.root = "root";
+    main.global_config.root = try allocator.dupe(u8, "root");
     main.global_config.org = try allocator.dupe(u8, "AcmeCorp");
     main.global_config.logo_path = try allocator.dupe(u8, "static/logo.png");
     main.global_config.color = try allocator.dupe(u8, "#123456");

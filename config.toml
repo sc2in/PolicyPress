@@ -9,6 +9,11 @@ highlight_code = true
 highlight_theme = "base16-ocean-light"
 
 [[taxonomies]]
+name = "tags"
+feed  = true
+render = false
+
+[[taxonomies]]
 name = "TSC2017"
 feed  = true 
 render = true

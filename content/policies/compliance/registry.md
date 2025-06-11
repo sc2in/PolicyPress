@@ -137,7 +137,7 @@ Legal tort action
 
 Requirements required as HIPAA compliant Business Associate; need to abide by Security (Technical, Physical, Administrative) and Privacy Rules.
 
-[{{ org() }} Statements about HIPAA GLBA FERPA]({{< ref "./regulatory-statements.md" >}})
+[{{ org() }} Statements about HIPAA GLBA FERPA](@/policies/compliance/regulatory-statements.md)
 
 #### Consequences
 
@@ -165,7 +165,7 @@ According to [Ed.gov](https://studentprivacy.ed.gov/ferpa), a FERPA-Compliant Th
 > - Is under the direct control of the agency or institution with respect to the use and maintenance of education records; and
 > - Uses education records only for authorized purposes and may not re-disclose PII from education records to other parties, unless the provider has specific authorization from the school or district to do so and it is otherwise permitted by FERPA. (See 34 CFR § 99.31(a)(1)(i))."
 
-[{{ org() }} Statements about HIPAA GLBA FERPA]({{< ref "./regulatory-statements.md" >}})
+[{{ org() }} Statements about HIPAA GLBA FERPA](@/policies/compliance/regulatory-statements.md)
 
 #### Consequences
 
@@ -184,7 +184,7 @@ Privacy and Safeguard Rules
 > Because {{ org() }} is not a financial institution, we do not need to be, and cannot be, GLBA compliant.
 > However, because we receive and store NPI from financial institutions, we are limited by proxy in how we use that NPI."
 
-[{{ org() }} Statements about HIPAA GLBA FERPA]({{< ref "./regulatory-statements.md" >}})
+[{{ org() }} Statements about HIPAA GLBA FERPA](@/policies/compliance/regulatory-statements.md)
 
 #### Consequences
 

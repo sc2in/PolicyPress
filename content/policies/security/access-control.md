@@ -21,7 +21,8 @@ taxonomies:
     - IAM-02
     - IAM-16
     - IAM-17
-
+  tags:
+    - needs_review
 extra:
   owner: SC2
   last_reviewed: 2025-04-16
@@ -43,7 +44,7 @@ The scope of this policy covers the unique user identification and password, eme
 
 ### Unique User Identification and Password
 
-Each user's or workforce member's password must meet the criteria set forth in the [ITSP]({{< ref "/docs/isms/itsp.md#password-management-poilcy" >}}).
+Each user's or workforce member's password must meet the criteria set forth in the [AEIP](@/policies/aeip.md#passwords).
 
 ### Automatic Lock
 

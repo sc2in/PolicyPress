@@ -22,7 +22,7 @@ pub const Config = struct {
     logo_path: []u8 = undefined,
     color: []u8 = undefined,
     current_year: []u8 = undefined,
-    root: []const u8 = undefined,
+    root: []u8 = undefined,
     is_draft: bool = false,
     redact: bool = false,
     build_dir: []const u8 = undefined,
@@ -34,6 +34,7 @@ pub const Config = struct {
         a.free(self.color);
         a.free(self.build_dir);
         a.free(self.current_year);
+        a.free(self.root);
         self.work_dir.close();
     }
 
@@ -46,7 +47,7 @@ pub const Config = struct {
         const current_year = dt_str_buf[0..dt_str_len];
         var self = Config{};
         self.current_year = try a.dupe(u8, current_year);
-        self.root = std.posix.getenv("DEVBOX_PROJECT_ROOT") orelse return error.ProjectRootNotFoundInEnv;
+        self.root = std.process.getEnvVarOwned(a, "DEVBOX_PROJECT_ROOT") catch return error.ProjectRootNotFoundInEnv;
         self.work_dir = try std.fs.openDirAbsolute(
             self.root,
             .{

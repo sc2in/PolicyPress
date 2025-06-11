@@ -1,8 +1,0 @@
-# Process compose for starting django
-version: "0.5"
-
-processes:
-  doks:
-    command: pnpm dev 
-    availability:
-      restart: "always"

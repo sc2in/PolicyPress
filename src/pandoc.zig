@@ -14,7 +14,7 @@ pub const std_options: std.Options = .{
     .log_level = .info,
     .log_scope_levels = &[_]std.log.ScopeLevel{
         .{ .scope = .parser, .level = .debug },
-        .{ .scope = .pandoc, .level = .info },
+        .{ .scope = .pandoc, .level = .debug },
     },
     .logFn = logFn,
 };
@@ -35,8 +35,8 @@ pub fn logFn(
 const panlog = std.log.scoped(.pandoc);
 
 pub fn main() !void {
-    panlog.info("Hello from my_scope", .{});
-    panlog.info("Hello from default scope", .{});
+    panlog.info("Hello from my_scope\n", .{});
+    panlog.info("Hello from default scope\n", .{});
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     alloc = gpa.allocator();
@@ -47,8 +47,23 @@ pub fn main() !void {
     const format = "%Y";
     const dt_str_len = ctime.strftime(&dt_str_buf, dt_str_buf.len, format, lt);
     const current_year = dt_str_buf[0..dt_str_len];
+    _ = current_year;
 
-    std.debug.print("{s}\n", .{current_year});
+    const argv = [_][]const u8{ "echo", "Hello", "World" };
+    var child = std.process.Child.init(&argv, alloc);
+    child.stdout_behavior = .Pipe;
+    child.stderr_behavior = .Pipe;
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var err: std.ArrayListUnmanaged(u8) = .empty;
+    defer {
+        out.deinit(alloc);
+        err.deinit(alloc);
+    }
+    try child.spawn();
+    try child.collectOutput(alloc, &out, &err, 100_000);
+
+    const exit_code = try child.wait();
+    panlog.debug("{any} {s}\n", .{ exit_code, out.items });
     var workDir = try std.fs.openDirAbsolute(
         std.posix.getenv("DEVBOX_PROJECT_ROOT") orelse return error.ProjectRootNotFoundInEnv,
         .{
@@ -99,7 +114,7 @@ fn get_metadata(txt: *Array(u8)) !FrontMatter {
         else => return err,
     };
     const map = y.docs.items[0].map;
-    std.debug.print("Procesing: {s}\n", .{map.get("title").?.string});
+    panlog.info("Procesing: {s}\n", .{map.get("title").?.string});
     const extra = map.get("extra").?.map;
     const major_revisions = extra.get("major_revisions").?.list;
     std.mem.sort(
@@ -164,12 +179,11 @@ fn process_md_file(md: std.fs.File) !void {
     defer contents.deinit();
 
     try replace_org(&contents);
-    std.debug.print("{}\n", .{contents.items.len});
     try replace_mermaid(&contents);
     var fm = try get_metadata(&contents);
     defer fm.deinit();
 
-    std.debug.print("{}\n", .{fm});
+    panlog.debug("{}\n", .{fm});
 }
 
 fn replace_org(txt: *Array(u8)) !void {
@@ -222,7 +236,7 @@ fn replace_mermaid(txt: *Array(u8)) !void {
 }
 
 pub fn find_md_files(root: std.fs.Dir, policy_dir: []const u8) ![]std.fs.File {
-    std.debug.print("Reading in policies from: {s}\n", .{policy_dir});
+    panlog.debug("Reading in policies from: {s}\n", .{policy_dir});
     var files = Array(std.fs.File).init(alloc);
     defer files.deinit();
     var policy_root = try (try root.openDir("content", .{

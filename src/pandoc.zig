@@ -9,7 +9,8 @@ const ctime = @cImport(@cInclude("time.h"));
 const mvzr = @import("mvzr");
 var alloc: Allocator = undefined;
 var org: []const u8 = undefined;
-
+var logo_path: []const u8 = undefined;
+var global_args: Array([]const u8) = undefined;
 pub const std_options: std.Options = .{
     .log_level = .info,
     .log_scope_levels = &[_]std.log.ScopeLevel{
@@ -49,21 +50,6 @@ pub fn main() !void {
     const current_year = dt_str_buf[0..dt_str_len];
     _ = current_year;
 
-    const argv = [_][]const u8{ "echo", "Hello", "World" };
-    var child = std.process.Child.init(&argv, alloc);
-    child.stdout_behavior = .Pipe;
-    child.stderr_behavior = .Pipe;
-    var out: std.ArrayListUnmanaged(u8) = .empty;
-    var err: std.ArrayListUnmanaged(u8) = .empty;
-    defer {
-        out.deinit(alloc);
-        err.deinit(alloc);
-    }
-    try child.spawn();
-    try child.collectOutput(alloc, &out, &err, 100_000);
-
-    const exit_code = try child.wait();
-    panlog.debug("{any} {s}\n", .{ exit_code, out.items });
     var workDir = try std.fs.openDirAbsolute(
         std.posix.getenv("DEVBOX_PROJECT_ROOT") orelse return error.ProjectRootNotFoundInEnv,
         .{
@@ -83,9 +69,21 @@ pub fn main() !void {
 
     const extra = config.getTable("extra") orelse return error.NoExtraInConfig;
     org = extra.getString("organization") orelse return error.NoOrganizationInExtra;
+    logo_path = extra.getString("logo") orelse return error.NoLogoInExtra;
+    const color = try get_logo_color(logo_path);
+    defer alloc.free(color);
+
     const policy_root = extra.getString("policy_root") orelse return error.NoPolicyRootInExtra;
     // const redact = b.option(bool, "redact", "Redact PDFs") orelse false;
     // const draft = b.option(bool, "redact", "Redact PDFs") orelse false;
+
+    global_args = Array([]const u8).init(alloc);
+    defer {
+        // for (global_args.items) |a|
+        //     alloc.free(a);
+        global_args.deinit();
+    }
+    try create_global_args(&global_args);
 
     const md_files = try find_md_files(workDir, policy_root);
     defer {
@@ -99,7 +97,39 @@ pub fn main() !void {
         try process_md_file(file);
     }
 }
+fn create_global_args(args: *Array([]const u8)) !void {
+    try args.appendSlice(&.{ "-V", "papersize=letter" });
+    try args.appendSlice(&.{ "-V", "titlepage=true" });
+}
 
+fn process_md_file(md: std.fs.File) !void {
+    const raw = try md.readToEndAlloc(alloc, 100_000_000);
+    var contents = Array(u8){
+        .items = raw,
+        .allocator = alloc,
+        .capacity = raw.len,
+    };
+    defer contents.deinit();
+    var local = try global_args.clone();
+    defer local.deinit();
+
+    try replace_org(&contents);
+    try replace_mermaid(&contents);
+    var fm = try get_metadata(&contents);
+    defer fm.deinit();
+
+    const tmp = try std.fs.cwd().createFile("tmp.md", .{});
+    defer {
+        tmp.close();
+        std.fs.cwd().deleteFile("tmp.md") catch unreachable;
+    }
+    try tmp.writeAll(contents.items);
+
+    panlog.debug("{}\n", .{fm});
+    try local.insert(0, "pandoc");
+    try local.appendSlice(&.{ "tmp.md", "-o", "tmp.pdf" });
+    try run_pandoc(local);
+}
 fn get_metadata(txt: *Array(u8)) !FrontMatter {
     const end_fm = std.mem.indexOfPos(u8, txt.items, 3, "---") orelse return error.InvalidFrontMatter;
     var y: Yaml = .{ .source = txt.items[3..end_fm] };
@@ -167,23 +197,6 @@ fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
         if (ac < bs[i]) return true;
     }
     return false;
-}
-
-fn process_md_file(md: std.fs.File) !void {
-    const raw = try md.readToEndAlloc(alloc, 100_000_000);
-    var contents = Array(u8){
-        .items = raw,
-        .allocator = alloc,
-        .capacity = raw.len,
-    };
-    defer contents.deinit();
-
-    try replace_org(&contents);
-    try replace_mermaid(&contents);
-    var fm = try get_metadata(&contents);
-    defer fm.deinit();
-
-    panlog.debug("{}\n", .{fm});
 }
 
 fn replace_org(txt: *Array(u8)) !void {
@@ -268,4 +281,54 @@ fn find_inner(files: *Array(std.fs.File), start: std.fs.Dir) !void {
             else => {},
         }
     }
+}
+
+fn get_logo_color(path: []const u8) ![]u8 {
+    const full_path = try std.fmt.allocPrint(alloc, "static/{s}", .{path});
+    defer alloc.free(full_path);
+
+    const argv = [_][]const u8{
+        "magick",
+        full_path,
+        "-scale",
+        "1x1\\!",
+        "-format",
+        "'%[hex:u]'",
+        "info:",
+    };
+    var child = std.process.Child.init(&argv, alloc);
+    child.stdout_behavior = .Pipe;
+    child.stderr_behavior = .Pipe;
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var err: std.ArrayListUnmanaged(u8) = .empty;
+    defer {
+        out.deinit(alloc);
+        err.deinit(alloc);
+    }
+    try child.spawn();
+    try child.collectOutput(alloc, &out, &err, 100_000);
+
+    const exit_code = try child.wait();
+    panlog.debug("{any} {s}\n", .{ exit_code, out.items });
+    panlog.debug("{any} {s}\n", .{ exit_code, err.items });
+    return try out.toOwnedSlice(alloc);
+}
+fn run_pandoc(args: Array([]const u8)) !void {
+    var child = std.process.Child.init(args.items, alloc);
+    child.stdout_behavior = .Pipe;
+    child.stderr_behavior = .Pipe;
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var err: std.ArrayListUnmanaged(u8) = .empty;
+    defer {
+        out.deinit(alloc);
+        err.deinit(alloc);
+    }
+    try child.spawn();
+    try child.collectOutput(alloc, &out, &err, 100_000);
+
+    const exit_code = child.wait() catch |e| {
+        panlog.debug("Error in pandoc: {s}\nRan with: {s}\n", .{ err.items, args.items });
+        return e;
+    };
+    panlog.debug("{any} {s}\n", .{ exit_code, out.items });
 }

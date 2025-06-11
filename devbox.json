@@ -1,24 +1,27 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.10.7/.schema/devbox.schema.json",
-  "packages": [
-    "pandoc@latest",
-    "yq-go@latest",
-    "gawk@latest",
-    "gnused@latest",
-    "bash@latest",
-    "pnpm@latest",
-    "nodejs_18@latest",
-    "yq@latest",
-    "github:sc2in/eisvogel-tex#",
-    "zola@latest",
-    "cargo@latest",
-    "imagemagick@latest",
-    "yj@latest",
-    "mermaid-filter@latest",
-    "zig@latest",
-    "zls@latest",
-    "watchexec@latest"
-  ],
+  "packages": {
+    "pandoc": {
+      "version": "latest",
+      "outputs": ["dev"]
+    },
+    "yq-go":                      "latest",
+    "gawk":                       "latest",
+    "gnused":                     "latest",
+    "bash":                       "latest",
+    "pnpm":                       "latest",
+    "nodejs_18":                  "latest",
+    "yq":                         "latest",
+    "github:sc2in/eisvogel-tex#": "",
+    "zola":                       "latest",
+    "cargo":                      "latest",
+    "imagemagick":                "latest",
+    "yj":                         "latest",
+    "mermaid-filter":             "latest",
+    "zig":                        "latest",
+    "zls":                        "latest",
+    "watchexec":                  "latest"
+  },
   "shell": {
     "init_hook": [
       "export CARGO_HOME=$DEVBOX_PROJECT_ROOT/.devbox/.cargo",

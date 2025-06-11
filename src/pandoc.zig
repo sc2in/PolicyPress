@@ -116,10 +116,9 @@ pub fn main() !void {
     }
     const total_files = md_files.len;
     std.debug.print("Building PDFs from {} markdown files in {s} .. \n", .{ total_files, policy_root });
-    for (md_files) |file| {
-        try process_md_file(file);
-        break; // only process one for dev
-    }
+    for (md_files) |f|
+        try process_md_file(alloc, f);
+    // try process_md_files_parallel(alloc, md_files);
 }
 
 ///Populates the global_args array with command-line arguments for Pandoc, based on the current global configuration
@@ -169,11 +168,11 @@ fn create_global_args(args: *Array([]const u8)) !void {
     // try args.append("-F mermaid-filter");
 }
 /// Processes a single markdown file: loads contents, applies replacements, extracts metadata, writes a temporary file, and invokes Pandoc to generate the PDF.
-fn process_md_file(md: std.fs.File) !void {
+fn process_md_file(a: Allocator, md: std.fs.File) !void {
     const raw = try md.readToEndAlloc(alloc, 100_000_000);
     var contents = Array(u8){
         .items = raw,
-        .allocator = alloc,
+        .allocator = a,
         .capacity = raw.len,
     };
     defer contents.deinit();
@@ -194,12 +193,12 @@ fn process_md_file(md: std.fs.File) !void {
 
     panlog.debug("{}\n", .{fm});
     try local.insert(0, "pandoc");
-    const out_file = try fm.filename(alloc);
+    const out_file = try fm.filename(a);
     // defer alloc.free(out_file);
 
     try local.appendSlice(&.{ "tmp.md", "-o", out_file });
     //TODO: Add the local resource folder
-    try run_pandoc(local);
+    try run_pandoc(a, local);
 }
 
 /// Parses YAML front matter from a markdown file, extracts document metadata, formats the title, and returns a FrontMatter struct.
@@ -421,21 +420,21 @@ fn get_logo_color(path: []const u8) ![]u8 {
 }
 
 /// Spawns a Pandoc process with the provided arguments, collects output, and logs errors or results as needed.
-fn run_pandoc(args: Array([]const u8)) !void {
+fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
     panlog.debug("Running pandoc with args:\n", .{});
-    for (args.items) |a|
-        panlog.debug("\t{s}\n", .{a});
-    var child = std.process.Child.init(args.items, alloc);
+    for (args.items) |arg|
+        panlog.debug("\t{s}\n", .{arg});
+    var child = std.process.Child.init(args.items, a);
     child.stdout_behavior = .Pipe;
     child.stderr_behavior = .Pipe;
     var out: std.ArrayListUnmanaged(u8) = .empty;
     var err: std.ArrayListUnmanaged(u8) = .empty;
     defer {
-        out.deinit(alloc);
-        err.deinit(alloc);
+        out.deinit(a);
+        err.deinit(a);
     }
     try child.spawn();
-    try child.collectOutput(alloc, &out, &err, 100_000);
+    try child.collectOutput(a, &out, &err, 100_000);
 
     const exit_code = child.wait() catch |e| {
         panlog.err("Error in pandoc: {s}\nRan with: {s}\n", .{ err.items, args.items });
@@ -444,4 +443,54 @@ fn run_pandoc(args: Array([]const u8)) !void {
     panlog.debug("{any} {s}\n", .{ exit_code, out.items });
     if (err.items.len > 0)
         panlog.err("{s}\n", .{err.items});
+}
+
+const Progress = std.Progress;
+
+fn process_md_files_parallel(allocator: Allocator, files: []std.fs.File) !void {
+    const total_files = files.len;
+    var root_progress = Progress.start(.{
+        .estimated_total_items = total_files,
+        .root_name = "Processing PDFs",
+    });
+    defer root_progress.end();
+
+    var errors = std.ArrayList(anyerror).init(allocator);
+    defer errors.deinit();
+    var errors_mutex = std.Thread.Mutex{};
+
+    var threads = std.ArrayList(std.Thread).init(allocator);
+    defer {
+        for (threads.items) |t| t.join();
+        threads.deinit();
+    }
+
+    for (files) |file| {
+        const thread = try std.Thread.spawn(.{}, struct {
+            fn run(f: std.fs.File, root: *Progress.Node, errs: *std.ArrayList(anyerror), mtx: *std.Thread.Mutex) void {
+                const local_alloc = std.heap.c_allocator;
+                const file_progress = root.start("File", 1);
+                defer file_progress.end();
+
+                process_md_file(local_alloc, f) catch |err| {
+                    mtx.lock();
+                    defer mtx.unlock();
+                    errs.append(err) catch {};
+                };
+                file_progress.completeOne();
+            }
+        }.run, .{ file, &root_progress, &errors, &errors_mutex });
+
+        try threads.append(thread);
+    }
+
+    for (threads.items) |t| t.join();
+
+    if (errors.items.len > 0) {
+        std.log.err("Failed processing {} files:", .{errors.items.len});
+        for (errors.items) |err| {
+            std.log.err("- {s}", .{@errorName(err)});
+        }
+        return error.ProcessingFailed;
+    }
 }

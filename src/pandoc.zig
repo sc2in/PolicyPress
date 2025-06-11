@@ -254,7 +254,9 @@ pub fn process_md_file(a: Allocator, md: MDFile, prog: anytype) !void {
 
     try local.append(try a.dupe(u8, "tmp.md"));
 
-    try add_arg(a, &local, "-o", "{s}", .{try fm.filename(a)});
+    const out = try fm.filename(a);
+    std.mem.replaceScalar(u8, out, ' ', '_');
+    try add_arg(a, &local, "-o", "{s}", .{out});
     try run_pandoc(a, local, &p);
 }
 
@@ -329,7 +331,7 @@ pub const FrontMatter = struct {
     }
     /// Generates a PDF filename from the title and most recent version in the front matter.
     pub fn filename(self: FrontMatter, a: Allocator) ![]u8 {
-        return std.fmt.allocPrint(a, "{s}/{s} - v{s}.pdf", .{ global_config.build_dir, self.title, self.most_recent_version });
+        return std.fmt.allocPrint(a, "{s}/{s}_-_v{s}.pdf", .{ global_config.build_dir, self.title, self.most_recent_version });
     }
 
     pub fn deinit(self: *FrontMatter, a: Allocator) void {
@@ -354,7 +356,7 @@ pub fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
 pub fn replace_org(txt: *Array(u8), prog: anytype) !void {
     const p = prog.start("Replace Organization Shortcode", 1);
     defer p.end();
-    const orgsc: mvzr.Regex = mvzr.compile("\\{%\\s*org\\(\\)\\s*%\\}").?;
+    const orgsc: mvzr.Regex = mvzr.compile("\\{\\{\\s*org\\(\\)\\s*\\}\\}").?;
 
     if (!orgsc.isMatch(txt.items)) return;
 

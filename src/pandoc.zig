@@ -236,11 +236,7 @@ pub fn process_md_file(a: Allocator, md: MDFile, prog: anytype) !void {
     var fm = try get_metadata(a, &contents, &p);
     defer fm.deinit(a);
 
-    const tmp = try std.fs.cwd().createFile("tmp.md", .{});
-    errdefer {
-        tmp.close();
-        std.fs.cwd().deleteFile("tmp.md") catch unreachable;
-    }
+    const tmp = try std.fs.cwd().createFile("tmp.md", std.fs.File.CreateFlags{ .exclusive = true });
     defer {
         tmp.close();
         std.fs.cwd().deleteFile("tmp.md") catch unreachable;

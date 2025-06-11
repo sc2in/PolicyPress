@@ -13,9 +13,11 @@ const tomlz = @import("tomlz");
 const Yaml = @import("yaml").Yaml;
 const ctime = @cImport(@cInclude("time.h"));
 const mvzr = @import("mvzr");
-var alloc: Allocator = undefined;
-var global_args: Array([]const u8) = undefined;
-var global_config: struct {
+
+var global_args: Array([]u8) = undefined;
+pub var global_config: Config = .{};
+
+pub const Config = struct {
     org: []u8 = undefined,
     logo_path: []u8 = undefined,
     color: []u8 = undefined,
@@ -24,13 +26,40 @@ var global_config: struct {
     is_draft: bool = false,
     redact: bool = false,
     build_dir: []const u8 = undefined,
-    pub fn deinit(self: *@This()) void {
-        alloc.free(self.org);
-        alloc.free(self.logo_path);
-        alloc.free(self.color);
-        alloc.free(self.build_dir);
+    work_dir: std.fs.Dir = undefined,
+
+    pub fn deinit(self: *Config, a: Allocator) void {
+        a.free(self.org);
+        a.free(self.logo_path);
+        a.free(self.color);
+        a.free(self.build_dir);
+        a.free(self.current_year);
+        self.work_dir.close();
     }
-} = .{};
+
+    pub fn init(a: Allocator) !Config {
+        var dt_str_buf: [40]u8 = undefined;
+        const t = ctime.time(null);
+        const lt = ctime.localtime(&t);
+        const format = "%Y";
+        const dt_str_len = ctime.strftime(&dt_str_buf, dt_str_buf.len, format, lt);
+        const current_year = dt_str_buf[0..dt_str_len];
+        var self = Config{};
+        self.current_year = try a.dupe(u8, current_year);
+        self.root = std.posix.getenv("DEVBOX_PROJECT_ROOT") orelse return error.ProjectRootNotFoundInEnv;
+        self.work_dir = try std.fs.openDirAbsolute(
+            self.root,
+            .{
+                .access_sub_paths = true,
+                .iterate = true,
+            },
+        );
+
+        self.build_dir = try self.work_dir.realpathAlloc(a, "public/pdf");
+
+        return self;
+    }
+};
 
 // TODO: Add more robust error propegation from pandoc/mermaid-filter
 // TODO: Add threading support
@@ -66,28 +95,9 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(gpa.allocator());
     defer arena.deinit();
 
-    alloc = arena.allocator();
-
-    var dt_str_buf: [40]u8 = undefined;
-    const t = ctime.time(null);
-    const lt = ctime.localtime(&t);
-    const format = "%Y";
-    const dt_str_len = ctime.strftime(&dt_str_buf, dt_str_buf.len, format, lt);
-    const current_year = dt_str_buf[0..dt_str_len];
-    global_config.current_year = current_year;
-    global_config.root = std.posix.getenv("DEVBOX_PROJECT_ROOT") orelse return error.ProjectRootNotFoundInEnv;
-    var workDir = try std.fs.openDirAbsolute(
-        global_config.root,
-        .{
-            .access_sub_paths = true,
-            .iterate = true,
-        },
-    );
-    defer workDir.close();
-    global_config.build_dir = try workDir.realpathAlloc(alloc, "public/pdf");
-    defer global_config.deinit();
-
-    var conf_file = try workDir.openFile("config.toml", .{ .mode = .read_only });
+    const alloc = arena.allocator();
+    global_config = try Config.init(alloc);
+    var conf_file = try global_config.work_dir.openFile("config.toml", .{ .mode = .read_only });
     defer conf_file.close();
 
     const config_contents = try conf_file.readToEndAlloc(alloc, 100_000_000);
@@ -106,22 +116,28 @@ pub fn main() !void {
     const logo = extra.getString("logo") orelse return error.NoLogoInExtra;
     global_config.logo_path = try std.fmt.allocPrint(alloc, "static/{s}", .{logo});
     global_config.org = try alloc.dupe(u8, extra.getString("organization") orelse return error.NoOrgInExtra);
-    global_config.color = try get_logo_color(global_config.logo_path, &root_progress);
+    global_config.color = try get_logo_color(alloc, global_config.logo_path, &root_progress);
 
     // const redact = b.option(bool, "redact", "Redact PDFs") orelse false;
     // const draft = b.option(bool, "redact", "Redact PDFs") orelse false;
 
-    global_args = Array([]const u8).init(alloc);
+    global_args = Array([]u8).init(alloc);
     defer {
         // for (global_args.items) |a|
         //     alloc.free(a);
         global_args.deinit();
     }
 
-    try create_global_args(&global_args);
+    try create_global_args(alloc, &global_args);
+    defer destroy_global_args(alloc, global_args);
 
-    const md_files = try find_md_files(workDir, policy_root, &root_progress);
+    const md_files = try find_md_files(alloc, global_config.work_dir, policy_root, &root_progress);
     defer {
+        for (md_files) |f|
+            f.deinit(alloc);
+        alloc.free(md_files);
+    }
+    errdefer {
         for (md_files) |f|
             f.deinit(alloc);
         alloc.free(md_files);
@@ -136,63 +152,73 @@ pub fn main() !void {
     // try process_md_files_parallel(alloc, md_files);
 }
 
+pub fn destroy_global_args(a: Allocator, args: Array([]u8)) void {
+    for (args.items) |arg|
+        a.free(arg);
+    args.deinit();
+}
+
 ///Populates the global_args array with command-line arguments for Pandoc, based on the current global configuration
-pub fn create_global_args(args: *Array([]const u8)) !void {
-    const data_dir = try std.fmt.allocPrint(alloc, "--data-dir={s}", .{global_config.root});
-    try args.append(data_dir);
+pub fn create_global_args(a: Allocator, args: *Array([]u8)) !void {
+    try add_arg(a, args, "", "--data-dir={s}", .{global_config.root});
+    try add_arg(a, args, "", "--resource-path={s}", .{global_config.root});
+    try add_arg(a, args, "-V", "footer-left={s} \\textcopyright {s}", .{ global_config.org, global_config.current_year });
 
-    const res_dir = try std.fmt.allocPrint(alloc, "--resource-path={s}", .{global_config.root});
-    try args.append(res_dir);
+    try add_arg(a, args, "-V", "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{global_config.logo_path});
 
-    const footer = try std.fmt.allocPrint(alloc, "footer-left={s} \\textcopyright {s}", .{ global_config.org, global_config.current_year });
-    try args.appendSlice(&.{ "-V", footer });
-    try args.appendSlice(&.{ "-V", "footer-center=Confidental" });
+    try add_arg(a, args, "-V", "titlepage-logo={s}", .{global_config.logo_path});
 
-    const header = try std.fmt.allocPrint(alloc, "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{global_config.logo_path});
-    try args.appendSlice(&.{ "-V", header });
+    try add_arg(a, args, "-V", "institution=\"{s}\"", .{global_config.org});
 
-    const logo = try std.fmt.allocPrint(alloc, "titlepage-logo={s}", .{global_config.logo_path});
-    try args.appendSlice(&.{ "-V", logo });
+    try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{global_config.color[1..7]});
 
-    const inst = try std.fmt.allocPrint(alloc, "institution=\"{s}\"", .{global_config.org});
-    try args.appendSlice(&.{ "-V", inst });
-
-    const color = try std.fmt.allocPrint(alloc, "titlepage-rule-color={s}", .{global_config.color[1..7]});
-    try args.appendSlice(&.{ "-V", color });
-
-    const mermaid = try std.fmt.allocPrint(alloc, "{s}/.devbox/nix/profile/default/bin/mermaid-filter", .{global_config.root});
-    try args.appendSlice(&.{ "-F", mermaid });
-
-    try args.appendSlice(&.{ "-V", "papersize=letter" });
-    try args.appendSlice(&.{ "-V", "titlepage=true" });
-    try args.appendSlice(&.{ "-V", "table-use-row-colors=true " });
-    try args.appendSlice(&.{ "-V", "logo-width=6cm" });
-    try args.appendSlice(&.{ "-V", "toc-depth=3" });
-    try args.appendSlice(&.{ "-V", "toc=true" });
-    try args.appendSlice(&.{ "-V", "toc-own-page=true" });
-    try args.appendSlice(&.{ "-V", "titlepage=true" });
-    try args.appendSlice(&.{ "--template", "eisvogel" });
-    try args.append("--webtex");
-    try args.append("--listings");
-    try args.append("--pdf-engine=xelatex");
+    try add_arg(a, args, "-F", "{s}/.devbox/nix/profile/default/bin/mermaid-filter", .{global_config.root});
+    try add_arg(a, args, "-V", "footer-center=Confidental", .{});
+    try add_arg(a, args, "-V", "papersize=letter", .{});
+    try add_arg(a, args, "-V", "titlepage=true", .{});
+    try add_arg(a, args, "-V", "toc-own-page=true ", .{});
+    try add_arg(a, args, "-V", "toc=true", .{});
+    try add_arg(a, args, "-V", "toc-depth=3", .{});
+    try add_arg(a, args, "-V", "logo-width=6cm", .{});
+    try add_arg(a, args, "-V", "table-use-row-colors=true", .{});
+    try add_arg(a, args, "--template", "eisvogel", .{});
+    try add_arg(a, args, "", "--listings", .{});
+    try add_arg(a, args, "", "--webtex", .{});
+    try add_arg(a, args, "", "--pdf-engine=xelatex", .{});
 
     if (global_config.is_draft) {
-        try args.appendSlice(&.{ "-V", "page-background=static/draft.png" });
-        try args.appendSlice(&.{ "-V", "page-background-opacity=0.8" });
+        try add_arg(a, args, "-V", "page-background=static/draft.png", .{});
+        try add_arg(a, args, "-V", "page-background-opacity=0.8", .{});
     }
 }
+
+inline fn add_arg(
+    a: Allocator,
+    args: *Array([]u8),
+    comptime prefix: []const u8,
+    comptime fmt: []const u8,
+    value: anytype,
+) !void {
+    if (prefix.len > 0) try args.append(try a.dupe(u8, prefix));
+
+    const arg = try std.fmt.allocPrint(a, fmt, value);
+    try args.append(arg);
+}
+
 /// Processes a single markdown file: loads contents, applies replacements, extracts metadata, writes a temporary file, and invokes Pandoc to generate the PDF.
-pub fn process_md_file(a: Allocator, md: MDFile, prog: *std.Progress.Node) !void {
+pub fn process_md_file(a: Allocator, md: MDFile, prog: anytype) !void {
     var buf: [128]u8 = undefined;
 
     const fname = try std.fmt.bufPrint(&buf, "{s}/{s}", .{
         std.fs.path.basename((std.fs.path.dirname(md.path) orelse ".")),
         std.fs.path.basename(md.path),
     });
+    var file = try std.fs.openFileAbsolute(md.path, .{ .mode = .read_only });
+    defer file.close();
 
     var p = prog.start(fname, 4);
     defer p.end();
-    const raw = try md.file.readToEndAlloc(alloc, 100_000_000);
+    const raw = try file.readToEndAlloc(a, 100_000_000);
     var contents = Array(u8){
         .items = raw,
         .allocator = a,
@@ -205,38 +231,41 @@ pub fn process_md_file(a: Allocator, md: MDFile, prog: *std.Progress.Node) !void
     try replace_org(&contents, &p);
     try replace_mermaid(&contents, &p);
 
-    var fm = try get_metadata(&contents, &p);
-    defer fm.deinit();
+    var fm = try get_metadata(a, &contents, &p);
+    defer fm.deinit(a);
 
     const tmp = try std.fs.cwd().createFile("tmp.md", .{});
+    errdefer {
+        tmp.close();
+        std.fs.cwd().deleteFile("tmp.md") catch unreachable;
+    }
     defer {
         tmp.close();
         std.fs.cwd().deleteFile("tmp.md") catch unreachable;
     }
     try tmp.writeAll(contents.items);
 
-    try local.insert(0, "pandoc");
+    try local.insert(0, try a.dupe(u8, "pandoc"));
 
-    const res_path = try std.fmt.allocPrint(alloc, "--resource-path={s}", .{std.fs.path.dirname(md.path).?});
+    const res_path = try std.fmt.allocPrint(a, "--resource-path={s}", .{std.fs.path.dirname(md.path).?});
     try local.append(res_path);
 
-    const out_file = try fm.filename(a);
-    // defer alloc.free(out_file);
-    try local.appendSlice(&.{ "tmp.md", "-o", out_file });
+    try local.append(try a.dupe(u8, "tmp.md"));
 
+    try add_arg(a, &local, "-o", "{s}", .{try fm.filename(a)});
     try run_pandoc(a, local, &p);
 }
 
 /// Parses YAML front matter from a markdown file, extracts document metadata, formats the title, and returns a FrontMatter struct.
-pub fn get_metadata(txt: *Array(u8), prog: *std.Progress.Node) !FrontMatter {
+pub fn get_metadata(a: Allocator, txt: *Array(u8), prog: anytype) !FrontMatter {
     const p = prog.start("Get Metadata", 1);
     defer p.end();
 
     const end_fm = std.mem.indexOfPos(u8, txt.items, 3, "---") orelse return error.InvalidFrontMatter;
     var y: Yaml = .{ .source = txt.items[3..end_fm] };
-    defer y.deinit(alloc);
+    defer y.deinit(a);
 
-    y.load(alloc) catch |err| switch (err) {
+    y.load(a) catch |err| switch (err) {
         error.ParseFailure => {
             std.debug.assert(y.parse_errors.errorMessageCount() > 0);
             // y.parse_errors.renderToStdErr(.{ .ttyconf = std.io.tty.detectConfig(std.io.getStdErr()) });
@@ -264,24 +293,24 @@ pub fn get_metadata(txt: *Array(u8), prog: *std.Progress.Node) !FrontMatter {
     const e = "{s}";
     const t = map.get("title").?.string;
     const title = if (global_config.redact and global_config.is_draft)
-        try std.fmt.allocPrint(alloc, rd, .{t})
+        try std.fmt.allocPrint(a, rd, .{t})
     else if (global_config.redact)
-        try std.fmt.allocPrint(alloc, r, .{t})
+        try std.fmt.allocPrint(a, r, .{t})
     else if (global_config.is_draft)
-        try std.fmt.allocPrint(alloc, d, .{t})
+        try std.fmt.allocPrint(a, d, .{t})
     else
-        try std.fmt.allocPrint(alloc, e, .{t});
+        try std.fmt.allocPrint(a, e, .{t});
     return .{
         .title = title,
-        .last_reviewed = try alloc.dupe(u8, extra.get("last_reviewed").?.string),
+        .last_reviewed = try a.dupe(u8, extra.get("last_reviewed").?.string),
         .most_recent_version = switch (m.get("version").?) {
-            .string => |s| try alloc.dupe(u8, s),
-            .float => |f| try std.fmt.allocPrint(alloc, "{d:0.1}", .{f}),
+            .string => |s| try a.dupe(u8, s),
+            .float => |f| try std.fmt.allocPrint(a, "{d:0.1}", .{f}),
             else => return error.InvalidVersionType,
         },
     };
 }
-const FrontMatter = struct {
+pub const FrontMatter = struct {
     title: []u8,
     most_recent_version: []u8,
     last_reviewed: []u8,
@@ -301,10 +330,10 @@ const FrontMatter = struct {
         return std.fmt.allocPrint(a, "{s}/{s} - v{s}.pdf", .{ global_config.build_dir, self.title, self.most_recent_version });
     }
 
-    pub fn deinit(self: *FrontMatter) void {
-        alloc.free(self.title);
-        alloc.free(self.last_reviewed);
-        alloc.free(self.most_recent_version);
+    pub fn deinit(self: *FrontMatter, a: Allocator) void {
+        a.free(self.title);
+        a.free(self.last_reviewed);
+        a.free(self.most_recent_version);
     }
 };
 
@@ -320,88 +349,62 @@ pub fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
 }
 
 /// Replaces all instances of the organization placeholder in the markdown text with the actual organization name from the global configuration.
-pub fn replace_org(txt: *Array(u8), prog: *std.Progress.Node) !void {
+pub fn replace_org(txt: *Array(u8), prog: anytype) !void {
     const p = prog.start("Replace Organization Shortcode", 1);
     defer p.end();
+    const orgsc: mvzr.Regex = mvzr.compile("\\{%\\s*org\\(\\)\\s*%\\}").?;
 
-    const size = std.mem.replacementSize(
-        u8,
-        txt.items,
-        "{{ org() }}",
-        global_config.org,
-    );
-    const buf = try alloc.alloc(u8, size);
+    if (!orgsc.isMatch(txt.items)) return;
 
-    _ = std.mem.replace(
-        u8,
-        txt.items,
-        "{{ org() }}",
-        global_config.org,
-        buf,
-    );
+    var new = try txt.clone();
+
+    var iter = orgsc.iterator(txt.items);
+    while (iter.next()) |match| {
+        try new.replaceRange(match.start, match.slice.len, global_config.org);
+        iter = orgsc.iterator(new.items);
+    }
     txt.deinit();
-    txt.* = .{
-        .allocator = alloc,
-        .capacity = buf.len,
-        .items = buf,
-    };
+    txt.* = new;
 }
 
 /// Finds and replaces custom Mermaid code blocks in the markdown with a standardized code block format.
-pub fn replace_mermaid(txt: *Array(u8), prog: *std.Progress.Node) !void {
+pub fn replace_mermaid(txt: *Array(u8), prog: anytype) !void {
     const p = prog.start("Replace Mermaid Shortcode", 1);
     defer p.end();
     const mermaid: mvzr.Regex = mvzr.compile("\\{%\\s*mermaid\\(\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;
-    // const mermaid_end: mvzr.Regex = mvzr.compile("\\{%\\s*end\\s*\\}").?;
+    if (!mermaid.isMatch(txt.items)) return;
 
-    var replacements = Array(mvzr.Match).init(txt.allocator);
-    defer {
-        for (replacements.items) |r|
-            r.deinit(alloc);
-        replacements.deinit();
-    }
+    var new = try txt.clone();
+
     var iter = mermaid.iterator(txt.items);
-    var total: usize = 0;
     while (iter.next()) |m| {
-        try replacements.append(try m.toOwnedMatch(alloc));
-        total += m.end - m.start;
-    }
-
-    for (replacements.items) |m| {
         const s = std.mem.indexOf(u8, m.slice, "%}") orelse return error.InvalidShortCode;
         const e = std.mem.lastIndexOf(u8, m.slice, "{%") orelse return error.InvalidShortCode;
-        const inner = m.slice[s + 2 .. e - 2];
-        const replace = try std.fmt.allocPrint(alloc, "~~~mermaid\n{s}\n~~~\n", .{inner});
-        defer alloc.free(replace);
+        const inner = m.slice[s + 2 .. e - 1];
+        const replace = try std.fmt.allocPrint(txt.allocator, "~~~mermaid{s}\n~~~", .{inner});
+        defer txt.allocator.free(replace);
 
-        const size = std.mem.replacementSize(u8, txt.items, m.slice, replace);
-        const new = try alloc.alloc(u8, size);
-        _ = std.mem.replace(u8, txt.items, m.slice, replace, new);
-        txt.deinit();
-        txt.* = .{
-            .allocator = alloc,
-            .capacity = new.len,
-            .items = new,
-        };
+        try new.replaceRange(m.start, m.slice.len, replace);
+        iter = mermaid.iterator(new.items);
     }
+    txt.deinit();
+    txt.* = new;
 }
 
 pub const MDFile = struct {
     path: []u8,
-    file: std.fs.File,
     pub fn deinit(self: MDFile, a: Allocator) void {
-        self.file.close();
         a.free(self.path);
     }
 };
 
 /// Recursively finds and opens all markdown files in the specified policy directory, returning them as an array of files.
-pub fn find_md_files(root: std.fs.Dir, policy_dir: []const u8, prog: *std.Progress.Node) ![]MDFile {
+pub fn find_md_files(a: Allocator, root: std.fs.Dir, policy_dir: []const u8, prog: *std.Progress.Node) ![]MDFile {
     var p = prog.start("Searching for markdown files in policy root", 1);
     defer p.end();
 
     panlog.info("Reading in policies from: {s}\n", .{policy_dir});
-    var files = Array(MDFile).init(alloc);
+    var files = Array(MDFile).init(a);
     defer files.deinit();
     var policy_root = try (try root.openDir("content", .{
         .access_sub_paths = true,
@@ -434,7 +437,6 @@ pub fn find_inner(files: *Array(MDFile), start: std.fs.Dir, prog: *std.Progress.
                 if (!std.mem.startsWith(u8, entry.name, "_") and
                     std.mem.endsWith(u8, entry.name, ".md"))
                     try files.append(.{
-                        .file = try start.openFile(entry.name, .{ .mode = .read_only }),
                         .path = try start.realpathAlloc(files.allocator, entry.name),
                     });
             },
@@ -449,7 +451,7 @@ pub fn find_inner(files: *Array(MDFile), start: std.fs.Dir, prog: *std.Progress.
 }
 
 /// Runs an external command to extract the dominant color from the logo image and returns it as a string.
-pub fn get_logo_color(path: []const u8, prog: *std.Progress.Node) ![]u8 {
+pub fn get_logo_color(a: Allocator, path: []const u8, prog: anytype) ![]u8 {
     const p = prog.start("Get Color From Logo", 1);
     defer p.end();
     const argv = [_][]const u8{
@@ -461,27 +463,27 @@ pub fn get_logo_color(path: []const u8, prog: *std.Progress.Node) ![]u8 {
         "'%[hex:u]'",
         "info:",
     };
-    var child = std.process.Child.init(&argv, alloc);
+    var child = std.process.Child.init(&argv, a);
     child.stdout_behavior = .Pipe;
     child.stderr_behavior = .Pipe;
     var out: std.ArrayListUnmanaged(u8) = .empty;
     var err: std.ArrayListUnmanaged(u8) = .empty;
     defer {
-        out.deinit(alloc);
-        err.deinit(alloc);
+        out.deinit(a);
+        err.deinit(a);
     }
     try child.spawn();
-    try child.collectOutput(alloc, &out, &err, 100_000);
+    try child.collectOutput(a, &out, &err, 100_000);
 
     const exit_code = try child.wait();
     panlog.debug("{any} {s}\n", .{ exit_code, out.items });
     panlog.debug("{any} {s}\n", .{ exit_code, err.items });
-    return try out.toOwnedSlice(alloc);
+    return try out.toOwnedSlice(a);
 }
 
 /// Spawns a Pandoc process with the provided arguments, collects output, and logs errors or results as needed.
-pub fn run_pandoc(a: Allocator, args: Array([]const u8), prog: *std.Progress.Node) !void {
-    const p = prog.start("Executing Pandoc", 1);
+pub fn run_pandoc(a: Allocator, args: Array([]u8), prog: *std.Progress.Node) !void {
+    const p = prog.start("Executing Pandoc", 0);
     defer p.end();
 
     panlog.debug("Running pandoc with args:\n", .{});
@@ -490,7 +492,7 @@ pub fn run_pandoc(a: Allocator, args: Array([]const u8), prog: *std.Progress.Nod
     var child = std.process.Child.init(args.items, a);
     child.stdout_behavior = .Pipe;
     child.stderr_behavior = .Pipe;
-    var env_map = try std.process.getEnvMap(alloc);
+    var env_map = try std.process.getEnvMap(a);
     defer env_map.deinit();
     child.env_map = &env_map;
     // Optionally, print or check the PATH in env_map
@@ -513,8 +515,10 @@ pub fn run_pandoc(a: Allocator, args: Array([]const u8), prog: *std.Progress.Nod
         return e;
     };
     panlog.debug("{any} {s}\n", .{ exit_code, out.items });
-    if (err.items.len > 0)
+    if (err.items.len > 0) {
         panlog.err("{s}\n", .{err.items});
+        return error.PandocError;
+    }
 }
 
 const Progress = std.Progress;

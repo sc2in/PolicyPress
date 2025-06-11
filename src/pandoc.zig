@@ -32,6 +32,9 @@ var global_config: struct {
     }
 } = .{};
 
+// TODO: Add more robust error propegation from pandoc/mermaid-filter
+// TODO: Add threading support
+
 pub const std_options: std.Options = .{
     .log_level = .info,
     .log_scope_levels = &[_]std.log.ScopeLevel{
@@ -201,6 +204,7 @@ pub fn process_md_file(a: Allocator, md: MDFile, prog: *std.Progress.Node) !void
 
     try replace_org(&contents, &p);
     try replace_mermaid(&contents, &p);
+
     var fm = try get_metadata(&contents, &p);
     defer fm.deinit();
 
@@ -211,13 +215,15 @@ pub fn process_md_file(a: Allocator, md: MDFile, prog: *std.Progress.Node) !void
     }
     try tmp.writeAll(contents.items);
 
-    panlog.debug("{}\n", .{fm});
     try local.insert(0, "pandoc");
+
+    const res_path = try std.fmt.allocPrint(alloc, "--resource-path={s}", .{std.fs.path.dirname(md.path).?});
+    try local.append(res_path);
+
     const out_file = try fm.filename(a);
     // defer alloc.free(out_file);
-
     try local.appendSlice(&.{ "tmp.md", "-o", out_file });
-    //TODO: Add the local resource folder
+
     try run_pandoc(a, local, &p);
 }
 

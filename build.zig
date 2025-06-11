@@ -45,4 +45,21 @@ pub fn build(b: *std.Build) !void {
         .source_dir = exe.getEmittedDocs(),
     });
     docs_step.dependOn(&docs_install.step);
+
+    const test_module = b.addModule("test", .{
+        .root_source_file = b.path("src/test.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    test_module.addImport("tomlz", tomlz.module("tomlz"));
+    test_module.addImport("yaml", yaml.module("yaml"));
+    test_module.addImport("mvzr", mvzr.module("mvzr"));
+
+    const unit_tests = b.addTest(.{
+        .root_module = test_module,
+    });
+    const run_unit_tests = b.addRunArtifact(unit_tests);
+    const test_step = b.step("test", "Run unit tests");
+    test_step.dependOn(&run_unit_tests.step);
 }

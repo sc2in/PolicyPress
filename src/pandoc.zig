@@ -13,6 +13,7 @@ const tomlz = @import("tomlz");
 const Yaml = @import("yaml").Yaml;
 const ctime = @cImport(@cInclude("time.h"));
 const mvzr = @import("mvzr");
+const clap = @import("clap");
 
 var global_args: Array([]u8) = undefined;
 pub var global_config: Config = .{};
@@ -64,7 +65,6 @@ pub const Config = struct {
 
 // TODO: Add more robust error propegation from pandoc/mermaid-filter
 // TODO: Add threading support
-// TODO: Add CLI args
 // TODO?: Link against pandoc directly at somepoint
 
 pub const std_options: std.Options = .{
@@ -100,6 +100,36 @@ pub fn main() !void {
 
     const alloc = arena.allocator();
     global_config = try Config.init(alloc);
+
+    const params = comptime clap.parseParamsComptime(
+        \\-h, --help             Display this help and exit.
+        \\-d, --draft            Add draft watermark to output.
+        \\-r, --redact           Redact text within redaction tags in output.
+        \\
+    );
+    var diag = clap.Diagnostic{};
+    var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
+        .diagnostic = &diag,
+        .allocator = alloc,
+    }) catch |err| {
+        // Report useful error and exit.
+        diag.report(std.io.getStdErr().writer(), err) catch {};
+        return err;
+    };
+    defer res.deinit();
+    if (res.args.help != 0) {
+        std.debug.print("SC2 Policy Center PDF Generator\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
+        return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
+    }
+    if (res.args.draft != 0) {
+        panlog.warn("Draft mode enabled\n", .{});
+        global_config.is_draft = true;
+    }
+    if (res.args.redact != 0) {
+        panlog.warn("Redaction enabled\n", .{});
+        global_config.redact = true;
+    }
+
     var conf_file = try global_config.work_dir.openFile("config.toml", .{ .mode = .read_only });
     defer conf_file.close();
 
@@ -238,6 +268,9 @@ pub fn process_md_file(a: Allocator, md: MDFile, prog: anytype) !void {
     defer fm.deinit(a);
 
     const tmp = try std.fs.cwd().createFile("tmp.md", std.fs.File.CreateFlags{ .exclusive = true });
+    errdefer {
+        std.fs.cwd().deleteFile("tmp.md") catch unreachable;
+    }
     defer {
         tmp.close();
         std.fs.cwd().deleteFile("tmp.md") catch unreachable;
@@ -394,8 +427,8 @@ pub fn replace_mermaid(txt: *Array(u8), prog: anytype) !void {
 
 pub const MDFile = struct {
     path: []u8,
-    pub fn deinit(self: MDFile, a: Allocator) void {
-        a.free(self.path);
+    pub fn deinit(_: MDFile, _: Allocator) void {
+        // a.free(self.path);
     }
 };
 

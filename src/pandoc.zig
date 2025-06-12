@@ -552,8 +552,10 @@ pub fn run_pandoc(a: Allocator, args: Array([]u8), prog: *std.Progress.Node) !vo
     };
     panlog.debug("{any} {s}\n", .{ exit_code, out.items });
     if (err.items.len > 0) {
-        panlog.err("{s}\n", .{err.items});
-        return error.PandocError;
+        panlog.err("!!! {s}\n!!! Called with:\n", .{err.items});
+        for (args.items) |arg|
+            panlog.err("\t{s}\n", .{arg});
+        // return error.PandocError;
     }
 }
 

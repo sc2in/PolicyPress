@@ -157,63 +157,6 @@
         }
       }
     },
-    "python311@latest": {
-      "last_modified": "2025-05-16T20:19:48Z",
-      "plugin_version": "0.0.4",
-      "resolved": "github:NixOS/nixpkgs/12a55407652e04dcf2309436eb06fef0d3713ef3#python311",
-      "source": "devbox-search",
-      "version": "3.11.12",
-      "systems": {
-        "aarch64-darwin": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/4jncyfh593f696rhz8a0f6ql178khlv3-python3-3.11.12",
-              "default": true
-            }
-          ],
-          "store_path": "/nix/store/4jncyfh593f696rhz8a0f6ql178khlv3-python3-3.11.12"
-        },
-        "aarch64-linux": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/yhjp1d1nnk3r7y9r3219bjzhccd77qws-python3-3.11.12",
-              "default": true
-            },
-            {
-              "name": "debug",
-              "path": "/nix/store/yy5v4bvhzw7wqgvdq10vc6fqhzhs5bcs-python3-3.11.12-debug"
-            }
-          ],
-          "store_path": "/nix/store/yhjp1d1nnk3r7y9r3219bjzhccd77qws-python3-3.11.12"
-        },
-        "x86_64-darwin": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/mbpn0jq3nq2zlwnxj67vjnxxw1rfc557-python3-3.11.12",
-              "default": true
-            }
-          ],
-          "store_path": "/nix/store/mbpn0jq3nq2zlwnxj67vjnxxw1rfc557-python3-3.11.12"
-        },
-        "x86_64-linux": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/98jyyrwvy52nsvbzv9g9zvl9hdqw6sq3-python3-3.11.12",
-              "default": true
-            },
-            {
-              "name": "debug",
-              "path": "/nix/store/nc3m92y8baqlzzlay1g0d7z7skncr491-python3-3.11.12-debug"
-            }
-          ],
-          "store_path": "/nix/store/98jyyrwvy52nsvbzv9g9zvl9hdqw6sq3-python3-3.11.12"
-        }
-      }
-    },
     "watchexec@latest": {
       "last_modified": "2025-06-05T08:10:37Z",
       "resolved": "github:NixOS/nixpkgs/ec62ae342c340d24289735e31eb9155261cd5fe7#watchexec",

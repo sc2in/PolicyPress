@@ -8,8 +8,7 @@
     "mermaid-filter":             "latest",
     "zig":                        "latest",
     "zls":                        "latest",
-    "watchexec":                  "latest",
-    "python311":              "latest"
+    "watchexec":                  "latest"
   },
   "shell": {
     "init_hook": [
@@ -54,11 +53,11 @@
       "preview": [
         "zola build --base-url http://0.0.0.0:1111",
         "devbox run build-pdfs",
-        "python -m http.server 1111 -d public"
+        "zig build serve"
       ],
       "docs": [
         "zig build docs",
-        "python -m http.server 1111 -d zig-out/docs"
+        "zig build serve -- -d zig-out/docs"
       ],
       "ci": [
         "if [ $PUBLISH == \"true\" ]; then",

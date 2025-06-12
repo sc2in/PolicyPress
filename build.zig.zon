@@ -48,6 +48,14 @@
             .url = "https://github.com/mnemnion/mvzr/archive/refs/tags/v0.3.4.tar.gz",
             .hash = "mvzr-0.3.4-ZSOky2RnAQDtFSuVhbh2fP1s4PwRvTQ-DDw2lixvvA7T",
         },
+        .zap = .{
+            .url = "git+https://github.com/zigzap/zap?ref=v0.10.1#8d187310c7ee4f86faa7ef0ecdac0bf747216dea",
+            .hash = "zap-0.9.1-GoeB84M8JACjZKDNq2LA5hB24Z-ZrZ_HUKRXd8qxL2JW",
+        },
+        .clap = .{
+            .url = "git+https://github.com/Hejsil/zig-clap#cc5c6a5d71a317ed4b0ad776842d1d0655f72d0a",
+            .hash = "clap-0.10.0-oBajB7jkAQAZ4cKLlzkeV9mDu2yGZvtN2QuOyfAfjBij",
+        },
     },
     .paths = .{
         "build.zig",

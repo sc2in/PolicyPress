@@ -19,28 +19,38 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-    const zap = b.dependency("zap", .{
-        .target = target,
-        .optimize = optimize,
-        .openssl = false, // set to true to enable TLS support
-    });
     const clap = b.dependency("clap", .{
         .target = target,
         .optimize = optimize,
     });
+    if (target.result.os.tag != .windows) {
+        const zap = b.dependency("zap", .{
+            .target = target,
+            .optimize = optimize,
+            .openssl = false, // set to true to enable TLS support
+        });
+        const server_mod = b.addModule("server", .{
+            .root_source_file = b.path("src/server.zig"),
+            .target = target,
+            .optimize = .ReleaseFast,
+        });
+        server_mod.addImport("zap", zap.module("zap"));
+        server_mod.addImport("clap", clap.module("clap"));
+        const server = b.addExecutable(.{
+            .name = "http",
+            .root_module = server_mod,
+        });
 
-    const server_mod = b.addModule("server", .{
-        .root_source_file = b.path("src/server.zig"),
-        .target = target,
-        .optimize = .ReleaseFast,
-    });
-    server_mod.addImport("zap", zap.module("zap"));
-    server_mod.addImport("clap", clap.module("clap"));
-    const server = b.addExecutable(.{
-        .name = "http",
-        .root_module = server_mod,
-    });
+        const run_server = b.addRunArtifact(server);
+        if (b.args) |args| {
+            run_server.addArgs(args);
+        }
 
+        const serve_step = b.step("serve", "Serve the zola output");
+        serve_step.dependOn(&run_server.step);
+    } else {
+        _ = b.step("serve", "Serve the zola output (not available on Windows. Does nothing.)");
+    }
     // the executable from your call to b.addExecutable(...)
 
     const pandoc_sh_mod = b.addModule("pandocsh", .{
@@ -90,12 +100,4 @@ pub fn build(b: *std.Build) !void {
     const run_unit_tests = b.addRunArtifact(unit_tests);
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_unit_tests.step);
-
-    const run_server = b.addRunArtifact(server);
-    if (b.args) |args| {
-        run_server.addArgs(args);
-    }
-
-    const serve_step = b.step("serve", "Serve the zola output");
-    serve_step.dependOn(&run_server.step);
 }

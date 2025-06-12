@@ -5,6 +5,7 @@ const tst = std.testing;
 const math = std.math;
 const Yaml = @import("yaml").Yaml;
 const mvzr = @import("mvzr");
+const tomlz = @import("tomlz");
 
 const panlog = std.log.scoped(.pandoc);
 
@@ -251,3 +252,145 @@ pub fn get_logo_color(a: Allocator, path: []const u8, prog: anytype) ![]u8 {
     panlog.debug("{any} {s}\n", .{ exit_code, err.items });
     return try out.toOwnedSlice(a);
 }
+
+test "revisions_lt sorts revisions lexically" {
+    // Simulate two YAML values
+    const a = Yaml.Value{ .string = "2022-01-01" };
+    const b = Yaml.Value{ .string = "2023-01-01" };
+    try tst.expect(revisions_lt(.{}, a, b));
+    try tst.expect(!revisions_lt(.{}, b, a));
+}
+
+test "replace_org replaces organization shortcode" {
+    const allocator = tst.allocator;
+
+    var arr = Array(u8).init(allocator);
+    defer arr.deinit();
+    try arr.appendSlice("Welcome to {{ org() }}!");
+
+    var dummy_progress = DummyProgress{};
+
+    try replace_org(&arr, "AcmeCorp", &dummy_progress);
+
+    try tst.expectEqualStrings("Welcome to AcmeCorp!", arr.items);
+}
+
+test "replace_mermaid replaces mermaid shortcode with code block" {
+    const allocator = tst.allocator;
+
+    var arr = Array(u8).init(allocator);
+    defer arr.deinit();
+    try arr.appendSlice(
+        \\Some text
+        \\{% mermaid() %}
+        \\graph TD;
+        \\A-->B;
+        \\{% end %}
+        \\End text
+    );
+
+    var dummy_progress = DummyProgress{};
+
+    try replace_mermaid(&arr, &dummy_progress);
+
+    const expected =
+        \\Some text
+        \\~~~mermaid
+        \\graph TD;
+        \\A-->B;
+        \\~~~
+        \\End text
+    ;
+    try tst.expectEqualStrings(expected, arr.items);
+}
+
+pub const DummyProgress = struct {
+    pub fn start(_: DummyProgress, _: []const u8, _: usize) DummyProgress {
+        return DummyProgress{};
+    }
+    pub fn end(_: DummyProgress) void {}
+    pub fn setEstimatedTotalItems(_: DummyProgress, _: usize) void {}
+    pub fn completeOne(_: DummyProgress) void {}
+};
+
+test {
+    const alloc = tst.allocator;
+    var f = try std.fs.cwd().openFile(
+        "content/policies/aeip.md",
+        .{ .mode = .read_only },
+    );
+    defer f.close();
+
+    const contents = try f.readToEndAlloc(alloc, 100_000_000);
+    defer alloc.free(contents);
+    var fm = try FM.parse(alloc, contents);
+    defer fm.deinit();
+
+    std.debug.print("{s}\n", .{(try fm.get("title")).?.string});
+}
+
+pub const FM = struct {
+    contents: union(enum) {
+        toml: tomlz.Table,
+        yaml: Yaml,
+        ziggy: struct {},
+    },
+    raw: []u8,
+    alloc: Allocator,
+    pub fn deinit(self: *FM) void {
+        switch (self.contents) {
+            .toml => |*t| t.deinit(self.alloc),
+            .yaml => |*y| y.deinit(self.alloc),
+            else => unreachable,
+        }
+        self.alloc.free(self.raw);
+    }
+    const NeededValues = struct {
+        title: []const u8,
+    };
+    pub fn parse(a: Allocator, txt: []const u8) !FM {
+        var fm: FM = undefined;
+        fm.alloc = a;
+
+        switch (txt[0]) {
+            '-' => //Yaml
+            {
+                const end_fm = std.mem.indexOfPos(u8, txt, 3, "---") orelse return error.InvalidFrontMatter;
+                fm.raw = try a.alloc(u8, end_fm - 3);
+                std.mem.copyForwards(u8, fm.raw, txt[3..end_fm]);
+
+                var y: Yaml = .{ .source = fm.raw };
+
+                y.load(a) catch |err| switch (err) {
+                    error.ParseFailure => {
+                        std.debug.assert(y.parse_errors.errorMessageCount() > 0);
+                        // y.parse_errors.renderToStdErr(.{ .ttyconf = std.io.tty.detectConfig(std.io.getStdErr()) });
+                        return error.ParseFailure;
+                    },
+                    else => return err,
+                };
+                fm.contents = .{ .yaml = y };
+            },
+            '+' => //toml
+            {
+                const end_fm = std.mem.indexOfPos(u8, txt, 3, "+++") orelse return error.InvalidFrontMatter;
+                fm.raw = try a.alloc(u8, end_fm - 3);
+                std.mem.copyForwards(u8, fm.raw, txt[3..end_fm]);
+                const t = try tomlz.parse(a, fm.raw);
+                fm.contents = .{ .toml = t };
+            },
+            '.' => //ziggy
+            return error.Unimplemented,
+            else => return error.NoFrontmatterFound,
+        }
+        return fm;
+    }
+
+    pub fn get(self: FM, key: []const u8) !?Yaml.Value {
+        return switch (self.contents) {
+            .yaml => |y| y.docs.items[0].map.get(key),
+            // .toml => |t| return Yaml.Value{ .map = (t.getTable(key) orelse return null).table },
+            else => error.Unimplemented,
+        };
+    }
+};

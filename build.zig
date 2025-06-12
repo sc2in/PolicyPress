@@ -49,7 +49,7 @@ pub fn build(b: *std.Build) !void {
         const serve_step = b.step("serve", "Serve the zola output");
         serve_step.dependOn(&run_server.step);
     } else {
-        _ = b.step("serve", "Serve the zola output (not available on Windows. Does nothing.)");
+        _ = b.step("serve", "Serve the zola output (Not available on Windows. Does nothing.)");
     }
     // the executable from your call to b.addExecutable(...)
 
@@ -68,7 +68,7 @@ pub fn build(b: *std.Build) !void {
         .name = "pandoc_sh",
     });
     b.installArtifact(exe);
-    const pandoc_step = b.step("pdf", "run pandoc.sh");
+    var pandoc_step = b.step("pdf", "run pandoc.sh");
     const pandoc_exe = b.addRunArtifact(exe);
     if (b.args) |args| {
         pandoc_exe.addArgs(args);
@@ -100,4 +100,37 @@ pub fn build(b: *std.Build) !void {
     const run_unit_tests = b.addRunArtifact(unit_tests);
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_unit_tests.step);
+
+    const web_step = b.step("web", "Build the policy center");
+    web_step.makeFn = build_web;
+    web_step.dependOn(pandoc_step);
+}
+
+const MyStep = struct {
+    step: std.Build.Step,
+    my_option: bool,
+};
+fn build_web(step: *std.Build.Step, opt: std.Build.Step.MakeOptions) !void {
+    const p = opt.progress_node.start("Build web", 2);
+    defer p.end();
+    const b = step.owner;
+
+    const web = b.addWriteFiles();
+    b.installDirectory(.{
+        .install_dir = .prefix,
+        .source_dir = web.addCopyDirectory(b.path("public/pdf"), "pdf", .{}),
+        .install_subdir = "web/pdf",
+    });
+
+    const zp = p.start("Zola build", 1);
+    _ = b.run(&.{ "zola", "build" });
+    zp.end();
+
+    const ip = p.start("Copy web artifacts", 1);
+    defer ip.end();
+    b.installDirectory(.{
+        .install_dir = .prefix,
+        .source_dir = web.addCopyDirectory(b.path("public/"), "", .{}),
+        .install_subdir = "web",
+    });
 }

@@ -52,6 +52,7 @@ pub fn build(b: *std.Build) !void {
     pandoc_sh_mod.addImport("tomlz", tomlz.module("tomlz"));
     pandoc_sh_mod.addImport("yaml", yaml.module("yaml"));
     pandoc_sh_mod.addImport("mvzr", mvzr.module("mvzr"));
+    pandoc_sh_mod.addImport("clap", clap.module("clap"));
     const exe = b.addExecutable(.{
         .root_module = pandoc_sh_mod,
         .name = "pandoc_sh",
@@ -59,6 +60,10 @@ pub fn build(b: *std.Build) !void {
     b.installArtifact(exe);
     const pandoc_step = b.step("pdf", "run pandoc.sh");
     const pandoc_exe = b.addRunArtifact(exe);
+    if (b.args) |args| {
+        pandoc_exe.addArgs(args);
+    }
+
     pandoc_step.dependOn(&pandoc_exe.step);
 
     const docs_step = b.step("docs", "Build Documentation");

@@ -2,7 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
-
+const u = @import("utils.zig");
 // Import the relevant modules from your main file.
 const main = @import("pandoc.zig"); // Adjust path as needed
 
@@ -18,17 +18,13 @@ const DummyProgress = struct {
 test "replace_org replaces organization shortcode" {
     const allocator = testing.allocator;
 
-    // Setup global config
-    main.global_config.org = try allocator.dupe(u8, "AcmeCorp");
-    defer allocator.free(main.global_config.org);
-
     var arr = Array(u8).init(allocator);
     defer arr.deinit();
     try arr.appendSlice("Welcome to {{ org() }}!");
 
     var dummy_progress = DummyProgress{};
 
-    try main.replace_org(&arr, &dummy_progress);
+    try u.replace_org(&arr, "AcmeCorp", &dummy_progress);
 
     try testing.expectEqualStrings("Welcome to AcmeCorp!", arr.items);
 }
@@ -49,7 +45,7 @@ test "replace_mermaid replaces mermaid shortcode with code block" {
 
     var dummy_progress = DummyProgress{};
 
-    try main.replace_mermaid(&arr, &dummy_progress);
+    try u.replace_mermaid(&arr, &dummy_progress);
 
     const expected =
         \\Some text
@@ -99,7 +95,7 @@ test "FrontMatter.filename generates expected filename" {
     const allocator = testing.allocator;
 
     main.global_config.build_dir = "build";
-    var fm = main.FrontMatter{
+    var fm = u.FrontMatter{
         .title = try allocator.dupe(u8, "Policy"),
         .most_recent_version = try allocator.dupe(u8, "1.0"),
         .last_reviewed = try allocator.dupe(u8, "2025-06-10"),
@@ -116,6 +112,6 @@ test "revisions_lt sorts revisions lexically" {
     const Yaml = @import("yaml").Yaml;
     const a = Yaml.Value{ .string = "2022-01-01" };
     const b = Yaml.Value{ .string = "2023-01-01" };
-    try testing.expect(main.revisions_lt(.{}, a, b));
-    try testing.expect(!main.revisions_lt(.{}, b, a));
+    try testing.expect(u.revisions_lt(.{}, a, b));
+    try testing.expect(!u.revisions_lt(.{}, b, a));
 }

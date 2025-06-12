@@ -14,6 +14,7 @@ const Yaml = @import("yaml").Yaml;
 const ctime = @cImport(@cInclude("time.h"));
 const mvzr = @import("mvzr");
 const clap = @import("clap");
+const u = @import("utils.zig");
 
 var global_args: Array([]u8) = undefined;
 pub var global_config: Config = .{};
@@ -73,22 +74,8 @@ pub const std_options: std.Options = .{
         .{ .scope = .parser, .level = .debug },
         .{ .scope = .pandoc, .level = .info },
     },
-    .logFn = logFn,
+    .logFn = u.logFn,
 };
-/// Custom logging function that prints log messages depending on the log level and scope.
-pub fn logFn(
-    comptime level: std.log.Level,
-    comptime scope: @TypeOf(.EnumLiteral),
-    comptime format: []const u8,
-    args: anytype,
-) void {
-    switch (scope) {
-        .parser => {},
-        else => switch (level) {
-            inline else => std.debug.print(format, args),
-        },
-    }
-}
 
 const panlog = std.log.scoped(.pandoc);
 
@@ -149,7 +136,7 @@ pub fn main() !void {
     const logo = extra.getString("logo") orelse return error.NoLogoInExtra;
     global_config.logo_path = try std.fmt.allocPrint(alloc, "static/{s}", .{logo});
     global_config.org = try alloc.dupe(u8, extra.getString("organization") orelse return error.NoOrgInExtra);
-    global_config.color = try get_logo_color(alloc, global_config.logo_path, &root_progress);
+    global_config.color = try u.get_logo_color(alloc, global_config.logo_path, &root_progress);
 
     // const redact = b.option(bool, "redact", "Redact PDFs") orelse false;
     // const draft = b.option(bool, "redact", "Redact PDFs") orelse false;
@@ -164,7 +151,7 @@ pub fn main() !void {
     try create_global_args(alloc, &global_args);
     defer destroy_global_args(alloc, global_args);
 
-    const md_files = try find_md_files(alloc, global_config.work_dir, policy_root, &root_progress);
+    const md_files = try u.find_md_files(alloc, global_config.work_dir, policy_root, &root_progress);
     defer {
         for (md_files) |f|
             f.deinit(alloc);
@@ -239,7 +226,7 @@ inline fn add_arg(
 }
 
 /// Processes a single markdown file: loads contents, applies replacements, extracts metadata, writes a temporary file, and invokes Pandoc to generate the PDF.
-pub fn process_md_file(a: Allocator, md: MDFile, prog: anytype) !void {
+pub fn process_md_file(a: Allocator, md: u.MDFile, prog: anytype) !void {
     var buf: [128]u8 = undefined;
 
     const fname = try std.fmt.bufPrint(&buf, "{s}/{s}", .{
@@ -261,10 +248,10 @@ pub fn process_md_file(a: Allocator, md: MDFile, prog: anytype) !void {
     var local = try global_args.clone();
     defer local.deinit();
 
-    try replace_org(&contents, &p);
-    try replace_mermaid(&contents, &p);
+    try u.replace_org(&contents, &p);
+    try u.replace_mermaid(&contents, &p);
 
-    var fm = try get_metadata(a, &contents, &p);
+    var fm = try u.get_metadata(a, &contents, &p);
     defer fm.deinit(a);
 
     const tmp = try std.fs.cwd().createFile("tmp.md", std.fs.File.CreateFlags{ .exclusive = true });
@@ -288,233 +275,6 @@ pub fn process_md_file(a: Allocator, md: MDFile, prog: anytype) !void {
     std.mem.replaceScalar(u8, out, ' ', '_');
     try add_arg(a, &local, "-o", "{s}", .{out});
     try run_pandoc(a, local, &p);
-}
-
-/// Parses YAML front matter from a markdown file, extracts document metadata, formats the title, and returns a FrontMatter struct.
-pub fn get_metadata(a: Allocator, txt: *Array(u8), prog: anytype) !FrontMatter {
-    const p = prog.start("Get Metadata", 1);
-    defer p.end();
-
-    const end_fm = std.mem.indexOfPos(u8, txt.items, 3, "---") orelse return error.InvalidFrontMatter;
-    var y: Yaml = .{ .source = txt.items[3..end_fm] };
-    defer y.deinit(a);
-
-    y.load(a) catch |err| switch (err) {
-        error.ParseFailure => {
-            std.debug.assert(y.parse_errors.errorMessageCount() > 0);
-            // y.parse_errors.renderToStdErr(.{ .ttyconf = std.io.tty.detectConfig(std.io.getStdErr()) });
-            return error.ParseFailure;
-        },
-        else => return err,
-    };
-    const map = y.docs.items[0].map;
-    panlog.debug("Procesing: {s}\n", .{map.get("title").?.string});
-    const extra = map.get("extra").?.map;
-    const major_revisions = extra.get("major_revisions").?.list;
-    std.mem.sort(
-        Yaml.Value,
-        major_revisions,
-        .{},
-        revisions_lt,
-    );
-
-    const most_recent = major_revisions[0];
-    const m = try most_recent.asMap();
-
-    const rd = "{s} (Redacted) (Draft)";
-    const r = "{s} (Redacted)";
-    const d = "{s} (Draft)";
-    const e = "{s}";
-    const t = map.get("title").?.string;
-    const title = if (global_config.redact and global_config.is_draft)
-        try std.fmt.allocPrint(a, rd, .{t})
-    else if (global_config.redact)
-        try std.fmt.allocPrint(a, r, .{t})
-    else if (global_config.is_draft)
-        try std.fmt.allocPrint(a, d, .{t})
-    else
-        try std.fmt.allocPrint(a, e, .{t});
-    return .{
-        .title = title,
-        .last_reviewed = try a.dupe(u8, extra.get("last_reviewed").?.string),
-        .most_recent_version = switch (m.get("version").?) {
-            .string => |s| try a.dupe(u8, s),
-            .float => |f| try std.fmt.allocPrint(a, "{d:0.1}", .{f}),
-            else => return error.InvalidVersionType,
-        },
-    };
-}
-pub const FrontMatter = struct {
-    title: []u8,
-    most_recent_version: []u8,
-    last_reviewed: []u8,
-    /// Formats the front matter information and writes it to the provided writer.
-    pub fn format(self: FrontMatter, comptime _: []const u8, _: anytype, writer: anytype) !void {
-        try writer.print(
-            "{s}\n\tVersion: {s}\tLast Reviewed: {s}\n",
-            .{
-                self.title,
-                self.most_recent_version,
-                self.last_reviewed,
-            },
-        );
-    }
-    /// Generates a PDF filename from the title and most recent version in the front matter.
-    pub fn filename(self: FrontMatter, a: Allocator) ![]u8 {
-        return std.fmt.allocPrint(a, "{s}/{s}_-_v{s}.pdf", .{ global_config.build_dir, self.title, self.most_recent_version });
-    }
-
-    pub fn deinit(self: *FrontMatter, a: Allocator) void {
-        a.free(self.title);
-        a.free(self.last_reviewed);
-        a.free(self.most_recent_version);
-    }
-};
-
-/// Comparator function for sorting YAML revision values in ascending order.
-pub fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
-    const as = a.string;
-    const bs = b.string;
-
-    for (as, 0..) |ac, i| {
-        if (ac < bs[i]) return true;
-    }
-    return false;
-}
-
-/// Replaces all instances of the organization placeholder in the markdown text with the actual organization name from the global configuration.
-pub fn replace_org(txt: *Array(u8), prog: anytype) !void {
-    const p = prog.start("Replace Organization Shortcode", 1);
-    defer p.end();
-    const orgsc: mvzr.Regex = mvzr.compile("\\{\\{\\s*org\\(\\)\\s*\\}\\}").?;
-
-    if (!orgsc.isMatch(txt.items)) return;
-
-    var new = try txt.clone();
-
-    var iter = orgsc.iterator(txt.items);
-    while (iter.next()) |match| {
-        try new.replaceRange(match.start, match.slice.len, global_config.org);
-        iter = orgsc.iterator(new.items);
-    }
-    txt.deinit();
-    txt.* = new;
-}
-
-/// Finds and replaces custom Mermaid code blocks in the markdown with a standardized code block format.
-pub fn replace_mermaid(txt: *Array(u8), prog: anytype) !void {
-    const p = prog.start("Replace Mermaid Shortcode", 1);
-    defer p.end();
-    const mermaid: mvzr.Regex = mvzr.compile("\\{%\\s*mermaid\\(\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;
-    if (!mermaid.isMatch(txt.items)) return;
-
-    var new = try txt.clone();
-
-    var iter = mermaid.iterator(txt.items);
-    while (iter.next()) |m| {
-        const s = std.mem.indexOf(u8, m.slice, "%}") orelse return error.InvalidShortCode;
-        const e = std.mem.lastIndexOf(u8, m.slice, "{%") orelse return error.InvalidShortCode;
-        const inner = m.slice[s + 2 .. e - 1];
-        const replace = try std.fmt.allocPrint(txt.allocator, "~~~mermaid{s}\n~~~", .{inner});
-        defer txt.allocator.free(replace);
-
-        try new.replaceRange(m.start, m.slice.len, replace);
-        iter = mermaid.iterator(new.items);
-    }
-    txt.deinit();
-    txt.* = new;
-}
-
-pub const MDFile = struct {
-    path: []u8,
-    pub fn deinit(_: MDFile, _: Allocator) void {
-        // a.free(self.path);
-    }
-};
-
-/// Recursively finds and opens all markdown files in the specified policy directory, returning them as an array of files.
-pub fn find_md_files(a: Allocator, root: std.fs.Dir, policy_dir: []const u8, prog: *std.Progress.Node) ![]MDFile {
-    var p = prog.start("Searching for markdown files in policy root", 1);
-    defer p.end();
-
-    panlog.debug("Reading in policies from: {s}\n", .{policy_dir});
-    var files = Array(MDFile).init(a);
-    defer files.deinit();
-
-    const dir = std.fs.path.dirname(policy_dir) orelse return error.InvalidPolicyRoot;
-    var policy_root = try (try root.openDir("content", .{
-        .access_sub_paths = true,
-        .iterate = true,
-    })).openDir(dir, .{
-        .access_sub_paths = true,
-        .iterate = true,
-    });
-    defer policy_root.close();
-
-    try find_inner(&files, policy_root, &p);
-    return try files.toOwnedSlice();
-}
-/// Helper function to recursively traverse directories and append markdown files to the provided array.
-pub fn find_inner(files: *Array(MDFile), start: std.fs.Dir, prog: *std.Progress.Node) !void {
-    var num: usize = 0;
-    var iter = start.iterate();
-    while (try iter.next()) |_| {
-        num += 1;
-    }
-    var buf: [128]u8 = undefined;
-    const dname = try start.realpath(".", &buf);
-    var p = prog.start(dname, num);
-    defer p.end();
-
-    iter.reset();
-    while (try iter.next()) |entry| {
-        switch (entry.kind) {
-            .file => {
-                if (!std.mem.startsWith(u8, entry.name, "_") and
-                    std.mem.endsWith(u8, entry.name, ".md"))
-                    try files.append(.{
-                        .path = try start.realpathAlloc(files.allocator, entry.name),
-                    });
-            },
-            .directory => {
-                var sub = try start.openDir(entry.name, .{ .access_sub_paths = true, .iterate = true });
-                defer sub.close();
-                try find_inner(files, sub, &p);
-            },
-            else => {},
-        }
-    }
-}
-
-/// Runs an external command to extract the dominant color from the logo image and returns it as a string.
-pub fn get_logo_color(a: Allocator, path: []const u8, prog: anytype) ![]u8 {
-    const p = prog.start("Get Color From Logo", 1);
-    defer p.end();
-    const argv = [_][]const u8{
-        "magick",
-        path,
-        "-scale",
-        "1x1\\!",
-        "-format",
-        "'%[hex:u]'",
-        "info:",
-    };
-    var child = std.process.Child.init(&argv, a);
-    child.stdout_behavior = .Pipe;
-    child.stderr_behavior = .Pipe;
-    var out: std.ArrayListUnmanaged(u8) = .empty;
-    var err: std.ArrayListUnmanaged(u8) = .empty;
-    defer {
-        out.deinit(a);
-        err.deinit(a);
-    }
-    try child.spawn();
-    try child.collectOutput(a, &out, &err, 100_000);
-
-    const exit_code = try child.wait();
-    panlog.debug("{any} {s}\n", .{ exit_code, out.items });
-    panlog.debug("{any} {s}\n", .{ exit_code, err.items });
-    return try out.toOwnedSlice(a);
 }
 
 /// Spawns a Pandoc process with the provided arguments, collects output, and logs errors or results as needed.

@@ -6,6 +6,7 @@ const math = std.math;
 const Yaml = @import("yaml").Yaml;
 const mvzr = @import("mvzr");
 const tomlz = @import("tomlz");
+const ffm = @import("frontmatter.zig");
 
 const panlog = std.log.scoped(.pandoc);
 
@@ -325,7 +326,10 @@ test {
     var fm = try FM.parse(alloc, contents);
     defer fm.deinit();
 
-    std.debug.print("{s}\n", .{(try fm.get("title")).?.string});
+    // std.debug.print("{s}\n", .{(try fm.get("title")).?.string});
+}
+test {
+    _ = ffm;
 }
 
 pub const FM = struct {

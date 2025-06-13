@@ -4,9 +4,19 @@ const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
 
+const year = "2025";
+const org = "SC2";
+const logo = "static/logo.png";
+const color = "AACEFF";
+var is_draft = false;
+
 pub fn build(b: *std.Build) !void {
+    const draft_option = b.option(bool, "draft", "Produce pdfs with a draft watermark") orelse false;
+    is_draft = draft_option;
+
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+
     const tomlz = b.dependency("tomlz", .{
         .target = target,
         .optimize = optimize,
@@ -101,9 +111,11 @@ pub fn build(b: *std.Build) !void {
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_unit_tests.step);
 
-    const web_step = b.step("web", "Build the policy center");
-    web_step.makeFn = build_web;
-    web_step.dependOn(pandoc_step);
+    // const web_step = b.step("web", "Build the policy center");
+    // web_step.makeFn = build_web;
+    // web_step.dependOn(pandoc_step);
+
+    try build_pdfs(b);
 }
 
 const MyStep = struct {
@@ -133,4 +145,104 @@ fn build_web(step: *std.Build.Step, opt: std.Build.Step.MakeOptions) !void {
         .source_dir = web.addCopyDirectory(b.path("public/"), "", .{}),
         .install_subdir = "web",
     });
+}
+
+fn build_pdfs(b: *std.Build) !void {
+    const website = b.addWriteFiles();
+
+    const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/*.md" });
+    var lines = std.mem.tokenizeScalar(u8, markdown_files, '\n');
+    while (lines.next()) |file_path| {
+        if (std.mem.endsWith(u8, file_path, "_index.md")) continue;
+        const markdown = b.path(file_path);
+        const html = try build_pdf_from_markdown(b, markdown);
+
+        var pdf_path = file_path;
+        pdf_path = cut_prefix(pdf_path, "content/").?;
+        pdf_path = cut_suffix(pdf_path, ".md").?;
+        pdf_path = b.fmt("{s}.pdf", .{pdf_path});
+        _ = website.addCopyFile(html, pdf_path);
+    }
+    b.installDirectory(.{
+        .source_dir = website.getDirectory(),
+        .install_dir = .prefix,
+        .install_subdir = "pdfs",
+    });
+}
+fn cut_prefix(text: []const u8, prefix: []const u8) ?[]const u8 {
+    if (std.mem.startsWith(u8, text, prefix)) return text[prefix.len..];
+    return null;
+}
+
+fn cut_suffix(text: []const u8, suffix: []const u8) ?[]const u8 {
+    if (std.mem.endsWith(u8, text, suffix)) return text[0 .. text.len - suffix.len];
+    return null;
+}
+fn build_pdf_from_markdown(b: *std.Build, path: std.Build.LazyPath) !std.Build.LazyPath {
+    const title = b.fmt("Run pandoc for {s}", .{cut_prefix(path.getDisplayName(), "content/policies/").?});
+    const res_path = b.fmt("--resource-path={s}", .{path.dirname().getPath(b)});
+    const data_path = b.fmt("--data-dir={s}", .{try std.fs.cwd().realpathAlloc(b.allocator, ".")});
+    const header = b.fmt("header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{logo});
+    const footer = b.fmt("footer-left={s} \\textcopyright {s}", .{ org, year });
+    const title_logo = b.fmt("titlepage-logo={s}", .{logo});
+    const inst = b.fmt("institution=\"{s}\"", .{org});
+    const col = b.fmt("titlepage-rule-color={s}", .{color});
+
+    const contents = try readLazyPathToMemory(b, path);
+    const str = Array(u8){
+        .allocator = b.allocator,
+        .items = contents,
+        .capacity = contents.len,
+    };
+    // defer str.deinit();
+    // std.debug.print("{any}\n", .{std.unicode.utf8ValidateSlice(str.items)});
+
+    const pandoc_step = std.Build.Step.Run.create(b, title);
+    // try u.replace_org(&str, org, u.DummyProgress{});
+    // try u.replace_mermaid(&str, u.DummyProgress{});
+    pandoc_step.setStdIn(.{ .bytes = str.items });
+
+    pandoc_step.addArg("pandoc");
+    pandoc_step.addPathDir(".devbox/nix/profile/default/bin/");
+    pandoc_step.addArgs(&.{ "-V", "footer-center=Confidental" });
+    pandoc_step.addArgs(&.{ "-V", header });
+    pandoc_step.addArgs(&.{ "-V", footer });
+    pandoc_step.addArgs(&.{ "-V", title_logo });
+    pandoc_step.addArgs(&.{ "-V", inst });
+    pandoc_step.addArgs(&.{ "-V", col });
+    pandoc_step.addArgs(&.{ "-V", "papersize=letter" });
+    pandoc_step.addArgs(&.{ "-V", "titlepage=true" });
+    pandoc_step.addArgs(&.{ "-V", "toc=true" });
+    pandoc_step.addArgs(&.{ "-V", "toc-own-page=true" });
+    pandoc_step.addArgs(&.{ "-V", "toc-depth=3" });
+    pandoc_step.addArgs(&.{ "-V", "logo-width=6cm" });
+    pandoc_step.addArgs(&.{ "-V", "table-use-row-colors=true" });
+    pandoc_step.addArgs(&.{ "-F", "mermaid-filter" });
+    pandoc_step.addArgs(&.{ "--template", "eisvogel" });
+    pandoc_step.addArgs(&.{
+        res_path,
+        data_path,
+        "--from=markdown",
+        "--to=pdf",
+        "--webtex",
+        "--listings",
+        "--pdf-engine=xelatex",
+    });
+    if (is_draft) {
+        pandoc_step.addArgs(&.{ "-V", "page-background=static/draft.png" });
+        pandoc_step.addArgs(&.{ "-V", "page-background-opacity=0.8" });
+    }
+    // pandoc_step.addFileArg(path);
+    return pandoc_step.captureStdOut();
+}
+pub fn readLazyPathToMemory(
+    b: *std.Build,
+    lazy_path: std.Build.LazyPath,
+) ![]u8 {
+
+    // Open and read the file as usual
+    var file = try std.fs.cwd().openFile(lazy_path.getPath(b), .{});
+    defer file.close();
+
+    return try file.readToEndAlloc(b.allocator, 100_000_000);
 }

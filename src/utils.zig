@@ -52,7 +52,7 @@ pub const FrontMatter = struct {
 };
 
 /// Parses YAML front matter from a markdown file, extracts document metadata, formats the title, and returns a FrontMatter struct.
-pub fn get_metadata(a: Allocator, txt: *Array(u8), prog: anytype) !FrontMatter {
+pub fn get_metadata(a: Allocator, txt: *Array(u8), prog: anytype, config: anytype) !FrontMatter {
     const p = prog.start("Get Metadata", 1);
     defer p.end();
 
@@ -87,12 +87,11 @@ pub fn get_metadata(a: Allocator, txt: *Array(u8), prog: anytype) !FrontMatter {
     const d = "{s} (Draft)";
     const e = "{s}";
     const t = map.get("title").?.string;
-    const global_config = .{};
-    const title = if (global_config.redact and global_config.is_draft)
+    const title = if (config.redact and config.is_draft)
         try std.fmt.allocPrint(a, rd, .{t})
-    else if (global_config.redact)
+    else if (config.redact)
         try std.fmt.allocPrint(a, r, .{t})
-    else if (global_config.is_draft)
+    else if (config.is_draft)
         try std.fmt.allocPrint(a, d, .{t})
     else
         try std.fmt.allocPrint(a, e, .{t});

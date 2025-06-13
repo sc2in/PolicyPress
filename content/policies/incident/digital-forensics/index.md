@@ -64,7 +64,7 @@ The scope of the evidence collected will be guided by the following, including b
 
 4. Present
 
-![Shape2](digital-forensics-1.png)
+![Shape2](@/policies/incient/digital-forensics/digital-forensics-1.png)
 
 ## Extended Digital Forensics Process Overview
 

@@ -248,10 +248,10 @@ pub fn process_md_file(a: Allocator, md: u.MDFile, prog: anytype) !void {
     var local = try global_args.clone();
     defer local.deinit();
 
-    try u.replace_org(&contents, &p);
+    try u.replace_org(&contents, global_config.org, &p);
     try u.replace_mermaid(&contents, &p);
 
-    var fm = try u.get_metadata(a, &contents, &p);
+    var fm = try u.get_metadata(a, &contents, &p, global_config);
     defer fm.deinit(a);
 
     const tmp = try std.fs.cwd().createFile("tmp.md", std.fs.File.CreateFlags{ .exclusive = true });

@@ -767,8 +767,9 @@ test "parse simple variable" {
 }
 
 test "parse nested variable" {
-    const allocator = std.testing.allocator;
-
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
     var lexer_instance = lexer.Lexer.init(allocator, "{{ name.value }}");
     defer lexer_instance.deinit();
 
@@ -782,5 +783,6 @@ test "parse nested variable" {
     defer template.deinit(allocator);
 
     try expect(template.root.children.items.len > 0);
-    try expect(template.root.children.items[2].type == .variable);
+    try expect(template.root.children.items[0].type == .variable);
+    try expect(template.root.children.items[0].children.items[0].type == .variable);
 }

@@ -31,6 +31,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    example_exe.root_module.addAnonymousImport("frontmatter", .{
+        .root_source_file = b.path("../frontmatter.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     b.installArtifact(exe);
 

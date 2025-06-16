@@ -44,7 +44,24 @@ pub const Value = union(enum) {
 
                 return result.toOwnedSlice();
             },
-            .object => return allocator.dupe(u8, "[Object]"),
+            .object => |obj| {
+                var result = ArrayList(u8).init(allocator);
+                defer result.deinit();
+                try result.append('{');
+                var it = obj.data.iterator();
+                var first = true;
+                while (it.next()) |entry| {
+                    if (!first) try result.appendSlice(", ");
+                    first = false;
+                    try result.appendSlice(entry.key_ptr.*);
+                    try result.appendSlice(": ");
+                    const val_str = try entry.value_ptr.toString(allocator);
+                    defer allocator.free(val_str);
+                    try result.appendSlice(val_str);
+                }
+                try result.append('}');
+                return try result.toOwnedSlice();
+            },
             .null_value => return allocator.dupe(u8, ""),
         }
     }
@@ -131,7 +148,10 @@ pub const Value = union(enum) {
     /// Free memory used by value
     pub fn deinit(self: *Self, allocator: Allocator) void {
         switch (self.*) {
-            .string => |s| allocator.free(s),
+            .string => |s| {
+                _ = s;
+                //allocator.free(s),
+            },
             .array => |*arr| {
                 for (arr.items) |*item| {
                     item.deinit(allocator);

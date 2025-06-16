@@ -307,3 +307,38 @@ test "jsonFindByPath works" {
     const not_found = jsonFindByPath(root, "foo.bar.qux");
     try tst.expect(not_found == null);
 }
+
+test {
+    const tera = @import("tera/tera.zig");
+    var arena = std.heap.ArenaAllocator.init(tst.allocator);
+    defer arena.deinit();
+    const alloc = arena.allocator();
+    var t = tera.Tera.init(alloc);
+    defer t.deinit();
+
+    const template_content =
+        \\<h2>{{ title }}</h2>
+        \\<div class="config">
+        \\    <p>Debug Mode: {{ extra.last_reviewed_date }}</p>
+        \\</div>
+    ;
+    try t.addTemplate("test", template_content);
+
+    const ex =
+        \\title="something"
+        \\[extra]
+        \\last_reviewed_date="2025-06-01"
+    ;
+
+    var f = try init(alloc, ex, .toml);
+    defer f.deinit();
+
+    const j = f.root;
+
+    var ctx = try tera.context.Context.fromJsonValue(alloc, j);
+    defer ctx.deinit();
+
+    const result = try t.render("test", ctx);
+
+    std.debug.print("{s}\n", .{result});
+}

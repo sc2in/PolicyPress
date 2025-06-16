@@ -261,6 +261,14 @@ pub const Context = struct {
 
         return context;
     }
+    /// Create context from JSON Value
+    pub fn fromJsonValue(allocator: Allocator, json: std.json.Value) !Self {
+        var context = Self.init(allocator);
+
+        try parseJsonValue(&context, json, "");
+
+        return context;
+    }
 
     /// Convert context to JSON string
     pub fn toJson(self: *Self, allocator: Allocator) ![]u8 {

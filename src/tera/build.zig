@@ -25,6 +25,26 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the Tera interpreter");
     run_step.dependOn(&run_cmd.step);
 
+    const example_exe = b.addExecutable(.{
+        .name = "examples",
+        .root_source_file = b.path("./example.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(exe);
+
+    // Run command
+    const example_run_cmd = b.addRunArtifact(example_exe);
+    example_run_cmd.step.dependOn(b.getInstallStep());
+
+    if (b.args) |args| {
+        example_run_cmd.addArgs(args);
+    }
+
+    const example_run_step = b.step("example", "Run the Tera examples");
+    example_run_step.dependOn(&example_run_cmd.step);
+
     // Tests
     const lib_unit_tests = b.addTest(.{
         .root_source_file = b.path("./tera.zig"),

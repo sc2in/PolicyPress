@@ -202,7 +202,7 @@ fn example4_filters(engine: *tera.Tera, allocator: std.mem.Allocator) !void {
     const template_content =
         \\<h2>Filter Examples</h2>
         \\<p>Original: "{{ text }}"</p>
-        \\<p>Upper: "{{ text | upper }}"</p>
+        \\<p>Upper: "{{ text|upper }}"</p>
         \\<p>Lower: "{{ text | lower }}"</p>
         \\<p>Title: "{{ text | title }}"</p>
         \\<p>Length: {{ text | length }}</p>

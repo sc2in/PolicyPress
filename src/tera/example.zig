@@ -7,9 +7,14 @@ const tera = @import("tera.zig");
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+    const alloc = gpa.allocator();
 
-    std.debug.print("=== Tera Template Engine Demo ===\n\n");
+    var arena = std.heap.ArenaAllocator.init(alloc);
+    defer arena.deinit();
+
+    const allocator = arena.allocator();
+
+    std.debug.print("=== Tera Template Engine Demo ===\n\n", .{});
 
     // Initialize Tera engine
     var engine = tera.Tera.init(allocator);
@@ -39,8 +44,8 @@ pub fn main() !void {
 
 /// Example 1: Basic variable interpolation
 fn example1_basic_variables(engine: *tera.Tera, allocator: std.mem.Allocator) !void {
-    std.debug.print("1. Basic Variable Interpolation\n");
-    std.debug.print("--------------------------------\n");
+    std.debug.print("1. Basic Variable Interpolation\n", .{});
+    std.debug.print("--------------------------------\n", .{});
 
     const template_content =
         \\Hello, {{ name }}!
@@ -67,8 +72,8 @@ fn example1_basic_variables(engine: *tera.Tera, allocator: std.mem.Allocator) !v
 
 /// Example 2: Conditionals
 fn example2_conditionals(engine: *tera.Tera, allocator: std.mem.Allocator) !void {
-    std.debug.print("2. Conditional Statements\n");
-    std.debug.print("-------------------------\n");
+    std.debug.print("2. Conditional Statements\n", .{});
+    std.debug.print("-------------------------\n", .{});
 
     const template_content =
         \\{% if user.is_admin %}
@@ -128,8 +133,8 @@ fn example2_conditionals(engine: *tera.Tera, allocator: std.mem.Allocator) !void
 
 /// Example 3: Loops
 fn example3_loops(engine: *tera.Tera, allocator: std.mem.Allocator) !void {
-    std.debug.print("3. Loop Statements\n");
-    std.debug.print("------------------\n");
+    std.debug.print("3. Loop Statements\n", .{});
+    std.debug.print("------------------\n", .{});
 
     const template_content =
         \\<h2>Product List</h2>
@@ -191,8 +196,8 @@ fn example3_loops(engine: *tera.Tera, allocator: std.mem.Allocator) !void {
 
 /// Example 4: Filters
 fn example4_filters(engine: *tera.Tera, allocator: std.mem.Allocator) !void {
-    std.debug.print("4. Template Filters\n");
-    std.debug.print("-------------------\n");
+    std.debug.print("4. Template Filters\n", .{});
+    std.debug.print("-------------------\n", .{});
 
     const template_content =
         \\<h2>Filter Examples</h2>
@@ -247,8 +252,8 @@ fn example4_filters(engine: *tera.Tera, allocator: std.mem.Allocator) !void {
 
 /// Example 5: Template inheritance
 fn example5_inheritance(engine: *tera.Tera, allocator: std.mem.Allocator) !void {
-    std.debug.print("5. Template Inheritance\n");
-    std.debug.print("-----------------------\n");
+    std.debug.print("5. Template Inheritance\n", .{});
+    std.debug.print("-----------------------\n", .{});
 
     // Base template
     const base_template =
@@ -317,8 +322,8 @@ fn example5_inheritance(engine: *tera.Tera, allocator: std.mem.Allocator) !void 
 
 /// Example 6: Complex data structures
 fn example6_complex_data(engine: *tera.Tera, allocator: std.mem.Allocator) !void {
-    std.debug.print("6. Complex Data Structures\n");
-    std.debug.print("--------------------------\n");
+    std.debug.print("6. Complex Data Structures\n", .{});
+    std.debug.print("--------------------------\n", .{});
 
     const template_content =
         \\<h2>Company: {{ company.name }}</h2>
@@ -395,8 +400,8 @@ fn example6_complex_data(engine: *tera.Tera, allocator: std.mem.Allocator) !void
 
 /// Example 7: Context from JSON
 fn example7_custom_context(engine: *tera.Tera, allocator: std.mem.Allocator) !void {
-    std.debug.print("7. Context from JSON\n");
-    std.debug.print("--------------------\n");
+    std.debug.print("7. Context from JSON\n", .{});
+    std.debug.print("--------------------\n", .{});
 
     const template_content =
         \\<h2>{{ title }}</h2>

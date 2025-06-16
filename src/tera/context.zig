@@ -149,8 +149,8 @@ pub const Value = union(enum) {
     pub fn deinit(self: *Self, allocator: Allocator) void {
         switch (self.*) {
             .string => |s| {
-                _ = s;
-                //allocator.free(s),
+                // _ = s;
+                allocator.free(s);
             },
             .array => |*arr| {
                 for (arr.items) |*item| {

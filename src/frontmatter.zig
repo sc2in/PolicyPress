@@ -230,8 +230,8 @@ test "toml to json conversion" {
     var buf: [1024]u8 = undefined;
     var fbs = std.io.fixedBufferStream(&buf);
     try std.json.stringify(json_value, .{}, fbs.writer());
-    const json_str = fbs.getWritten();
-    std.debug.print("{s}\n", .{json_str});
+    // const json_str = fbs.getWritten();
+    // std.debug.print("{s}\n", .{json_str});
 }
 pub fn tomlValueToJson(allocator: std.mem.Allocator, v: *tomlz.parser.Value) !std.json.Value {
     return switch (v.*) {
@@ -339,6 +339,11 @@ test {
     defer ctx.deinit();
 
     const result = try t.render("test", ctx);
-
-    std.debug.print("{s}\n", .{result});
+    const expect =
+        \\<h2>something</h2>
+        \\<div class="config">
+        \\    <p>Debug Mode: 2025-06-01</p>
+        \\</div>
+    ;
+    try std.testing.expectEqualStrings(expect, result);
 }

@@ -561,11 +561,9 @@ test "upper filter" {
     const allocator = std.testing.allocator;
 
     const value = context.Value{ .string = "hello world" };
-    const result = try upperFilter(allocator, value, &[_]context.Value{});
-    defer {
-        var mut_result = result;
-        mut_result.deinit(allocator);
-    }
+    var result = try upperFilter(allocator, value, &[_]context.Value{});
+    defer result.deinit(allocator);
+    errdefer result.deinit(allocator);
 
     try expect(std.mem.eql(u8, result.string, "HELLO WORLD"));
 }

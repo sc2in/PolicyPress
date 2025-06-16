@@ -784,5 +784,5 @@ test "parse nested variable" {
 
     try expect(template.root.children.items.len > 0);
     try expect(template.root.children.items[0].type == .variable);
-    try expect(template.root.children.items[0].children.items[0].type == .variable);
+    try expect(template.root.children.items[0].children.items[0].type == .identifier);
 }

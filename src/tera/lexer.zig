@@ -467,11 +467,12 @@ test "basic tokenization" {
     defer allocator.free(tokens);
 
     try expect(tokens.len >= 4);
-    for (tokens) |t|
-        std.debug.print("{}\n", .{t});
+    // for (tokens) |t|
+    //     std.debug.print("{}\n", .{t});
     try tst.expectEqual(.text, tokens[0].type);
     try tst.expectEqual(.variable_start, tokens[1].type);
-    try tst.expectEqual(.identifier, tokens[3].type);
+    try tst.expectEqual(.identifier, tokens[2].type);
+    try tst.expectEqual(.variable_end, tokens[3].type);
 }
 
 test "template tags" {

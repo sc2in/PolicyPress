@@ -267,7 +267,6 @@ pub const Renderer = struct {
         switch (node.type) {
             .identifier => {
                 // Look up variable in context
-                std.debug.print("!! {s}\n", .{node.content});
                 var current_value = self.context.get(node.content) orelse return context.Value{ .null_value = {} };
 
                 // Handle member access from child nodes

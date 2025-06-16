@@ -619,7 +619,7 @@ pub const Parser = struct {
                 // Handle dot notation for member access
                 while (self.position < self.tokens.len and self.current().type == .dot) {
                     self.advance(); // Skip dot
-                    std.debug.print("{any}\n", .{self.current()});
+
                     if (self.current().type == .identifier) {
                         const member_node = try Node.init(self.allocator, .identifier, self.current().content);
                         try node.addChild(member_node);

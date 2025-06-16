@@ -332,6 +332,11 @@ fn parseJsonValue(context: *Context, json_value: std.json.Value, prefix: []const
                 try context.set(prefix, Value{ .object = sub_context });
             }
         },
+        .number_string => |num| {
+            try context.set(prefix, Value{
+                .number = try std.fmt.parseFloat(f64, num),
+            });
+        },
     }
 }
 
@@ -358,6 +363,9 @@ fn jsonValueToValue(json_value: std.json.Value, allocator: Allocator) !Value {
                 try context.set(entry.key_ptr.*, value);
             }
             return Value{ .object = context };
+        },
+        .number_string => |n| return Value{
+            .number = try std.fmt.parseFloat(f64, n),
         },
     }
 }

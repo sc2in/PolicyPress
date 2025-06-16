@@ -317,16 +317,17 @@ test {
     defer t.deinit();
 
     const template_content =
-        \\<h2>{{ title }}</h2>
+        \\<h2>{{ config.title }}</h2>
         \\<div class="config">
-        \\    <p>Debug Mode: {{ extra.last_reviewed_date }}</p>
+        \\    <p>Debug Mode: {{ config.extra.last_reviewed_date }}</p>
         \\</div>
     ;
     try t.addTemplate("test", template_content);
 
     const ex =
+        \\[config]
         \\title="something"
-        \\[extra]
+        \\[config.extra]
         \\last_reviewed_date="2025-06-01"
     ;
 

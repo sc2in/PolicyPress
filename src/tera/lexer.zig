@@ -299,11 +299,12 @@ pub const Lexer = struct {
 
     /// Handle whitespace
     fn whitespace(self: *Self) !void {
-        const start_pos = self.position;
+        // const start_pos = self.position;
         while (self.position < self.input.len and (self.current() == ' ' or self.current() == '\t')) {
             self.advance();
         }
-        try self.addToken(.whitespace, self.input[start_pos..self.position]);
+        //  ignore
+        //        try self.addToken(.whitespace, self.input[start_pos..self.position]);
     }
 
     /// Handle string literals

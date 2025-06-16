@@ -414,7 +414,7 @@ fn example7_custom_context(engine: *tera.Tera, allocator: std.mem.Allocator) !vo
         \\        <li>{{ feature }}</li>
         \\    {% endfor %}
         \\    </ul>
-        \\    <p>Database: {{ database.host }}:{{ database.port }}</p>
+        \\    <p>Database: {{ database.host }}:{{ database.port }} {{ database.service.name }}</p>
         \\</div>
     ;
 
@@ -430,7 +430,10 @@ fn example7_custom_context(engine: *tera.Tera, allocator: std.mem.Allocator) !vo
         \\  "database": {
         \\    "host": "localhost",
         \\    "port": 5432,
-        \\    "name": "myapp"
+        \\    "name": "myapp",
+        \\    "service": {
+        \\      "name": "mysql"
+        \\    }
         \\  }
         \\}
     ;

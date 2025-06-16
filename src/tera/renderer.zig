@@ -145,6 +145,7 @@ pub const Renderer = struct {
         // Convert to string and output
         const str_value = try value.toString(self.allocator);
         defer self.allocator.free(str_value);
+
         try self.output.appendSlice(str_value);
     }
 
@@ -266,34 +267,25 @@ pub const Renderer = struct {
         switch (node.type) {
             .identifier => {
                 // Look up variable in context
-                if (self.context.get(node.content)) |value| {
-                    return try value.clone(self.allocator);
-                }
-
-                // Handle dot notation for nested access
-                if (std.mem.indexOf(u8, node.content, ".")) |_| {
-                    if (self.context.getPath(node.content)) |value| {
-                        return try value.clone(self.allocator);
-                    }
-                }
+                std.debug.print("!! {s}\n", .{node.content});
+                var current_value = self.context.get(node.content) orelse return context.Value{ .null_value = {} };
 
                 // Handle member access from child nodes
-                if (node.children.items.len > 0) {
-                    var current_value = self.context.get(node.content) orelse return context.Value{ .null_value = {} };
-
-                    for (node.children.items) |child| {
-                        switch (current_value) {
-                            .object => |obj| {
-                                current_value = obj.data.get(child.content) orelse return context.Value{ .null_value = {} };
-                            },
+                for (node.children.items) |child| {
+                    switch (current_value) {
+                        .object => |obj| {
+                            current_value = obj.data.get(child.content) orelse return context.Value{ .null_value = {} };
+                        },
+                        else => switch (child.type) {
+                            .identifier => current_value = current_value.object.get(child.content) orelse return error.VariableNotFound,
                             else => return context.Value{ .null_value = {} },
-                        }
+                        },
                     }
-
-                    return try current_value.clone(self.allocator);
                 }
 
-                return context.Value{ .null_value = {} };
+                return try current_value.clone(self.allocator);
+
+                // return context.Value{ .null_value = {} };
             },
             .literal => {
                 return try self.parseLiteral(node.content);

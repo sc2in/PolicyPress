@@ -611,7 +611,6 @@ pub const Parser = struct {
     /// Parse primary expression (literals, identifiers, parentheses)
     fn parsePrimaryExpression(self: *Self) !*Node {
         const token = self.current();
-
         switch (token.type) {
             .identifier => {
                 const node = try Node.init(self.allocator, .identifier, token.content);
@@ -620,6 +619,7 @@ pub const Parser = struct {
                 // Handle dot notation for member access
                 while (self.position < self.tokens.len and self.current().type == .dot) {
                     self.advance(); // Skip dot
+                    std.debug.print("{any}\n", .{self.current()});
                     if (self.current().type == .identifier) {
                         const member_node = try Node.init(self.allocator, .identifier, self.current().content);
                         try node.addChild(member_node);
@@ -764,4 +764,23 @@ test "parse simple variable" {
 
     try expect(template.root.children.items.len > 0);
     try expect(template.root.children.items[0].type == .variable);
+}
+
+test "parse nested variable" {
+    const allocator = std.testing.allocator;
+
+    var lexer_instance = lexer.Lexer.init(allocator, "{{ name.value }}");
+    defer lexer_instance.deinit();
+
+    const tokens = try lexer_instance.tokenize();
+    defer allocator.free(tokens);
+
+    var parser = Parser.init(allocator, tokens);
+    defer parser.deinit();
+
+    var template = try parser.parse();
+    defer template.deinit(allocator);
+
+    try expect(template.root.children.items.len > 0);
+    try expect(template.root.children.items[2].type == .variable);
 }

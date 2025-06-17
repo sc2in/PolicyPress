@@ -33,6 +33,11 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
+    const tera_mod = b.addModule("tera", .{
+        .target = target,
+        .optimize = optimize,
+        .root_source_file = b.path("src/tera/tera.zig"),
+    });
     if (target.result.os.tag != .windows) {
         const zap = b.dependency("zap", .{
             .target = target,
@@ -73,6 +78,7 @@ pub fn build(b: *std.Build) !void {
     pandoc_sh_mod.addImport("yaml", yaml.module("yaml"));
     pandoc_sh_mod.addImport("mvzr", mvzr.module("mvzr"));
     pandoc_sh_mod.addImport("clap", clap.module("clap"));
+    pandoc_sh_mod.addImport("tera", tera_mod);
     const exe = b.addExecutable(.{
         .root_module = pandoc_sh_mod,
         .name = "pandoc_sh",
@@ -114,8 +120,9 @@ pub fn build(b: *std.Build) !void {
     // const web_step = b.step("web", "Build the policy center");
     // web_step.makeFn = build_web;
     // web_step.dependOn(pandoc_step);
+    const pdf_step = b.step("pdfs", "Build pdfs directly from the build script");
 
-    try build_pdfs(b);
+    try build_pdfs(b, pdf_step);
 }
 
 const MyStep = struct {
@@ -147,7 +154,7 @@ fn build_web(step: *std.Build.Step, opt: std.Build.Step.MakeOptions) !void {
     });
 }
 
-fn build_pdfs(b: *std.Build) !void {
+fn build_pdfs(b: *std.Build, step: *std.Build.Step) !void {
     const website = b.addWriteFiles();
 
     const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/*.md" });
@@ -155,7 +162,7 @@ fn build_pdfs(b: *std.Build) !void {
     while (lines.next()) |file_path| {
         if (std.mem.endsWith(u8, file_path, "_index.md")) continue;
         const markdown = b.path(file_path);
-        const html = try build_pdf_from_markdown(b, markdown);
+        const html = try build_pdf_from_markdown(b, markdown, step);
 
         var pdf_path = file_path;
         pdf_path = cut_prefix(pdf_path, "content/").?;
@@ -163,11 +170,12 @@ fn build_pdfs(b: *std.Build) !void {
         pdf_path = b.fmt("{s}.pdf", .{pdf_path});
         _ = website.addCopyFile(html, pdf_path);
     }
-    b.installDirectory(.{
+    const inst = b.addInstallDirectory(.{
         .source_dir = website.getDirectory(),
         .install_dir = .prefix,
         .install_subdir = "pdfs",
     });
+    step.dependOn(&inst.step);
 }
 fn cut_prefix(text: []const u8, prefix: []const u8) ?[]const u8 {
     if (std.mem.startsWith(u8, text, prefix)) return text[prefix.len..];
@@ -178,7 +186,7 @@ fn cut_suffix(text: []const u8, suffix: []const u8) ?[]const u8 {
     if (std.mem.endsWith(u8, text, suffix)) return text[0 .. text.len - suffix.len];
     return null;
 }
-fn build_pdf_from_markdown(b: *std.Build, path: std.Build.LazyPath) !std.Build.LazyPath {
+fn build_pdf_from_markdown(b: *std.Build, path: std.Build.LazyPath, step: *std.Build.Step) !std.Build.LazyPath {
     const title = b.fmt("Run pandoc for {s}", .{cut_prefix(path.getDisplayName(), "content/policies/").?});
     const res_path = b.fmt("--resource-path={s}", .{path.dirname().getPath(b)});
     const data_path = b.fmt("--data-dir={s}", .{try std.fs.cwd().realpathAlloc(b.allocator, ".")});
@@ -198,6 +206,7 @@ fn build_pdf_from_markdown(b: *std.Build, path: std.Build.LazyPath) !std.Build.L
     // std.debug.print("{any}\n", .{std.unicode.utf8ValidateSlice(str.items)});
 
     const pandoc_step = std.Build.Step.Run.create(b, title);
+    step.dependOn(&pandoc_step.step);
     // try u.replace_org(&str, org, u.DummyProgress{});
     // try u.replace_mermaid(&str, u.DummyProgress{});
     pandoc_step.setStdIn(.{ .bytes = str.items });
@@ -233,6 +242,7 @@ fn build_pdf_from_markdown(b: *std.Build, path: std.Build.LazyPath) !std.Build.L
         pandoc_step.addArgs(&.{ "-V", "page-background-opacity=0.8" });
     }
     // pandoc_step.addFileArg(path);
+
     return pandoc_step.captureStdOut();
 }
 pub fn readLazyPathToMemory(

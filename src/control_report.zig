@@ -94,9 +94,7 @@ pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
         const contents = try f.readToEndAlloc(a, 10_000_000);
         defer a.free(contents);
 
-        const end_fm = std.mem.indexOfPos(u8, contents, 3, "---") orelse return error.InvalidFrontMatter;
-
-        var fm = FM.init(a, contents[3..end_fm], .yaml) catch |e| {
+        var fm = FM.initFromMarkdown(a, contents) catch |e| {
             std.debug.print("Could not parse {s}\n", .{path});
             return e;
         };

@@ -31,7 +31,14 @@ pub fn init(alloc: Allocator, source: []const u8, input_kind: Kind) !FrontMatter
             var y = Yaml{ .source = source };
             // defer y.deinit(alloc);
 
-            try y.load(alloc);
+            y.load(alloc) catch |err| switch (err) {
+                error.ParseFailure => {
+                    std.debug.assert(y.parse_errors.errorMessageCount() > 0);
+                    y.parse_errors.renderToStdErr(.{ .ttyconf = std.io.tty.detectConfig(std.io.getStdErr()) });
+                    return error.ParseFailure;
+                },
+                else => return err,
+            };
             orig = .{ .yaml = y };
             const doc = y.docs.items[0];
             break :blk try yamlNodeToJson(alloc, doc);
@@ -104,8 +111,8 @@ test {
     ;
     var fm2 = try FrontMatter.init(alloc, source2, .toml);
     defer fm2.deinit();
-    const find = jsonFindByPath(&fm2.root, "database.enabled").?;
-    try tst.expectEqualDeep(JsonValue{ .bool = true }, find.*);
+    const find = jsonFindByPath(fm2.root, "database.enabled").?;
+    try tst.expectEqualDeep(JsonValue{ .bool = true }, find);
 }
 
 test {
@@ -153,7 +160,7 @@ fn deinitJsonValue(alloc: std.mem.Allocator, value: *std.json.Value) void {
     }
 }
 
-fn yamlNodeToJson(allocator: std.mem.Allocator, node: Yaml.Value) !JsonValue {
+pub fn yamlNodeToJson(allocator: std.mem.Allocator, node: Yaml.Value) !JsonValue {
     switch (node) {
         .map => |m| {
             var object = JsonValue{ .object = .init(allocator) };
@@ -263,16 +270,20 @@ pub fn tableToJson(allocator: std.mem.Allocator, table: *tomlz.parser.Table) err
     return std.json.Value{ .object = obj };
 }
 
+pub fn get(self: FrontMatter, path: []const u8) ?std.json.Value {
+    return jsonFindByPath(self.root, path);
+}
+
 /// Looks up a value in a std.json.Value tree using a dot-separated key path.
 /// Returns a pointer to the found value, or null if any part of the path is missing.
-fn jsonFindByPath(root: *const std.json.Value, path: []const u8) ?*const std.json.Value {
+fn jsonFindByPath(root: std.json.Value, path: []const u8) ?std.json.Value {
     var it = std.mem.tokenizeScalar(u8, path, '.');
     var current = root;
     while (it.next()) |segment| {
-        if (current.* != .object) return null;
+        if (current != .object) return null;
         const found = current.object.get(segment);
         if (found == null) return null;
-        current = &found.?;
+        current = found.?;
     }
     return current;
 }
@@ -298,10 +309,10 @@ test "jsonFindByPath works" {
     );
     defer parsed.deinit();
 
-    const root = &parsed.value;
+    const root = parsed.value;
     const found = jsonFindByPath(root, "foo.bar.baz");
     try tst.expect(found != null);
-    try tst.expect(found.?.* == .integer);
+    try tst.expect(found.? == .integer);
     try tst.expect(found.?.integer == 123);
 
     const not_found = jsonFindByPath(root, "foo.bar.qux");

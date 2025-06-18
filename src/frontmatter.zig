@@ -66,6 +66,15 @@ pub fn deinit(self: *FrontMatter) void {
         inline else => |*o| o.deinit(self.allocator),
     }
 }
+pub fn initFromMarkdown(alloc: Allocator, txt: []const u8) !FrontMatter {
+    const kind: Kind = switch (txt[0]) {
+        '-' => .yaml,
+        '+' => .toml,
+        else => return error.InvalidFrontMatter,
+    };
+    const end_fm = std.mem.indexOfPos(u8, txt, 3, if (kind == .yaml) "---" else if (kind == .toml) "+++" else "") orelse return error.InvalidFrontMatter;
+    return init(alloc, txt[3..end_fm], kind);
+}
 
 test {
     const alloc = tst.allocator;

@@ -138,11 +138,6 @@ pub fn main() !void {
 
     // var config = try tomlz.parse(alloc, config_contents);
     // defer config.deinit(alloc);
-    var root_progress = Progress.start(.{
-        .estimated_total_items = 0,
-        .root_name = "Building PDFs from Markdown files",
-    });
-    defer root_progress.end();
 
     // const extra = config.getTable("extra") orelse return error.NoExtraInConfig;
     // const policy_root = extra.getString("policy_root") orelse return error.NoPolicyRootInExtra;
@@ -166,7 +161,7 @@ pub fn main() !void {
 
     try process_md_file(alloc, .{
         .path = global_config.work_file.?,
-    }, &root_progress);
+    });
 
     // const md_files = try u.find_md_files(alloc, global_config.work_dir, policy_root, &root_progress);
     // defer {
@@ -243,20 +238,15 @@ inline fn add_arg(
 }
 
 /// Processes a single markdown file: loads contents, applies replacements, extracts metadata, writes a temporary file, and invokes Pandoc to generate the PDF.
-pub fn process_md_file(a: Allocator, md: u.MDFile, prog: anytype) !void {
-    var buf: [128]u8 = undefined;
-
-    const fname = try std.fmt.bufPrint(&buf, "{s}/{s}", .{
-        std.fs.path.basename((std.fs.path.dirname(md.path) orelse ".")),
-        std.fs.path.basename(md.path),
-    });
+pub fn process_md_file(
+    a: Allocator,
+    md: u.MDFile,
+) !void {
     var dir = try std.fs.cwd().openDir(global_config.root.?, .{});
     defer dir.close();
     var file = try dir.openFile(md.path, .{ .mode = .read_only });
     defer file.close();
 
-    var p = prog.start(fname, 4);
-    defer p.end();
     const raw = try file.readToEndAlloc(a, 100_000_000);
     var contents = Array(u8){
         .items = raw,
@@ -267,10 +257,11 @@ pub fn process_md_file(a: Allocator, md: u.MDFile, prog: anytype) !void {
     var local = try global_args.clone();
     defer local.deinit();
 
-    try u.replace_org(&contents, global_config.org.?, &p);
-    try u.replace_mermaid(&contents, &p);
+    try u.replace_org(&contents, global_config.org.?);
+    try u.replace_zola_at(&contents);
+    try u.replace_mermaid(&contents);
 
-    var fm = try u.get_metadata(a, &contents, &p, global_config);
+    var fm = try u.get_metadata(a, &contents, global_config);
     defer fm.deinit(a);
 
     const tmp = std.fs.cwd().createFile("tmp.md", std.fs.File.CreateFlags{ .exclusive = true }) catch |e| blk: {
@@ -301,14 +292,11 @@ pub fn process_md_file(a: Allocator, md: u.MDFile, prog: anytype) !void {
     std.mem.replaceScalar(u8, out, ' ', '_');
 
     try add_arg(a, &local, "-o", "{s}{s}{s}", .{ global_config.build_dir.?, "", out });
-    try run_pandoc(a, local, &p);
+    try run_pandoc(a, local);
 }
 
 /// Spawns a Pandoc process with the provided arguments, collects output, and logs errors or results as needed.
-pub fn run_pandoc(a: Allocator, args: Array([]u8), prog: *std.Progress.Node) !void {
-    const p = prog.start("Executing Pandoc", 0);
-    defer p.end();
-
+pub fn run_pandoc(a: Allocator, args: Array([]u8)) !void {
     panlog.debug("Running pandoc with args:\n", .{});
     for (args.items) |arg|
         panlog.debug("\t{s}\n", .{arg});

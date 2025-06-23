@@ -161,13 +161,20 @@ fn build_web(step: *std.Build.Step, opt: std.Build.Step.MakeOptions) !void {
 }
 
 fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile) !void {
-    const website = b.addWriteFiles();
+    // const website = b.addWriteFiles();
 
     const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/*.md" });
     var lines = std.mem.tokenizeScalar(u8, markdown_files, '\n');
     var temp = std.testing.tmpDir(.{ .access_sub_paths = true });
 
     const temp_dir = try temp.dir.realpathAlloc(b.allocator, "./");
+    const inst = b.addInstallDirectory(.{
+        .source_dir = .{ .cwd_relative = temp_dir },
+        .install_dir = .prefix,
+        .install_subdir = "pdfs",
+        .include_extensions = &.{"pdf"},
+    });
+    step.dependOn(&inst.step);
 
     std.debug.print("Tempdir: {s}\n", .{temp_dir});
     while (lines.next()) |file_path| {
@@ -185,26 +192,8 @@ fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile
             "--root",  "./",
         });
         pandoc_step.dependOn(&run_cmd.step);
-        step.dependOn(pandoc_step);
-
-        // var pdf_path = file_path;
-        // pdf_path = cut_prefix(pdf_path, "content/").?;
-        // pdf_path = cut_suffix(pdf_path, ".md").?;
-        // pdf_path = b.fmt("{s}.pdf", .{pdf_path});
-
-        // const pdf_build = b.fmt("{s}{s}", .{ temp_dir, pdf_path });
-
-        //TODO: Need to get the output file from pandoc
-        _ = website.addCopyFile(.{ .cwd_relative = temp_dir }, pdf_path);
-        break;
+        inst.step.dependOn(pandoc_step);
     }
-    const inst = b.addInstallDirectory(.{
-        .source_dir = website.getDirectory(),
-        .install_dir = .prefix,
-        .install_subdir = "pdfs",
-        .include_extensions = &.{"pdf"},
-    });
-    step.dependOn(&inst.step);
 }
 fn cut_prefix(text: []const u8, prefix: []const u8) ?[]const u8 {
     if (std.mem.startsWith(u8, text, prefix)) return text[prefix.len..];

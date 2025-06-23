@@ -164,22 +164,20 @@ fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile
 
     const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/*.md" });
     var lines = std.mem.tokenizeScalar(u8, markdown_files, '\n');
-    var temp = std.testing.tmpDir(.{ .access_sub_paths = true });
 
-    const temp_dir = try temp.dir.realpathAlloc(b.allocator, "./");
+    std.fs.cwd().makeDir(".tmp") catch |e| {
+        if (e != error.PathAlreadyExists) return e;
+    };
+
     const inst = b.addInstallDirectory(.{
-        .source_dir = .{ .cwd_relative = temp_dir },
+        .source_dir = b.path(".tmp"),
         .install_dir = .prefix,
         .install_subdir = "pdfs",
         .include_extensions = &.{"pdf"},
     });
-    step.dependOn(&inst.step);
 
-    std.debug.print("Tempdir: {s}\n", .{temp_dir});
     while (lines.next()) |file_path| {
         if (std.mem.endsWith(u8, file_path, "_index.md")) continue;
-
-        const pandoc_step = std.Build.Step.Run.create(b, file_path);
 
         const run_cmd = b.addRunArtifact(exe);
         run_cmd.addArgs(&.{
@@ -187,12 +185,17 @@ fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile
             "--logo",  "static/logo.png",
             "--org",   "SC2",
             "-i",      file_path,
-            "-o",      temp_dir,
+            "-o",      ".tmp",
             "--root",  "./",
         });
-        pandoc_step.step.dependOn(&run_cmd.step);
-        inst.step.dependOn(&pandoc_step.step);
+        // pandoc_step.step.dependOn(&run_cmd.step);
+        // inst.step.dependOn(&pandoc_step.step);
+        inst.step.dependOn(&run_cmd.step);
+        step.dependOn(&run_cmd.step);
+        break;
     }
+
+    step.dependOn(&inst.step);
 }
 fn cut_prefix(text: []const u8, prefix: []const u8) ?[]const u8 {
     if (std.mem.startsWith(u8, text, prefix)) return text[prefix.len..];

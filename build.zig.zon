@@ -56,6 +56,10 @@
             .url = "git+https://github.com/Hejsil/zig-clap#cc5c6a5d71a317ed4b0ad776842d1d0655f72d0a",
             .hash = "clap-0.10.0-oBajB7jkAQAZ4cKLlzkeV9mDu2yGZvtN2QuOyfAfjBij",
         },
+        .datetime = .{
+            .url = "git+https://github.com/frmdstryr/zig-datetime?ref=master#feca3bca5c81409c049d8d2f4dc06012a374d085",
+            .hash = "datetime-0.8.0-cJNXzNLZAQADGScmVIKJTyogbfkbIFldrmSK8RweZ3Eg",
+        },
     },
     .paths = .{
         "build.zig",

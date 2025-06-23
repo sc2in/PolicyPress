@@ -15,52 +15,35 @@ const ctime = @cImport(@cInclude("time.h"));
 const mvzr = @import("mvzr");
 const clap = @import("clap");
 const u = @import("utils.zig");
+const Datetime = @import("datetime");
 
 var global_args: Array([]u8) = undefined;
 pub var global_config: Config = .{};
 
 pub const Config = struct {
-    org: []u8 = undefined,
-    logo_path: []u8 = undefined,
-    color: []u8 = undefined,
-    current_year: []u8 = undefined,
-    root: []u8 = undefined,
+    org: ?[]const u8 = null,
+    logo_path: ?[]const u8 = null,
+    color: ?[]const u8 = null,
+    current_year: u16 = 2025,
+    root: ?[]const u8 = null,
     is_draft: bool = false,
     redact: bool = false,
-    build_dir: []const u8 = undefined,
-    work_dir: std.fs.Dir = undefined,
+    build_dir: ?[]const u8 = null,
+    work_file: ?[]const u8 = null,
 
-    pub fn deinit(self: *Config, a: Allocator) void {
-        a.free(self.org);
-        a.free(self.logo_path);
-        a.free(self.color);
-        a.free(self.build_dir);
-        a.free(self.current_year);
-        a.free(self.root);
-        self.work_dir.close();
-    }
-
-    pub fn init(a: Allocator) !Config {
-        var dt_str_buf: [40]u8 = undefined;
-        const t = ctime.time(null);
-        const lt = ctime.localtime(&t);
-        const format = "%Y";
-        const dt_str_len = ctime.strftime(&dt_str_buf, dt_str_buf.len, format, lt);
-        const current_year = dt_str_buf[0..dt_str_len];
-        var self = Config{};
-        self.current_year = try a.dupe(u8, current_year);
-        self.root = std.process.getEnvVarOwned(a, "DEVBOX_PROJECT_ROOT") catch return error.ProjectRootNotFoundInEnv;
-        self.work_dir = try std.fs.openDirAbsolute(
-            self.root,
-            .{
-                .access_sub_paths = true,
-                .iterate = true,
-            },
-        );
-        try self.work_dir.makePath("public/pdf");
-        self.build_dir = try self.work_dir.realpathAlloc(a, "public/pdf");
-
-        return self;
+    pub fn format(self: Config, comptime _: []const u8, _: anytype, writer: anytype) !void {
+        inline for (std.meta.fields(Config)) |f| {
+            switch (f.type) {
+                ?[]const u8 => try writer.print("{s}:{?s}\n", .{
+                    f.name,
+                    @field(self, f.name),
+                }),
+                else => try writer.print("{s}: {any}\n", .{
+                    f.name,
+                    @field(self, f.name),
+                }),
+            }
+        }
     }
 };
 
@@ -86,13 +69,18 @@ pub fn main() !void {
     defer arena.deinit();
 
     const alloc = arena.allocator();
-    global_config = try Config.init(alloc);
+    global_config = Config{};
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
         \\-d, --draft            Add draft watermark to output.
         \\-r, --redact           Redact text within redaction tags in output.
-        \\
+        \\--org <str>            Organization name
+        \\-o, --output <str>     Destination folder
+        \\-i, --input <str>      Input file
+        \\--logo <str>           Path to logo file
+        \\--color <str>          Accent color to use
+        \\--root <str>           Project root directory
     );
     var diag = clap.Diagnostic{};
     var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
@@ -108,38 +96,63 @@ pub fn main() !void {
         std.debug.print("SC2 Policy Center PDF Generator\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
         return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
     }
+    if (res.args.color) |c| {
+        panlog.info("Using color {s}\n", .{c});
+        global_config.color = c;
+    } else return error.AccentColorNotProvided;
+    if (res.args.logo) |c| {
+        panlog.info("Using logo {s}\n", .{c});
+        global_config.logo_path = c;
+    } else return error.LogoPathNotProvided;
+    if (res.args.org) |c| {
+        panlog.info("Using org name {s}\n", .{c});
+        global_config.org = c;
+    } else return error.OrgNameNotProvided;
+    if (res.args.input) |c| {
+        panlog.info("Using input file: {s}\n", .{c});
+        global_config.work_file = c;
+    } else return error.InputFileNotProvided;
+    if (res.args.output) |c| {
+        panlog.info("Writing to: {s}\n", .{c});
+        global_config.build_dir = c;
+    } else return error.OutputDirNotProvided;
+    if (res.args.root) |c| {
+        panlog.info("Project Root: {s}\n", .{c});
+        global_config.root = c;
+    } else return error.ProjectRootNotProvided;
     if (res.args.draft != 0) {
-        panlog.warn("Draft mode enabled\n", .{});
+        panlog.info("Draft mode enabled\n", .{});
         global_config.is_draft = true;
     }
     if (res.args.redact != 0) {
-        panlog.warn("Redaction enabled\n", .{});
+        panlog.info("Redaction enabled\n", .{});
         global_config.redact = true;
     }
 
-    var conf_file = try global_config.work_dir.openFile("config.toml", .{ .mode = .read_only });
-    defer conf_file.close();
+    std.debug.print("{}\n", .{global_config});
+    // var conf_file = try global_config.work_dir.openFile("config.toml", .{ .mode = .read_only });
+    // defer conf_file.close();
 
-    const config_contents = try conf_file.readToEndAlloc(alloc, 100_000_000);
-    defer alloc.free(config_contents);
+    // const config_contents = try conf_file.readToEndAlloc(alloc, 100_000_000);
+    // defer alloc.free(config_contents);
 
-    var config = try tomlz.parse(alloc, config_contents);
-    defer config.deinit(alloc);
+    // var config = try tomlz.parse(alloc, config_contents);
+    // defer config.deinit(alloc);
     var root_progress = Progress.start(.{
         .estimated_total_items = 0,
         .root_name = "Building PDFs from Markdown files",
     });
     defer root_progress.end();
 
-    const extra = config.getTable("extra") orelse return error.NoExtraInConfig;
-    const policy_root = extra.getString("policy_root") orelse return error.NoPolicyRootInExtra;
-    const logo = extra.getString("logo") orelse return error.NoLogoInExtra;
-    global_config.logo_path = try std.fmt.allocPrint(alloc, "static/{s}", .{logo});
-    global_config.org = try alloc.dupe(u8, extra.getString("organization") orelse return error.NoOrgInExtra);
-    global_config.color = try u.get_logo_color(alloc, global_config.logo_path, &root_progress);
+    // const extra = config.getTable("extra") orelse return error.NoExtraInConfig;
+    // const policy_root = extra.getString("policy_root") orelse return error.NoPolicyRootInExtra;
+    // const logo = extra.getString("logo") orelse return error.NoLogoInExtra;
+    // global_config.logo_path = try std.fmt.allocPrint(alloc, "static/{s}", .{logo});
+    // global_config.org = try alloc.dupe(u8, extra.getString("organization") orelse return error.NoOrgInExtra);
+    // global_config.color = try u.get_logo_color(alloc, global_config.logo_path, &root_progress);
 
-    // const redact = b.option(bool, "redact", "Redact PDFs") orelse false;
-    // const draft = b.option(bool, "redact", "Redact PDFs") orelse false;
+    // // const redact = b.option(bool, "redact", "Redact PDFs") orelse false;
+    // // const draft = b.option(bool, "redact", "Redact PDFs") orelse false;
 
     global_args = Array([]u8).init(alloc);
     defer {
@@ -151,24 +164,28 @@ pub fn main() !void {
     try create_global_args(alloc, &global_args);
     defer destroy_global_args(alloc, global_args);
 
-    const md_files = try u.find_md_files(alloc, global_config.work_dir, policy_root, &root_progress);
-    defer {
-        for (md_files) |f|
-            f.deinit(alloc);
-        alloc.free(md_files);
-    }
-    errdefer {
-        for (md_files) |f|
-            f.deinit(alloc);
-        alloc.free(md_files);
-    }
-    const total_files = md_files.len;
-    root_progress.setEstimatedTotalItems(total_files);
-    panlog.debug("Building PDFs from {} markdown files in {s} .. \n", .{ total_files, policy_root });
+    try process_md_file(alloc, .{
+        .path = global_config.work_file.?,
+    }, &root_progress);
 
-    for (md_files) |f| {
-        try process_md_file(alloc, f, &root_progress);
-    }
+    // const md_files = try u.find_md_files(alloc, global_config.work_dir, policy_root, &root_progress);
+    // defer {
+    //     for (md_files) |f|
+    //         f.deinit(alloc);
+    //     alloc.free(md_files);
+    // }
+    // errdefer {
+    //     for (md_files) |f|
+    //         f.deinit(alloc);
+    //     alloc.free(md_files);
+    // }
+    // const total_files = md_files.len;
+    // root_progress.setEstimatedTotalItems(total_files);
+    // panlog.debug("Building PDFs from {} markdown files in {s} .. \n", .{ total_files, policy_root });
+
+    // for (md_files) |f| {
+    //     try process_md_file(alloc, f, &root_progress);
+    // }
     // try process_md_files_parallel(alloc, md_files);
 }
 
@@ -180,19 +197,19 @@ pub fn destroy_global_args(a: Allocator, args: Array([]u8)) void {
 
 ///Populates the global_args array with command-line arguments for Pandoc, based on the current global configuration
 pub fn create_global_args(a: Allocator, args: *Array([]u8)) !void {
-    try add_arg(a, args, "", "--data-dir={s}", .{global_config.root});
-    try add_arg(a, args, "", "--resource-path={s}", .{global_config.root});
-    try add_arg(a, args, "-V", "footer-left={s} \\textcopyright {s}", .{ global_config.org, global_config.current_year });
+    try add_arg(a, args, "", "--data-dir={s}", .{global_config.root.?});
+    try add_arg(a, args, "", "--resource-path={s}", .{global_config.root.?});
+    try add_arg(a, args, "-V", "footer-left={s} \\textcopyright {d}", .{ global_config.org.?, global_config.current_year });
 
-    try add_arg(a, args, "-V", "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{global_config.logo_path});
+    try add_arg(a, args, "-V", "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{global_config.logo_path.?});
 
-    try add_arg(a, args, "-V", "titlepage-logo={s}", .{global_config.logo_path});
+    try add_arg(a, args, "-V", "titlepage-logo={s}", .{global_config.logo_path.?});
 
-    try add_arg(a, args, "-V", "institution=\"{s}\"", .{global_config.org});
+    try add_arg(a, args, "-V", "institution=\"{s}\"", .{global_config.org.?});
 
-    try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{global_config.color[1..7]});
+    try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{global_config.color.?});
 
-    try add_arg(a, args, "-F", "{s}/.devbox/nix/profile/default/bin/mermaid-filter", .{global_config.root});
+    try add_arg(a, args, "-F", "{s}/.devbox/nix/profile/default/bin/mermaid-filter", .{global_config.root.?});
     try add_arg(a, args, "-V", "footer-center=Confidental", .{});
     try add_arg(a, args, "-V", "papersize=letter", .{});
     try add_arg(a, args, "-V", "titlepage=true", .{});
@@ -233,7 +250,9 @@ pub fn process_md_file(a: Allocator, md: u.MDFile, prog: anytype) !void {
         std.fs.path.basename((std.fs.path.dirname(md.path) orelse ".")),
         std.fs.path.basename(md.path),
     });
-    var file = try std.fs.openFileAbsolute(md.path, .{ .mode = .read_only });
+    var dir = try std.fs.cwd().openDir(global_config.root.?, .{});
+    defer dir.close();
+    var file = try dir.openFile(md.path, .{ .mode = .read_only });
     defer file.close();
 
     var p = prog.start(fname, 4);
@@ -248,13 +267,19 @@ pub fn process_md_file(a: Allocator, md: u.MDFile, prog: anytype) !void {
     var local = try global_args.clone();
     defer local.deinit();
 
-    try u.replace_org(&contents, global_config.org, &p);
+    try u.replace_org(&contents, global_config.org.?, &p);
     try u.replace_mermaid(&contents, &p);
 
     var fm = try u.get_metadata(a, &contents, &p, global_config);
     defer fm.deinit(a);
 
-    const tmp = try std.fs.cwd().createFile("tmp.md", std.fs.File.CreateFlags{ .exclusive = true });
+    const tmp = std.fs.cwd().createFile("tmp.md", std.fs.File.CreateFlags{ .exclusive = true }) catch |e| blk: {
+        if (e == error.PathAlreadyExists) {
+            std.fs.cwd().deleteFile("tmp.md") catch unreachable;
+            break :blk try std.fs.cwd().createFile("tmp.md", std.fs.File.CreateFlags{ .exclusive = true });
+        }
+        return e;
+    };
     errdefer {
         std.fs.cwd().deleteFile("tmp.md") catch unreachable;
     }
@@ -266,14 +291,16 @@ pub fn process_md_file(a: Allocator, md: u.MDFile, prog: anytype) !void {
 
     try local.insert(0, try a.dupe(u8, "pandoc"));
 
-    const res_path = try std.fmt.allocPrint(a, "--resource-path={s}", .{std.fs.path.dirname(md.path).?});
+    const basedir = std.fs.path.dirname(md.path).?;
+    const res_path = try std.fmt.allocPrint(a, "--resource-path={s}", .{basedir});
     try local.append(res_path);
 
     try local.append(try a.dupe(u8, "tmp.md"));
 
     const out = try fm.filename(a);
     std.mem.replaceScalar(u8, out, ' ', '_');
-    try add_arg(a, &local, "-o", "{s}", .{out});
+
+    try add_arg(a, &local, "-o", "{s}{s}{s}", .{ global_config.build_dir.?, "", out });
     try run_pandoc(a, local, &p);
 }
 

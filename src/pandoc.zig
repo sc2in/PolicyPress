@@ -55,7 +55,7 @@ pub const std_options: std.Options = .{
     .log_level = .info,
     .log_scope_levels = &[_]std.log.ScopeLevel{
         .{ .scope = .parser, .level = .debug },
-        .{ .scope = .pandoc, .level = .warn },
+        .{ .scope = .pandoc, .level = std.log.default_level },
     },
     .logFn = u.logFn,
 };

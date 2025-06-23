@@ -127,7 +127,6 @@ pub fn build(b: *std.Build) !void {
     // web_step.makeFn = build_web;
     // web_step.dependOn(pandoc_step);
     const pdf_step = b.step("pdfs", "Build pdfs directly from the build script");
-
     try build_pdfs(b, pdf_step, exe);
 }
 
@@ -180,7 +179,7 @@ fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile
     while (lines.next()) |file_path| {
         if (std.mem.endsWith(u8, file_path, "_index.md")) continue;
 
-        const pandoc_step = b.step(file_path, file_path);
+        const pandoc_step = std.Build.Step.Run.create(b, file_path);
 
         const run_cmd = b.addRunArtifact(exe);
         run_cmd.addArgs(&.{
@@ -191,8 +190,8 @@ fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile
             "-o",      temp_dir,
             "--root",  "./",
         });
-        pandoc_step.dependOn(&run_cmd.step);
-        inst.step.dependOn(pandoc_step);
+        pandoc_step.step.dependOn(&run_cmd.step);
+        inst.step.dependOn(&pandoc_step.step);
     }
 }
 fn cut_prefix(text: []const u8, prefix: []const u8) ?[]const u8 {

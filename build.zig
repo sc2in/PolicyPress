@@ -192,7 +192,6 @@ fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile
         // inst.step.dependOn(&pandoc_step.step);
         inst.step.dependOn(&run_cmd.step);
         step.dependOn(&run_cmd.step);
-        break;
     }
 
     step.dependOn(&inst.step);

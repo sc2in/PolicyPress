@@ -162,7 +162,7 @@ pub fn replace_mermaid(txt: *Array(u8), prog: anytype) !void {
 }
 
 pub const MDFile = struct {
-    path: []u8,
+    path: []const u8,
     pub fn deinit(_: MDFile, _: Allocator) void {
         // a.free(self.path);
     }

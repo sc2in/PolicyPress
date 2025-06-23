@@ -55,7 +55,7 @@ pub const std_options: std.Options = .{
     .log_level = .info,
     .log_scope_levels = &[_]std.log.ScopeLevel{
         .{ .scope = .parser, .level = .debug },
-        .{ .scope = .pandoc, .level = .info },
+        .{ .scope = .pandoc, .level = .warn },
     },
     .logFn = u.logFn,
 };
@@ -129,7 +129,7 @@ pub fn main() !void {
         global_config.redact = true;
     }
 
-    std.debug.print("{}\n", .{global_config});
+    panlog.debug("Running with Configuration:\n{}\n", .{global_config});
     // var conf_file = try global_config.work_dir.openFile("config.toml", .{ .mode = .read_only });
     // defer conf_file.close();
 

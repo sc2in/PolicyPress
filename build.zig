@@ -38,6 +38,12 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .root_source_file = b.path("src/tera/tera.zig"),
     });
+    const pg = b.dependency("datetime", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
+    // the executable from your call to exe_mod.addExecutable
     if (target.result.os.tag != .windows) {
         const zap = b.dependency("zap", .{
             .target = target,
@@ -72,13 +78,13 @@ pub fn build(b: *std.Build) !void {
         .root_source_file = b.path("src/pandoc.zig"),
         .target = target,
         .optimize = optimize,
-        .link_libc = true,
     });
     pandoc_sh_mod.addImport("tomlz", tomlz.module("tomlz"));
     pandoc_sh_mod.addImport("yaml", yaml.module("yaml"));
     pandoc_sh_mod.addImport("mvzr", mvzr.module("mvzr"));
     pandoc_sh_mod.addImport("clap", clap.module("clap"));
     pandoc_sh_mod.addImport("tera", tera_mod);
+    pandoc_sh_mod.addImport("datetime", pg.module("datetime"));
     const exe = b.addExecutable(.{
         .root_module = pandoc_sh_mod,
         .name = "pandoc_sh",
@@ -122,7 +128,7 @@ pub fn build(b: *std.Build) !void {
     // web_step.dependOn(pandoc_step);
     const pdf_step = b.step("pdfs", "Build pdfs directly from the build script");
 
-    try build_pdfs(b, pdf_step);
+    try build_pdfs(b, pdf_step, exe);
 }
 
 const MyStep = struct {
@@ -154,26 +160,49 @@ fn build_web(step: *std.Build.Step, opt: std.Build.Step.MakeOptions) !void {
     });
 }
 
-fn build_pdfs(b: *std.Build, step: *std.Build.Step) !void {
+fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile) !void {
     const website = b.addWriteFiles();
 
     const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/*.md" });
     var lines = std.mem.tokenizeScalar(u8, markdown_files, '\n');
+    var temp = std.testing.tmpDir(.{ .access_sub_paths = true });
+
+    const temp_dir = try temp.dir.realpathAlloc(b.allocator, "./");
+
+    std.debug.print("Tempdir: {s}\n", .{temp_dir});
     while (lines.next()) |file_path| {
         if (std.mem.endsWith(u8, file_path, "_index.md")) continue;
-        const markdown = b.path(file_path);
-        const html = try build_pdf_from_markdown(b, markdown, step);
 
-        var pdf_path = file_path;
-        pdf_path = cut_prefix(pdf_path, "content/").?;
-        pdf_path = cut_suffix(pdf_path, ".md").?;
-        pdf_path = b.fmt("{s}.pdf", .{pdf_path});
-        _ = website.addCopyFile(html, pdf_path);
+        const pandoc_step = b.step(file_path, file_path);
+
+        const run_cmd = b.addRunArtifact(exe);
+        run_cmd.addArgs(&.{
+            "--color", "FFFFFF",
+            "--logo",  "static/logo.png",
+            "--org",   "SC2",
+            "-i",      file_path,
+            "-o",      temp_dir,
+            "--root",  "./",
+        });
+        pandoc_step.dependOn(&run_cmd.step);
+        step.dependOn(pandoc_step);
+
+        // var pdf_path = file_path;
+        // pdf_path = cut_prefix(pdf_path, "content/").?;
+        // pdf_path = cut_suffix(pdf_path, ".md").?;
+        // pdf_path = b.fmt("{s}.pdf", .{pdf_path});
+
+        // const pdf_build = b.fmt("{s}{s}", .{ temp_dir, pdf_path });
+
+        //TODO: Need to get the output file from pandoc
+        _ = website.addCopyFile(.{ .cwd_relative = temp_dir }, pdf_path);
+        break;
     }
     const inst = b.addInstallDirectory(.{
         .source_dir = website.getDirectory(),
         .install_dir = .prefix,
         .install_subdir = "pdfs",
+        .include_extensions = &.{"pdf"},
     });
     step.dependOn(&inst.step);
 }

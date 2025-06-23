@@ -53,10 +53,7 @@ pub const FrontMatter = struct {
 };
 
 /// Parses YAML front matter from a markdown file, extracts document metadata, formats the title, and returns a FrontMatter struct.
-pub fn get_metadata(a: Allocator, txt: *Array(u8), prog: anytype, config: anytype) !FrontMatter {
-    const p = prog.start("Get Metadata", 1);
-    defer p.end();
-
+pub fn get_metadata(a: Allocator, txt: *Array(u8), config: anytype) !FrontMatter {
     const end_fm = std.mem.indexOfPos(u8, txt.items, 3, "---") orelse return error.InvalidFrontMatter;
     var y: Yaml = .{ .source = txt.items[3..end_fm] };
     defer y.deinit(a);
@@ -119,9 +116,7 @@ pub fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
 }
 
 /// Replaces all instances of the organization placeholder in the markdown text with the actual organization name from the global configuration.
-pub fn replace_org(txt: *Array(u8), with: []const u8, prog: anytype) !void {
-    const p = prog.start("Replace Organization Shortcode", 1);
-    defer p.end();
+pub fn replace_org(txt: *Array(u8), with: []const u8) !void {
     const orgsc: mvzr.Regex = mvzr.compile("\\{\\{\\s*org\\(\\)\\s*\\}\\}").?;
 
     if (!orgsc.isMatch(txt.items)) return;
@@ -137,10 +132,42 @@ pub fn replace_org(txt: *Array(u8), with: []const u8, prog: anytype) !void {
     txt.* = new;
 }
 
+/// Replaces all instances of the [...](@/...) links inthe markdown text with the path relative to content
+pub fn replace_zola_at(txt: *Array(u8)) !void {
+    const at: mvzr.Regex = mvzr.compile("\\]\\(@/").?;
+
+    if (!at.isMatch(txt.items)) return;
+
+    var new = try txt.clone();
+
+    var iter = at.iterator(txt.items);
+    while (iter.next()) |match| {
+        try new.replaceRange(match.start, match.slice.len, "](content/");
+        iter = at.iterator(new.items);
+    }
+    txt.deinit();
+    txt.* = new;
+}
+
+test "replace_zola_at" {
+    const allocator = tst.allocator;
+
+    var arr = Array(u8).init(allocator);
+    defer arr.deinit();
+    try arr.appendSlice(
+        \\[some link](@/policies/privacy)
+    );
+
+    try replace_zola_at(&arr);
+
+    const expected =
+        \\[some link](content/policies/privacy)
+    ;
+    try tst.expectEqualStrings(expected, arr.items);
+}
+
 /// Finds and replaces custom Mermaid code blocks in the markdown with a standardized code block format.
-pub fn replace_mermaid(txt: *Array(u8), prog: anytype) !void {
-    const p = prog.start("Replace Mermaid Shortcode", 1);
-    defer p.end();
+pub fn replace_mermaid(txt: *Array(u8)) !void {
     const mermaid: mvzr.Regex = mvzr.compile("\\{%\\s*mermaid\\(\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;
     if (!mermaid.isMatch(txt.items)) return;
 
@@ -169,10 +196,7 @@ pub const MDFile = struct {
 };
 
 /// Recursively finds and opens all markdown files in the specified policy directory, returning them as an array of files.
-pub fn find_md_files(a: Allocator, root: std.fs.Dir, policy_dir: []const u8, prog: *std.Progress.Node) ![]MDFile {
-    var p = prog.start("Searching for markdown files in policy root", 1);
-    defer p.end();
-
+pub fn find_md_files(a: Allocator, root: std.fs.Dir, policy_dir: []const u8) ![]MDFile {
     panlog.debug("Reading in policies from: {s}\n", .{policy_dir});
     var files = Array(MDFile).init(a);
     defer files.deinit();
@@ -187,20 +211,16 @@ pub fn find_md_files(a: Allocator, root: std.fs.Dir, policy_dir: []const u8, pro
     });
     defer policy_root.close();
 
-    try find_inner(&files, policy_root, &p);
+    try find_inner(&files, policy_root);
     return try files.toOwnedSlice();
 }
 /// Helper function to recursively traverse directories and append markdown files to the provided array.
-pub fn find_inner(files: *Array(MDFile), start: std.fs.Dir, prog: *std.Progress.Node) !void {
+pub fn find_inner(files: *Array(MDFile), start: std.fs.Dir) !void {
     var num: usize = 0;
     var iter = start.iterate();
     while (try iter.next()) |_| {
         num += 1;
     }
-    var buf: [128]u8 = undefined;
-    const dname = try start.realpath(".", &buf);
-    var p = prog.start(dname, num);
-    defer p.end();
 
     iter.reset();
     while (try iter.next()) |entry| {
@@ -215,7 +235,7 @@ pub fn find_inner(files: *Array(MDFile), start: std.fs.Dir, prog: *std.Progress.
             .directory => {
                 var sub = try start.openDir(entry.name, .{ .access_sub_paths = true, .iterate = true });
                 defer sub.close();
-                try find_inner(files, sub, &p);
+                try find_inner(files, sub);
             },
             else => {},
         }
@@ -223,9 +243,7 @@ pub fn find_inner(files: *Array(MDFile), start: std.fs.Dir, prog: *std.Progress.
 }
 
 /// Runs an external command to extract the dominant color from the logo image and returns it as a string.
-pub fn get_logo_color(a: Allocator, path: []const u8, prog: anytype) ![]u8 {
-    const p = prog.start("Get Color From Logo", 1);
-    defer p.end();
+pub fn get_logo_color(a: Allocator, path: []const u8) ![]u8 {
     const argv = [_][]const u8{
         "magick",
         path,
@@ -268,9 +286,7 @@ test "replace_org replaces organization shortcode" {
     defer arr.deinit();
     try arr.appendSlice("Welcome to {{ org() }}!");
 
-    var dummy_progress = DummyProgress{};
-
-    try replace_org(&arr, "AcmeCorp", &dummy_progress);
+    try replace_org(&arr, "AcmeCorp");
 
     try tst.expectEqualStrings("Welcome to AcmeCorp!", arr.items);
 }
@@ -289,9 +305,7 @@ test "replace_mermaid replaces mermaid shortcode with code block" {
         \\End text
     );
 
-    var dummy_progress = DummyProgress{};
-
-    try replace_mermaid(&arr, &dummy_progress);
+    try replace_mermaid(&arr);
 
     const expected =
         \\Some text

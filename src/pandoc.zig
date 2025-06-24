@@ -260,23 +260,24 @@ pub fn process_md_file(
     try u.replace_org(&contents, global_config.org.?);
     try u.replace_zola_at(&contents);
     try u.replace_mermaid(&contents);
+    if (global_config.redact)
+        try u.redact(&contents);
 
     var fm = try u.get_metadata(a, &contents, global_config);
     defer fm.deinit(a);
 
-    const tmp = std.fs.cwd().createFile("tmp.md", std.fs.File.CreateFlags{ .exclusive = true }) catch |e| blk: {
+    const tmp_file = std.fs.path.basename(md.path);
+    const tmp = std.fs.cwd().createFile(tmp_file, std.fs.File.CreateFlags{ .exclusive = true }) catch |e| blk: {
         if (e == error.PathAlreadyExists) {
-            std.fs.cwd().deleteFile("tmp.md") catch unreachable;
-            break :blk try std.fs.cwd().createFile("tmp.md", std.fs.File.CreateFlags{ .exclusive = true });
+            std.fs.cwd().deleteFile(tmp_file) catch unreachable;
+            break :blk try std.fs.cwd().createFile(tmp_file, std.fs.File.CreateFlags{ .exclusive = true });
         }
         return e;
     };
-    errdefer {
-        std.fs.cwd().deleteFile("tmp.md") catch unreachable;
-    }
+
     defer {
         tmp.close();
-        std.fs.cwd().deleteFile("tmp.md") catch unreachable;
+        std.fs.cwd().deleteFile(tmp_file) catch unreachable;
     }
     try tmp.writeAll(contents.items);
 
@@ -286,7 +287,7 @@ pub fn process_md_file(
     const res_path = try std.fmt.allocPrint(a, "--resource-path={s}", .{basedir});
     try local.append(res_path);
 
-    try local.append(try a.dupe(u8, "tmp.md"));
+    try local.append(try a.dupe(u8, tmp_file));
 
     const out = try fm.filename(a);
     std.mem.replaceScalar(u8, out, ' ', '_');

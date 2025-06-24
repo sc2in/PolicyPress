@@ -27,6 +27,7 @@ feed  = false
 render = false 
 
 [extra]
+redact = true
 policy_root = "policies/_index.md"
 organization = "Star City Security Consulting"
 logo = "logo.png"

@@ -123,8 +123,8 @@ pub fn build(b: *std.Build) !void {
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_unit_tests.step);
 
-    // const web_step = b.step("web", "Build the policy center");
-    // web_step.makeFn = build_web;
+    const web_step = b.step("web", "Build the policy center");
+    web_step.makeFn = build_web;
     // web_step.dependOn(pandoc_step);
     const pdf_step = b.step("pdfs", "Build pdfs directly from the build script");
     try build_pdfs(b, pdf_step, exe);
@@ -134,29 +134,23 @@ const MyStep = struct {
     step: std.Build.Step,
     my_option: bool,
 };
-fn build_web(step: *std.Build.Step, opt: std.Build.Step.MakeOptions) !void {
-    const p = opt.progress_node.start("Build web", 2);
-    defer p.end();
+//BUG: This is not deploying to zig-out
+fn build_web(step: *std.Build.Step, _: std.Build.Step.MakeOptions) !void {
     const b = step.owner;
+    const wf = b.addWriteFiles();
 
-    const web = b.addWriteFiles();
-    b.installDirectory(.{
+    const zola_step = std.Build.Step.Run.create(b, "Zola");
+    step.dependOn(&zola_step.step);
+    zola_step.addArgs(&.{ "zola", "build" });
+    _ = wf.addCopyDirectory(b.path("public"), "", .{ .include_extensions = &.{"pdf"} });
+    wf.step.dependOn(&zola_step.step);
+    const a = b.addInstallDirectory(.{
         .install_dir = .prefix,
-        .source_dir = web.addCopyDirectory(b.path("public/pdf"), "pdf", .{}),
-        .install_subdir = "web/pdf",
-    });
-
-    const zp = p.start("Zola build", 1);
-    _ = b.run(&.{ "zola", "build" });
-    zp.end();
-
-    const ip = p.start("Copy web artifacts", 1);
-    defer ip.end();
-    b.installDirectory(.{
-        .install_dir = .prefix,
-        .source_dir = web.addCopyDirectory(b.path("public/"), "", .{}),
+        .source_dir = wf.getDirectory(),
         .install_subdir = "web",
     });
+    a.step.dependOn(&wf.step);
+    step.dependOn(&a.step);
 }
 
 fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile) !void {

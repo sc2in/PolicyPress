@@ -160,40 +160,49 @@ fn build_web(step: *std.Build.Step, opt: std.Build.Step.MakeOptions) !void {
 }
 
 fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile) !void {
-    // const website = b.addWriteFiles();
+    const wf = b.addWriteFiles();
 
-    const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/*.md" });
+    const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/data/*.md" });
     var lines = std.mem.tokenizeScalar(u8, markdown_files, '\n');
 
     std.fs.cwd().makeDir(".tmp") catch |e| {
         if (e != error.PathAlreadyExists) return e;
     };
 
-    const inst = b.addInstallDirectory(.{
-        .source_dir = b.path(".tmp"),
-        .install_dir = .prefix,
-        .install_subdir = "pdfs",
-        .include_extensions = &.{"pdf"},
-    });
+    _ = wf.addCopyDirectory(b.path(".tmp"), "", .{ .include_extensions = &.{"pdf"} });
+
+    var run_cmds = Array(*std.Build.Step).init(b.allocator);
+    defer run_cmds.deinit();
 
     while (lines.next()) |file_path| {
         if (std.mem.endsWith(u8, file_path, "_index.md")) continue;
 
-        const run_cmd = b.addRunArtifact(exe);
+        var run_cmd = b.addRunArtifact(exe);
         run_cmd.addArgs(&.{
             "--color", "FFFFFF",
-            "--logo",  "static/logo.png",
             "--org",   "SC2",
-            "-i",      file_path,
-            "-o",      ".tmp",
             "--root",  "./",
         });
+        run_cmd.addArg("--logo");
+        run_cmd.addFileArg(b.path("static/logo.png"));
+        run_cmd.addArg("-i");
+        run_cmd.addFileArg(b.path(file_path));
+        run_cmd.addArg("-o");
+        _ = run_cmd.addOutputDirectoryArg(".tmp");
         if (is_draft) run_cmd.addArg("-d");
 
-        inst.step.dependOn(&run_cmd.step);
-        step.dependOn(&run_cmd.step);
+        // wf.step.dependOn(&run_cmd.step);
+        // inst.step.dependOn(&run_cmd.step);
+        try run_cmds.append(&run_cmd.step);
     }
+    for (run_cmds.items) |cmd|
+        wf.step.dependOn(cmd);
 
+    const inst = b.addInstallDirectory(.{
+        .source_dir = wf.getDirectory(),
+        .install_dir = .prefix,
+        .install_subdir = "pdfs",
+    });
     step.dependOn(&inst.step);
 }
 fn cut_prefix(text: []const u8, prefix: []const u8) ?[]const u8 {

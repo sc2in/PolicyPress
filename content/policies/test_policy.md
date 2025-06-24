@@ -15,7 +15,6 @@ taxonomies:
     - HRS-05.3
     - HRS-05.4
     - HRS-05.5
-
 extra:
   owner: SC2
   last_reviewed: 2025-02-24
@@ -24,12 +23,12 @@ extra:
       description: Demo revision.
       revised_by: Ben Craton
       approved_by: Ben Craton
-      version: "1.0"
+      version: "1.1"
     - date: 2024-02-11
       description: Initial version.
       revised_by: Ben Craton
       approved_by: Ben Craton
-      version: "0.0"
+      version: "1.0"
 ---
 
 ## Introduction

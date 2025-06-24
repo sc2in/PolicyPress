@@ -106,6 +106,7 @@ pub fn get_metadata(a: Allocator, txt: *Array(u8), config: anytype) !FrontMatter
 
 /// Comparator function for sorting YAML revision values in ascending order.
 pub fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
+    if (a != .string or b != .string) return false;
     const as = a.string;
     const bs = b.string;
 
@@ -411,3 +412,59 @@ pub const FM = struct {
         };
     }
 };
+
+pub fn redact(txt: *Array(u8), remove: bool) !void {
+    const r: mvzr.Regex = mvzr.compile("\\{%\\s*redact\\(\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;
+    if (!r.isMatch(txt.items)) return;
+
+    var new = try txt.clone();
+
+    var iter = r.iterator(txt.items);
+    while (iter.next()) |m| {
+        const s = std.mem.indexOf(u8, m.slice, "%}") orelse return error.InvalidShortCode;
+        const e = std.mem.lastIndexOf(u8, m.slice, "{%") orelse return error.InvalidShortCode;
+        const inner = m.slice[s + 2 .. e - 1];
+        const replace = if (remove) blk: {
+            const replace = try txt.allocator.alloc(u8, m.slice.len);
+            @memset(replace, 219);
+            break :blk replace;
+        } else blk: {
+            const replace = try txt.allocator.alloc(u8, m.slice.len);
+            @memset(replace, ' ');
+            @memcpy(replace[0..inner.len], inner);
+            break :blk replace;
+        };
+        defer txt.allocator.free(replace);
+
+        try new.replaceRange(m.start, m.slice.len, replace);
+        iter = r.iterator(new.items);
+    }
+    txt.deinit();
+    txt.* = new;
+}
+
+test "Redaction" {
+    const t =
+        \\{% redact() %}
+        \\This is a test policy for demonstration purposes. It contains sensitive information that should not be disclosed.
+        \\{% end %}
+    ;
+    var ts = Array(u8).init(tst.allocator);
+    defer ts.deinit();
+
+    const expected = [_]u8{0xDB} ** t.len;
+
+    try ts.appendSlice(t);
+    try redact(&ts, true);
+    std.debug.print("{s}\n", .{ts.items});
+    try tst.expectEqualStrings(&expected, ts.items);
+
+    var t2 = Array(u8).init(tst.allocator);
+    defer t2.deinit();
+
+    const expected2 = "This is a test policy for demonstration purposes. It contains sensitive information that should not be disclosed.";
+
+    try t2.appendSlice(t);
+    try redact(&t2, false);
+    try tst.expectEqualStrings(std.mem.trim(u8, expected2, "\n "), std.mem.trim(u8, t2.items, "\n "));
+}

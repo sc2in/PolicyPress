@@ -9,10 +9,13 @@ const org = "SC2";
 const logo = "static/logo.png";
 const color = "AACEFF";
 var is_draft = false;
+var is_redact = false;
 
 pub fn build(b: *std.Build) !void {
     const draft_option = b.option(bool, "draft", "Produce pdfs with a draft watermark") orelse false;
     is_draft = draft_option;
+    const redact_option = b.option(bool, "redact", "Produce pdfs with redacted information") orelse false;
+    is_redact = redact_option;
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -156,7 +159,7 @@ fn build_web(step: *std.Build.Step, _: std.Build.Step.MakeOptions) !void {
 fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile) !void {
     const wf = b.addWriteFiles();
 
-    const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/data/*.md" });
+    const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/*.md" });
     var lines = std.mem.tokenizeScalar(u8, markdown_files, '\n');
 
     std.fs.cwd().makeDir(".tmp") catch |e| {
@@ -184,6 +187,7 @@ fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile
         run_cmd.addArg("-o");
         _ = run_cmd.addOutputDirectoryArg(".tmp");
         if (is_draft) run_cmd.addArg("-d");
+        if (is_redact) run_cmd.addArg("-r");
 
         // wf.step.dependOn(&run_cmd.step);
         // inst.step.dependOn(&run_cmd.step);

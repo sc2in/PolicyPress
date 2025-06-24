@@ -260,8 +260,7 @@ pub fn process_md_file(
     try u.replace_org(&contents, global_config.org.?);
     try u.replace_zola_at(&contents);
     try u.replace_mermaid(&contents);
-    if (global_config.redact)
-        try u.redact(&contents);
+    try u.redact(&contents, global_config.redact);
 
     var fm = try u.get_metadata(a, &contents, global_config);
     defer fm.deinit(a);

@@ -156,7 +156,7 @@ fn build_web(step: *std.Build.Step, _: std.Build.Step.MakeOptions) !void {
 fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile) !void {
     const wf = b.addWriteFiles();
 
-    const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/data/*.md" });
+    const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/*.md" });
     var lines = std.mem.tokenizeScalar(u8, markdown_files, '\n');
 
     std.fs.cwd().makeDir(".tmp") catch |e| {

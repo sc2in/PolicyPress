@@ -353,6 +353,11 @@ blockquote {
   padding: 0 20px;
 }
 
+.redaction {
+  background-color: black;
+}
+
+
 @import "fabric-icons-inline";
 @import "search";
 @import "last-review-table";

@@ -1,3 +1,5 @@
+//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: AGPL-3.0-or-later
 //! Parser for Tera templates
 //! Converts tokens into an Abstract Syntax Tree (AST)
 

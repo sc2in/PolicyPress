@@ -204,7 +204,7 @@ Notification to NY customers of breaches within 72 hours
 
 #### Consequences
 
-Up to (1) $2,500 per day during which a violation continues (b) $15,000 per day in the event of any reckless or unsound practice or pattern of miscount, or (c) $75,000 per day in the event of a knowing and willful violation.
+Up to (1) $2,500 per day during which a violation continues (b) $15,000 per day in the event of any reckless or unsound practice or pattern of miscount, or © $75,000 per day in the event of a knowing and willful violation.
 
 ### California Privacy Rights Act (CPRA)
 

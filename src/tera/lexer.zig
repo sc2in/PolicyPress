@@ -1,3 +1,5 @@
+//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: AGPL-3.0-or-later
 //! Lexer for Tera templates
 //! Tokenizes template strings into a stream of tokens for parsing
 

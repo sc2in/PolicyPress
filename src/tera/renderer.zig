@@ -1,3 +1,5 @@
+//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: AGPL-3.0-or-later
 //! Renderer for Tera templates
 //! Evaluates AST nodes and produces final output
 

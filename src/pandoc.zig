@@ -246,6 +246,8 @@ pub fn process_md_file(
     defer dir.close();
     var file = try dir.openFile(md.path, .{ .mode = .read_only });
     defer file.close();
+    var build = try std.fs.cwd().openDir(global_config.build_dir.?, .{});
+    defer build.close();
 
     const raw = try file.readToEndAlloc(a, 100_000_000);
     var contents = Array(u8){
@@ -266,17 +268,17 @@ pub fn process_md_file(
     defer fm.deinit(a);
 
     const tmp_file = std.fs.path.basename(md.path);
-    const tmp = std.fs.cwd().createFile(tmp_file, std.fs.File.CreateFlags{ .exclusive = true }) catch |e| blk: {
+    const tmp = build.createFile(tmp_file, std.fs.File.CreateFlags{ .exclusive = true }) catch |e| blk: {
         if (e == error.PathAlreadyExists) {
-            std.fs.cwd().deleteFile(tmp_file) catch unreachable;
-            break :blk try std.fs.cwd().createFile(tmp_file, std.fs.File.CreateFlags{ .exclusive = true });
+            build.deleteFile(tmp_file) catch unreachable;
+            break :blk try build.createFile(tmp_file, std.fs.File.CreateFlags{ .exclusive = true });
         }
         return e;
     };
 
     defer {
         tmp.close();
-        std.fs.cwd().deleteFile(tmp_file) catch unreachable;
+        build.deleteFile(tmp_file) catch unreachable;
     }
     try tmp.writeAll(contents.items);
 
@@ -286,7 +288,7 @@ pub fn process_md_file(
     const res_path = try std.fmt.allocPrint(a, "--resource-path={s}", .{basedir});
     try local.append(res_path);
 
-    try local.append(try a.dupe(u8, tmp_file));
+    try local.append(try std.fs.path.join(a, &.{ global_config.build_dir.?, tmp_file }));
 
     const out = try fm.filename(a);
     std.mem.replaceScalar(u8, out, ' ', '_');

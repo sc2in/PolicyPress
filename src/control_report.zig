@@ -124,7 +124,8 @@ pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
 
         try ret.appendSlice(line);
     }
-    _ = ret.pop();
+    if (ret.items.len > 1)
+        _ = ret.pop();
     try ret.appendSlice("}");
     return try ret.toOwnedSlice();
 }

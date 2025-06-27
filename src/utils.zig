@@ -109,6 +109,7 @@ pub fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
     if (a != .string or b != .string) return false;
     const as = a.string;
     const bs = b.string;
+    if (as.len < bs.len) return false;
 
     for (as, 0..) |ac, i| {
         if (ac < bs[i]) return true;

@@ -48,15 +48,15 @@ Each user's or workforce member's password must meet the criteria set forth in t
 
 ### Automatic Lock
 
-Servers, workstations, or other computer systems containing PII repositories must employ inactivity timers or automatic logoff mechanisms as described in the [ITSP]({{< ref "/docs/isms/itsp.md#automatic-lockout-policy" >}}).
+Servers, workstations, or other computer systems containing PII repositories must employ inactivity timers or automatic logoff mechanisms as described in the [Application Security Policy](@/policies/security/application_security.md).
 
 ### Encryption and Decryption of PII maintained on internal databases
 
-PII at rest and in transit will be escrypted as described in the [ITSP]({{< ref "/docs/isms/itsp.md#encryption-and-decryption-policy" >}}).
+PII at rest and in transit will be escrypted as described in the [Application Security Policy](@/policies/security/application_security.md).
 
 ### Firewall Use and Remote Access
 
-Firewall and remote access must be configured and managed according to the guidelines specified in the [ITSP]({{< ref "/docs/isms/itsp.md#firewall-and-remote-access-policy" >}}). This includes ensuring that all remote access connections are authenticated and encrypted, and that firewalls are properly configured to protect PII from unauthorized access.
+Firewall and remote access must be configured and managed according to the guidelines specified in the [Application Security Policy](@/policies/security/application_security.md). This includes ensuring that all remote access connections are authenticated and encrypted, and that firewalls are properly configured to protect PII from unauthorized access.
 
 ## Access Revocation
 

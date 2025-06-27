@@ -52,7 +52,7 @@ Servers, workstations, or other computer systems containing PII repositories mus
 
 ### Encryption and Decryption of PII maintained on internal databases
 
-PII at rest and in transit will be escrypted as described in the [Application Security Policy](@/policies/security/application_security.md).
+PII at rest and in transit will be encrypted as described in the [Application Security Policy](@/policies/security/application_security.md).
 
 ### Firewall Use and Remote Access
 

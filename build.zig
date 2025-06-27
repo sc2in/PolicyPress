@@ -16,6 +16,7 @@ pub fn build(b: *std.Build) !void {
     is_draft = draft_option;
     const redact_option = b.option(bool, "redact", "Produce pdfs with redacted information") orelse false;
     is_redact = redact_option;
+    const policy_dir = "content/policies";
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -92,8 +93,7 @@ pub fn build(b: *std.Build) !void {
         .root_module = pandoc_sh_mod,
         .name = "pandoc_sh",
     });
-    const wrapper_exe = b.addInstallArtifact(pandoc_sh, .{});
-    _ = wrapper_exe; // autofix
+
     var pandoc_step = b.step("pdf", "run pandoc.sh");
     const pandoc_exe = b.addRunArtifact(pandoc_sh);
     if (b.args) |args| {
@@ -120,6 +120,31 @@ pub fn build(b: *std.Build) !void {
     test_module.addImport("yaml", yaml.module("yaml"));
     test_module.addImport("mvzr", mvzr.module("mvzr"));
 
+    const policy_report = b.addExecutable(.{
+        .name = "policy_report",
+        .target = target,
+        .optimize = .ReleaseFast,
+        .root_source_file = b.path("src/control_report.zig"),
+    });
+    policy_report.root_module.addImport("clap", clap.module("clap"));
+    policy_report.root_module.addImport("yaml", yaml.module("yaml"));
+    policy_report.root_module.addImport("tomlz", tomlz.module("tomlz"));
+
+    const run_policy_report = b.addRunArtifact(policy_report);
+    run_policy_report.addArg("--controls_file");
+    run_policy_report.addFileArg(b.path("templates/opencontrols/standards/SCF.json"));
+    run_policy_report.addArg("--policy_root");
+    run_policy_report.addDirectoryArg(b.path(policy_dir));
+    const policy_report_output = run_policy_report.captureStdOut();
+    const policy_report_inst = b.addInstallFileWithDir(
+        policy_report_output,
+        .prefix,
+        "policy_report.json",
+    );
+
+    const report_step = b.step("reports", "Run reports");
+    report_step.dependOn(&policy_report_inst.step);
+
     const unit_tests = b.addTest(.{
         .root_module = test_module,
     });
@@ -129,7 +154,6 @@ pub fn build(b: *std.Build) !void {
 
     const pdf_step = b.step("pdfs", "Build pdfs directly from the build script");
 
-    const policy_dir = "content/policies";
     const wf = b.addWriteFiles();
 
     var dir = try std.fs.cwd().openDir(policy_dir, .{
@@ -183,19 +207,6 @@ pub fn build(b: *std.Build) !void {
             );
         }
     }
-    // const mv = b.addSystemCommand(&.{
-    //     "find",
-    //     ".",
-    //     "-type",
-    //     "f",
-    //     "-name",
-    //     "\"*.pdf\"",
-    //     "-exec",
-    //     "echo",
-    // });
-    // const output = mv.addOutputDirectoryArg("pdfs");
-    // mv.addArg("\\\\;");
-    // mv.setCwd(wf.getDirectory());
 
     const mkdir = b.addInstallDirectory(.{
         .install_dir = .prefix,
@@ -204,4 +215,7 @@ pub fn build(b: *std.Build) !void {
         .include_extensions = &.{"pdf"},
     });
     pdf_step.dependOn(&mkdir.step);
+
+    b.default_step.dependOn(pdf_step);
+    b.default_step.dependOn(report_step);
 }

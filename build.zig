@@ -47,6 +47,23 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
 
+    const web_build = b.addSystemCommand(&.{
+        "zola",
+        "build",
+        "--force",
+    });
+    if (draft_option) web_build.addArg("--drafts");
+    if (optimize != .Debug) web_build.addArg("--minify");
+    web_build.addArg("-o");
+    const web_output = web_build.addOutputDirectoryArg("public");
+    const web_inst = b.addInstallDirectory(.{
+        .install_dir = .prefix,
+        .source_dir = web_output,
+        .install_subdir = "public",
+    });
+    const web_step = b.step("web", "Build website from zola");
+    web_step.dependOn(&web_inst.step);
+
     // the executable from your call to exe_mod.addExecutable
     if (target.result.os.tag != .windows) {
         const zap = b.dependency("zap", .{
@@ -71,10 +88,10 @@ pub fn build(b: *std.Build) !void {
             run_server.addArgs(args);
         }
 
-        const serve_step = b.step("serve", "Serve the zola output");
+        const serve_step = b.step("preview", "Serve the zola output");
         serve_step.dependOn(&run_server.step);
     } else {
-        _ = b.step("serve", "Serve the zola output (Not available on Windows. Does nothing.)");
+        _ = b.step("preview", "Serve the zola output (Not available on Windows. run `zola preview` instead.)");
     }
     // the executable from your call to b.addExecutable(...)
 
@@ -216,6 +233,7 @@ pub fn build(b: *std.Build) !void {
     });
     pdf_step.dependOn(&mkdir.step);
 
-    b.default_step.dependOn(pdf_step);
     b.default_step.dependOn(report_step);
+    b.default_step.dependOn(pdf_step);
+    b.default_step.dependOn(web_step);
 }

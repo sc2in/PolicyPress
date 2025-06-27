@@ -16,6 +16,7 @@ pub fn build(b: *std.Build) !void {
     is_draft = draft_option;
     const redact_option = b.option(bool, "redact", "Produce pdfs with redacted information") orelse false;
     is_redact = redact_option;
+    const policy_dir = "content/policies";
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -46,6 +47,23 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
 
+    const web_build = b.addSystemCommand(&.{
+        "zola",
+        "build",
+        "--force",
+    });
+    if (draft_option) web_build.addArg("--drafts");
+    if (optimize != .Debug) web_build.addArg("--minify");
+    web_build.addArg("-o");
+    const web_output = web_build.addOutputDirectoryArg("public");
+    const web_inst = b.addInstallDirectory(.{
+        .install_dir = .prefix,
+        .source_dir = web_output,
+        .install_subdir = "public",
+    });
+    const web_step = b.step("web", "Build website from zola");
+    web_step.dependOn(&web_inst.step);
+
     // the executable from your call to exe_mod.addExecutable
     if (target.result.os.tag != .windows) {
         const zap = b.dependency("zap", .{
@@ -70,10 +88,10 @@ pub fn build(b: *std.Build) !void {
             run_server.addArgs(args);
         }
 
-        const serve_step = b.step("serve", "Serve the zola output");
+        const serve_step = b.step("preview", "Serve the zola output");
         serve_step.dependOn(&run_server.step);
     } else {
-        _ = b.step("serve", "Serve the zola output (Not available on Windows. Does nothing.)");
+        _ = b.step("preview", "Serve the zola output (Not available on Windows. run `zola preview` instead.)");
     }
     // the executable from your call to b.addExecutable(...)
 
@@ -88,13 +106,13 @@ pub fn build(b: *std.Build) !void {
     pandoc_sh_mod.addImport("clap", clap.module("clap"));
     pandoc_sh_mod.addImport("tera", tera_mod);
     pandoc_sh_mod.addImport("datetime", pg.module("datetime"));
-    const exe = b.addExecutable(.{
+    const pandoc_sh = b.addExecutable(.{
         .root_module = pandoc_sh_mod,
         .name = "pandoc_sh",
     });
-    b.installArtifact(exe);
+
     var pandoc_step = b.step("pdf", "run pandoc.sh");
-    const pandoc_exe = b.addRunArtifact(exe);
+    const pandoc_exe = b.addRunArtifact(pandoc_sh);
     if (b.args) |args| {
         pandoc_exe.addArgs(args);
     }
@@ -105,7 +123,7 @@ pub fn build(b: *std.Build) !void {
     const docs_install = b.addInstallDirectory(.{
         .install_dir = .prefix,
         .install_subdir = "docs",
-        .source_dir = exe.getEmittedDocs(),
+        .source_dir = pandoc_sh.getEmittedDocs(),
     });
     docs_step.dependOn(&docs_install.step);
 
@@ -119,6 +137,31 @@ pub fn build(b: *std.Build) !void {
     test_module.addImport("yaml", yaml.module("yaml"));
     test_module.addImport("mvzr", mvzr.module("mvzr"));
 
+    const policy_report = b.addExecutable(.{
+        .name = "policy_report",
+        .target = target,
+        .optimize = .ReleaseFast,
+        .root_source_file = b.path("src/control_report.zig"),
+    });
+    policy_report.root_module.addImport("clap", clap.module("clap"));
+    policy_report.root_module.addImport("yaml", yaml.module("yaml"));
+    policy_report.root_module.addImport("tomlz", tomlz.module("tomlz"));
+
+    const run_policy_report = b.addRunArtifact(policy_report);
+    run_policy_report.addArg("--controls_file");
+    run_policy_report.addFileArg(b.path("templates/opencontrols/standards/SCF.json"));
+    run_policy_report.addArg("--policy_root");
+    run_policy_report.addDirectoryArg(b.path(policy_dir));
+    const policy_report_output = run_policy_report.captureStdOut();
+    const policy_report_inst = b.addInstallFileWithDir(
+        policy_report_output,
+        .prefix,
+        "policy_report.json",
+    );
+
+    const report_step = b.step("reports", "Run reports");
+    report_step.dependOn(&policy_report_inst.step);
+
     const unit_tests = b.addTest(.{
         .root_module = test_module,
     });
@@ -126,159 +169,71 @@ pub fn build(b: *std.Build) !void {
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_unit_tests.step);
 
-    const web_step = b.step("web", "Build the policy center");
-    web_step.makeFn = build_web;
-    // web_step.dependOn(pandoc_step);
     const pdf_step = b.step("pdfs", "Build pdfs directly from the build script");
-    try build_pdfs(b, pdf_step, exe);
-}
 
-const MyStep = struct {
-    step: std.Build.Step,
-    my_option: bool,
-};
-//BUG: This is not deploying to zig-out
-fn build_web(step: *std.Build.Step, _: std.Build.Step.MakeOptions) !void {
-    const b = step.owner;
     const wf = b.addWriteFiles();
 
-    const zola_step = std.Build.Step.Run.create(b, "Zola");
-    step.dependOn(&zola_step.step);
-    zola_step.addArgs(&.{ "zola", "build" });
-    _ = wf.addCopyDirectory(b.path("public"), "", .{ .include_extensions = &.{"pdf"} });
-    wf.step.dependOn(&zola_step.step);
-    const a = b.addInstallDirectory(.{
-        .install_dir = .prefix,
-        .source_dir = wf.getDirectory(),
-        .install_subdir = "web",
+    var dir = try std.fs.cwd().openDir(policy_dir, .{
+        .iterate = true,
+        .access_sub_paths = true,
     });
-    a.step.dependOn(&wf.step);
-    step.dependOn(&a.step);
-}
+    defer dir.close();
 
-fn build_pdfs(b: *std.Build, step: *std.Build.Step, exe: *std.Build.Step.Compile) !void {
-    const wf = b.addWriteFiles();
+    var walker = try dir.walk(b.allocator);
+    defer walker.deinit();
 
-    const markdown_files = b.run(&.{ "git", "ls-files", "content/policies/*.md" });
-    var lines = std.mem.tokenizeScalar(u8, markdown_files, '\n');
+    while (try walker.next()) |entry| {
+        if (entry.kind == .file and std.mem.endsWith(u8, entry.path, ".md")) {
+            const base_name = std.fs.path.basename(entry.path);
+            if (std.mem.eql(u8, base_name, "_index.md")) continue;
 
-    std.fs.cwd().makeDir(".tmp") catch |e| {
-        if (e != error.PathAlreadyExists) return e;
-    };
+            const input_path = b.pathJoin(&.{ policy_dir, entry.path });
+            const input = b.path(input_path);
 
-    _ = wf.addCopyDirectory(b.path(".tmp"), "", .{ .include_extensions = &.{"pdf"} });
+            // Step 2: Run pandoc wrapper
+            const run_wrapper = b.addRunArtifact(pandoc_sh);
+            run_wrapper.addArgs(&.{
+                "--color", "FFFFFF",
+                "--org",   "SC2",
+                "--root",  "./",
+            });
+            run_wrapper.addArg("--logo");
+            run_wrapper.addFileArg(b.path("static/logo.png"));
+            run_wrapper.addArg("--input");
+            run_wrapper.addFileArg(input);
+            run_wrapper.addArg("--output");
+            run_wrapper.expectExitCode(0);
+            _ = run_wrapper.captureStdErr();
+            const pdf_dir = run_wrapper.addOutputDirectoryArg(base_name);
+            if (is_draft) run_wrapper.addArg("-d");
+            if (is_redact) run_wrapper.addArg("-r");
 
-    var run_cmds = Array(*std.Build.Step).init(b.allocator);
-    defer run_cmds.deinit();
+            const inst = b.addInstallDirectory(.{
+                .install_dir = .prefix,
+                .source_dir = pdf_dir,
 
-    while (lines.next()) |file_path| {
-        if (std.mem.endsWith(u8, file_path, "_index.md")) continue;
-
-        var run_cmd = b.addRunArtifact(exe);
-        run_cmd.addArgs(&.{
-            "--color", "FFFFFF",
-            "--org",   "SC2",
-            "--root",  "./",
-        });
-        run_cmd.addArg("--logo");
-        run_cmd.addFileArg(b.path("static/logo.png"));
-        run_cmd.addArg("-i");
-        run_cmd.addFileArg(b.path(file_path));
-        run_cmd.addArg("-o");
-        _ = run_cmd.addOutputDirectoryArg(".tmp");
-        if (is_draft) run_cmd.addArg("-d");
-        if (is_redact) run_cmd.addArg("-r");
-
-        // wf.step.dependOn(&run_cmd.step);
-        // inst.step.dependOn(&run_cmd.step);
-        try run_cmds.append(&run_cmd.step);
+                .install_subdir = "pdfs",
+            });
+            pdf_step.dependOn(&inst.step);
+            inst.step.dependOn(&run_wrapper.step);
+            // Step 3: Install the generated PDF
+            _ = wf.addCopyDirectory(
+                pdf_dir.path(b, ""),
+                "", //b.pathJoin(&.{ base_name, base_name }),
+                .{ .include_extensions = &.{"pdf"} },
+            );
+        }
     }
-    for (run_cmds.items) |cmd|
-        wf.step.dependOn(cmd);
 
-    const inst = b.addInstallDirectory(.{
-        .source_dir = wf.getDirectory(),
+    const mkdir = b.addInstallDirectory(.{
         .install_dir = .prefix,
         .install_subdir = "pdfs",
+        .source_dir = wf.getDirectory(),
+        .include_extensions = &.{"pdf"},
     });
-    step.dependOn(&inst.step);
-}
-fn cut_prefix(text: []const u8, prefix: []const u8) ?[]const u8 {
-    if (std.mem.startsWith(u8, text, prefix)) return text[prefix.len..];
-    return null;
-}
+    pdf_step.dependOn(&mkdir.step);
 
-fn cut_suffix(text: []const u8, suffix: []const u8) ?[]const u8 {
-    if (std.mem.endsWith(u8, text, suffix)) return text[0 .. text.len - suffix.len];
-    return null;
-}
-fn build_pdf_from_markdown(b: *std.Build, path: std.Build.LazyPath, step: *std.Build.Step) !std.Build.LazyPath {
-    const title = b.fmt("Run pandoc for {s}", .{cut_prefix(path.getDisplayName(), "content/policies/").?});
-    const res_path = b.fmt("--resource-path={s}", .{path.dirname().getPath(b)});
-    const data_path = b.fmt("--data-dir={s}", .{try std.fs.cwd().realpathAlloc(b.allocator, ".")});
-    const header = b.fmt("header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{logo});
-    const footer = b.fmt("footer-left={s} \\textcopyright {s}", .{ org, year });
-    const title_logo = b.fmt("titlepage-logo={s}", .{logo});
-    const inst = b.fmt("institution=\"{s}\"", .{org});
-    const col = b.fmt("titlepage-rule-color={s}", .{color});
-
-    const contents = try readLazyPathToMemory(b, path);
-    const str = Array(u8){
-        .allocator = b.allocator,
-        .items = contents,
-        .capacity = contents.len,
-    };
-    // defer str.deinit();
-    // std.debug.print("{any}\n", .{std.unicode.utf8ValidateSlice(str.items)});
-
-    const pandoc_step = std.Build.Step.Run.create(b, title);
-    step.dependOn(&pandoc_step.step);
-    // try u.replace_org(&str, org, u.DummyProgress{});
-    // try u.replace_mermaid(&str, u.DummyProgress{});
-    pandoc_step.setStdIn(.{ .bytes = str.items });
-
-    pandoc_step.addArg("pandoc");
-    pandoc_step.addPathDir(".devbox/nix/profile/default/bin/");
-    pandoc_step.addArgs(&.{ "-V", "footer-center=Confidental" });
-    pandoc_step.addArgs(&.{ "-V", header });
-    pandoc_step.addArgs(&.{ "-V", footer });
-    pandoc_step.addArgs(&.{ "-V", title_logo });
-    pandoc_step.addArgs(&.{ "-V", inst });
-    pandoc_step.addArgs(&.{ "-V", col });
-    pandoc_step.addArgs(&.{ "-V", "papersize=letter" });
-    pandoc_step.addArgs(&.{ "-V", "titlepage=true" });
-    pandoc_step.addArgs(&.{ "-V", "toc=true" });
-    pandoc_step.addArgs(&.{ "-V", "toc-own-page=true" });
-    pandoc_step.addArgs(&.{ "-V", "toc-depth=3" });
-    pandoc_step.addArgs(&.{ "-V", "logo-width=6cm" });
-    pandoc_step.addArgs(&.{ "-V", "table-use-row-colors=true" });
-    pandoc_step.addArgs(&.{ "-F", "mermaid-filter" });
-    pandoc_step.addArgs(&.{ "--template", "eisvogel" });
-    pandoc_step.addArgs(&.{
-        res_path,
-        data_path,
-        "--from=markdown",
-        "--to=pdf",
-        "--webtex",
-        "--listings",
-        "--pdf-engine=xelatex",
-    });
-    if (is_draft) {
-        pandoc_step.addArgs(&.{ "-V", "page-background=static/draft.png" });
-        pandoc_step.addArgs(&.{ "-V", "page-background-opacity=0.8" });
-    }
-    // pandoc_step.addFileArg(path);
-
-    return pandoc_step.captureStdOut();
-}
-pub fn readLazyPathToMemory(
-    b: *std.Build,
-    lazy_path: std.Build.LazyPath,
-) ![]u8 {
-
-    // Open and read the file as usual
-    var file = try std.fs.cwd().openFile(lazy_path.getPath(b), .{});
-    defer file.close();
-
-    return try file.readToEndAlloc(b.allocator, 100_000_000);
+    b.default_step.dependOn(report_step);
+    b.default_step.dependOn(pdf_step);
+    b.default_step.dependOn(web_step);
 }

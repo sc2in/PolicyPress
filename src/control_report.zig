@@ -5,7 +5,7 @@ const tst = std.testing;
 const math = std.math;
 const Yaml = @import("yaml").Yaml;
 const FM = @import("frontmatter.zig");
-
+const clap = @import("clap");
 const Self = @This();
 
 contents: []u8,
@@ -117,12 +117,16 @@ pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
     var p2 = prog.start("Generating Report", self.map.values().len);
     defer p2.end();
     var iter = self.map.iterator();
+    try ret.appendSlice("{");
     while (iter.next()) |c| {
-        const line = try std.fmt.allocPrint(a, "{s}: {}\n", .{ c.key_ptr.*, c.value_ptr.found });
+        const line = try std.fmt.allocPrint(a, "\"{s}\": {},", .{ c.key_ptr.*, c.value_ptr.found });
         defer a.free(line);
 
         try ret.appendSlice(line);
     }
+    if (ret.items.len > 1)
+        _ = ret.pop();
+    try ret.appendSlice("}");
     return try ret.toOwnedSlice();
 }
 
@@ -141,3 +145,47 @@ const Control = struct {
     description: []const u8,
     found: bool = false,
 };
+
+pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    var arena = std.heap.ArenaAllocator.init(gpa.allocator());
+    defer arena.deinit();
+
+    const alloc = arena.allocator();
+    const params = comptime clap.parseParamsComptime(
+        \\-h, --help             Display this help and exit.
+        \\--controls_file <str>  Controls file to report against
+        \\--policy_root <str>    Policy root directory
+    );
+    var diag = clap.Diagnostic{};
+    var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
+        .diagnostic = &diag,
+        .allocator = alloc,
+    }) catch |err| {
+        // Report useful error and exit.
+        diag.report(std.io.getStdErr().writer(), err) catch {};
+        return err;
+    };
+    defer res.deinit();
+    if (res.args.help != 0) {
+        std.debug.print(
+            \\SC2 Policy Report
+            \\Returns a json of controls' presence in the policies
+        , .{});
+        return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
+    }
+    var rep = try init(alloc, res.args.controls_file orelse return error.NoControlFile);
+    defer rep.deinit();
+
+    const stdout_file = std.io.getStdOut().writer();
+    var bw = std.io.bufferedWriter(stdout_file);
+    const stdout = bw.writer();
+
+    const r = try rep.report(res.args.policy_root orelse return error.NoPolicyRoot);
+
+    try stdout.print("{s}", .{r});
+
+    try bw.flush(); // Don't forget to flush!
+
+}

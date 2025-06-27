@@ -134,10 +134,7 @@ Contributions are welcome! Please open issues or pull requests for bug fixes, im
 
 ## Community & Support
 
-- [Issues](https://github.com/your-org/policypress/issues)
-- [Discussions](https://github.com/your-org/policypress/discussions)
+- [Issues](https://github.com/sc2in/policy-center/issues)
 
 **PolicyPress**: Compliance, Automated. Policies, Organized.  
 Built for the community, by the community.
-
-[1] <https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/18980759/b23fe3b6-0c36-43c9-93af-d0693e1619a3/paste.txt>

@@ -18,3 +18,5 @@ tmp.*
 zig-out
 *.err
 .devbox
+.venv
+.tmp

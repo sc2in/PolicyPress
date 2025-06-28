@@ -216,8 +216,8 @@ pub fn build(b: *std.Build) !void {
 
                 .install_subdir = "pdfs",
             });
-            pdf_step.dependOn(&inst.step);
             inst.step.dependOn(&run_wrapper.step);
+            pdf_step.dependOn(&inst.step);
             // Step 3: Install the generated PDF
             _ = wf.addCopyDirectory(
                 pdf_dir.path(b, ""),

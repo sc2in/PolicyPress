@@ -296,7 +296,7 @@ pub fn process_md_file(
     const out = try fm.filename(a);
     std.mem.replaceScalar(u8, out, ' ', '_');
 
-    try add_arg(a, &local, "-o", "{s}{s}{s}", .{ global_config.build_dir.?, "", out });
+    try add_arg(a, &local, "-o", "{s}{s}{s}", .{ global_config.build_dir.?, "/", out });
     try run_pandoc(a, local);
 }
 

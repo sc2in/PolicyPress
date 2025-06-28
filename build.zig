@@ -1,3 +1,5 @@
+//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: AGPL-3.0-or-later
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
@@ -214,8 +216,8 @@ pub fn build(b: *std.Build) !void {
 
                 .install_subdir = "pdfs",
             });
-            pdf_step.dependOn(&inst.step);
             inst.step.dependOn(&run_wrapper.step);
+            pdf_step.dependOn(&inst.step);
             // Step 3: Install the generated PDF
             _ = wf.addCopyDirectory(
                 pdf_dir.path(b, ""),

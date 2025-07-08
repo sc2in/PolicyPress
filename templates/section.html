@@ -34,39 +34,33 @@ description=description) }}
 {% endblock body %}
 
 {% block content %}
-<div class="wrap container" role="document">
-  <div class="content">
-    <div class="row justify-content-center">
-      <div class="col-md-12 col-lg-10 col-xxl-8">
-        <article>
-          <div class="page-header">
-            <h1>{{ section.title }}</h1>
-          </div>
-          {{ section.content | safe }}
-          {% if section.subsections -%}
-          <h3>Subsections:</h3>
-          <ul>
-            {% for subsec in section.subsections -%}
-            {% set sec_ = get_section(path=subsec) -%}
-            <li><a href="{{ sec_.permalink | safe }}{{ _ugly_url }}">{{
-                sec_.title }}</a></li>
-            {% endfor %}
-          </ul>
-          {% endif -%}
-          <h3>Pages:</h3>
-          <ul>
-            {% if section.pages -%}
-            {% for page in section.pages -%}
-            <li><a href="{{ page.permalink | safe }}{{ _ugly_url }}">{{
-                page.title }}</a></li>
-            {% endfor -%}
-            {% else -%}
-            <li>No pages</li>
-            {% endif %}
-          </ul>
-        </article>
-      </div>
-    </div>
+
+<article>
+  <div class="page-header">
+    <h1>{{ section.title }}</h1>
   </div>
-</div>
+  {{ section.content | safe }}
+  {% if section.subsections -%}
+  <h3>Subsections:</h3>
+  <ul>
+    {% for subsec in section.subsections -%}
+    {% set sec_ = get_section(path=subsec) -%}
+    <li><a href="{{ sec_.permalink | safe }}{{ _ugly_url }}">{{
+        sec_.title }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif -%}
+  <h3>Pages:</h3>
+  <ul>
+    {% if section.pages -%}
+    {% for page in section.pages -%}
+    <li><a href="{{ page.permalink | safe }}{{ _ugly_url }}">{{
+        page.title }}</a></li>
+    {% endfor -%}
+    {% else -%}
+    <li>No pages</li>
+    {% endif %}
+  </ul>
+</article>
+
 {% endblock content %}

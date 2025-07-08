@@ -42,10 +42,20 @@ config.mode == "Serve" -%}
     {{ macros_header::header(current_section="/") }}
     {% endblock header %}
     <div class="wrap container" role="document">
-      {% block sidebar %}
-      {{ macros_sidebar::sidebar(path=current_path) }}
-      {% endblock sidebar %}
-      {% block content %}{% endblock content %}
+      <div class="row flex-xl-nowrap">
+
+        {% block sidebar %}
+        <div class="col-lg-5 col-xl-4">
+          {{ macros_sidebar::sidebar(path=current_path) }}
+        </div>
+        {% endblock sidebar %}
+        <div class="column">
+
+          <div class="content">
+            {% block content %}{% endblock content %}
+          </div>
+        </div>
+      </div>
     </div>
     {% block footer %}
     {{ macros_footer::footer() }}

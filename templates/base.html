@@ -41,9 +41,12 @@ config.mode == "Serve" -%}
     {% block header %}
     {{ macros_header::header(current_section="/") }}
     {% endblock header %}
-
-    {% block content %}{% endblock content %}
-
+    <div class="wrap container" role="document">
+      {% block sidebar %}
+      {{ macros_sidebar::sidebar(path=current_path) }}
+      {% endblock sidebar %}
+      {% block content %}{% endblock content %}
+    </div>
     {% block footer %}
     {{ macros_footer::footer() }}
     {% endblock footer %}

@@ -1,6 +1,7 @@
 {% macro javascript() %}
 <script
-  src="https://cdn.jsdelivr.net/npm/mermaid@11.8.1/dist/mermaid.min.js"></script>
+  src="{{ get_url(path='plugins/mermaid/dist/mermaid.min.js') | safe }}"
+  defer></script>
 <script type="text/javascript" src="{{ get_url(path='js/main.js') | safe }}"
   defer></script>
 {% if config.build_search_index %}

@@ -1,135 +1,125 @@
-{% import "macros.html" as macros %}
-{% if get_env(name="BUILD_TYPE", default="web") != "pandoc" %}
+{% extends "base.html" %}
 
-<!DOCTYPE HTML>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <link rel="stylesheet" href="{{ get_url(path="main.css") | safe }}">
-        {% if config.extra.favicon -%}
-        {% set _favicon = config.extra.favicon -%}
-        {% if (_favicon is starting_with("http")) == false -%}
-        {% set _favicon = get_url(path=config.extra.favicon) -%}
-        {% endif -%}
-        <link rel="icon" href="{{ _favicon | safe }}">
-        {% endif -%}
+{% block seo %}
+{{ super() }}
 
-        <meta name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1">
-        <title>{% block title %}{{ config.title }}{% endblock title %}</title>
-    </head>
-    <body>
-        {% if config.extra.release -%}
-        <script>
-        fetch('{{ config.extra.release | safe }}')
-            .then((response) => {
-                return response.json();
-            })
-            .then((data) => {
-                let release_name = data.name;
-                let html_url = data.html_url;
-                release.innerHTML = `<a href='${html_url}'>${release_name}</a>`;
-            });
-    </script>
-        {% endif -%}
-        <main>
-            {# Create variable to allow appending index.html at end of links if
-            set in config #}
-            {% if not config.extra.easydocs_uglyurls or config.mode == "serve"
-            or config.mode == "Serve" -%}
-            {% set _ugly_url = "" -%}
-            {% else %}
-            {% set _ugly_url = "index.html" -%}
-            {% endif -%}
-
-            {%- block nav -%}
-            <nav>
-                {% if config.extra.logo -%}
-                {% set _logo = config.extra.logo -%}
-                {% if (_logo is starting_with("http")) == false -%}
-                {% set _logo = get_url(path=config.extra.logo) -%}
-                {% endif -%}
-                {% if current_path == "/" and not
-                config.extra.easydocs_logo_always_clickable -%}
-                <img src="{{ _logo | safe }}" alt="logo" />
-                {% else -%}
-                <a href="{{ config.base_url }}{{ _ugly_url }}">
-                    <img src="{{ _logo | safe }}" alt="logo" />
-                </a>
-                {% endif -%}
-
-                {% else -%}
-                <h1><a href="{{ config.base_url }}{{ _ugly_url }}">{{
-                        config.title }}</a></h1>
-                {% endif -%}
-
-                {% if config.extra.release -%}
-                <div id="release"></div>
-                {% endif -%}
-
-                <a href="javascript:void(0);" onclick="burger()" id="mobile"
-                    class="ms-Icon--GlobalNavButton"></a>
-                <div id="trees">
-                    {{ macros::render_nav_tree(start_path="_index.md", depth=2,
-                    level=0, render_root=false) }}
-                </div>
-            </nav>
-            {% endblock nav -%}
-
-            <section>
-
-                {% if config.build_search_index -%}
-                <div id="on_right">
-                    <span id="search-ico" class="ms-Icon--Search"></span>
-                </div>
-                <div class="search-container">
-                    <input id="search" type="search"
-                        placeholder="Search as you type...">
-                    <div class="search-results">
-                        <div class="search-results__header"></div>
-                        <ul class="search-results__items"></ul>
-                    </div>
-                </div>
-                {% endif -%}
-
-                <div id="wrap">
-                    {% block content -%}
-                    {%- if section.word_count -%}
-                    {{ section.content |safe }}
-                    {%- else -%}
-                    {%- include "sec_toc_2_level.html" -%}
-                    {% endif -%}
-                    {% endblock content %}
-                </div>
-
-            </section>
-        </main>
-
-        {% if config.build_search_index %}
-        <script type="text/javascript"
-            src="{{ get_url(path="elasticlunr.min.js") | safe }}"
-            defer></script>
-        <script type="text/javascript"
-            src="{{ get_url(path="search_index.en.js") | safe }}"
-            defer></script>
-        {% endif -%}
-
-        <script type="text/javascript" src="{{ get_url(path="js.js") | safe }}"
-            defer></script>
-        <script type="module">
-                import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-                mermaid.initialize({ startOnLoad: true, securityLevel: 'loose', logLevel: 'debug' });
-            </script>
-    </body>
-</html>
-
+{% if config.title %}
+{% set title = config.title %}
 {% else %}
-{% block content -%}
+{% set title = "" %}
+{% endif %}
 
-{% if page %}
-{{page.content |safe }}
+{% if config.extra.title_addition and title %}
+{% set title_addition = title_separator ~ config.extra.title_addition %}
+{% elif config.extra.title_addition %}
+{% set title_addition = config.extra.title_addition %}
 {% else %}
-{{section.content |safe }}
+{% set title_addition = "" %}
 {% endif %}
-{% endblock content -%}
-{% endif %}
+
+{% set description = config.description %}
+
+{{ macros_head::seo(title=title, title_addition=title_addition,
+description=description, is_home=true) }}
+{% endblock seo %}
+{% block content %}
+
+{% set fp = config.extra.frontpage %}
+
+<div class="wrap container" role="document">
+  <div class="content">
+
+    <section class="section container-fluid mt-n3 pb-3">
+      <div class="row justify-content-center">
+        <div class="col-lg-12 text-center">
+          <h1 class="mt-0">{{ fp.cta.text |
+            default(value="Modern Policy Center") }}</h1>
+        </div>
+        <div class="col-lg-9 col-xl-8 text-center">
+          <p class="lead">{{ fp.lead |
+            default(value="Please start setting config.toml and adding your content.")
+            | safe }}</p>
+          <a class="btn btn-primary btn-lg px-4 mb-2"
+            href="{{ get_url(path=fp.cta.url | default(value='/')) | safe
+            }}" role="button">{{ fp.cta.text |
+            default(value="Get Started") }}</a>
+          <p class="meta">{{ section.extra.repo_license |
+            default(value='AGPL-3.0 License')}}
+            <a
+              href="{{ section.extra.repo_url | default(value='https://github.com/sc2in/PolicyPress') }}
+              | safe }}">{{ section.extra.repo_version | default(value='0.1.0')
+              }}</a></p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+<section class="section section-sm">
+  <div class="container">
+    <div class="row justify-content-center text-center cards">
+      {% if fp.cards %}
+      {% for card in fp.cards %}
+      <div class="col-lg card">
+        {% if card.image %}
+        <figure>
+          <img src="{{card.image}}" alt="{{card.title}}">
+        </figure>
+        {% endif %}
+        <h2 class="h4">{{ card.title }}</h2>
+        <p>{{ card.text | markdown(inline=true) | safe }}</p>
+        <p class="read-more"><a href="#">
+            Read more <span class="sr-only">about this is some title</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon"
+              viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd"
+                d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                clip-rule="evenodd" />
+            </svg>
+          </a></p>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div class="col-lg-5">
+        <h2 class="h4">Security aware</h2>
+        <p>Get A+ scores on <a
+            href="https://observatory.mozilla.org/analyze/doks.netlify.app">Mozilla
+            Observatory</a> out of the box. Easily change the default Security
+          Headers to suit your needs.</p>
+      </div>
+      <div class="col-lg-5">
+        <h2 class="h4">Fast by default ⚡️</h2>
+        <p>Get 100 scores on <a
+            href="https://googlechrome.github.io/lighthouse/viewer/?gist=7731347bb8ce999eff7428a8e763b637">Google
+            Lighthouse</a> by default. Doks removes unused css, prefetches
+          links, and lazy loads images.</p>
+      </div>
+      <div class="col-lg-5">
+        <h2 class="h4">SEO-ready</h2>
+        <p>Use sensible defaults for structured data, open graph, and Twitter
+          cards. Or easily change the SEO settings to your liking.</p>
+      </div>
+      <div class="col-lg-5">
+        <h2 class="h4">Full text search</h2>
+        <p>Search your Doks site with FlexSearch. Easily customize index
+          settings and search options to your liking.</p>
+      </div>
+      <div class="col-lg-5">
+        <h2 class="h4">Page layouts</h2>
+        <p>Build pages with a landing page, blog, or documentation layout. Add
+          custom sections and components to suit your needs.</p>
+      </div>
+      <div class="col-lg-5">
+        <h2 class="h4">Dark mode</h2>
+        <p>Switch to a low-light UI with the click of a button. Change colors
+          with variables to match your branding.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+<section class="section section-sm container-fluid">
+  <div class="row justify-content-center text-center">
+    <div class="col-lg-9"></div>
+  </div>
+</section>
+{% endblock content %}

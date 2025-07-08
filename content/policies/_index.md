@@ -3,5 +3,5 @@ title = "SC2 Policies"
 weight = 2
 sort_by = "weight"
 insert_anchor_links = "right"
-page_template = "policy.html"
+page_template = "page.html"
 +++

@@ -45,13 +45,13 @@ config.mode == "Serve" -%}
       <div class="row flex-xl-nowrap">
 
         {% block sidebar %}
-        <div class="col-lg-5 col-xl-4">
+        <div class="col-sm-4">
           {{ macros_sidebar::sidebar(path=current_path) }}
         </div>
         {% endblock sidebar %}
-        <div class="column">
+        <div class="col-sm justify-content-center">
 
-          <div class="content">
+          <div class="content ">
             {% block content %}{% endblock content %}
           </div>
         </div>

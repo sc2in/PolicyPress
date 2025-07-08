@@ -1,0 +1,17 @@
+name = "PolicyPress"
+description = "PolicyPress is a Zola theme helping you build modern documentation."
+license = "AGPL-3.0"
+homepage = "https://github.com/sc2in/policypress"
+min_version = "0.15.0"
+demo = ""
+
+[extra]
+
+[author]
+name = "Star City Security Consulting, LLC"
+homepage = "https://sc2.in"
+
+[original]
+author = "Aaran Xu"
+homepage = "https://github.com/aaranxu"
+repo = "https://github.com/h-enk/doks"

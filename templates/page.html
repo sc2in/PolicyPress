@@ -43,18 +43,17 @@ created_time=created_time, updated_time=updated_time, page_section=page_section)
 
 {% block content %}
 
-<div class="content">
-  <div class="row justify-content-center">
-    <div class="col-md-12 col-lg-10 col-xxl-8">
-      <article>
-        <div class="page-header">
-          <h1>{{ page.title }}</h1>
-        </div>
-        {% if page.extra.lead %}<p class="lead">{{ page.extra.lead }}</p>{%
-        endif %}
-        {{ page.content | safe }}
-      </article>
-    </div>
+<div class="row">
+  <div class="col-md-12 col-lg-10 col-xxl-8">
+    <article>
+      <div class="page-header">
+        <h1>{{ page.title }}</h1>
+      </div>
+      {% if page.extra.lead %}<p class="lead">{{ page.extra.lead }}</p>{%
+      endif %}
+      {{ page.content | safe }}
+    </article>
   </div>
 </div>
+
 {% endblock content %}

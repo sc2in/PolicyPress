@@ -11,33 +11,27 @@
 {% endblock header %}
 
 {% block content %}
-<div class="wrap container" role="document">
-  <div class="content">
-    <div class="row justify-content-center">
-      <div class="col-md-12 col-lg-10 col-xxl-8">
-        <article>
-          <h1 class="text-center">{{ section.title }}</h1>
-          <div class="card-list">
-            {% for page in paginator.pages %}
-            <div class="card">
-              <div class="card-body">
-                <h2 class="h3"><a class="stretched-link text-body"
-                    href="{{ page.permalink }}">{{ page.title }}</a></h2>
-                {% if page.extra.lead %}
-                <p class="lead">{{ page.extra.lead | safe }}</p>{% elif
-                page.description %}<p class="lead">{{ page.description | safe
-                  }}</p>{% endif %}
-                {{ macros_publish::page_publish_metadata(page=page) }}
-              </div>
-            </div>
-            {% endfor %}
-            {% if paginator.previous or paginator.next %}
-            {{ macros_section_nav::navigation(paginator=paginator) }}
-            {% endif %}
-          </div>
-        </article>
+
+<article>
+  <h1 class="text-center">{{ section.title }}</h1>
+  <div class="card-list">
+    {% for page in paginator.items %}
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h3"><a class="stretched-link text-body"
+            href="{{ page.permalink }}">{{ page.title }}</a></h2>
+        {% if page.extra.lead %}
+        <p class="lead">{{ page.extra.lead | safe }}</p>{% elif
+        page.description %}<p class="lead">{{ page.description | safe
+          }}</p>{% endif %}
+        {{ macros_publish::page_publish_metadata(page=page) }}
       </div>
     </div>
+    {% endfor %}
+    {% if paginator.previous or paginator.next %}
+    {{ macros_section_nav::navigation(paginator=paginator) }}
+    {% endif %}
   </div>
-</div>
+</article>
+
 {% endblock content %}

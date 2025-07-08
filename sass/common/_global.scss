@@ -91,6 +91,8 @@ body {
 
 .docs-sidebar {
   order: 2;
+  text-wrap: balance;
+  display: contents;
 }
 
 @include media-breakpoint-up(lg) {

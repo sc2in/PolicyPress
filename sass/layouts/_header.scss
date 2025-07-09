@@ -137,22 +137,22 @@
   */
 }
 
-.navbar-form::after {
-  position: absolute;
-  top: 0.4625rem;
-  right: 0.5375rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 1.5rem;
-  padding-right: 0.4375rem;
-  padding-left: 0.4375rem;
-  font-size: $font-size-base * 0.75;
-  color: $gray-700;
-  content: "/";
-  border: 1px solid $gray-300;
-  border-radius: 0.25rem;
-}
+// .navbar-form::after {
+//   position: absolute;
+//   top: 0.4625rem;
+//   right: 0.5375rem;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   height: 1.5rem;
+//   padding-right: 0.4375rem;
+//   padding-left: 0.4375rem;
+//   font-size: $font-size-base * 0.75;
+//   color: $gray-700;
+//   content: "/";
+//   border: 1px solid $gray-300;
+//   border-radius: 0.25rem;
+// }
 
 /*! purgecss start ignore */
 .algolia-autocomplete {

@@ -1,4 +1,9 @@
 {% extends "section.html" %}
+{% if not paginator %}
+{{
+throw(message="Could not find paginator. Did you set paginate_by in _index.md?")
+}}
+{% endif %}
 
 {% block body %}
 {% set page_class = "news list" %}
@@ -15,7 +20,7 @@
 <article>
   <h1 class="text-center">{{ section.title }}</h1>
   <div class="card-list">
-    {% for page in paginator.items %}
+    {% for page in paginator.pages %}
     <div class="card">
       <div class="card-body">
         <h2 class="h3"><a class="stretched-link text-body"
@@ -34,4 +39,4 @@
   </div>
 </article>
 
-{% endblock content %}
+{% endblock %}

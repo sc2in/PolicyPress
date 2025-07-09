@@ -1,0 +1,14 @@
+{% macro policies_latest_revision(page)%}
+`
+
+{% if not page.extra or not page.extra.major_revisions %}
+{{ throw(message="Error: Major revisions are not defined for the policy " ~
+page.path) }}
+{% endif %}
+{% set versions = page.extra.major_revisions | sort(attribute="date") |
+reverse %}
+{% set current_version = versions | first %}
+{% if page.extra is not containing("last_reviewed") %}
+{{ throw(message="Error: Policy last reviewed date is not set") }}
+{% endif %}
+{% endmacro policies_latest_revision %}

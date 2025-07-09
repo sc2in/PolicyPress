@@ -6,7 +6,7 @@
 
 {% block header %}
 {# This value is matched by the config.extra.menu.main~section #}
-{% set current_section = "docs" %}
+{% set current_section = "policies" %}
 {{ macros_header::header(current_section=current_section)}}
 {% endblock header %}
 
@@ -22,23 +22,39 @@
     {% for page in index.pages %}
     <div class="card my-3">
       <div class="card-body">
-        <a class="stretched-link" href="{{ page.permalink }}">{{
-          page.title }} &rarr;</a>
+        <a class="stretched-link" href="{{ page.permalink }}">
+          <i class="glyphicon glyphicon-file"></i>
+          <strong>{{ page.title }}</strong>
+        </a>
+        {% if page.extra.lead %}
+        <p class="lead">{{ page.extra.lead | safe }}</p>
+        {% elif page.description %}
+        <p class="lead">{{ page.description | safe }}</p>
+        {% endif %}
+        <p class="text-muted">
+          {{
+          macros_policies_latest_revision::policies_latest_revision(page=page)
+          | default(value="") }}
+        </p>
       </div>
     </div>
     {% endfor %}
-    {% for s in index.subsections %}
-    {% set subsection = get_section(path=s) %}
-    {% if subsection.pages %}
-    {% for page in subsection.pages %}
+    {% if index.subsections %}
+    {% for sub in section.subsections %}
+    {% set s = get_section(path=sub) %}
     <div class="card my-3">
       <div class="card-body">
-        <a class="stretched-link" href="{{ page.permalink }}">{{
-          page.title }} &rarr;</a>
+        <a class="stretched-link" href="{{ s.permalink }}">
+          <i class="glyphicon glyphicon-folder-close"></i>
+          {{ s.title }} &rarr;
+        </a>
       </div>
     </div>
     {% endfor %}
     {% endif %}
+    {% for s in index.subsections %}
+    {% set subsection = get_section(path=s) %}
+
     {% endfor %}
   </div>
 </article>

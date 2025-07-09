@@ -3,10 +3,15 @@
 {% block body %}
 {% set page_class = "docs single" %}
 {% endblock body %}
-
+{% set versions = page.extra.major_revisions | sort(attribute="date") |
+reverse %}
+{% set current_version = versions | first %}
+{% if page.extra is not containing("last_reviewed") %}
+{{ throw(message="Error: Policy last reviewed date is not set") }}
+{% endif %}
 {% block header %}
 {# This value is matched by the config.extra.menu.main~url #}
-{% set current_section = "docs" %}
+{% set current_section = "policies" %}
 {{ macros_header::header(current_section=current_section)}}
 {% endblock header %}
 

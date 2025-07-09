@@ -1,5 +1,6 @@
 {% extends "section.html" %}
-
+{% import 'macros/policies-latest-revision.html' as
+macros_policies_latest_revision -%}
 {% block body %}
 {% set page_class = "docs list" %}
 {% endblock body %}
@@ -32,9 +33,9 @@
         <p class="lead">{{ page.description | safe }}</p>
         {% endif %}
         <p class="text-muted">
-          {{
+          {# {{
           macros_policies_latest_revision::policies_latest_revision(page=page)
-          | default(value="") }}
+          | default(value="") }} #}
         </p>
       </div>
     </div>

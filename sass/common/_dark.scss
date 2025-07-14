@@ -331,3 +331,107 @@ body.dark .copy-status:active::after {
   display: block;
   color: $link-color-dark;
 }
+
+// Dark mode CSS variables
+:root {
+  // Light mode (default) variables
+  --bs-body-color: #{$gray-900};
+  --bs-body-bg: #{$white};
+  --bs-emphasis-color: #{$black};
+  --bs-secondary-color: #{$gray-600};
+  --bs-tertiary-color: #{$gray-500};
+  --bs-link-color: #{$primary};
+  --bs-link-hover-color: #{darken($primary, 15%)};
+  --bs-border-color: #{$gray-200};
+  --bs-heading-color: #{$gray-900};
+  
+  // Custom PolicyPress variables
+  --pp-hero-bg: linear-gradient(135deg, rgba(#{red($primary)}, #{green($primary)}, #{blue($primary)}, 0.1) 0%, rgba(#{red($secondary)}, #{green($secondary)}, #{blue($secondary)}, 0.1) 100%);
+  --pp-card-bg: #{$white};
+  --pp-card-shadow: rgba(0, 0, 0, 0.1);
+  --pp-navbar-bg: rgba(#{red($white)}, #{green($white)}, #{blue($white)}, 0.95);
+  --pp-navbar-border: rgba(#{red($gray-200)}, #{green($gray-200)}, #{blue($gray-200)}, 0.5);
+  --pp-feature-icon-bg: linear-gradient(135deg, #{$primary}, #{$secondary});
+  --pp-quick-action-bg: #{$light};
+  --pp-update-card-border: #{$gray-200};
+  --pp-statistics-bg: #{$primary};
+  --pp-code-bg: #{$gray-100};
+  --pp-pre-bg: #{$gray-900};
+  --pp-pre-color: #{$white};
+  --pp-blockquote-bg: #{$light};
+  --pp-blockquote-border: #{$primary};
+  --pp-search-bg: #{$white};
+  --pp-search-border: #{$gray-200};
+  --pp-dropdown-bg: #{$white};
+  --pp-dropdown-border: #{$gray-200};
+  --pp-dropdown-shadow: rgba(0, 0, 0, 0.1);
+}
+
+// Dark mode variables
+[data-bs-theme="dark"] {
+  --bs-body-color: #{$gray-100};
+  --bs-body-bg: #{$gray-900};
+  --bs-emphasis-color: #{$white};
+  --bs-secondary-color: #{$gray-400};
+  --bs-tertiary-color: #{$gray-500};
+  --bs-link-color: #{lighten($primary, 20%)};
+  --bs-link-hover-color: #{lighten($primary, 30%)};
+  --bs-border-color: #{$gray-700};
+  --bs-heading-color: #{$gray-100};
+  
+  // Custom PolicyPress dark mode variables
+  --pp-hero-bg: linear-gradient(135deg, rgba(#{red($primary)}, #{green($primary)}, #{blue($primary)}, 0.2) 0%, rgba(#{red($secondary)}, #{green($secondary)}, #{blue($secondary)}, 0.2) 100%);
+  --pp-card-bg: #{$gray-800};
+  --pp-card-shadow: rgba(0, 0, 0, 0.3);
+  --pp-navbar-bg: rgba(#{red($gray-900)}, #{green($gray-900)}, #{blue($gray-900)}, 0.95);
+  --pp-navbar-border: rgba(#{red($gray-700)}, #{green($gray-700)}, #{blue($gray-700)}, 0.5);
+  --pp-feature-icon-bg: linear-gradient(135deg, #{lighten($primary, 10%)}, #{lighten($secondary, 10%)});
+  --pp-quick-action-bg: #{$gray-800};
+  --pp-update-card-border: #{$gray-700};
+  --pp-statistics-bg: #{darken($primary, 10%)};
+  --pp-code-bg: #{$gray-800};
+  --pp-pre-bg: #{$gray-800};
+  --pp-pre-color: #{$gray-100};
+  --pp-blockquote-bg: #{$gray-800};
+  --pp-blockquote-border: #{lighten($primary, 20%)};
+  --pp-search-bg: #{$gray-800};
+  --pp-search-border: #{$gray-700};
+  --pp-dropdown-bg: #{$gray-800};
+  --pp-dropdown-border: #{$gray-700};
+  --pp-dropdown-shadow: rgba(0, 0, 0, 0.4);
+}
+
+// Automatic dark mode based on system preference
+@media (prefers-color-scheme: dark) {
+  :root:not([data-bs-theme="light"]) {
+    --bs-body-color: #{$gray-100};
+    --bs-body-bg: #{$gray-900};
+    --bs-emphasis-color: #{$white};
+    --bs-secondary-color: #{$gray-400};
+    --bs-tertiary-color: #{$gray-500};
+    --bs-link-color: #{lighten($primary, 20%)};
+    --bs-link-hover-color: #{lighten($primary, 30%)};
+    --bs-border-color: #{$gray-700};
+    --bs-heading-color: #{$gray-100};
+    
+    --pp-hero-bg: linear-gradient(135deg, rgba(#{red($primary)}, #{green($primary)}, #{blue($primary)}, 0.2) 0%, rgba(#{red($secondary)}, #{green($secondary)}, #{blue($secondary)}, 0.2) 100%);
+    --pp-card-bg: #{$gray-800};
+    --pp-card-shadow: rgba(0, 0, 0, 0.3);
+    --pp-navbar-bg: rgba(#{red($gray-900)}, #{green($gray-900)}, #{blue($gray-900)}, 0.95);
+    --pp-navbar-border: rgba(#{red($gray-700)}, #{green($gray-700)}, #{blue($gray-700)}, 0.5);
+    --pp-feature-icon-bg: linear-gradient(135deg, #{lighten($primary, 10%)}, #{lighten($secondary, 10%)});
+    --pp-quick-action-bg: #{$gray-800};
+    --pp-update-card-border: #{$gray-700};
+    --pp-statistics-bg: #{darken($primary, 10%)};
+    --pp-code-bg: #{$gray-800};
+    --pp-pre-bg: #{$gray-800};
+    --pp-pre-color: #{$gray-100};
+    --pp-blockquote-bg: #{$gray-800};
+    --pp-blockquote-border: #{lighten($primary, 20%)};
+    --pp-search-bg: #{$gray-800};
+    --pp-search-border: #{$gray-700};
+    --pp-dropdown-bg: #{$gray-800};
+    --pp-dropdown-border: #{$gray-700};
+    --pp-dropdown-shadow: rgba(0, 0, 0, 0.4);
+  }
+}

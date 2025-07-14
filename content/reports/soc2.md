@@ -1,7 +1,7 @@
 +++
 title = "SOC 2 Report"
 description = "The SC2 SOC 2 Report"
-# template = "TSC2017/list.html"
+template = "TSC2017/list.html"
 weight = 1
 [extra]
 +++

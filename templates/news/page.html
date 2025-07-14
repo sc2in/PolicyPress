@@ -139,10 +139,11 @@ description=description) }}
       {% endif %}
       {% endfor %}
 
-      {# {% if current_index %}
+      {% if current_index %}
       <div class="nav-links">
         {% if current_index > 0 %}
-        {% set prev_page = news_section.pages[current_index - 1] %}
+        {% set prev_page = news_section.pages |
+        slice(start=current_index,end=-1) %}
         <a href="{{ prev_page.permalink | safe }}" class="nav-link prev"
           aria-label="Previous article">
           <i class="fas fa-arrow-left" aria-hidden="true"></i>
@@ -154,7 +155,8 @@ description=description) }}
         {% endif %}
 
         {% if current_index < news_section.pages | length - 1 %}
-        {% set next_page = news_section.pages[current_index + 1] %}
+        {% set next_page = news_section.pages|
+        slice(start=current_index,end=current_index+1) %}
         <a href="{{ next_page.permalink | safe }}" class="nav-link next"
           aria-label="Next article">
           <span class="nav-text">
@@ -165,7 +167,7 @@ description=description) }}
         </a>
         {% endif %}
       </div>
-      {% endif %} #}
+      {% endif %}
       {% endif %}
 
       <div class="back-to-news">

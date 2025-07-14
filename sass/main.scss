@@ -13,18 +13,19 @@
 @import "common/dark";
 @import "components/doks";
 
-// @import "components/syntax";
-@import "components/code";
 @import "components/alerts";
 @import "components/buttons";
+@import "components/cards";
+@import "components/code";
 @import "components/comments";
 @import "components/footnote";
 @import "components/forms";
 @import "components/images";
-@import "components/search";
-@import "components/tables";
-@import "components/cards";
 @import "components/last-review-table";
+@import "components/search";
+@import "components/syntax";
+@import "components/tables";
+@import "components/team";
 @import "layouts/footer";
 @import "layouts/header";
 @import "layouts/pages";

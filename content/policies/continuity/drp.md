@@ -52,15 +52,12 @@ operations by limiting or prohibiting access to any of the included systems.**
 
 For the processes and procedures in this document to be initiated, a disaster must be declared by one or a combination of the following {{ org() }} staff:
 
-- CEO, Marc Huffman
-- CFO, Tim Taylor
-- CMO, Rob Kunzler
-- CRO, Kevin Donovan
-- CPO, Tim Adair
-- CPO, Denise DeThomas
-- CTO, Robin Fleming
-- Director, Security & IT, Warren McComb
-- Director, Customer Experience, Chris Carpluk
+- CEO or COO
+- Director of Operations
+- Director of Technology
+- Director of Customer Success
+- Director of Security and Compliance
+- Director of Product
 
 ## Recovery Strategy
 
@@ -108,12 +105,8 @@ Once the disaster recovery process has been initiated and staff members notified
 
 **Leadership Team**
 
-
-
 **Operations Team**
 
-
 **Facilities Resource Team**
-
 
 ## Company Information

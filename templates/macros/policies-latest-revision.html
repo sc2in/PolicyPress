@@ -1,0 +1,25 @@
+{% macro policies_latest_revision(page)%}
+`
+
+{% if not page.extra or not page.extra.major_revisions %}
+{{ throw(message="Error: Major revisions are not defined for the policy " ~
+page.path) }}
+{% endif %}
+{% set versions = page.extra.major_revisions | sort(attribute="date") |
+reverse %}
+{% set current_version = versions | first %}
+
+{{ current_version }}
+{% endmacro policies_latest_revision %}
+
+{% macro policies_last_review(page) %}
+{% if page.extra is not containing("last_reviewed") %}
+{{ throw(message="Error: Policy last reviewed date is not set") }}
+{% endif %}
+{% set last_reviewed_ts = page.extra.last_reviewed | date(format="%s") | int %}
+{% set today = now() | date(format="%s") | int %}
+{% if (today - last_reviewed_ts) > 31557600 %}
+{{ throw(message="Error: Policy last reviewed date is older than one year") }}
+{% endif %}
+{{ page.extra.last_reviewed }}
+{% endmacro policies_last_review %}

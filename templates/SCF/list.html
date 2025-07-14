@@ -1,70 +1,47 @@
-{% extends "index.html" %}
-{# {% block title %} {{ config.title }} | {{ page.title }} {% endblock title %}
-#}
-{% block content %}
-{% if page %}
-<h1>{{ page.title }}</h1>
-{{ page.content | safe }}
-{% elif section %}
-<h1>{{ section.title }}</h1>
-{{ section.content | safe }}
-{% endif %}
+{% extends "reports/base.html" %}
 
-<article>
+{% block report_content %}
+{# Pre-load all data once #}
+{% set tax = get_taxonomy(kind="SCF") %}
+{% set data = load_data(path="templates/opencontrols/standards/SCF.yml") %}
+{% set line_items = tax.items | group_by(attribute="name") %}
 
-  {% set tax = get_taxonomy(kind="SCF") %}
-  {% set data = load_data(path="templates/opencontrols/standards/SCF.yml") %}
-  <div class="collapsible-group">
+{# Create domain groups efficiently #}
+{% set domain_groups = data | group_by(attribute="domain") %}
 
-    {% for group, gitems in data | group_by(attribute="domain" ) %}
-    {% set line_items = tax.items | group_by(attribute="name") %}
-    <button type="button" class="collapsible">{{group}}</button>
-    <div class="collapsible-content">
-      {% for key, gitem in gitems | group_by(attribute="control_id") %}
-      {% set control = data | filter(attribute="control_id", value=key) | first
-      %}
-      <h2>{{control.control_id}}: {{control.control}}</h2>
-      <p>{{control.description}}</p>
-      {% if key in line_items and 0 < line_items[key] | length %}
-      {% for line_item in line_items[key] %}
-      <ul>
+{# Render each domain section #}
+{% for domain, domain_items in domain_groups %}
+<div class="report-section">
+  <h2 class="section-title">{{ domain }}</h2>
+  <div class="section-content">
+    {# Group controls within this domain #}
+    {% for control_id, control_group in domain_items |
+    group_by(attribute="control_id") %}
+    {% set control = control_group | first %}
+    <div class="control-item">
+      <div class="control-header">
+        <h2>{{ control.control_id }}: {{ control.control }}</h2>
+        <div class="control-description">{{ control.description }}</div>
+      </div>
+
+      {# Use the map function to process policies if they exist #}
+      {% set control_policies = line_items[control_id] | default(value=[]) %}
+      {% if control_policies | length > 0 %}
+      <ul class="policy-list">
+        {% for line_item in control_policies %}
         {% for policy in line_item.pages %}
         <li>
-          <a href="{{ get_url(path=policy.path) }}">{{ policy.title}}</a>
+          <a href="{{ get_url(path=policy.path) }}">{{ policy.title }}</a>
         </li>
         {% endfor %}
         {% endfor %}
       </ul>
       {% else %}
-      <p>No policies found for {{ key }}</p>
+      <div class="no-policies">No policies found for {{ control_id }}</div>
       {% endif %}
-
-      {% endfor %}
-
     </div>
     {% endfor %}
   </div>
-</article>
-<script>
-  // Simple JS to toggle collapsible sections
-  document.querySelectorAll('.collapsible').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      // Optionally close other sections for accordion behavior
-      document.querySelectorAll('.collapsible').forEach(function(otherBtn) {
-        if (otherBtn !== btn) {
-          otherBtn.classList.remove('active');
-          otherBtn.nextElementSibling.style.maxHeight = null;
-        }
-      });
-
-      btn.classList.toggle('active');
-      var content = btn.nextElementSibling;
-      if (btn.classList.contains('active')) {
-        content.style.maxHeight = content.scrollHeight + "px";
-      } else {
-        content.style.maxHeight = null;
-      }
-    });
-  });
-</script>
-{% endblock content %}
+</div>
+{% endfor %}
+{% endblock report_content %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block seo %}
+{% set title_addition = "" %}
+{% if config.extra.title_separator %}
+{% set title_separator = " " ~ config.extra.title_separator ~ " " %}
+{% else %}
+{% set title_separator = " | " %}
+{% endif %}
+
+{% set_global team_section = get_section(path="team/_index.md") %}
+{% if team_section.title and config.title %}
+{% set title = team_section.title %}
+{% set title_addition = title_separator ~ config.title %}
+{% elif team_section.title %}
+{% set title = team_section.title %}
+{% else %}
+{% set title = config.title %}
+{% endif %}
+
+{% if team_section.description %}
+{% set description = team_section.description %}
+{% else %}
+{% set description = config.description %}
+{% endif %}
+
+{{ macros_head::seo(title=title, title_addition=title_addition,
+description=description) }}
+{% endblock seo %}
+
+{% block body %}
+{% if team_section.extra.class %}
+{% set page_class = team_section.extra.class %}
+{% else %}
+{% set page_class = "team-list" %}
+{% endif %}
+{% endblock body %}
+
+{% block content %}
+<article class="team-container">
+  <div class="page-header">
+    <h1 class="text-center">{{ team_section.title }}</h1>
+    {% if team_section.content %}
+    <div class="lead text-center">{{ team_section.content | safe }}</div>
+    {% endif %}
+  </div>
+
+  {% if team_section.pages %}
+  <div class="team-grid">
+    {% for member in team_section.pages %}
+    <div class="team-member-card">
+      <div class="card-body">
+        {% if member.extra.photo %}
+        <div class="member-photo">
+          <img src="{{ member.extra.photo | safe }}"
+            alt="{{ member.title }} photo" class="img-fluid rounded-circle"
+            loading="lazy">
+        </div>
+        {% endif %}
+
+        <div class="member-info">
+          <h3 class="member-name">
+            <a href="{{ member.permalink | safe }}"
+              class="stretched-link text-body">{{ member.title }}</a>
+          </h3>
+
+          {% if member.extra.position %}
+          <p class="member-position">{{ member.extra.position }}</p>
+          {% endif %}
+
+          {% if member.description %}
+          <p class="member-description">{{ member.description | safe }}</p>
+          {% elif member.content %}
+          <p class="member-description">{{ member.content | safe |
+            truncate(length=150) }}</p>
+          {% endif %}
+
+          {% if member.extra.email or member.extra.phone %}
+          <div class="member-contact">
+            {% if member.extra.email %}
+            <a href="mailto:{{ member.extra.email }}" class="contact-link email"
+              aria-label="Email {{ member.title }}">
+              <i class="fas fa-envelope"></i>
+            </a>
+            {% endif %}
+            {% if member.extra.phone %}
+            <a href="tel:{{ member.extra.phone }}" class="contact-link phone"
+              aria-label="Call {{ member.title }}">
+              <i class="fas fa-phone"></i>
+            </a>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="alert alert-info text-center" role="alert">
+    <p>No team members found. Add team member pages to the
+      <code>content/team/</code> directory.</p>
+  </div>
+  {% endif %}
+</article>
+{% endblock content %}

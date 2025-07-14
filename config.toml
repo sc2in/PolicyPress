@@ -94,20 +94,29 @@ library = "katex"  # options: "katex", "mathjax". default is "katex".
 
 
 [extra.menu]
+# # Additional configuration
+# version = "2.0.0"
+logo = "/logo.svg"
+# Enhanced menu with icons
 [[extra.menu.main]]
 title = "Policies"
 section = "policies"
 url = "/policies/"
+icon = "fas fa-file-alt"
 weight = 10
+
 [[extra.menu.main]]
 title = "Team"
 section = "team"
 url = "/team/"
+icon = "fas fa-users"
 weight = 20
+
 [[extra.menu.main]]
 title = "News"
 section = "news"
 url = "/news/"
+icon = "fas fa-newspaper"
 weight = 30
 
 [extra.policyteam]
@@ -197,31 +206,9 @@ label = "Compliance Frameworks"
 number = "100%"
 label = "Coverage"
 
-# Enhanced menu with icons
-[[extra.menu.main]]
-title = "Policies"
-section = "policies"
-url = "/policies/"
-icon = "fas fa-file-alt"
-weight = 10
 
-[[extra.menu.main]]
-title = "Team"
-section = "team"
-url = "/team/"
-icon = "fas fa-users"
-weight = 20
 
-[[extra.menu.main]]
-title = "News"
-section = "news"
-url = "/news/"
-icon = "fas fa-newspaper"
-weight = 30
 
-# # Additional configuration
-# version = "2.0.0"
-# logo = "/images/logo.svg"
 
 ## Open Graph + Twitter Cards
 [extra.open]

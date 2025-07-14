@@ -1,7 +1,8 @@
+// WCAG-compliant sidebar styles
 .docs-links,
 .docs-toc {
   scrollbar-width: thin;
-  scrollbar-color: $white $white;
+  scrollbar-color: $gray-600 $white; // Improved contrast
 }
 
 .docs-links::-webkit-scrollbar,
@@ -16,31 +17,65 @@
 
 .docs-links::-webkit-scrollbar-thumb,
 .docs-toc::-webkit-scrollbar-thumb {
-  background: $white;
+  background: $gray-600; // Improved contrast
 }
 
 .docs-links:hover,
 .docs-toc:hover {
   scrollbar-width: thin;
-  scrollbar-color: $gray-200 $white;
+  scrollbar-color: $gray-700 $white; // Improved hover contrast
 }
 
 .docs-links:hover::-webkit-scrollbar-thumb,
 .docs-toc:hover::-webkit-scrollbar-thumb {
-  background: $gray-200;
+  background: $gray-700; // Improved hover contrast
 }
 
 .docs-links::-webkit-scrollbar-thumb:hover,
 .docs-toc::-webkit-scrollbar-thumb:hover {
-  background: $gray-200;
+  background: $gray-700; // Improved hover contrast
 }
 
+// Skip link for keyboard navigation (WCAG 2.4.1)
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: $primary;
+  color: $white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1000;
+  font-weight: bold;
+  
+  &:focus {
+    top: 6px;
+    outline: 3px solid $warning;
+    outline-offset: 2px;
+  }
+}
+
+// Improved heading styles with proper contrast
 .docs-links h3,
 .page-links h3 {
   text-transform: uppercase;
   font-size: $font-size-base;
   margin: 1.25rem 0 0.5rem 0;
   padding: 1.5rem 0 0 0;
+  color: $gray-900; // Ensure sufficient contrast
+}
+
+.docs-links h4,
+.page-links h4 {
+  text-transform: none;
+  font-size: $font-size-base * 0.95;
+  margin: 1rem 0 0.25rem 1rem;
+  padding: 0.5rem 0 0 0;
+  font-weight: 600; // Improved visual hierarchy
+  color: $gray-800; // Ensure sufficient contrast
+  border-left: 2px solid $primary; // Visual indicator
+padding-left: 1.25rem; // More gap
 }
 
 @include media-breakpoint-up(lg) {
@@ -49,62 +84,166 @@
     margin: 1.125rem 1.5rem 0.75rem 0;
     padding: 1.375rem 0 0 0;
   }
+  
+  .docs-links h4,
+  .page-links h4 {
+    margin: 0.75rem 1.25rem 0.5rem 1rem;
+    padding: 0.375rem 0 0 1rem;
+  }
 }
 
 .docs-links h3:not(:first-child) {
-  border-top: 1px solid $gray-200;
+  border-top: 1px solid $gray-300; // Improved contrast
 }
 
+.docs-links h4:not(:first-child) {
+  border-top: 1px dashed $gray-300; // Improved contrast
+}
+
+.subsection {
+  margin-left: 2rem;
+}
+
+// Enhanced link styles with proper contrast ratios
 a.docs-link {
-  color: $body-color;
+  color: $gray-900; // Ensure 4.5:1 contrast ratio
   display: block;
-  padding: 0.125rem 0;
+  padding: 0.5rem 0.75rem; // Increased target size (WCAG 2.5.5)
   font-size: $font-size-base;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all 0.1s ease;
+  
+  // Enhanced focus indicator (WCAG 2.4.7)
+  &:focus {
+    outline: 3px solid $primary;
+    outline-offset: 2px;
+    background-color: $light;
+    box-shadow: 0 0 0 1px $primary;
+  }
+  
+  // Active state indicator (WCAG 2.4.8)
+  &.active {
+    background-color: $primary;
+    color: $white;
+    font-weight: 600;
+    
+    &::before {
+      content: "Current page: ";
+      position: absolute;
+      left: -10000px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+  }
 }
 
-.page-links li {
-  margin-top: 0.375rem;
-  padding-top: 0.375rem;
+.page-links {
+  li {
+    margin-top: 0.375rem;
+    padding-top: 0.375rem;
+    
+    &:not(:first-child) {
+      border-top: 1px dashed $gray-300; // Improved contrast
+    }
+  }
+  
+  ul ul li {
+    border-top: none;
+    padding-left: 1.5rem; // Increased indentation for hierarchy
+    margin-top: 0.125rem;
+    padding-top: 0.125rem;
+  }
+  
+  a {
+    color: $gray-900; // Ensure 4.5:1 contrast ratio
+    display: block;
+    padding: 0.5rem 0.75rem; // Increased target size
+    font-size: $font-size-base * 0.9375;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    
+    // Enhanced focus indicator
+    &:focus {
+      outline: 3px solid $primary;
+      outline-offset: 2px;
+      background-color: $light;
+      box-shadow: 0 0 0 1px $primary;
+    }
+  }
 }
 
-.page-links ul ul li {
-  border-top: none;
-  padding-left: 1rem;
-  margin-top: 0.125rem;
-  padding-top: 0.125rem;
-}
-
-.page-links li:not(:first-child) {
-  border-top: 1px dashed $gray-200;
-}
-
-.page-links a {
-  color: $body-color;
-  display: block;
-  padding: 0.125rem 0;
-  font-size: $font-size-base * 0.9375;
-}
-
+// Improved hover states with sufficient contrast
 .docs-link:hover,
 .docs-link.active,
 .page-links a:hover {
   text-decoration: none;
-  color: $link-color;
+  color: $primary;
+  background-color: $light;
+  transform: translateX(4px);
 }
 
+// Enhanced sidebar link styles
 .docs-links h3.sidebar-link,
 .page-links h3.sidebar-link {
   text-transform: none;
   font-size: $font-size-md;
-  font-weight: normal;
+  font-weight: 600;
+  color: $gray-900; // Ensure sufficient contrast
+  
+  a {
+    color: $gray-900; // Ensure sufficient contrast
+    
+    &:hover {
+      text-decoration: underline;
+      color: $primary;
+    }
+    
+    &:focus {
+      outline: 3px solid $primary;
+      outline-offset: 2px;
+      background-color: $light;
+    }
+  }
 }
 
-.docs-links h3.sidebar-link a,
-.page-links h3.sidebar-link a {
-  color: $body-color;
+// Screen reader only content
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.docs-links h3.sidebar-link a:hover,
-.page-links h3.sidebar-link a:hover {
-  text-decoration: underline;
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .docs-links,
+  .page-links {
+    border: 2px solid currentColor;
+  }
+  
+  .docs-link,
+  .page-links a {
+    border: 1px solid currentColor;
+    
+    &:focus {
+      outline: 4px solid;
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .docs-link,
+  .page-links a {
+    transition: none;
+  }
 }

@@ -1,0 +1,184 @@
+// Report Components - Unified styling for all report types
+.report-container {
+  .report-header {
+    background: var(--bs-body-bg);
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--bs-border-color);
+    margin-bottom: 2rem;
+
+    h1 {
+      color: var(--bs-heading-color);
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-align: center;
+
+      @media (max-width: 768px) {
+        font-size: 2rem;
+      }
+    }
+
+    .report-description {
+      color: var(--bs-secondary-color);
+      font-size: 1.1rem;
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+  }
+
+  .report-content {
+    .report-section {
+      margin-bottom: 2rem;
+      background: var(--pp-card-bg);
+      border: 1px solid var(--bs-border-color);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px var(--pp-card-shadow);
+      overflow: hidden;
+
+      .section-title {
+        background: var(--pp-section-title-bg);
+        color: var(--bs-heading-color);
+        padding: 1rem 1.5rem;
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        border-bottom: 1px solid var(--bs-border-color);
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background: var(--pp-section-title-hover-bg);
+        }
+
+        &::after {
+          content: '\02795'; // plus sign
+          font-size: 0.9rem;
+          color: var(--bs-secondary-color);
+          float: right;
+          margin-left: 1rem;
+          transition: transform 0.2s ease;
+        }
+
+        &.active::after {
+          content: '\2796'; // minus sign
+          transform: rotate(180deg);
+        }
+      }
+
+      .section-content {
+        padding: 1.5rem;
+        background: var(--bs-body-bg);
+        
+        .control-item {
+          margin-bottom: 1.5rem;
+          padding-bottom: 1.5rem;
+          border-bottom: 1px solid var(--bs-border-color);
+
+          &:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+          }
+
+          .control-header {
+            margin-bottom: 1rem;
+
+            h2 {
+              color: var(--bs-heading-color);
+              font-size: 1.1rem;
+              font-weight: 600;
+              margin-bottom: 0.5rem;
+            }
+
+            .control-description {
+              color: var(--bs-secondary-color);
+              font-size: 0.95rem;
+              line-height: 1.5;
+            }
+          }
+
+          .policy-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+
+            li {
+              margin-bottom: 0.5rem;
+              padding-left: 1rem;
+              position: relative;
+
+              &::before {
+                content: '▶';
+                position: absolute;
+                left: 0;
+                color: var(--bs-link-color);
+                font-size: 0.8rem;
+              }
+
+              a {
+                color: var(--bs-link-color);
+                text-decoration: none;
+                font-weight: 500;
+
+                &:hover {
+                  color: var(--bs-link-hover-color);
+                  text-decoration: underline;
+                }
+              }
+            }
+          }
+
+          .no-policies {
+            color: var(--bs-secondary-color);
+            font-style: italic;
+            padding: 1rem;
+            background: var(--bs-light);
+            border-radius: 4px;
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Dark mode specific variables
+body.dark {
+  --pp-section-title-bg: #{darken($gray-800, 5%)};
+  --pp-section-title-hover-bg: #{$gray-700};
+}
+
+// Light mode specific variables
+body:not(.dark) {
+  --pp-section-title-bg: #{$gray-100};
+  --pp-section-title-hover-bg: #{$gray-200};
+}
+
+// Performance optimizations for large content
+.report-section {
+  .section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    
+    &.active {
+      max-height: none;
+      overflow: visible;
+    }
+  }
+  
+  .section-title.active + .section-content {
+    max-height: 2000px; // Large enough for content
+  }
+}
+
+// Optimize rendering for large lists
+.policy-list {
+  contain: layout;
+  
+  li {
+    contain: layout;
+  }
+}

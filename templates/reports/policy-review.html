@@ -1,52 +1,47 @@
-{% extends "base.html" %}
-{# {% block title %} {{ config.title }} | {{ page.title }} {% endblock title %}
-#}
-{% block content %}
-<article>
-  <p class="content">
-    {% if page %}
-    {{ page.content | safe }}
-    {% elif section %}
-    {{ section.content | safe }}
-    {% endif %}
-  </p>
-  {% set section = get_section(path=config.extra.policy_root) %}
-  {% set policies = section.pages %}
-  {% for sub in section.subsections %}
-  {% set subsection = get_section(path=sub) %}
-  {% set_global policies = policies | concat(with=subsection.pages) %}
-  {% endfor %}
-  <div class="policy-review-date-table">
-    <div class="row">
-      <div class="header">Policy</div>
-      <div class="header">Version</div>
-      <div class="header">Last Reviewed</div>
-    </div>
-    {% for policy in policies | sort(attribute="extra.last_reviewed") %}
-    {% set current_revision = policy.extra.major_revisions |
-    sort(attribute="date") | reverse | first %}
-    <div class="row">
-      <div class="cell title"><a
-          href="{{ get_url(path=policy.path) }}">{{policy.title }}</a></div>
-      <div class="cell">{{current_revision.version}}</div>
-      {% set last_reviewed_ts = policy.extra.last_reviewed | date(format="%s") |
-      int %}
-      {% set today = now() | date(format="%s") | int %}
-      {% set diff = (today - last_reviewed_ts) %}
-      {% if diff >= 23668200 %}
-      {% set date_class = "nine-month" %}
-      {% elif diff > 15778800 and diff < 23668200 %}
-      {% set date_class = "6-month" %}
-      {% else %}
-      {% set date_class = "recent" %}
-      {% endif %}
-      <div class="cell date {{ date_class }}">
-        {{ policy.extra.last_reviewed | date(format="%B %d, %Y")}}
+{% extends "reports/base.html" %}
+
+{% block report_content %}
+{% set section = get_section(path=config.extra.policy_root) %}
+{% set policies = section.pages %}
+{% for sub in section.subsections %}
+{% set subsection = get_section(path=sub) %}
+{% set_global policies = policies | concat(with=subsection.pages) %}
+{% endfor %}
+
+<div class="report-section">
+  <h2 class="section-title">Policy Review Status</h2>
+  <div class="section-content">
+    <div class="policy-review-date-table">
+      <div class="row">
+        <div class="header">Policy</div>
+        <div class="header">Version</div>
+        <div class="header">Last Reviewed</div>
       </div>
+      {% for policy in policies | sort(attribute="extra.last_reviewed") %}
+      {% set current_revision = policy.extra.major_revisions |
+      sort(attribute="date") | reverse | first %}
+      <div class="row">
+        <div class="cell title">
+          <a href="{{ get_url(path=policy.path) }}">{{ policy.title }}</a>
+        </div>
+        <div class="cell">{{ current_revision.version }}</div>
+        {% set last_reviewed_ts = policy.extra.last_reviewed | date(format="%s")
+        | int %}
+        {% set today = now() | date(format="%s") | int %}
+        {% set diff = (today - last_reviewed_ts) %}
+        {% if diff >= 23668200 %}
+        {% set date_class = "nine-month" %}
+        {% elif diff > 15778800 and diff < 23668200 %}
+        {% set date_class = "six-month" %}
+        {% else %}
+        {% set date_class = "recent" %}
+        {% endif %}
+        <div class="cell date {{ date_class }}">
+          {{ policy.extra.last_reviewed | date(format="%B %d, %Y") }}
+        </div>
+      </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </ul>
-  <pre>
-</pre>
-</article>
-{% endblock content %}
+  </div>
+</div>
+{% endblock report_content %}

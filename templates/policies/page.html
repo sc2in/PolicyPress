@@ -1,0 +1,65 @@
+{% extends "page.html" %}
+{% import 'macros/policies-latest-revision.html' as
+macros_policies -%}
+
+{% block body %}
+{% set page_class = "docs single" %}
+{% endblock body %}
+{% block header %}
+{# This value is matched by the config.extra.menu.main~url #}
+{% set current_section = "policies" %}
+{{ macros_header::header(current_section=current_section)}}
+{% endblock header %}
+
+{% block content %}
+
+{% if not page.extra or not page.extra.major_revisions %}
+{{ throw(message="Error: Major revisions are not defined for the policy " ~
+page.path) }}
+{% endif %}
+{% set versions = page.extra.major_revisions | sort(attribute="date") |
+reverse %}
+{% set current_version = versions | first %}
+
+{% if page.extra is not containing("last_reviewed") %}
+{{ throw(message="Error: Policy last reviewed date is not set") }}
+{% endif %}
+
+{% set last_reviewed_ts = page.extra.last_reviewed | date(format="%s") | int %}
+{% set today = now() | date(format="%s") | int %}
+{% if (today - last_reviewed_ts) > 31557600 %}
+{{ throw(message="Error: Policy last reviewed date is older than one year") }}
+{% endif %}
+
+{% set pdf_file = page.title ~ " - v" ~ current_version.version ~ ".pdf" |
+replace(from=" ",to="_") %}
+{# {{ macros_sidebar::docs_sidebar(current_section=current_section) }} #}
+{{ macros_toc::docs_toc(page=page) }}
+<main class="docs-content policy">
+  <h2 class="title">{{page.title}} - v{{current_version.version}}</h2>
+  <div class="last-reviewed">Last reviewed and
+    approved on {{page.extra.last_reviewed | date(format="%B %d, %Y")}}</div>
+  <div class="summary">{{ page.summary | safe }}</div>
+  <div class="description">{{ page.description | safe }}</div>
+  <div class="pdf-links">
+    {%- if (config.mode != "serve") -%}
+    <a href="/pdf/{{pdf_file}}">PDF Version</a>
+    {% else %}
+    PDF Version not available in serve mode
+    {%- endif -%}
+  </div>
+  <div class="content">
+    {{ page.content | safe }}
+  </div>
+
+  {#TODO: FIX {%- include "partials/revisions.html" -%} #}
+  {#TODO: FIX {%- include "partials/satisfies.html" -%} #}
+
+  {% if config.extra.edit_page %}
+  {{ macros_edit_page::docs_edit_page(current_path=current_path) }}
+  {% endif %}
+  {{ macros_navigation::docs_navigation(page=page,
+  current_section=current_section) }}
+</main>
+
+{% endblock content %}

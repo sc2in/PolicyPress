@@ -15,7 +15,7 @@ pub fn main() !void {
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
-        \\-d, --dir <str>...     Directory to serve from. Defaults to `public`
+        \\-d, --dir <str>...     Directory to serve from. Defaults to `zig-out/public`
         \\
     );
     var diag = clap.Diagnostic{};
@@ -33,7 +33,7 @@ pub fn main() !void {
         std.debug.print("SC2 Policy Center Dev Server\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
         return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
     }
-    const serve_dir = if (res.args.dir.len >= 1) res.args.dir[0] else "public";
+    const serve_dir = if (res.args.dir.len >= 1) res.args.dir[0] else "zig-out/public";
     zap.mimetypeRegister("wasm", "application/wasm");
 
     var listener = zap.HttpListener.init(.{

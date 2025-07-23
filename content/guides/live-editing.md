@@ -2,7 +2,7 @@
 title: Editing an Existing Policy
 weight: 1
 description: How to change a policy
-summary: How to add change a policy
+summary: How to change a policy
 ---
 
 ## Live Editing

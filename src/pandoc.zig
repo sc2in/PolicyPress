@@ -128,7 +128,7 @@ pub fn main() !void {
     if (res.args.base_url) |c| {
         panlog.info("Base URL: {s}\n", .{c});
         global_config.base_url = c;
-    } else return error.ProjectRootNotProvided;
+    } else return error.BaseUrlNotProvided;
     if (res.args.draft != 0) {
         panlog.info("Draft mode enabled\n", .{});
         global_config.is_draft = true;

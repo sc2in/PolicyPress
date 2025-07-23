@@ -45,6 +45,14 @@ B -- No --> D[End]
 C --> D
 {% end %}
 
+## Zola link replacement
+
+[policy](@/policies/aeip.md)
+
+[section](@/policies/_index.md)
+
+[directory](@/policies/incident/digital-forensics/index.md)
+
 ## Redaction
 
 {% redact() %}

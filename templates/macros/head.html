@@ -16,7 +16,7 @@
 {% macro favicons() %}
 <meta name="theme-color"
   content="{{ config.extra.theme_color | default(value='#fff') }}">
-<link rel="icon" type="image/ico"
+<link rel="icon" type="image/x-icon"
   href="{{ get_url(path='favicon.ico') | safe }}">
 {% if not config.extra.is_netlify %}
 <link rel="manifest" href="{{ get_url(path='site.webmanifest') | safe }}"

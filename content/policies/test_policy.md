@@ -48,8 +48,10 @@ C --> D
 ## Zola link replacement
 
 [policy](@/policies/aeip.md)
-[directory](@/policies/_index.md)
-<!-- [passthrough](@/news/privacy-policy-update.jpg) -->
+
+[section](@/policies/_index.md)
+
+[directory](@/policies/incident/digital-forensics/index.md)
 
 ## Redaction
 

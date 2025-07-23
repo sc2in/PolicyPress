@@ -1,0 +1,9 @@
+{% set redact = config.extra.redact or false %}
+
+{% if redact %}
+<span class="redaction">
+  {% for i in range(end=(body|length)) %}_{% endfor %}
+</span>
+{% else %}
+{{ body | safe }}
+{%endif%}

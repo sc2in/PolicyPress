@@ -1,0 +1,63 @@
+{% extends "section.html" %}
+{% import 'macros/policies-latest-revision.html' as
+macros_policies_latest_revision -%}
+{% block body %}
+{% set page_class = "docs list" %}
+{% endblock body %}
+
+{% block header %}
+{# This value is matched by the config.extra.menu.main~section #}
+{% set current_section = "policies" %}
+{{ macros_header::header(current_section=current_section)}}
+{% endblock header %}
+
+{% block content %}
+
+<article>
+  <h1 class="text-center">{{ section.title }}</h1>
+  <div class="text-center">{{ section.content | safe }}</div>
+  <div class="card-list">
+    {% set index_path = current_path ~ "_index.md" |
+    trim_start_matches(pat="/") %}
+    {% set index = get_section(path=index_path) %}
+    {% for page in index.pages %}
+    <div class="card my-3">
+      <div class="card-body">
+        <a class="stretched-link" href="{{ page.permalink }}">
+          <i class="glyphicon glyphicon-file"></i>
+          <strong>{{ page.title }}</strong>
+        </a>
+        {% if page.extra.lead %}
+        <p class="lead">{{ page.extra.lead | safe }}</p>
+        {% elif page.description %}
+        <p class="lead">{{ page.description | safe }}</p>
+        {% endif %}
+        <p class="text-muted">
+          {# {{
+          macros_policies_latest_revision::policies_latest_revision(page=page)
+          | default(value="") }} #}
+        </p>
+      </div>
+    </div>
+    {% endfor %}
+    {% if index.subsections %}
+    {% for sub in section.subsections %}
+    {% set s = get_section(path=sub) %}
+    <div class="card my-3">
+      <div class="card-body">
+        <a class="stretched-link" href="{{ s.permalink }}">
+          <i class="glyphicon glyphicon-folder-close"></i>
+          {{ s.title }} &rarr;
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% for s in index.subsections %}
+    {% set subsection = get_section(path=s) %}
+
+    {% endfor %}
+  </div>
+</article>
+
+{% endblock content %}

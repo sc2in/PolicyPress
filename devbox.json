@@ -1,32 +1,51 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.10.7/.schema/devbox.schema.json",
-  "packages": [
-    "pandoc@latest",
-    "yq-go@latest",
-    "gnused@latest",
-    "yq@latest",
-    "github:sc2in/eisvogel-tex#",
-    "zola@latest",
-    "imagemagick@latest",
-    "yj@latest"
-  ],
+  "packages": {
+    "pandoc":               "latest", 
+    "github:sc2in/eisvogel-tex#": "",
+    "zola":                       "latest",
+    "imagemagick":                "latest",
+    "mermaid-filter":             "latest",
+    "zig":                        "latest",
+    "zls":                        "latest",
+    "watchexec":                  "latest"
+  },
   "shell": {
     "init_hook": [
       "echo 'Welcome to devbox!' > /dev/null"
     ],
     "scripts": {
       "build-pdfs": [
-        "./pandoc.sh"
+        "zig build -Doptimize=ReleaseSafe pdf"
+      ],
+      "build-pdfs-zola": [
+        "echo Unfinished",
+        "exit 1",
+        "zola build -u file://`pwd`/public",
+        "export POLICY_ROOT=$(dirname `tomlq -r '.extra.policy_root' config.toml` )",
+        "mkdir -p public/pdfs/",
+        "for file in $(find public/${POLICY_ROOT} -type f -name \"*.html\" -not -name \"_index.md\"); do",
+        "pandoc -F mermaid-filter --from html --to pdf --pdf-engine=xelatex $file -o ${file%.html}.pdf",
+        "done"
+      ],
+      "build-pdfs-draft": [
+        "zig build -Doptimize=ReleaseSafe pdf -- -d"
+      ],
+      "build-pdfs-draft-redact": [
+        "zig build -Doptimize=ReleaseSafe pdf -- -d -r"
       ],
       "build-site": [
         "zola build"
       ],
       "clean": [
-        "echo Cleaning the project of all build artifacts and devbox cache...",
-        "rm -rf .direnv .devbox node_modules public resources internal .pnpm-store *.err *.log *.core 2>/dev/null"
+        "echo Cleaning the project of all build artifacts and node_modules...",
+        "rm -rf .zig-cache zig-out node_modules public resources internal .pnpm-store *.err *.log *.core 2>/dev/null"
       ],
       "test": [
         "zola check"
+      ],
+      "dev": [
+        "watchexec -c -- zig build run"
       ],
       "serve": [
         "zola serve"
@@ -34,15 +53,35 @@
       "preview": [
         "zola build --base-url http://0.0.0.0:1111",
         "devbox run build-pdfs",
-        "python -m http.server 1111 -d public"
+        "zig build serve"
+      ],
+      "docs": [
+        "zig build docs",
+        "zig build serve -- -d zig-out/docs"
       ],
       "ci": [
         "if [ $PUBLISH == \"true\" ]; then",
         "devbox run build-site",
         "devbox run build-pdfs",
         "else",
-        "devbox run build-site",
+        "devbox run build-pdfs-draft",
         "fi"
+      ],
+      "cross-test": [
+        "zig build -Doptimize=Debug -Dtarget=x86_64-linux test",
+        "zig build -Doptimize=Debug -Dtarget=x86_64-windows test",
+        "zig build -Doptimize=Debug -Dtarget=x86_64-macos test",
+        "zig build -Doptimize=Debug -Dtarget=aarch64-macos test",
+        "zig build -Doptimize=Debug -Dtarget=aarch64-linux test",
+        "zig build -Doptimize=Debug -Dtarget=aarch64-windows test"
+      ],
+      "release": [
+        "zig build -Doptimize=ReleaseSafe -Dtarget=x86_64-linux",
+        "zig build -Doptimize=ReleaseSafe -Dtarget=x86_64-windows",
+        "zig build -Doptimize=ReleaseSafe -Dtarget=x86_64-macos",
+        "zig build -Doptimize=ReleaseSafe -Dtarget=aarch64-macos",
+        "zig build -Doptimize=ReleaseSafe -Dtarget=aarch64-linux",
+        "zig build -Doptimize=ReleaseSafe -Dtarget=aarch64-windows"
       ]
     }
   }

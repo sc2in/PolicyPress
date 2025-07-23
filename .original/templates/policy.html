@@ -1,0 +1,35 @@
+{% extends "index.html" %}
+{% block title %} {{ config.title }} | {{ page.title }} {% endblock title %}
+{% block content %}
+{% set versions = page.extra.major_revisions | sort(attribute="date") | reverse %}
+{% set current_version = versions | first %}
+{% if page.extra is not containing("last_reviewed") %}
+  {{ throw(message="Error: Policy last reviewed date is not set") }}
+{% endif %}
+
+{% set last_reviewed_ts = page.extra.last_reviewed | date(format="%s") | int %}
+{% set today = now() | date(format="%s") | int %}
+{% if (today - last_reviewed_ts) > 31557600 %}
+  {{ throw(message="Error: Policy last reviewed date is older than one year") }}
+{% endif %}
+{% set pdf_file = page.title ~ " - v" ~ current_version.version ~ ".pdf" | replace(from=" ",to="_") %}
+<article class="policy">
+  <h2 class="title">{{page.title}} - v{{current_version.version}}</h2>
+  <div class="last-reviewed">v{{current_version.version}} Last reviewed and approved on {{page.extra.last_reviewed | date(format="%B %d, %Y")}}</div>
+  <div class="summary">{{ page.summary | safe }}</div>
+  <div class="description">{{ page.description | safe }}</div>
+  <div class="pdf-links">
+  {%- if (config.mode != "serve") -%}
+    <a href="/pdf/{{pdf_file}}">PDF Version</a>
+    {% else %}
+    PDF Version not available in serve mode
+    {%- endif -%}
+  </div>
+  <div class="content">
+    {{ page.content | safe }}
+  </div>
+
+  {%- include "partials/revisions.html" -%}
+  {%- include "partials/satisfies.html" -%}
+</article>
+{% endblock content %}

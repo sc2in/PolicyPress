@@ -1,0 +1,182 @@
+// Enhanced Navigation Styles with Dark Mode Support
+.navbar {
+  padding: 1rem 0;
+  background: var(--pp-navbar-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--pp-navbar-border);
+  
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    color: var(--bs-heading-color);
+    text-decoration: none;
+    
+    &:hover {
+      color: var(--bs-link-color);
+    }
+    
+    .brand-logo {
+      height: 32px;
+      width: auto;
+    }
+    
+    .brand-text {
+      font-size: 1.25rem;
+    }
+  }
+  
+  .main-nav {
+    .nav-item {
+      margin: 0 0.5rem;
+      
+      &.active {
+        .nav-link {
+          color: var(--bs-link-color);
+          font-weight: 600;
+        }
+      }
+      
+      .nav-link {
+        color: var(--bs-body-color);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        
+        &:hover {
+          color: var(--bs-link-color);
+          background: rgba(var(--bs-primary-rgb), 0.05);
+        }
+        
+        &:focus {
+          outline: 2px solid var(--bs-link-color);
+          outline-offset: 2px;
+        }
+        
+        i {
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+  
+  .search-container {
+    position: relative;
+    
+    .search-input {
+      border: 2px solid var(--pp-search-border);
+      border-radius: 25px;
+      padding: 0.5rem 1rem;
+      padding-right: 2.5rem;
+      transition: all 0.3s ease;
+      background: var(--pp-search-bg);
+      color: var(--bs-body-color);
+      
+      &:focus {
+        border-color: var(--bs-link-color);
+        box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.1);
+        outline: none;
+      }
+      
+      &::placeholder {
+        color: var(--bs-secondary-color);
+      }
+    }
+    
+    .search-button {
+      position: absolute;
+      right: 5px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--bs-secondary-color);
+      padding: 0.5rem;
+      border-radius: 50%;
+      
+      &:hover {
+        color: var(--bs-link-color);
+        background: rgba(var(--bs-primary-rgb), 0.1);
+      }
+      
+      &:focus {
+        outline: 2px solid var(--bs-link-color);
+        outline-offset: 2px;
+      }
+    }
+  }
+  
+  .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+    background: var(--pp-search-bg);
+    border: 1px solid var(--pp-search-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px var(--pp-dropdown-shadow);
+    margin-top: 0.5rem;
+    display: none;
+    
+    &.show {
+      display: block;
+    }
+  }
+  
+  .theme-toggle {
+    padding: 0.5rem;
+    border: none;
+    background: none;
+    color: var(--bs-secondary-color);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    
+    &:hover {
+      color: var(--bs-link-color);
+      background: rgba(var(--bs-primary-rgb), 0.1);
+    }
+    
+    &:focus {
+      outline: 2px solid var(--bs-link-color);
+      outline-offset: 2px;
+    }
+    
+    .theme-icon {
+      width: 20px;
+      height: 20px;
+      transition: all 0.2s ease;
+    }
+  }
+}
+
+// Dropdown menu enhancements
+.dropdown-menu {
+  background: var(--pp-dropdown-bg);
+  border: 1px solid var(--pp-dropdown-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px var(--pp-dropdown-shadow);
+  
+  .dropdown-item {
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+    color: var(--bs-body-color);
+    
+    &:hover {
+      background: rgba(var(--bs-primary-rgb), 0.05);
+      color: var(--bs-link-color);
+    }
+    
+    &:focus {
+      outline: 2px solid var(--bs-link-color);
+      outline-offset: -2px;
+    }
+  }
+}

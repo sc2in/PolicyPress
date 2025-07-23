@@ -11,7 +11,7 @@ summary: Setting up the SC2 Policy Center
 - [Git](https://git-scm.com/downloads)
 - [Devbox](https://www.jetpack.io/devbox/docs/installation)
 
-(optional markdown editor that utilizes git)
+- Optional markdown editor with Git integration:
 
 - [VSCode](https://code.visualstudio.com/download)
 - [Zed](https://zed.dev/download)

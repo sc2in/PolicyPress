@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+  <div class="report-header">
+    {% if page %}
+    <h1>{{ page.title }}</h1>
+    <div class="report-description">
+      {{ page.content | safe }}
+    </div>
+    {% elif section %}
+    <h1>{{ section.title }}</h1>
+    <div class="report-description">
+      {{ section.content | safe }}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="report-content">
+    {% block report_content %}{% endblock report_content %}
+  </div>
+</div>
+
+<script>
+// Optimized collapsible functionality with performance improvements
+document.addEventListener('DOMContentLoaded', function() {
+  const toggles = document.querySelectorAll('.section-title');
+  
+  // Use event delegation for better performance
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('section-title')) {
+      e.target.classList.toggle('active');
+      const content = e.target.nextElementSibling;
+      
+      if (content.classList.contains('active')) {
+        content.classList.remove('active');
+        content.style.maxHeight = '0';
+      } else {
+        content.classList.add('active');
+        content.style.maxHeight = content.scrollHeight + 'px';
+      }
+    }
+  });
+  
+  // Lazy loading for large sections
+  const observerOptions = {
+    root: null,
+    rootMargin: '50px',
+    threshold: 0.1
+  };
+  
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('loaded');
+      }
+    });
+  }, observerOptions);
+  
+  // Observe all report sections
+  document.querySelectorAll('.report-section').forEach(section => {
+    observer.observe(section);
+  });
+});
+</script>
+{% endblock content %}

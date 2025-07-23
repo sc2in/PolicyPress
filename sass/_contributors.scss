@@ -1,0 +1,11 @@
+.contributors-list {
+  display: grid;
+  grid-auto-flow: column;
+  grid-gap: 25px;
+  justify-content: center;
+  align-items: center;
+  li:first-child {
+    list-style-type: none;
+  }
+  list-style-type: disc;
+}

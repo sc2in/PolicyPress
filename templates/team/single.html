@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block seo %}
+{% set title_addition = "" %}
+{% if config.extra.title_separator %}
+{% set title_separator = " " ~ config.extra.title_separator ~ " " %}
+{% else %}
+{% set title_separator = " | " %}
+{% endif %}
+
+{% if config.title %}
+{% set title_addition = title_separator ~ config.title %}
+{% endif %}
+
+{% if page.description %}
+{% set description = page.description %}
+{% else %}
+{% set description = config.description %}
+{% endif %}
+
+{{ macros_head::seo(title=page.title, title_addition=title_addition,
+description=description) }}
+{% endblock seo %}
+
+{% block body %}
+{% if page.extra.class %}
+{% set page_class = page.extra.class %}
+{% else %}
+{% set page_class = "team-member" %}
+{% endif %}
+{% endblock body %}
+
+{% block content %}
+<article class="team-member-profile">
+  <div class="member-header">
+    {% if page.extra.photo %}
+    <div class="member-photo-large">
+      <img src="{{ page.extra.photo | safe }}" alt="{{ page.title }} photo"
+        class="img-fluid rounded-circle" loading="lazy">
+    </div>
+    {% endif %}
+
+    <div class="member-header-info">
+      <h1 class="member-name">{{ page.title }}</h1>
+
+      {% if page.extra.position %}
+      <h2 class="member-position">{{ page.extra.position }}</h2>
+      {% endif %}
+
+      {% if page.extra.department %}
+      <p class="member-department">{{ page.extra.department }}</p>
+      {% endif %}
+
+      {% if page.extra.email or page.extra.phone or page.extra.linkedin or
+      page.extra.twitter %}
+      <div class="member-contact-info">
+        {% if page.extra.email %}
+        <a href="mailto:{{ page.extra.email }}" class="contact-link email"
+          aria-label="Email {{ page.title }}">
+          <i class="fas fa-envelope"></i> {{ page.extra.email }}
+        </a>
+        {% endif %}
+        {% if page.extra.phone %}
+        <a href="tel:{{ page.extra.phone }}" class="contact-link phone"
+          aria-label="Call {{ page.title }}">
+          <i class="fas fa-phone"></i> {{ page.extra.phone }}
+        </a>
+        {% endif %}
+        {% if page.extra.linkedin %}
+        <a href="{{ page.extra.linkedin }}" class="contact-link linkedin"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="{{ page.title }}'s LinkedIn">
+          <i class="fab fa-linkedin"></i> LinkedIn
+        </a>
+        {% endif %}
+        {% if page.extra.twitter %}
+        <a href="{{ page.extra.twitter }}" class="contact-link twitter"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="{{ page.title }}'s Twitter">
+          <i class="fab fa-twitter"></i> Twitter
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if page.content %}
+  <div class="member-content">
+    {{ page.content | safe }}
+  </div>
+  {% endif %}
+
+  {% if page.extra.certifications %}
+  <div class="member-certifications">
+    <h3>Certifications</h3>
+    <ul class="certifications-list">
+      {% for cert in page.extra.certifications %}
+      <li class="certification-item">
+        {{ cert }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if page.extra.skills %}
+  <div class="member-skills">
+    <h3>Skills & Expertise</h3>
+    <div class="skills-tags">
+      {% for skill in page.extra.skills %}
+      <span class="skill-tag">{{ skill }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Navigation back to team list -->
+  <div class="member-navigation">
+    <a href="/team/" class="btn btn-outline-primary">
+      <i class="fas fa-arrow-left"></i> Back to Team
+    </a>
+  </div>
+</article>
+{% endblock content %}

@@ -1,0 +1,47 @@
+.banner{
+  margin: 0;
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+  text-align: center;
+
+  background: linear-gradient(45deg, rgba(11, 160, 190, 0.7), rgba(100,216,243,.7), rgba(234,236,198,.7), rgba(2, 110, 173, 0.7), rgba(52,219,216,.7)) 0 0 / 1000% no-repeat ;
+  .title {
+    position: relative;
+
+    color: #fff;
+    font : normal 600 72px/1 'Open Sans', sans-serif;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .lead {
+    position: relative;
+
+    color: #fff;
+    font : normal 400 30px 'Open Sans', sans-serif;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .cta {
+    position: relative;
+    margin-top: 3rem;
+    margin-bottom: 2rem;
+
+    color: #fff;
+    font : normal 400 30px 'Open Sans', sans-serif;
+    text-align: center;
+    white-space: nowrap;
+    a {
+      background-color: #025789;
+  color: rgb(232, 232, 232);
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 16px;
+  border-color: darkgray;
+  border-width: 2px;
+    }
+  }
+}

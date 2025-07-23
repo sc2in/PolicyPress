@@ -1,0 +1,44 @@
+// Collapsible group SASS
+.collapsible-group {
+  .collapsible {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+    transition: background 0.2s;
+
+    &:hover, &.active {
+      background-color: #ccc;
+    }
+
+    &::after {
+      content: '\02795'; // plus sign
+      font-size: 13px;
+      color: #888;
+      float: right;
+      margin-left: 5px;
+    }
+
+    &.active::after {
+      content: '\2796'; // minus sign
+    }
+  }
+
+  .collapsible-content {
+    padding: 0 18px;
+    background-color: #f9f9f9;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    width: 80%;
+  }
+
+  .collapsible.active + .collapsible-content {
+    max-height: 500px; // Adjust as needed for expected content size
+  }
+}

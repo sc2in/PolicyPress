@@ -1,0 +1,159 @@
+{% extends "section.html" %}
+
+{% if not paginator %}
+{{
+throw(message="Could not find paginator. Did you set paginate_by in _index.md?")
+}}
+{% endif %}
+
+{% block seo %}
+{% set title_addition = "" %}
+{% if config.extra.title_separator %}
+{% set title_separator = " " ~ config.extra.title_separator ~ " " %}
+{% else %}
+{% set title_separator = " | " %}
+{% endif %}
+
+{% if config.title %}
+{% set title_addition = title_separator ~ config.title %}
+{% endif %}
+
+{% if section.description %}
+{% set description = section.description %}
+{% else %}
+{% set description = config.description %}
+{% endif %}
+
+{{ macros_head::seo(title=section.title, title_addition=title_addition,
+description=description) }}
+{% endblock seo %}
+
+{% block body %}
+{% set page_class = "news list" %}
+{% endblock body %}
+
+{% block header %}
+{# This value is matched by the config.extra.menu.main->section #}
+{% set current_section = "news" %}
+{{ macros_header::header(current_section=current_section)}}
+{% endblock header %}
+
+{% block content %}
+<article class="news-container" role="main">
+  <!-- Skip link for keyboard navigation -->
+  <a href="#news-content" class="skip-link">Skip to news content</a>
+
+  <div class="page-header">
+    <h1 class="text-center">{{ section.title }}</h1>
+    {% if section.content %}
+    <div class="lead text-center">{{ section.content | safe }}</div>
+    {% endif %}
+  </div>
+
+  <div id="news-content" class="news-content">
+    {% if section.extra.featured_post %}
+    {% set featured = get_page(path=section.extra.featured_post) %}
+    <div class="featured-post" role="article">
+      <h2 class="sr-only">Featured Article</h2>
+      <div class="featured-card">
+        {% if featured.extra.image %}
+        <div class="featured-image">
+          <img src="{{ featured.extra.image | safe }}"
+            alt="{{ featured.extra.image_alt | default(value=" Featured image
+            for " ~ featured.title) }}"
+            class="img-fluid"
+            loading="lazy">
+        </div>
+        {% endif %}
+        <div class="featured-content">
+          <div class="featured-meta">
+            <span class="badge badge-primary">Featured</span>
+            {{ macros_publish::page_publish_metadata(page=featured) }}
+          </div>
+          <h3 class="featured-title">
+            <a href="{{ featured.permalink | safe }}"
+              class="stretched-link text-body">
+              {{ featured.title }}
+            </a>
+          </h3>
+          {% if featured.extra.lead %}
+          <p class="featured-excerpt">{{ featured.extra.lead | safe }}</p>
+          {% elif featured.description %}
+          <p class="featured-excerpt">{{ featured.description | safe }}</p>
+          {% elif featured.content %}
+          <p class="featured-excerpt">{{ featured.content | safe | striptags |
+            truncate(length=200) }}</p>
+          {% endif %}
+          {% if featured.extra.tags %}
+          <div class="news-tags">
+            {% for tag in featured.extra.tags %}
+            <span class="tag">{{ tag }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="news-list" role="feed" aria-label="Latest news articles">
+      {% for page in paginator.pages %}
+      <article class="news-item" role="article">
+        <div class="news-card">
+          {% if page.extra.image %}
+          <div class="news-image">
+            <img src="{{ page.extra.image | safe }}"
+              alt="{{ page.extra.image_alt | default(value=" Image for
+              " ~ page.title) }}"
+              class="img-fluid"
+              loading="lazy">
+          </div>
+          {% endif %}
+          <div class="news-content">
+            <div class="news-meta">
+              {{ macros_publish::page_publish_metadata(page=page) }}
+              {% if page.extra.category %}
+              <span class="news-category">{{ page.extra.category }}</span>
+              {% endif %}
+            </div>
+            <h3 class="news-title">
+              <a href="{{ page.permalink | safe }}"
+                class="stretched-link text-body">
+                {{ page.title }}
+              </a>
+            </h3>
+            {% if page.extra.lead %}
+            <p class="news-excerpt">{{ page.extra.lead | safe }}</p>
+            {% elif page.description %}
+            <p class="news-excerpt">{{ page.description | safe }}</p>
+            {% elif page.content %}
+            <p class="news-excerpt">{{ page.content | safe | striptags |
+              truncate(length=150) }}</p>
+            {% endif %}
+            {% if page.extra.tags %}
+            <div class="news-tags">
+              {% for tag in page.extra.tags %}
+              <span class="tag">{{ tag }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+            <div class="news-actions">
+              <a href="{{ page.permalink | safe }}" class="read-more-link"
+                aria-label="Read full article: {{ page.title }}">
+                Read more <i class="fas fa-arrow-right" aria-hidden="true"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    {% if paginator.previous or paginator.next %}
+    <nav class="pagination-nav" aria-label="News pagination">
+      {{ macros_section_nav::navigation(paginator=paginator) }}
+    </nav>
+    {% endif %}
+  </div>
+</article>
+{% endblock %}

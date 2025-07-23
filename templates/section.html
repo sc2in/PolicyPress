@@ -1,40 +1,66 @@
-{% extends "index.html" %}
+{# Default section.html template #}
 
-{% block title %} {{ config.title }} | {{ section.title }} {% endblock title %}
+{% extends "base.html" %}
+
+{% block seo %}
+{{ super() }}
+{% set title_addition = "" %}
+
+{% if section.title and config.title %}
+{% set title = section.title %}
+{% set title_addition = title_separator ~ config.title %}
+{% elif section.title %}
+{% set title = section.title %}
+{% else %}
+{% set title = config.title %}
+{% endif %}
+
+{% if section.description %}
+{% set description = section.description %}
+{% else %}
+{% set description = config.description %}
+{% endif %}
+
+{{ macros_head::seo(title=title, title_addition=title_addition,
+description=description) }}
+{% endblock seo %}
+
+{% block body %}
+{% if section.extra.class %}
+{% set page_class = section.extra.class %}
+{% else %}
+{% set page_class = "page list" %}
+{% endif %}
+{% endblock body %}
 
 {% block content %}
-{% if not config.extra.easydocs_uglyurls or config.mode == "serve" or config.mode == "Serve" -%}
-{% set _ugly_url = "" -%}
-{% else %}
-{% set _ugly_url = "index.html" -%}
-{% endif -%}
 
-    {% if section.word_count > 0 -%}
-        {{ section.content | safe }}
+<article>
+  <div class="page-header">
+    <h1>{{ section.title }}</h1>
+  </div>
+  {{ section.content | safe }}
+  {% if section.subsections -%}
+  <h3>Subsections:</h3>
+  <ul>
+    {% for subsec in section.subsections -%}
+    {% set sec_ = get_section(path=subsec) -%}
+    <li><a href="{{ sec_.permalink | safe }}{{ _ugly_url }}">{{
+        sec_.title }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif -%}
+  <h3>Pages:</h3>
+  <ul>
+    {% if section.pages -%}
+    {% for page in section.pages -%}
+    <li><a href="{{ page.permalink | safe }}{{ _ugly_url }}">{{
+        page.title }}</a></li>
+    {% endfor -%}
     {% else -%}
-        <h2 class="title"> {{ section.title }} </h2>
+    <li>No pages</li>
+    {% endif %}
+  </ul>
+</article>
 
-        {% if section.subsections -%}
-            <h3>Subsections:</h3>
-            <ul>
-                {% for subsec in section.subsections -%}
-                    {% set sec_ = get_section(path=subsec) -%}
-                    <li><a href="{{ sec_.permalink | safe }}{{ _ugly_url }}">{{ sec_.title }}</a></li>
-                {% endfor %}
-            </ul>
-        {% endif -%}
-
-        <h3>Pages:</h3>
-        <ul>
-            {% if section.pages -%}
-                {% for page in section.pages -%}
-                    <li><a href="{{ page.permalink | safe }}{{ _ugly_url }}">{{ page.title }}</a></li>
-                {% endfor -%}
-            {% else -%}
-                <li>No pages</li>
-            {% endif %}
-        </ul>
-    {% endif -%}
 {% endblock content %}
-
-

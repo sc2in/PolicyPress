@@ -11,7 +11,7 @@ taxonomies:
   - '2.1'
 extra:
   owner: SC2
-  last_reviewed: 2024-02-20
+  last_reviewed: 2025-02-20
   major_revisions:
   - date: 2023-09-07
     description: Initial version.

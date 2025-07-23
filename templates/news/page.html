@@ -1,0 +1,181 @@
+{# Enhanced news article template with accessibility features #}
+{% extends "page.html" %}
+
+{% block seo %}
+{# This value is matched by the config.extra.menu.main->section #}
+{% set_global current_section = 'news' %}
+
+{% set title_addition = "" %}
+{% if config.extra.title_separator %}
+{% set title_separator = " " ~ config.extra.title_separator ~ " " %}
+{% else %}
+{% set title_separator = " | " %}
+{% endif %}
+
+{% if config.title %}
+{% set title_addition = title_separator ~ config.title %}
+{% endif %}
+
+{% if page.description %}
+{% set description = page.description %}
+{% else %}
+{% set description = config.description %}
+{% endif %}
+
+{{ macros_head::seo(title=page.title, title_addition=title_addition,
+description=description) }}
+{% endblock seo %}
+
+{% block body %}
+{% set page_class = "news single" %}
+{% endblock body %}
+
+{% block header %}
+{{ macros_header::header(current_section=current_section)}}
+{% endblock header %}
+
+{% block content %}
+<article class="news-article" role="main">
+  <!-- Skip link for keyboard navigation -->
+  <a href="#article-content" class="skip-link">Skip to article content</a>
+
+  <div class="article-header">
+    {% if page.extra.category %}
+    <div class="article-category">
+      <span class="badge badge-primary">{{ page.extra.category }}</span>
+    </div>
+    {% endif %}
+
+    <h1 class="article-title">{{ page.title }}</h1>
+
+    {% if page.extra.lead %}
+    <p class="article-lead">{{ page.extra.lead | safe }}</p>
+    {% endif %}
+
+    <div class="article-meta">
+      {{ macros_publish::page_publish_metadata(page=page) }}
+      {% if page.extra.reading_time %}
+      <span class="reading-time" aria-label="Estimated reading time">
+        <i class="fas fa-clock" aria-hidden="true"></i> {{
+        page.extra.reading_time }} min read
+      </span>
+      {% endif %}
+    </div>
+
+    {% if page.extra.tags %}
+    <div class="article-tags">
+      <span class="tags-label">Tags:</span>
+      {% for tag in page.extra.tags %}
+      <span class="tag">{{ tag }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if page.extra.image %}
+  <div class="article-image">
+    <img src="{{ page.extra.image | safe }}"
+      alt="{{ page.extra.image_alt | default(value=" Featured image for
+      " ~ page.title) }}"
+      class="img-fluid"
+      loading="lazy">
+    {% if page.extra.image_caption %}
+    <figcaption class="image-caption">{{ page.extra.image_caption | safe
+      }}</figcaption>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div id="article-content" class="article-content">
+    {{ page.content | safe }}
+  </div>
+
+  {% if page.extra.update_note %}
+  <div class="update-notice" role="note">
+    <h3>Update Notice</h3>
+    <p>{{ page.extra.update_note | safe }}</p>
+  </div>
+  {% endif %}
+
+  <div class="article-footer">
+    {% if page.extra.share_buttons %}
+    <div class="share-buttons">
+      <h3>Share this article</h3>
+      <div class="share-links">
+        <a
+          href="https://twitter.com/intent/tweet?url={{ page.permalink | urlencode }}&text={{ page.title | urlencode }}"
+          class="share-link twitter"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Share on Twitter">
+          <i class="fab fa-twitter" aria-hidden="true"></i> Twitter
+        </a>
+        <a
+          href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.permalink | urlencode }}"
+          class="share-link linkedin"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Share on LinkedIn">
+          <i class="fab fa-linkedin" aria-hidden="true"></i> LinkedIn
+        </a>
+        <a
+          href="mailto:?subject={{ page.title | urlencode }}&body={{ page.permalink | urlencode }}"
+          class="share-link email"
+          aria-label="Share via email">
+          <i class="fas fa-envelope" aria-hidden="true"></i> Email
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Navigation to other articles -->
+    <nav class="article-navigation" aria-label="Article navigation">
+      {% set news_section = get_section(path="news/_index.md") %}
+      {% if news_section.pages %}
+      {% set current_index = false %}
+      {% for p in news_section.pages %}
+      {% if p.permalink == page.permalink %}
+      {% set_global current_index = loop.index0 %}
+      {% endif %}
+      {% endfor %}
+
+      {% if current_index %}
+      <div class="nav-links">
+        {% if current_index > 0 %}
+        {% set prev_page = news_section.pages |
+        slice(start=current_index,end=-1) %}
+        <a href="{{ prev_page.permalink | safe }}" class="nav-link prev"
+          aria-label="Previous article">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i>
+          <span class="nav-text">
+            <span class="nav-label">Previous</span>
+            <span class="nav-title">{{ prev_page.title }}</span>
+          </span>
+        </a>
+        {% endif %}
+
+        {% if current_index < news_section.pages | length - 1 %}
+        {% set next_page = news_section.pages|
+        slice(start=current_index,end=current_index+1) %}
+        <a href="{{ next_page.permalink | safe }}" class="nav-link next"
+          aria-label="Next article">
+          <span class="nav-text">
+            <span class="nav-label">Next</span>
+            <span class="nav-title">{{ next_page.title }}</span>
+          </span>
+          <i class="fas fa-arrow-right" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% endif %}
+
+      <div class="back-to-news">
+        <a href="/news/" class="btn btn-outline-primary">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to News
+        </a>
+      </div>
+    </nav>
+  </div>
+</article>
+{% endblock content %}

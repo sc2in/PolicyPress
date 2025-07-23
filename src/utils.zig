@@ -135,9 +135,9 @@ pub fn replace_org(txt: *Array(u8), with: []const u8) !void {
 }
 
 /// Replaces all instances of the [...](@/...) links in the markdown text with the base_url
-/// Example: [Privacy](@/policies/privacy-policy.md) -> [Privacy](https://security.sc2.in/privacy-policy.html)
-/// Example: [Acceptable Use](@/policies/aup/) -> [Acceptable Use](https://security.sc2.in/aup/)
-/// Example: [Image passthrough](@/policies/aup/image.png) -> [Image passthrough](https://security.sc2.in/aup/image.png)
+/// Example: [Privacy](@/policies/privacy-policy.md) -> [Privacy](https://security.sc2.in/policies/privacy-policy.html)
+/// Example: [Acceptable Use](@/policies/aup/) -> [Acceptable Use](https://security.sc2.in/policies/aup/)
+/// Example: [Image passthrough](@/policies/aup/image.png) -> [Image passthrough](https://security.sc2.in/policies/aup/image.png)
 pub fn replace_zola_at(txt: *Array(u8), base_url: []const u8) !void {
     const at: mvzr.Regex = mvzr.compile("\\]\\(@/.+?\\)").?;
     if (!at.isMatch(txt.items)) return;

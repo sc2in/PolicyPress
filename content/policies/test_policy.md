@@ -45,6 +45,12 @@ B -- No --> D[End]
 C --> D
 {% end %}
 
+## Zola link replacement
+
+[policy](@/policies/aeip.md)
+[directory](@/policies/_index.md)
+<!-- [passthrough](@/news/privacy-policy-update.jpg) -->
+
 ## Redaction
 
 {% redact() %}

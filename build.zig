@@ -18,7 +18,9 @@ pub fn build(b: *std.Build) !void {
     is_draft = draft_option;
     const redact_option = b.option(bool, "redact", "Produce pdfs with redacted information") orelse false;
     is_redact = redact_option;
+
     const policy_dir = "content/policies";
+    const base_url = "https://security.sc2.in";
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -195,9 +197,10 @@ pub fn build(b: *std.Build) !void {
             // Step 2: Run pandoc wrapper
             const run_wrapper = b.addRunArtifact(pandoc_sh);
             run_wrapper.addArgs(&.{
-                "--color", "FFFFFF",
-                "--org",   "SC2",
-                "--root",  "./",
+                "--color",    "FFFFFF",
+                "--org",      "SC2",
+                "--root",     "./",
+                "--base_url", base_url,
             });
             run_wrapper.addArg("--logo");
             run_wrapper.addFileArg(b.path("static/logo.png"));

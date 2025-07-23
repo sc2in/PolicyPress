@@ -135,7 +135,8 @@ test {
     defer r.deinit();
 
     const out = try r.report("content/policies");
-    std.debug.print("{s}", .{out});
+    _ = out; // autofix
+    // std.debug.print("{s}", .{out});
 }
 
 const Control = struct {

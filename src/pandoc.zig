@@ -24,6 +24,7 @@ var global_args: Array([]u8) = undefined;
 pub var global_config: Config = .{};
 
 pub const Config = struct {
+    base_url: ?[]const u8 = null,
     org: ?[]const u8 = null,
     logo_path: ?[]const u8 = null,
     color: ?[]const u8 = null,
@@ -84,6 +85,7 @@ pub fn main() !void {
         \\--logo <str>           Path to logo file
         \\--color <str>          Accent color to use
         \\--root <str>           Project root directory
+        \\--base_url <str>       Base url for the project
     );
     var diag = clap.Diagnostic{};
     var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
@@ -122,6 +124,10 @@ pub fn main() !void {
     if (res.args.root) |c| {
         panlog.info("Project Root: {s}\n", .{c});
         global_config.root = c;
+    } else return error.ProjectRootNotProvided;
+    if (res.args.base_url) |c| {
+        panlog.info("Base URL: {s}\n", .{c});
+        global_config.base_url = c;
     } else return error.ProjectRootNotProvided;
     if (res.args.draft != 0) {
         panlog.info("Draft mode enabled\n", .{});
@@ -263,7 +269,7 @@ pub fn process_md_file(
     defer local.deinit();
 
     try u.replace_org(&contents, global_config.org.?);
-    try u.replace_zola_at(&contents);
+    try u.replace_zola_at(&contents, global_config.base_url.?);
     try u.replace_mermaid(&contents);
     try u.redact(&contents, global_config.redact);
 

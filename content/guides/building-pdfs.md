@@ -7,7 +7,7 @@ summary: How to build a PDF from the policies
 
 ## Prerequisites
 
-The only prerequisite is that you have a working of devbox. If you don't have devbox installed, follow the instructions in the [installation guide](@/guides/installation.md).
+The only prerequisite is that you have a working installation of devbox. If you don't have devbox installed, follow the instructions in the [installation guide](@/guides/installation.md).
 
 ## Configuration
 

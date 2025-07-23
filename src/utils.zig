@@ -134,17 +134,38 @@ pub fn replace_org(txt: *Array(u8), with: []const u8) !void {
     txt.* = new;
 }
 
-/// Replaces all instances of the [...](@/...) links inthe markdown text with the path relative to content
-pub fn replace_zola_at(txt: *Array(u8)) !void {
-    const at: mvzr.Regex = mvzr.compile("\\]\\(@/").?;
-
+/// Replaces all instances of the [...](@/...) links in the markdown text with the base_url
+/// Example: [Privacy](@/policies/privacy-policy.md) -> [Privacy](https://security.sc2.in/privacy-policy.html)
+/// Example: [Acceptable Use](@/policies/aup/) -> [Acceptable Use](https://security.sc2.in/aup/)
+/// Example: [Image passthrough](@/policies/aup/image.png) -> [Image passthrough](https://security.sc2.in/aup/image.png)
+pub fn replace_zola_at(txt: *Array(u8), base_url: []const u8) !void {
+    const at: mvzr.Regex = mvzr.compile("\\]\\(@/.+?\\)").?;
     if (!at.isMatch(txt.items)) return;
 
     var new = try txt.clone();
 
     var iter = at.iterator(txt.items);
+
     while (iter.next()) |match| {
-        try new.replaceRange(match.start, match.slice.len, "](content/");
+        const ref = match.slice[4 .. match.slice.len - 1];
+
+        const file = if (std.mem.endsWith(u8, ref, "/_index.md"))
+            try txt.allocator.dupe(u8, ref[0 .. ref.len - 9])
+        else if (std.mem.endsWith(u8, ref, "/index.md"))
+            try txt.allocator.dupe(u8, ref[0 .. ref.len - 8])
+        else if (std.mem.endsWith(u8, ref, ".md"))
+            try std.fmt.allocPrint(txt.allocator, "{s}.html", .{ref[0 .. ref.len - 3]})
+        else
+            try txt.allocator.dupe(u8, ref);
+        defer txt.allocator.free(file);
+
+        const link = try std.fmt.allocPrint(txt.allocator, "]({s}/{s})", .{
+            base_url,
+            file,
+        });
+        defer txt.allocator.free(link);
+        try new.replaceRange(match.start, match.slice.len, link);
+
         iter = at.iterator(new.items);
     }
     txt.deinit();
@@ -157,13 +178,19 @@ test "replace_zola_at" {
     var arr = Array(u8).init(allocator);
     defer arr.deinit();
     try arr.appendSlice(
-        \\[some link](@/policies/privacy)
+        \\[some section](@/policies/privacy/_index.md)
+        \\[some dir](@/policies/privacy/index.md)
+        \\[some link](@/policies/aup.md)
+        \\[an image](@/policies/image.png)
     );
 
-    try replace_zola_at(&arr);
+    try replace_zola_at(&arr, "https://example.com");
 
     const expected =
-        \\[some link](content/policies/privacy)
+        \\[some section](https://example.com/policies/privacy/)
+        \\[some dir](https://example.com/policies/privacy/)
+        \\[some link](https://example.com/policies/aup.html)
+        \\[an image](https://example.com/policies/image.png)
     ;
     try tst.expectEqualStrings(expected, arr.items);
 }
@@ -457,7 +484,7 @@ test "Redaction" {
 
     try ts.appendSlice(t);
     try redact(&ts, true);
-    std.debug.print("{s}\n", .{ts.items});
+    // std.debug.print("{s}\n", .{ts.items});
     try tst.expectEqualStrings(&expected, ts.items);
 
     var t2 = Array(u8).init(tst.allocator);

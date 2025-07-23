@@ -1,33 +1,31 @@
-{% extends "index.html" %}
-{# {% block title %} {{ config.title }} | {{ page.title }} {% endblock title %} #}
-{% block content %}
-{% if page %}
-{{ page.content | safe }}
-{% elif section %}
-{{ section.content | safe }}
-{% endif %}
+{% extends "reports/base.html" %}
 
-<article class="">
-  {% set tax = get_taxonomy(kind="TSC2017") %}
-  {% set data = load_data(path="templates/opencontrols/standards/TSC-2017 (SOC2).yml") %}
-  {% for key, item in data %}
-  <h2>{{ key }}</h2>
-  {% set line_items = tax.items | group_by(attribute="name") %}
-  {% if key in line_items and 0 < line_items[key] | length %}
-  <ul>
-    {% for line_item in line_items[key] %}
-    {% for policy in line_item.pages %}
-    <li><a href="{{ get_url(path=policy.path) }}">{{ policy.title }}</a></li>
-    {% endfor %}
-    {% endfor %}
-    {# {% for page in map %} #}
-    {# {{name}} #}
-    {# <li><a href="{{ name.url }}">{{ name.title }}</a></li> #}
-    {# {% endfor %} #}
-  </ul>
-  {% else %}
-  <p>No policies found for {{ key }}</p>
-  {% endif %}
-  {% endfor %}
-</article>
-{% endblock content %}
+{% block report_content %}
+{% set tax = get_taxonomy(kind="TSC2017") %}
+{% set data =
+load_data(path="templates/opencontrols/standards/TSC-2017 (SOC2).yml") %}
+{% set line_items = tax.items | group_by(attribute="name") %}
+
+{% for key, item in data %}
+<div class="report-section">
+  <h2 class="section-title">{{ key }}</h2>
+  <div class="section-content">
+    <div class="control-item">
+      {% if key in line_items and 0 < line_items[key] | length %}
+      <ul class="policy-list">
+        {% for line_item in line_items[key] %}
+        {% for policy in line_item.pages %}
+        <li>
+          <a href="{{ get_url(path=policy.path) }}">{{ policy.title }}</a>
+        </li>
+        {% endfor %}
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="no-policies">No policies found for {{ key }}</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock report_content %}

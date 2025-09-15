@@ -57,7 +57,7 @@ pub fn build(b: *std.Build) !void {
         "--force",
     });
     if (draft_option) web_build.addArg("--drafts");
-    if (optimize != .Debug) web_build.addArg("--minify");
+    if (optimize != .Debug) web_build.addArg("--minify") else web_build.addArg("--base-url=http://127.0.0.1:1111/");
     web_build.addArg("-o");
     const web_output = web_build.addOutputDirectoryArg("public");
     const web_inst = b.addInstallDirectory(.{

@@ -24,9 +24,9 @@ taxonomies:
 
 extra:
   owner: SC2
-  last_reviewed: 2024-08-20
+  last_reviewed: 2025-09-15
   satisfies:
-    - name: ISO 27001:2013
+    - name: ISO 27001:2022
       line_items:
         - "2.1"
     - name: TSC2017
@@ -45,11 +45,9 @@ extra:
 
 This document outlines the policy and procedure for updating the SC2 Privacy Policy. It also describes how we communicate changes to the policy.
 
-
 ## Policy
 
 The SC2 Privacy Policy is a living document that we update regularly to reflect changes in our practices and to comply with legal requirements. We are committed to keeping our users informed about how we collect, use, and protect their personal information.
-
 
 ## Procedure
 
@@ -57,26 +55,21 @@ The SC2 Privacy Policy is a living document that we update regularly to reflect 
 
 The need for an update to the SC2 Privacy Policy may arise due to changes in our practices, legal requirements, or feedback from users. The Data Protection Officer (DPO) is responsible for identifying the need for an update and initiating the process.
 
-
 ### 2. Drafting the Updated Policy
 
 The DPO works with the legal team and other relevant stakeholders to draft the updated policy. The updated policy should clearly outline the changes made and the reasons for those changes.
-
 
 ### 3. Review and Approval
 
 The updated policy is reviewed by the legal team, the DPO, and other relevant stakeholders. Once approved, the policy is ready for publication.
 
-
 ### 4. Publication and Communication
 
 The updated policy is published on the SC2 website, and users are notified of the changes via email. The updated policy is also communicated through other channels, such as social media and in-app notifications.
 
-
 ### 5. Implementation
 
 The updated policy takes effect immediately upon publication. Users are required to review the updated policy and agree to the changes to continue using our services.
-
 
 ## Conclusion
 

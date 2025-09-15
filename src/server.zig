@@ -44,7 +44,7 @@ pub fn main() !void {
     });
     try listener.listen();
 
-    std.debug.print("Serving {s} on http://127.0.0.1:1111\n", .{serve_dir});
+    std.debug.print("Serving {s} on http://127.0.0.1:1111/\n", .{serve_dir});
 
     // start worker threads
     zap.start(.{

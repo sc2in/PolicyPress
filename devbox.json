@@ -45,7 +45,7 @@
         "zola check"
       ],
       "dev": [
-        "watchexec -c -- zig build run"
+        "watchexec -c -- zig build -Doptimize=Debug"
       ],
       "serve": [
         "zola serve"

@@ -50,7 +50,7 @@ pub fn main() !void {
     // const b = try tomlz.decode(BuildConfig, allocator, content);
 
     const t = config.getString("base_url");
-    try stdout_writer.print("{?s}\n", .{t});
+    try stdout_writer.print("--base-url={?s}\n", .{t});
     // var config = try tomlz.serialize( allocator, stdout_writer,content);
     // defer config.deinit(allocator);
 

@@ -62,13 +62,18 @@ pub fn build(b: *std.Build) !void {
     config_parser.root_module.addImport("tomlz", tomlz.module("tomlz"));
 
     const build_options = b.addOptions();
-    build_options.addOption([]const u8, "version", b.option([]const u8, "version", "Version") orelse "1.0.0");
-    build_options.addOption(bool, "enable_debug", b.option(bool, "enable_debug", "Enable debug") orelse false);
-    build_options.addOption(bool, "enable_logging", b.option(bool, "enable_logging", "Enable logging") orelse true);
+    build_options.addOption([]const u8, "base_url", b.option([]const u8, "base_url", "Base URL of the policy center") orelse "http://[::1]:1111");
+    // build_options.addOption(bool, "drafts", b.option(bool, "drafts", "Enable drafts") orelse false);
+    // build_options.addOption(bool, "redact", b.option(bool, "redact", "Enable redaction") orelse true);
 
     // Create config parsing step
     const run_config_parser = b.addRunArtifact(config_parser);
     run_config_parser.addFileArg(b.path("config.toml"));
+    const build_flags = run_config_parser.captureStdOut();
+    const f = try std.fs.cwd().openFile(build_flags.getDisplayName(), .{ .mode = .read_only });
+    defer f.close();
+    const flags = try f.readToEndAlloc(b.allocator, 100_000_000);
+    std.debug.print("{s}\n", .{flags});
 
     const config_step = b.step("config", "Parse and display configuration");
     config_step.dependOn(&run_config_parser.step);

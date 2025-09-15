@@ -29,6 +29,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
+
     const yaml = b.dependency("yaml", .{
         .target = target,
         .optimize = optimize,
@@ -50,6 +51,27 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
+
+    // Build the config parser tool
+    const config_parser = b.addExecutable(.{
+        .name = "config_parser",
+        .root_source_file = b.path("src/config.zig"),
+        .target = target,
+        .optimize = .Debug,
+    });
+    config_parser.root_module.addImport("tomlz", tomlz.module("tomlz"));
+
+    const build_options = b.addOptions();
+    build_options.addOption([]const u8, "version", b.option([]const u8, "version", "Version") orelse "1.0.0");
+    build_options.addOption(bool, "enable_debug", b.option(bool, "enable_debug", "Enable debug") orelse false);
+    build_options.addOption(bool, "enable_logging", b.option(bool, "enable_logging", "Enable logging") orelse true);
+
+    // Create config parsing step
+    const run_config_parser = b.addRunArtifact(config_parser);
+    run_config_parser.addFileArg(b.path("config.toml"));
+
+    const config_step = b.step("config", "Parse and display configuration");
+    config_step.dependOn(&run_config_parser.step);
 
     const web_build = b.addSystemCommand(&.{
         "zola",

@@ -7,6 +7,7 @@ const Yaml = @import("yaml").Yaml;
 const FM = @import("frontmatter.zig");
 const clap = @import("clap");
 const Self = @This();
+const BuildConfig = @import("config.zig").BuildConfig;
 
 contents: []u8,
 arena: std.heap.ArenaAllocator,
@@ -147,6 +148,11 @@ const Control = struct {
     found: bool = false,
 };
 
+pub const Report = enum(u8) {
+    SOC2,
+    ISO,
+};
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
@@ -154,10 +160,13 @@ pub fn main() !void {
     defer arena.deinit();
 
     const alloc = arena.allocator();
+
+    const config = try BuildConfig.load_config_toml(alloc);
+    defer config.deinit(alloc);
+
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
-        \\--controls_file <str>  Controls file to report against
-        \\--policy_root <str>    Policy root directory
+        \\--report Report        Report type to run
     );
     var diag = clap.Diagnostic{};
     var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
@@ -176,14 +185,14 @@ pub fn main() !void {
         , .{});
         return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
     }
-    var rep = try init(alloc, res.args.controls_file orelse return error.NoControlFile);
+    var rep = try init(alloc, @tagName(@as(Report, @enumFromInt(res.args.report))));
     defer rep.deinit();
 
     const stdout_file = std.io.getStdOut().writer();
     var bw = std.io.bufferedWriter(stdout_file);
     const stdout = bw.writer();
 
-    const r = try rep.report(res.args.policy_root orelse return error.NoPolicyRoot);
+    const r = try rep.report(config.policy_dir);
 
     try stdout.print("{s}", .{r});
 

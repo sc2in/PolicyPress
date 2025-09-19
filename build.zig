@@ -6,21 +6,11 @@ const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
 
-const year = "2025";
-const org = "SC2";
-const logo = "static/logo.png";
-const color = "AACEFF";
-var is_draft = false;
-var is_redact = false;
-
 pub fn build(b: *std.Build) !void {
     const draft_option = b.option(bool, "draft", "Produce pdfs with a draft watermark") orelse false;
-    is_draft = draft_option;
     const redact_option = b.option(bool, "redact", "Produce pdfs with redacted information") orelse false;
-    is_redact = redact_option;
-
-    const policy_dir = "content/policies";
-    const base_url = "https://security.sc2.in";
+    const report_option = b.option(bool, "report", "Type of report to run") orelse false;
+    // const policy_dir = "content/policies/"; //FIXME
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -60,23 +50,23 @@ pub fn build(b: *std.Build) !void {
         .optimize = .Debug,
     });
     config_parser.root_module.addImport("tomlz", tomlz.module("tomlz"));
+    config_parser.root_module.addImport("datetime", pg.module("datetime"));
 
-    const build_options = b.addOptions();
-    build_options.addOption([]const u8, "base_url", b.option([]const u8, "base_url", "Base URL of the policy center") orelse "http://[::1]:1111");
+    // const build_options = b.addOptions();
+    // build_options.addOption([]const u8, "base_url", b.option([]const u8, "base_url", "Base URL of the policy center") orelse "http://[::1]:1111");
     // build_options.addOption(bool, "drafts", b.option(bool, "drafts", "Enable drafts") orelse false);
     // build_options.addOption(bool, "redact", b.option(bool, "redact", "Enable redaction") orelse true);
 
     // Create config parsing step
     const run_config_parser = b.addRunArtifact(config_parser);
     run_config_parser.addFileArg(b.path("config.toml"));
-    const build_flags = run_config_parser.captureStdOut();
-    const f = try std.fs.cwd().openFile(build_flags.getDisplayName(), .{ .mode = .read_only });
-    defer f.close();
-    const flags = try f.readToEndAlloc(b.allocator, 100_000_000);
-    std.debug.print("{s}\n", .{flags});
+    const output = run_config_parser.captureStdOut();
+    const config_json = b.addInstallFileWithDir(output, .prefix, "config.json");
+    b.getInstallStep().dependOn(&config_json.step);
 
     const config_step = b.step("config", "Parse and display configuration");
-    config_step.dependOn(&run_config_parser.step);
+    config_step.dependOn(&config_json.step);
+    b.default_step.dependOn(config_step);
 
     const web_build = b.addSystemCommand(&.{
         "zola",
@@ -179,10 +169,8 @@ pub fn build(b: *std.Build) !void {
     policy_report.root_module.addImport("tomlz", tomlz.module("tomlz"));
 
     const run_policy_report = b.addRunArtifact(policy_report);
-    run_policy_report.addArg("--controls_file");
-    run_policy_report.addFileArg(b.path("templates/opencontrols/standards/SCF.json"));
-    run_policy_report.addArg("--policy_root");
-    run_policy_report.addDirectoryArg(b.path(policy_dir));
+    run_policy_report.addArgs(&.{ "--report", b.fmt("{}", .{report_option}) });
+
     const policy_report_output = run_policy_report.captureStdOut();
     const policy_report_inst = b.addInstallFileWithDir(
         policy_report_output,
@@ -204,7 +192,23 @@ pub fn build(b: *std.Build) !void {
 
     const wf = b.addWriteFiles();
 
-    var dir = try std.fs.cwd().openDir(policy_dir, .{
+    const config_file = try std.fs.openFileAbsolute(
+        b.getInstallPath(.prefix, "config.json"),
+        .{ .mode = .read_only },
+    );
+    defer config_file.close();
+
+    const config = try std.json.parseFromSlice(
+        @import("src/config.zig").BuildConfig,
+        b.allocator,
+        try config_file.readToEndAlloc(b.allocator, 10_000_000),
+        .{},
+    );
+    defer config.deinit();
+
+    const conf = config.value;
+
+    var dir = try std.fs.cwd().openDir(b.pathJoin(&.{ "content", conf.policy_dir }), .{
         .iterate = true,
         .access_sub_paths = true,
     });
@@ -218,27 +222,19 @@ pub fn build(b: *std.Build) !void {
             const base_name = std.fs.path.basename(entry.path);
             if (std.mem.eql(u8, base_name, "_index.md")) continue;
 
-            const input_path = b.pathJoin(&.{ policy_dir, entry.path });
+            const input_path = b.pathJoin(&.{ conf.policy_dir, entry.path });
             const input = b.path(input_path);
 
             // Step 2: Run pandoc wrapper
             const run_wrapper = b.addRunArtifact(pandoc_sh);
-            run_wrapper.addArgs(&.{
-                "--color",    "FFFFFF",
-                "--org",      "SC2",
-                "--root",     "./",
-                "--base_url", base_url,
-            });
-            run_wrapper.addArg("--logo");
-            run_wrapper.addFileArg(b.path("static/logo.png"));
             run_wrapper.addArg("--input");
             run_wrapper.addFileArg(input);
             run_wrapper.addArg("--output");
             run_wrapper.expectExitCode(0);
             _ = run_wrapper.captureStdErr();
             const pdf_dir = run_wrapper.addOutputDirectoryArg(base_name);
-            if (is_draft) run_wrapper.addArg("-d");
-            if (is_redact) run_wrapper.addArg("-r");
+            if (draft_option) run_wrapper.addArg("-d");
+            if (redact_option) run_wrapper.addArg("-r");
 
             const inst = b.addInstallDirectory(.{
                 .install_dir = .prefix,

@@ -10,9 +10,11 @@ const pandoc = @import("pandoc.zig");
 
 // TODO
 // - [ ] The reports should generate correctly
-// - [ ] The test policy should render in html and pdf correctly
+// - [-] The test policy should render in html and pdf correctly
+//   - [x] pdf
+//   - [ ] html
 // - [ ] All configuration options in config.toml should be validated
-// - [ ] All frontmatter options should be validated.
+// - [x] All frontmatter options should be validated.
 
 test {
     _ = utils;
@@ -69,13 +71,17 @@ test "policy processing" {
     try utils.redact(&t1, true);
 
     try tst.expect(std.mem.indexOf(u8, t1.items, "~~~mermaid") != null);
-    try tst.expect(std.mem.indexOf(u8, t1.items, &[_]u8{0xDB} ** 10) != null);
+    try tst.expect(std.mem.indexOf(u8, t1.items, &[_]u8{'_'} ** 10) != null);
     try tst.expectEqual(3, std.mem.count(u8, t1.items, "https://test.lol/"));
     try tst.expectEqual(0, std.mem.count(u8, t1.items, "{% end %}"));
 
     var args = Array([]u8).init(tst.allocator);
     var env = try std.process.getEnvMap(tst.allocator);
     defer env.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    const builddir = try tmp.dir.realpathAlloc(tst.allocator, ".");
+    defer tst.allocator.free(builddir);
 
     const global_config = pandoc.Config{
         .root = env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv,
@@ -85,16 +91,20 @@ test "policy processing" {
         .is_draft = true,
         .redact = true,
         .logo_path = "static/logo.png",
-        .color = "#000fff",
-        .build_dir = ".zig-cache",
+        .color = "000fff",
+        .build_dir = builddir,
         .work_file = "content/policies/test_policy.md",
     };
 
     try pandoc.create_global_args(tst.allocator, &args, global_config);
     defer pandoc.destroy_global_args(tst.allocator, args);
     const md = utils.MDFile{ .path = "content/policies/test_policy.md" };
-    try pandoc.process_md_file(tst.allocator, md, args, global_config);
+    pandoc.process_md_file(tst.allocator, md, args, global_config) catch |e| {
+        std.debug.print("Test Policy Pandoc Call Failed! \nConfig:{any}\nPDF(if any) located in: {s}\n", .{ global_config, builddir });
+        return e;
+    };
 
+    tmp.cleanup();
     // std.debug.print("{s}\n", .{t1.items});
 
     // try pandoc.process_md_file(tst.allocator, .{ .path = "content/policies/test_policy.md" });

@@ -73,6 +73,28 @@ test "policy processing" {
     try tst.expectEqual(3, std.mem.count(u8, t1.items, "https://test.lol/"));
     try tst.expectEqual(0, std.mem.count(u8, t1.items, "{% end %}"));
 
+    var args = Array([]u8).init(tst.allocator);
+    var env = try std.process.getEnvMap(tst.allocator);
+    defer env.deinit();
+
+    const global_config = pandoc.Config{
+        .root = env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv,
+        .org = "testlol",
+        .base_url = "https://test.lol",
+        .current_year = 2025,
+        .is_draft = true,
+        .redact = true,
+        .logo_path = "static/logo.png",
+        .color = "#000fff",
+        .build_dir = ".zig-cache",
+        .work_file = "content/policies/test_policy.md",
+    };
+
+    try pandoc.create_global_args(tst.allocator, &args, global_config);
+    defer pandoc.destroy_global_args(tst.allocator, args);
+    const md = utils.MDFile{ .path = "content/policies/test_policy.md" };
+    try pandoc.process_md_file(tst.allocator, md, args, global_config);
+
     // std.debug.print("{s}\n", .{t1.items});
 
     // try pandoc.process_md_file(tst.allocator, .{ .path = "content/policies/test_policy.md" });

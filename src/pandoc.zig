@@ -20,9 +20,6 @@ const clap = @import("clap");
 const u = @import("utils.zig");
 const Datetime = @import("datetime");
 
-var global_args: Array([]u8) = undefined;
-pub var global_config: Config = .{};
-
 pub const Config = struct {
     base_url: ?[]const u8 = null,
     org: ?[]const u8 = null,
@@ -73,7 +70,7 @@ pub fn main() !void {
     defer arena.deinit();
 
     const alloc = arena.allocator();
-    global_config = Config{};
+    var config = Config{};
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
@@ -103,42 +100,42 @@ pub fn main() !void {
     }
     if (res.args.color) |c| {
         panlog.info("Using color {s}\n", .{c});
-        global_config.color = c;
+        config.color = c;
     } else return error.AccentColorNotProvided;
     if (res.args.logo) |c| {
         panlog.info("Using logo {s}\n", .{c});
-        global_config.logo_path = c;
+        config.logo_path = c;
     } else return error.LogoPathNotProvided;
     if (res.args.org) |c| {
         panlog.info("Using org name {s}\n", .{c});
-        global_config.org = c;
+        config.org = c;
     } else return error.OrgNameNotProvided;
     if (res.args.input) |c| {
         panlog.info("Using input file: {s}\n", .{c});
-        global_config.work_file = c;
+        config.work_file = c;
     } else return error.InputFileNotProvided;
     if (res.args.output) |c| {
         panlog.info("Writing to: {s}\n", .{c});
-        global_config.build_dir = c;
+        config.build_dir = c;
     } else return error.OutputDirNotProvided;
     if (res.args.root) |c| {
         panlog.info("Project Root: {s}\n", .{c});
-        global_config.root = c;
+        config.root = c;
     } else return error.ProjectRootNotProvided;
     if (res.args.base_url) |c| {
         panlog.info("Base URL: {s}\n", .{c});
-        global_config.base_url = c;
+        config.base_url = c;
     } else return error.BaseUrlNotProvided;
     if (res.args.draft != 0) {
         panlog.info("Draft mode enabled\n", .{});
-        global_config.is_draft = true;
+        config.is_draft = true;
     }
     if (res.args.redact != 0) {
         panlog.info("Redaction enabled\n", .{});
-        global_config.redact = true;
+        config.redact = true;
     }
 
-    panlog.debug("Running with Configuration:\n{}\n", .{global_config});
+    panlog.debug("Running with Configuration:\n{}\n", .{config});
     // var conf_file = try global_config.work_dir.openFile("config.toml", .{ .mode = .read_only });
     // defer conf_file.close();
 
@@ -158,19 +155,21 @@ pub fn main() !void {
     // // const redact = b.option(bool, "redact", "Redact PDFs") orelse false;
     // // const draft = b.option(bool, "redact", "Redact PDFs") orelse false;
 
-    global_args = Array([]u8).init(alloc);
+    var global_args = Array([]u8).init(alloc);
     defer {
         // for (global_args.items) |a|
         //     alloc.free(a);
         global_args.deinit();
     }
 
-    try create_global_args(alloc, &global_args);
+    try create_global_args(alloc, &global_args, config);
     defer destroy_global_args(alloc, global_args);
 
-    try process_md_file(alloc, .{
-        .path = global_config.work_file.?,
-    });
+    try process_md_file(
+        alloc,
+        .{ .path = config.work_file.? },
+        global_args,
+    );
 
     // const md_files = try u.find_md_files(alloc, global_config.work_dir, policy_root, &root_progress);
     // defer {
@@ -200,20 +199,20 @@ pub fn destroy_global_args(a: Allocator, args: Array([]u8)) void {
 }
 
 ///Populates the global_args array with command-line arguments for Pandoc, based on the current global configuration
-pub fn create_global_args(a: Allocator, args: *Array([]u8)) !void {
-    try add_arg(a, args, "", "--data-dir={s}", .{global_config.root.?});
-    try add_arg(a, args, "", "--resource-path={s}", .{global_config.root.?});
-    try add_arg(a, args, "-V", "footer-left={s} \\textcopyright {d}", .{ global_config.org.?, global_config.current_year });
+pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !void {
+    try add_arg(a, args, "", "--data-dir={s}", .{config.root.?});
+    try add_arg(a, args, "", "--resource-path={s}", .{config.root.?});
+    try add_arg(a, args, "-V", "footer-left={s} \\textcopyright {d}", .{ config.org.?, config.current_year });
 
-    try add_arg(a, args, "-V", "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{global_config.logo_path.?});
+    try add_arg(a, args, "-V", "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{config.logo_path.?});
 
-    try add_arg(a, args, "-V", "titlepage-logo={s}", .{global_config.logo_path.?});
+    try add_arg(a, args, "-V", "titlepage-logo={s}", .{config.logo_path.?});
 
-    try add_arg(a, args, "-V", "institution=\"{s}\"", .{global_config.org.?});
+    try add_arg(a, args, "-V", "institution=\"{s}\"", .{config.org.?});
 
-    try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{global_config.color.?});
+    try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{config.color.?});
 
-    try add_arg(a, args, "-F", "{s}/.devbox/nix/profile/default/bin/mermaid-filter", .{global_config.root.?});
+    try add_arg(a, args, "-F", "{s}/.devbox/nix/profile/default/bin/mermaid-filter", .{config.root.?});
     try add_arg(a, args, "-V", "footer-center=Confidental", .{});
     try add_arg(a, args, "-V", "papersize=letter", .{});
     try add_arg(a, args, "-V", "titlepage=true", .{});
@@ -227,7 +226,7 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8)) !void {
     try add_arg(a, args, "", "--webtex", .{});
     try add_arg(a, args, "", "--pdf-engine=xelatex", .{});
 
-    if (global_config.is_draft) {
+    if (config.is_draft) {
         try add_arg(a, args, "-V", "page-background=static/draft.png", .{});
         try add_arg(a, args, "-V", "page-background-opacity=0.8", .{});
     }
@@ -250,12 +249,19 @@ inline fn add_arg(
 pub fn process_md_file(
     a: Allocator,
     md: u.MDFile,
+    global_args: Array([]u8),
+    config: Config,
 ) !void {
-    var dir = try std.fs.cwd().openDir(global_config.root.?, .{});
+    var dir = try std.fs.cwd().openDir(config.root.?, .{});
     defer dir.close();
-    var file = try dir.openFile(md.path, .{ .mode = .read_only });
+    var file = dir.openFile(md.path, .{ .mode = .read_only }) catch |e| {
+        if (e == error.FileNotFound) {
+            std.debug.print("File: {s}/{s} not found\n", .{ config.root.?, md.path });
+        }
+        return e;
+    };
     defer file.close();
-    var build = try std.fs.cwd().openDir(global_config.build_dir.?, .{});
+    var build = try std.fs.cwd().openDir(config.build_dir.?, .{});
     defer build.close();
 
     const raw = try file.readToEndAlloc(a, 100_000_000);
@@ -268,12 +274,12 @@ pub fn process_md_file(
     var local = try global_args.clone();
     defer local.deinit();
 
-    try u.replace_org(&contents, global_config.org.?);
-    try u.replace_zola_at(&contents, global_config.base_url.?);
+    try u.replace_org(&contents, config.org.?);
+    try u.replace_zola_at(&contents, config.base_url.?);
     try u.replace_mermaid(&contents);
-    try u.redact(&contents, global_config.redact);
+    try u.redact(&contents, config.redact);
 
-    var fm = try u.get_metadata(a, &contents, global_config);
+    var fm = try u.get_metadata(a, &contents, config);
     defer fm.deinit(a);
 
     const tmp_file = std.fs.path.basename(md.path);
@@ -291,18 +297,24 @@ pub fn process_md_file(
     }
     try tmp.writeAll(contents.items);
 
-    try local.insert(0, try a.dupe(u8, "pandoc"));
+    try local.insertSlice(0, &.{try a.dupe(u8, "pandoc")});
+    const cwd = try std.fs.cwd().realpathAlloc(a, ".");
 
-    const basedir = std.fs.path.dirname(md.path).?;
-    const res_path = try std.fmt.allocPrint(a, "--resource-path={s}", .{basedir});
+    var env = try std.process.getEnvMap(a);
+    defer env.deinit();
+
+    const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else cwd;
+    defer a.free(basedir);
+    const res_path = try std.fmt.allocPrint(a, "--resource-path={s}:{s}:{s}/templates", .{ env.get("PATH") orelse "", basedir, cwd });
     try local.append(res_path);
 
-    try local.append(try std.fs.path.join(a, &.{ global_config.build_dir.?, tmp_file }));
+    try local.append(try std.fs.path.join(a, &.{ config.build_dir.?, tmp_file }));
 
     const out = try fm.filename(a);
+    defer a.free(out);
     std.mem.replaceScalar(u8, out, ' ', '_');
 
-    try add_arg(a, &local, "-o", "{s}{s}{s}", .{ global_config.build_dir.?, "/", out });
+    try add_arg(a, &local, "-o", "{s}{s}{s}", .{ config.build_dir.?, "/", out });
     try run_pandoc(a, local);
 }
 

@@ -271,8 +271,8 @@ pub fn process_md_file(
         .capacity = raw.len,
     };
     defer contents.deinit();
-    var local = try global_args.clone();
-    defer local.deinit();
+    var local = Array([]u8).init(a);
+    defer destroy_global_args(a, local);
 
     try u.replace_org(&contents, config.org.?);
     try u.replace_zola_at(&contents, config.base_url.?);
@@ -299,11 +299,12 @@ pub fn process_md_file(
 
     try local.insertSlice(0, &.{try a.dupe(u8, "pandoc")});
     const cwd = try std.fs.cwd().realpathAlloc(a, ".");
+    defer a.free(cwd);
 
     var env = try std.process.getEnvMap(a);
     defer env.deinit();
 
-    const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else cwd;
+    const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else return error.NoResourcePathDefined;
     defer a.free(basedir);
     const res_path = try std.fmt.allocPrint(a, "--resource-path={s}:{s}:{s}/templates", .{ env.get("PATH") orelse "", basedir, cwd });
     try local.append(res_path);
@@ -315,11 +316,18 @@ pub fn process_md_file(
     std.mem.replaceScalar(u8, out, ' ', '_');
 
     try add_arg(a, &local, "-o", "{s}{s}{s}", .{ config.build_dir.?, "/", out });
-    try run_pandoc(a, local);
+
+    var combined = Array([]const u8).init(a);
+    defer combined.deinit();
+
+    try combined.appendSlice(local.items);
+    try combined.appendSlice(global_args.items);
+
+    try run_pandoc(a, combined);
 }
 
 /// Spawns a Pandoc process with the provided arguments, collects output, and logs errors or results as needed.
-pub fn run_pandoc(a: Allocator, args: Array([]u8)) !void {
+pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
     panlog.debug("Running pandoc with args:\n", .{});
     for (args.items) |arg|
         panlog.debug("\t{s}\n", .{arg});

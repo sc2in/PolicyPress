@@ -63,7 +63,17 @@ test "policy processing" {
     defer tst.allocator.free(out_file_name);
     try tst.expectEqualStrings("Test_Policy_(Redacted)_-_v1.1.pdf", out_file_name);
 
-    std.debug.print("{s}\n", .{out_file_name});
+    try utils.replace_zola_at(&t1, "https://test.lol");
+    try utils.replace_org(&t1, "loltest");
+    try utils.replace_mermaid(&t1);
+    try utils.redact(&t1, true);
+
+    try tst.expect(std.mem.indexOf(u8, t1.items, "~~~mermaid") != null);
+    try tst.expect(std.mem.indexOf(u8, t1.items, &[_]u8{0xDB} ** 10) != null);
+    try tst.expectEqual(3, std.mem.count(u8, t1.items, "https://test.lol/"));
+    try tst.expectEqual(0, std.mem.count(u8, t1.items, "{% end %}"));
+
+    // std.debug.print("{s}\n", .{t1.items});
 
     // try pandoc.process_md_file(tst.allocator, .{ .path = "content/policies/test_policy.md" });
 

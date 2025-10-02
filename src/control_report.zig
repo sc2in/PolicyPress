@@ -15,11 +15,15 @@ scf: []Control,
 map: std.StringArrayHashMap(Control),
 
 pub fn init(alloc: Allocator, controls_file: []const u8) !Self {
-    var f = try std.fs.cwd().openFile(controls_file, .{
+    var f = std.fs.cwd().openFile(controls_file, .{
         .mode = .read_only,
-    });
+    }) catch |e| blk: {
+        if (e == error.FileNotFound) break :blk std.fs.openFileAbsolute(controls_file, .{ .mode = .read_only }) catch |e2| {
+            std.debug.print("Controls file not found: '{s}'\n", .{controls_file});
+            return e2;
+        } else return e;
+    };
     defer f.close();
-    errdefer f.close();
 
     var arena = std.heap.ArenaAllocator.init(alloc);
     errdefer arena.deinit();

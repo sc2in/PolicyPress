@@ -169,6 +169,7 @@ pub fn main() !void {
         alloc,
         .{ .path = config.work_file.? },
         global_args,
+        config,
     );
 
     // const md_files = try u.find_md_files(alloc, global_config.work_dir, policy_root, &root_progress);

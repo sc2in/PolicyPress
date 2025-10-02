@@ -42,7 +42,9 @@ pub const FrontMatter = struct {
     }
     /// Generates a PDF filename from the title and most recent version in the front matter.
     pub fn filename(self: FrontMatter, a: Allocator) ![]u8 {
-        return std.fmt.allocPrint(a, "{s}_-_v{s}.pdf", .{ self.title, self.most_recent_version });
+        const tmp = self.title;
+        std.mem.replaceScalar(u8, tmp, ' ', '_');
+        return std.fmt.allocPrint(a, "{s}_-_v{s}.pdf", .{ tmp, self.most_recent_version });
     }
 
     pub fn deinit(self: *FrontMatter, a: Allocator) void {
@@ -454,7 +456,7 @@ pub fn redact(txt: *Array(u8), remove: bool) !void {
         const inner = m.slice[s + 2 .. e - 1];
         const replace = if (remove) blk: {
             const replace = try txt.allocator.alloc(u8, m.slice.len);
-            @memset(replace, 219);
+            @memset(replace, '_');
             break :blk replace;
         } else blk: {
             const replace = try txt.allocator.alloc(u8, m.slice.len);
@@ -480,7 +482,7 @@ test "Redaction" {
     var ts = Array(u8).init(tst.allocator);
     defer ts.deinit();
 
-    const expected = [_]u8{0xDB} ** t.len;
+    const expected = [_]u8{'_'} ** t.len;
 
     try ts.appendSlice(t);
     try redact(&ts, true);

@@ -60,10 +60,6 @@ pub fn deinit(self: *Self) void {
 }
 
 pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
-    var prog = std.Progress.start(.{
-        .root_name = "Control Satisfaction Report",
-    });
-    defer prog.end();
     const a = self.arena.allocator();
     var ret = Array(u8).init(a);
     defer ret.deinit();
@@ -80,18 +76,13 @@ pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
     defer files.deinit();
 
     while (try walk.next()) |entry| {
-        var p = prog.start("Checking files", 0);
-        defer p.end();
         if (entry.kind != .file) continue;
         if (std.mem.endsWith(u8, entry.basename, "_index.md")) continue;
         if (std.mem.endsWith(u8, entry.basename, ".md"))
             try files.append(try a.dupe(u8, entry.path));
     }
-    var p1 = prog.start("Processing policies", files.items.len);
-    defer p1.end();
+
     for (files.items) |path| {
-        var p2 = p1.start(path, 1);
-        defer p2.end();
         var f = try pr.openFile(path, .{ .mode = .read_only });
         defer f.close();
 
@@ -118,8 +109,7 @@ pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
             }
         }
     }
-    var p2 = prog.start("Generating Report", self.map.values().len);
-    defer p2.end();
+
     var iter = self.map.iterator();
     try ret.appendSlice("{");
     while (iter.next()) |c| {

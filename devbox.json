@@ -42,10 +42,14 @@
         "rm -rf .zig-cache zig-out node_modules public resources internal .pnpm-store *.err *.log *.core 2>/dev/null"
       ],
       "test": [
+        "zola check --skip-external-links",
+        "zig build test"
+      ],
+      "check-links": [
         "zola check"
       ],
       "dev": [
-        "watchexec -c -- zig build run"
+        "watchexec -c -- zig build preview"
       ],
       "serve": [
         "zola serve"
@@ -53,11 +57,11 @@
       "preview": [
         "zola build --base-url http://0.0.0.0:1111",
         "devbox run build-pdfs",
-        "zig build serve"
+        "zig build preview"
       ],
       "docs": [
         "zig build docs",
-        "zig build serve -- -d zig-out/docs"
+        "zig build preview -- -d zig-out/docs"
       ],
       "ci": [
         "if [ $PUBLISH == \"true\" ]; then",

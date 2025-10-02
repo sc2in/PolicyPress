@@ -14,6 +14,7 @@ const pandoc = @import("pandoc.zig");
 //   - [x] pdf
 //   - [ ] html
 // - [ ] All configuration options in config.toml should be validated
+//      this requires the same logic that is holding up #45
 // - [x] All frontmatter options should be validated.
 
 test {
@@ -105,9 +106,28 @@ test "policy processing" {
     };
 
     tmp.cleanup();
-    // std.debug.print("{s}\n", .{t1.items});
+}
 
-    // try pandoc.process_md_file(tst.allocator, .{ .path = "content/policies/test_policy.md" });
+const b = @import("builtin");
+test "report generation" {
+    var env = try std.process.getEnvMap(tst.allocator);
+    defer env.deinit();
 
-    // std.debug.print("{}\n", .{frontmatter});
+    var tmp = tst.tmpDir(.{});
+    const builddir = try tmp.dir.realpathAlloc(tst.allocator, ".");
+    defer tst.allocator.free(builddir);
+
+    const c_file = try std.fs.path.join(tst.allocator, &.{ env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv, "templates/opencontrols/standards/SCF.json" });
+    defer tst.allocator.free(c_file);
+
+    const c_path = try std.fs.path.join(tst.allocator, &.{env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv});
+    const p_path = try std.fs.path.join(tst.allocator, &.{ env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv, "content/policies" });
+    defer tst.allocator.free(c_path);
+    defer tst.allocator.free(p_path);
+
+    var f = try cr.init(tst.allocator, c_file);
+    defer f.deinit();
+
+    const rep = try f.report(p_path);
+    std.debug.print("{s}\n", .{rep});
 }

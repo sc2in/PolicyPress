@@ -129,5 +129,13 @@ test "report generation" {
     defer f.deinit();
 
     const rep = try f.report(p_path);
-    std.debug.print("{s}\n", .{rep});
+    var j = try std.json.parseFromSlice(std.json.Value, tst.allocator, rep, .{});
+    defer j.deinit();
+    try tst.expect(j.value.object.count() >= 1239); // test for number of controls read as of 10/2/2025
+    try tst.expect(j.value.object.get("HRS-05").?.bool);
+    try tst.expect(j.value.object.get("HRS-05.1").?.bool);
+    try tst.expect(j.value.object.get("HRS-05.2").?.bool);
+    try tst.expect(j.value.object.get("HRS-05.3").?.bool);
+    try tst.expect(j.value.object.get("HRS-05.4").?.bool);
+    try tst.expect(j.value.object.get("HRS-05.5").?.bool);
 }

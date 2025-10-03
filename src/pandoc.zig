@@ -99,22 +99,22 @@ pub fn main() !void {
 
     if (res.args.input) |c| {
         panlog.info("Using input file: {s}\n", .{c});
-        global_config.work_file = c;
+        config.work_file = c;
     } else return error.InputFileNotProvided;
     if (res.args.output) |c| {
         panlog.info("Writing to: {s}\n", .{c});
-        global_config.build_dir = c;
+        config.build_dir = c;
     } else return error.OutputDirNotProvided;
     if (res.args.draft != 0) {
         panlog.info("Draft mode enabled\n", .{});
-        global_config.is_draft = true;
+        config.is_draft = true;
     }
     if (res.args.redact != 0) {
         panlog.info("Redaction enabled\n", .{});
-        global_config.redact = true;
+        config.redact = true;
     }
 
-    panlog.debug("Running with Configuration:\n{}\n", .{global_config});
+    panlog.debug("Running with Configuration:\n{}\n", .{config});
     // var conf_file = try global_config.work_dir.openFile("config.toml", .{ .mode = .read_only });
     // defer conf_file.close();
 
@@ -134,19 +134,22 @@ pub fn main() !void {
     // // const redact = b.option(bool, "redact", "Redact PDFs") orelse false;
     // // const draft = b.option(bool, "redact", "Redact PDFs") orelse false;
 
-    global_args = Array([]u8).init(alloc);
+    var global_args = Array([]u8).init(alloc);
     defer {
         // for (global_args.items) |a|
         //     alloc.free(a);
         global_args.deinit();
     }
 
-    try create_global_args(alloc, &global_args);
+    try create_global_args(alloc, &global_args, config);
     defer destroy_global_args(alloc, global_args);
 
-    try process_md_file(alloc, .{
-        .path = global_config.work_file.?,
-    });
+    try process_md_file(
+        alloc,
+        .{ .path = config.work_file.? },
+        global_args,
+        config,
+    );
 
     // const md_files = try u.find_md_files(alloc, global_config.work_dir, policy_root, &root_progress);
     // defer {
@@ -203,7 +206,7 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8)) !void {
     try add_arg(a, args, "", "--webtex", .{});
     try add_arg(a, args, "", "--pdf-engine=xelatex", .{});
 
-    if (global_config.is_draft) {
+    if (config.is_draft) {
         try add_arg(a, args, "-V", "page-background=static/draft.png", .{});
         try add_arg(a, args, "-V", "page-background-opacity=0.8", .{});
     }
@@ -226,10 +229,17 @@ inline fn add_arg(
 pub fn process_md_file(
     a: Allocator,
     md: u.MDFile,
+    global_args: Array([]u8),
+    config: Config,
 ) !void {
     var dir = try std.fs.cwd().openDir(global_config.build.root_dir, .{});
     defer dir.close();
-    var file = try dir.openFile(md.path, .{ .mode = .read_only });
+    var file = dir.openFile(md.path, .{ .mode = .read_only }) catch |e| {
+        if (e == error.FileNotFound) {
+            std.debug.print("File: {s}/{s} not found\n", .{ config.root.?, md.path });
+        }
+        return e;
+    };
     defer file.close();
     var build = try std.fs.cwd().openDir(global_config.build_dir, .{});
     defer build.close();
@@ -241,15 +251,15 @@ pub fn process_md_file(
         .capacity = raw.len,
     };
     defer contents.deinit();
-    var local = try global_args.clone();
-    defer local.deinit();
+    var local = Array([]u8).init(a);
+    defer destroy_global_args(a, local);
 
     try u.replace_org(&contents, global_config.build.organization);
     try u.replace_zola_at(&contents, global_config.build.base_url);
     try u.replace_mermaid(&contents);
-    try u.redact(&contents, global_config.redact);
+    try u.redact(&contents, config.redact);
 
-    var fm = try u.get_metadata(a, &contents, global_config);
+    var fm = try u.get_metadata(a, &contents, config);
     defer fm.deinit(a);
 
     const tmp_file = std.fs.path.basename(md.path);
@@ -267,15 +277,22 @@ pub fn process_md_file(
     }
     try tmp.writeAll(contents.items);
 
-    try local.insert(0, try a.dupe(u8, "pandoc"));
+    try local.insertSlice(0, &.{try a.dupe(u8, "pandoc")});
+    const cwd = try std.fs.cwd().realpathAlloc(a, ".");
+    defer a.free(cwd);
 
-    const basedir = std.fs.path.dirname(md.path).?;
-    const res_path = try std.fmt.allocPrint(a, "--resource-path={s}", .{basedir});
+    var env = try std.process.getEnvMap(a);
+    defer env.deinit();
+
+    const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else return error.NoResourcePathDefined;
+    defer a.free(basedir);
+    const res_path = try std.fmt.allocPrint(a, "--resource-path={s}:{s}:{s}/templates", .{ env.get("PATH") orelse "", basedir, cwd });
     try local.append(res_path);
 
     try local.append(try std.fs.path.join(a, &.{ global_config.build_dir, tmp_file }));
 
     const out = try fm.filename(a);
+    defer a.free(out);
     std.mem.replaceScalar(u8, out, ' ', '_');
 
     try add_arg(a, &local, "-o", "{s}{s}{s}", .{ global_config.build_dir, "/", out });
@@ -283,7 +300,7 @@ pub fn process_md_file(
 }
 
 /// Spawns a Pandoc process with the provided arguments, collects output, and logs errors or results as needed.
-pub fn run_pandoc(a: Allocator, args: Array([]u8)) !void {
+pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
     panlog.debug("Running pandoc with args:\n", .{});
     for (args.items) |arg|
         panlog.debug("\t{s}\n", .{arg});

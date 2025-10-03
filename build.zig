@@ -165,6 +165,7 @@ pub fn build(b: *std.Build) !void {
             .link_libc = true,
         });
         test_module.addImport("tomlz", tomlz.module("tomlz"));
+        test_module.addImport("datetime", pg.module("datetime"));
         test_module.addImport("yaml", yaml.module("yaml"));
         test_module.addImport("mvzr", mvzr.module("mvzr"));
         const unit_tests = b.addTest(.{

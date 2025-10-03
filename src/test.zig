@@ -81,27 +81,24 @@ test "policy processing" {
     defer env.deinit();
 
     var tmp = tst.tmpDir(.{});
-    const builddir = try tmp.dir.realpathAlloc(tst.allocator, ".");
-    defer tst.allocator.free(builddir);
 
-    const global_config = pandoc.Config{
-        .root = env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv,
-        .org = "testlol",
-        .base_url = "https://test.lol",
-        .current_year = 2025,
-        .is_draft = true,
-        .redact = true,
-        .logo_path = "static/logo.png",
-        .color = "000fff",
-        .build_dir = builddir,
-        .work_file = "content/policies/test_policy.md",
-    };
+    var global_config = try pandoc.Config.load_config_toml(tst.allocator);
+    defer global_config.deinit(tst.allocator);
+    tst.allocator.free(global_config.root);
+    tst.allocator.free(global_config.build_dir);
+
+    global_config.root = try tst.allocator.dupe(u8, env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv);
+
+    global_config.is_draft = true;
+    global_config.redact = true;
+
+    global_config.build_dir = try tmp.dir.realpathAlloc(tst.allocator, ".");
 
     try pandoc.create_global_args(tst.allocator, &args, global_config);
     defer pandoc.destroy_global_args(tst.allocator, args);
     const md = utils.MDFile{ .path = "content/policies/test_policy.md" };
     pandoc.process_md_file(tst.allocator, md, args, global_config) catch |e| {
-        std.debug.print("Test Policy Pandoc Call Failed! \nConfig:{any}\nPDF(if any) located in: {s}\n", .{ global_config, builddir });
+        std.debug.print("Test Policy Pandoc Call Failed! \nConfig:{any}\n", .{global_config});
         return e;
     };
 

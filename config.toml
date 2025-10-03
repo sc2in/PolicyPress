@@ -56,9 +56,11 @@ include_content = true
 
 [extra]
 redact = true
+policy_dir = "policies/"
 policy_root = "policies/_index.md"
 organization = "Star City Security Consulting"
 logo = "logo.png"
+pdf_color = "#0e90f3"
 lead = "Security Policy Center for Our Business"
 # release = "https://api.github.com/repos/getzola/zola/releases/latest"
 favicon = "https://www.getzola.org/favicon.ico"

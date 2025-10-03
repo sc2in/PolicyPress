@@ -147,9 +147,11 @@ pub fn main() !void {
     if (res.args.draft != 0) {
         panlog.info("Draft mode enabled\n", .{});
         config.is_draft = true;
+        config.is_draft = true;
     }
     if (res.args.redact != 0) {
         panlog.info("Redaction enabled\n", .{});
+        config.redact = true;
         config.redact = true;
     }
 
@@ -162,6 +164,7 @@ pub fn main() !void {
         global_args.deinit();
     }
 
+    try create_global_args(alloc, &global_args, config);
     try create_global_args(alloc, &global_args, config);
     defer destroy_global_args(alloc, global_args);
 
@@ -228,6 +231,7 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
     try add_arg(a, args, "", "--pdf-engine=xelatex", .{});
 
     if (config.is_draft) {
+    if (config.is_draft) {
         try add_arg(a, args, "-V", "page-background=static/draft.png", .{});
         try add_arg(a, args, "-V", "page-background-opacity=0.8", .{});
     }
@@ -252,6 +256,8 @@ pub fn process_md_file(
     md: u.MDFile,
     global_args: Array([]u8),
     config: Config,
+    global_args: Array([]u8),
+    config: Config,
 ) !void {
     var dir = try std.fs.cwd().openDir(config.root, .{});
     defer dir.close();
@@ -274,12 +280,16 @@ pub fn process_md_file(
     defer contents.deinit();
     var local = Array([]u8).init(a);
     defer destroy_global_args(a, local);
+    var local = Array([]u8).init(a);
+    defer destroy_global_args(a, local);
 
     try u.replace_org(&contents, config.org);
     try u.replace_zola_at(&contents, config.base_url);
     try u.replace_mermaid(&contents);
     try u.redact(&contents, config.redact);
+    try u.redact(&contents, config.redact);
 
+    var fm = try u.get_metadata(a, &contents, config);
     var fm = try u.get_metadata(a, &contents, config);
     defer fm.deinit(a);
 
@@ -308,11 +318,22 @@ pub fn process_md_file(
     const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else return error.NoResourcePathDefined;
     defer a.free(basedir);
     const res_path = try std.fmt.allocPrint(a, "--resource-path={s}:{s}:{s}/templates", .{ env.get("PATH") orelse "", basedir, cwd });
+    try local.insertSlice(0, &.{try a.dupe(u8, "pandoc")});
+    const cwd = try std.fs.cwd().realpathAlloc(a, ".");
+    defer a.free(cwd);
+
+    var env = try std.process.getEnvMap(a);
+    defer env.deinit();
+
+    const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else return error.NoResourcePathDefined;
+    defer a.free(basedir);
+    const res_path = try std.fmt.allocPrint(a, "--resource-path={s}:{s}:{s}/templates", .{ env.get("PATH") orelse "", basedir, cwd });
     try local.append(res_path);
 
     try local.append(try std.fs.path.join(a, &.{ config.build_dir, tmp_file }));
 
     const out = try fm.filename(a);
+    defer a.free(out);
     defer a.free(out);
     std.mem.replaceScalar(u8, out, ' ', '_');
 
@@ -328,6 +349,7 @@ pub fn process_md_file(
 }
 
 /// Spawns a Pandoc process with the provided arguments, collects output, and logs errors or results as needed.
+pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
 pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
     panlog.debug("Running pandoc with args:\n", .{});
     for (args.items) |arg|

@@ -18,18 +18,19 @@ const ctime = @cImport(@cInclude("time.h"));
 const mvzr = @import("mvzr");
 const clap = @import("clap");
 const u = @import("utils.zig");
-const Datetime = @import("datetime");
-const BuildConfig = @import("config.zig").BuildConfig;
-
-var global_args: Array([]u8) = undefined;
-var global_config: Config = undefined;
+const dt = @import("datetime");
 
 pub const Config = struct {
-    build: BuildConfig,
+    base_url: []const u8 = "",
+    org: []const u8 = "",
+    logo_path: []const u8 = "",
+    color: []const u8 = "000fff",
+    current_year: u16 = 2025,
+    root: []const u8 = "",
     is_draft: bool = false,
     redact: bool = false,
-    build_dir: []const u8,
-    work_file: ?[]const u8 = null,
+    build_dir: []const u8 = "",
+    work_file: []const u8 = "",
 
     pub fn format(self: Config, comptime _: []const u8, _: anytype, writer: anytype) !void {
         inline for (std.meta.fields(Config)) |f| {
@@ -42,6 +43,43 @@ pub const Config = struct {
                     f.name,
                     @field(self, f.name),
                 }),
+            }
+        }
+    }
+    pub fn load_config_toml(alloc: Allocator) !Config {
+        const file = try std.fs.cwd().openFile("config.toml", .{});
+        defer file.close();
+
+        const content = try file.readToEndAlloc(alloc, 1024 * 1024 * 1024);
+        defer alloc.free(content);
+
+        return try Config.load(alloc, content);
+    }
+
+    pub fn load(alloc: Allocator, content: []const u8) !Config {
+        var t = try tomlz.parse(alloc, content);
+        defer t.deinit(alloc);
+        const e = t.getTable("extra") orelse return error.NoExtraInConfig;
+        //BUG: This doesnt work in zig 0.14.1, but should in 0.14.0.
+        // const b = try tomlz.decode(BuildConfig, allocator, content);
+        var config: Config = undefined;
+        const date = dt.datetime.Datetime.now().date;
+
+        config.root = try std.fs.cwd().realpathAlloc(alloc, ".");
+        config.current_year = date.year;
+
+        config.base_url = try alloc.dupe(u8, t.getString("base_url") orelse return error.NoBaseUrlInConfig);
+        config.build_dir = try alloc.dupe(u8, e.getString("policy_dir") orelse return error.NoPolicyDirInExtra);
+        config.logo_path = try alloc.dupe(u8, e.getString("logo") orelse return error.NoLogoInExtra);
+        config.color = try alloc.dupe(u8, e.getString("pdf_color") orelse return error.NoPDFColorInExtra);
+        config.org = try alloc.dupe(u8, e.getString("organization") orelse return error.NoOrganizationInExtra);
+        config.work_file = "";
+        return config;
+    }
+    pub fn deinit(self: Config, alloc: Allocator) void {
+        inline for (std.meta.fields(Config)) |f| {
+            if (f.type != bool and f.type != u16) {
+                alloc.free(@field(self, f.name));
             }
         }
     }
@@ -69,18 +107,19 @@ pub fn main() !void {
     defer arena.deinit();
 
     const alloc = arena.allocator();
-    global_config = Config{
-        .build = try BuildConfig.load_config_toml(alloc),
-        .build_dir = undefined,
-    };
-    defer global_config.build.deinit(alloc);
+    var config = Config{};
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
         \\-d, --draft            Add draft watermark to output.
         \\-r, --redact           Redact text within redaction tags in output.
+        \\--org <str>            Organization name
         \\-o, --output <str>     Destination folder
         \\-i, --input <str>      Input file
+        \\--logo <str>           Path to logo file
+        \\--color <str>          Accent color to use
+        \\--root <str>           Project root directory
+        \\--base_url <str>       Base url for the project
     );
     var diag = clap.Diagnostic{};
     var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
@@ -96,7 +135,18 @@ pub fn main() !void {
         std.debug.print("SC2 Policy Center PDF Generator\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
         return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
     }
-
+    if (res.args.color) |c| {
+        panlog.info("Using color {s}\n", .{c});
+        config.color = c;
+    } else return error.AccentColorNotProvided;
+    if (res.args.logo) |c| {
+        panlog.info("Using logo {s}\n", .{c});
+        config.logo_path = c;
+    } else return error.LogoPathNotProvided;
+    if (res.args.org) |c| {
+        panlog.info("Using org name {s}\n", .{c});
+        config.org = c;
+    } else return error.OrgNameNotProvided;
     if (res.args.input) |c| {
         panlog.info("Using input file: {s}\n", .{c});
         config.work_file = c;
@@ -105,6 +155,14 @@ pub fn main() !void {
         panlog.info("Writing to: {s}\n", .{c});
         config.build_dir = c;
     } else return error.OutputDirNotProvided;
+    if (res.args.root) |c| {
+        panlog.info("Project Root: {s}\n", .{c});
+        config.root = c;
+    } else return error.ProjectRootNotProvided;
+    if (res.args.base_url) |c| {
+        panlog.info("Base URL: {s}\n", .{c});
+        config.base_url = c;
+    } else return error.BaseUrlNotProvided;
     if (res.args.draft != 0) {
         panlog.info("Draft mode enabled\n", .{});
         config.is_draft = true;
@@ -179,20 +237,20 @@ pub fn destroy_global_args(a: Allocator, args: Array([]u8)) void {
 }
 
 ///Populates the global_args array with command-line arguments for Pandoc, based on the current global configuration
-pub fn create_global_args(a: Allocator, args: *Array([]u8)) !void {
-    try add_arg(a, args, "", "--data-dir={s}", .{global_config.build.root_dir});
-    try add_arg(a, args, "", "--resource-path={s}", .{global_config.build.root_dir});
-    try add_arg(a, args, "-V", "footer-left={s} \\textcopyright {d}", .{ global_config.build.organization, global_config.build.year });
+pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !void {
+    try add_arg(a, args, "", "--data-dir={s}", .{config.root.?});
+    try add_arg(a, args, "", "--resource-path={s}", .{config.root.?});
+    try add_arg(a, args, "-V", "footer-left={s} \\textcopyright {d}", .{ config.org.?, config.current_year });
 
-    try add_arg(a, args, "-V", "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{global_config.build.logo});
+    try add_arg(a, args, "-V", "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{config.logo_path.?});
 
-    try add_arg(a, args, "-V", "titlepage-logo={s}", .{global_config.build.logo});
+    try add_arg(a, args, "-V", "titlepage-logo={s}", .{config.logo_path.?});
 
-    try add_arg(a, args, "-V", "institution=\"{s}\"", .{global_config.build.organization});
+    try add_arg(a, args, "-V", "institution=\"{s}\"", .{config.org.?});
 
-    try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{global_config.build.color});
+    try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{config.color.?});
 
-    try add_arg(a, args, "-F", "{s}/.devbox/nix/profile/default/bin/mermaid-filter", .{global_config.build.root_dir});
+    try add_arg(a, args, "-F", "{s}/.devbox/nix/profile/default/bin/mermaid-filter", .{config.root.?});
     try add_arg(a, args, "-V", "footer-center=Confidental", .{});
     try add_arg(a, args, "-V", "papersize=letter", .{});
     try add_arg(a, args, "-V", "titlepage=true", .{});
@@ -232,7 +290,7 @@ pub fn process_md_file(
     global_args: Array([]u8),
     config: Config,
 ) !void {
-    var dir = try std.fs.cwd().openDir(global_config.build.root_dir, .{});
+    var dir = try std.fs.cwd().openDir(config.root.?, .{});
     defer dir.close();
     var file = dir.openFile(md.path, .{ .mode = .read_only }) catch |e| {
         if (e == error.FileNotFound) {
@@ -241,7 +299,7 @@ pub fn process_md_file(
         return e;
     };
     defer file.close();
-    var build = try std.fs.cwd().openDir(global_config.build_dir, .{});
+    var build = try std.fs.cwd().openDir(config.build_dir.?, .{});
     defer build.close();
 
     const raw = try file.readToEndAlloc(a, 100_000_000);
@@ -254,8 +312,8 @@ pub fn process_md_file(
     var local = Array([]u8).init(a);
     defer destroy_global_args(a, local);
 
-    try u.replace_org(&contents, global_config.build.organization);
-    try u.replace_zola_at(&contents, global_config.build.base_url);
+    try u.replace_org(&contents, config.org.?);
+    try u.replace_zola_at(&contents, config.base_url.?);
     try u.replace_mermaid(&contents);
     try u.redact(&contents, config.redact);
 
@@ -289,14 +347,21 @@ pub fn process_md_file(
     const res_path = try std.fmt.allocPrint(a, "--resource-path={s}:{s}:{s}/templates", .{ env.get("PATH") orelse "", basedir, cwd });
     try local.append(res_path);
 
-    try local.append(try std.fs.path.join(a, &.{ global_config.build_dir, tmp_file }));
+    try local.append(try std.fs.path.join(a, &.{ config.build_dir.?, tmp_file }));
 
     const out = try fm.filename(a);
     defer a.free(out);
     std.mem.replaceScalar(u8, out, ' ', '_');
 
-    try add_arg(a, &local, "-o", "{s}{s}{s}", .{ global_config.build_dir, "/", out });
-    try run_pandoc(a, local);
+    try add_arg(a, &local, "-o", "{s}{s}{s}", .{ config.build_dir.?, "/", out });
+
+    var combined = Array([]const u8).init(a);
+    defer combined.deinit();
+
+    try combined.appendSlice(local.items);
+    try combined.appendSlice(global_args.items);
+
+    try run_pandoc(a, combined);
 }
 
 /// Spawns a Pandoc process with the provided arguments, collects output, and logs errors or results as needed.

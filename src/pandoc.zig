@@ -31,7 +31,6 @@ pub const Config = struct {
     is_draft: bool = false,
     redact: bool = false,
     build_dir: []const u8,
-    work_file: []const u8,
 
     pub fn format(self: Config, comptime _: []const u8, _: anytype, writer: anytype) !void {
         inline for (std.meta.fields(Config)) |f| {
@@ -71,10 +70,9 @@ pub const Config = struct {
 
         config.base_url = try alloc.dupe(u8, t.getString("base_url") orelse return error.NoBaseUrlInConfig);
         config.policy_dir = try alloc.dupe(u8, e.getString("policy_dir") orelse return error.NoPolicyDirInExtra);
-        config.logo_path = try alloc.dupe(u8, e.getString("logo") orelse return error.NoLogoInExtra);
+        config.logo_path = try std.fs.path.join(alloc, &.{ "static", e.getString("logo") orelse return error.NoLogoInExtra });
         config.color = try alloc.dupe(u8, e.getString("pdf_color") orelse return error.NoPDFColorInExtra);
         config.org = try alloc.dupe(u8, e.getString("organization") orelse return error.NoOrganizationInExtra);
-        config.work_file = "";
         config.build_dir = try alloc.dupe(u8, "zig-out/pdfs");
         return config;
     }
@@ -112,6 +110,8 @@ pub fn main() !void {
     var config = try Config.load_config_toml(alloc);
     defer config.deinit(alloc);
 
+    var workfile: []u8 = undefined;
+
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
         \\-d, --draft            Add draft watermark to output.
@@ -141,7 +141,7 @@ pub fn main() !void {
     } else return error.OutputDirNotProvided;
     if (res.args.input) |c| {
         panlog.info("Input File: {s}\n", .{c});
-        config.work_file = try alloc.dupe(u8, c);
+        workfile = try alloc.dupe(u8, c);
     } else return error.InputFileNotProvided;
 
     if (res.args.draft != 0) {
@@ -170,30 +170,10 @@ pub fn main() !void {
 
     try process_md_file(
         alloc,
-        .{ .path = config.work_file },
+        .{ .path = workfile },
         global_args,
         config,
     );
-
-    // const md_files = try u.find_md_files(alloc, global_config.work_dir, policy_root, &root_progress);
-    // defer {
-    //     for (md_files) |f|
-    //         f.deinit(alloc);
-    //     alloc.free(md_files);
-    // }
-    // errdefer {
-    //     for (md_files) |f|
-    //         f.deinit(alloc);
-    //     alloc.free(md_files);
-    // }
-    // const total_files = md_files.len;
-    // root_progress.setEstimatedTotalItems(total_files);
-    // panlog.debug("Building PDFs from {} markdown files in {s} .. \n", .{ total_files, policy_root });
-
-    // for (md_files) |f| {
-    //     try process_md_file(alloc, f, &root_progress);
-    // }
-    // try process_md_files_parallel(alloc, md_files);
 }
 
 pub fn destroy_global_args(a: Allocator, args: Array([]u8)) void {
@@ -214,7 +194,7 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
 
     try add_arg(a, args, "-V", "institution=\"{s}\"", .{config.org});
 
-    try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{config.color});
+    try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{if (config.color[0] == '#') config.color[1..] else config.color});
 
     try add_arg(a, args, "-F", "{s}/.devbox/nix/profile/default/bin/mermaid-filter", .{config.root});
     try add_arg(a, args, "-V", "footer-center=Confidental", .{});
@@ -230,7 +210,6 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
     try add_arg(a, args, "", "--webtex", .{});
     try add_arg(a, args, "", "--pdf-engine=xelatex", .{});
 
-    if (config.is_draft) {
     if (config.is_draft) {
         try add_arg(a, args, "-V", "page-background=static/draft.png", .{});
         try add_arg(a, args, "-V", "page-background-opacity=0.8", .{});
@@ -256,8 +235,6 @@ pub fn process_md_file(
     md: u.MDFile,
     global_args: Array([]u8),
     config: Config,
-    global_args: Array([]u8),
-    config: Config,
 ) !void {
     var dir = try std.fs.cwd().openDir(config.root, .{});
     defer dir.close();
@@ -280,16 +257,12 @@ pub fn process_md_file(
     defer contents.deinit();
     var local = Array([]u8).init(a);
     defer destroy_global_args(a, local);
-    var local = Array([]u8).init(a);
-    defer destroy_global_args(a, local);
 
     try u.replace_org(&contents, config.org);
     try u.replace_zola_at(&contents, config.base_url);
     try u.replace_mermaid(&contents);
     try u.redact(&contents, config.redact);
-    try u.redact(&contents, config.redact);
 
-    var fm = try u.get_metadata(a, &contents, config);
     var fm = try u.get_metadata(a, &contents, config);
     defer fm.deinit(a);
 
@@ -318,22 +291,11 @@ pub fn process_md_file(
     const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else return error.NoResourcePathDefined;
     defer a.free(basedir);
     const res_path = try std.fmt.allocPrint(a, "--resource-path={s}:{s}:{s}/templates", .{ env.get("PATH") orelse "", basedir, cwd });
-    try local.insertSlice(0, &.{try a.dupe(u8, "pandoc")});
-    const cwd = try std.fs.cwd().realpathAlloc(a, ".");
-    defer a.free(cwd);
-
-    var env = try std.process.getEnvMap(a);
-    defer env.deinit();
-
-    const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else return error.NoResourcePathDefined;
-    defer a.free(basedir);
-    const res_path = try std.fmt.allocPrint(a, "--resource-path={s}:{s}:{s}/templates", .{ env.get("PATH") orelse "", basedir, cwd });
     try local.append(res_path);
 
     try local.append(try std.fs.path.join(a, &.{ config.build_dir, tmp_file }));
 
     const out = try fm.filename(a);
-    defer a.free(out);
     defer a.free(out);
     std.mem.replaceScalar(u8, out, ' ', '_');
 
@@ -349,7 +311,6 @@ pub fn process_md_file(
 }
 
 /// Spawns a Pandoc process with the provided arguments, collects output, and logs errors or results as needed.
-pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
 pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
     panlog.debug("Running pandoc with args:\n", .{});
     for (args.items) |arg|
@@ -385,55 +346,5 @@ pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
         for (args.items) |arg|
             panlog.err("\t{s}\n", .{arg});
         // return error.PandocError;
-    }
-}
-
-const Progress = std.Progress;
-
-pub fn process_md_files_parallel(allocator: Allocator, files: []std.fs.File) !void {
-    const total_files = files.len;
-    var root_progress = Progress.start(.{
-        .estimated_total_items = total_files,
-        .root_name = "Processing PDFs",
-    });
-    defer root_progress.end();
-
-    var errors = std.ArrayList(anyerror).init(allocator);
-    defer errors.deinit();
-    var errors_mutex = std.Thread.Mutex{};
-
-    var threads = std.ArrayList(std.Thread).init(allocator);
-    defer {
-        for (threads.items) |t| t.join();
-        threads.deinit();
-    }
-
-    for (files) |file| {
-        const thread = try std.Thread.spawn(.{}, struct {
-            fn run(f: std.fs.File, root: *Progress.Node, errs: *std.ArrayList(anyerror), mtx: *std.Thread.Mutex) void {
-                const local_alloc = std.heap.c_allocator;
-                const file_progress = root.start("File", 1);
-                defer file_progress.end();
-
-                process_md_file(local_alloc, f) catch |err| {
-                    mtx.lock();
-                    defer mtx.unlock();
-                    errs.append(err) catch {};
-                };
-                file_progress.completeOne();
-            }
-        }.run, .{ file, &root_progress, &errors, &errors_mutex });
-
-        try threads.append(thread);
-    }
-
-    for (threads.items) |t| t.join();
-
-    if (errors.items.len > 0) {
-        std.log.err("Failed processing {} files:", .{errors.items.len});
-        for (errors.items) |err| {
-            std.log.err("- {s}", .{@errorName(err)});
-        }
-        return error.ProcessingFailed;
     }
 }

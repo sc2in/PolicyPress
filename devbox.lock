@@ -1,6 +1,10 @@
 {
   "lockfile_version": "1",
   "packages": {
+    "github:NixOS/nixpkgs/nixpkgs-unstable": {
+      "last_modified": "2025-10-20T13:06:07Z",
+      "resolved": "github:NixOS/nixpkgs/cb82756ecc37fa623f8cf3e88854f9bf7f64af93?lastModified=1760965567"
+    },
     "github:sc2in/eisvogel-tex#": {
       "last_modified": "2024-06-17T20:03:57Z",
       "resolved": "github:sc2in/eisvogel-tex/9384c4be4f7b0944baf6aa06b1c48edde3f285ac?lastModified=1718654637&narHash=sha256-38jKMgzaQ8oBZ8yvvVFb%2FtyUZAN1digOtDp1NuhBc4A%3D"

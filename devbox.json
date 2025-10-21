@@ -1,14 +1,16 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.10.7/.schema/devbox.schema.json",
   "packages": {
-    "pandoc":               "latest", 
+    "pandoc":                     "latest",
     "github:sc2in/eisvogel-tex#": "",
     "zola":                       "latest",
     "imagemagick":                "latest",
-    "mermaid-filter":             "latest",
-    "zig":                        "latest",
-    "zls":                        "latest",
-    "watchexec":                  "latest"
+    "mermaid-filter": {
+      "version":            "latest",
+      "excluded_platforms": ["aarch64-darwin"]
+    },
+    "watchexec": "latest",
+    "zig":       "0.15.1"
   },
   "shell": {
     "init_hook": [

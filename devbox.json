@@ -10,7 +10,8 @@
       "excluded_platforms": ["aarch64-darwin"]
     },
     "watchexec": "latest",
-    "zig":       "0.15.1"
+    "zig":       "0.15.1",
+    "zls":       "0.15.0"
   },
   "shell": {
     "init_hook": [

@@ -225,18 +225,18 @@ fn urlencodeFilter(allocator: Allocator, value: context.Value, args: []const con
     const str_value = try value.toString(allocator);
     defer allocator.free(str_value);
 
-    var result = ArrayList(u8).init(allocator);
-    defer result.deinit();
+    var result = ArrayList(u8){};
+    defer result.deinit(allocator);
 
     for (str_value) |c| {
         if (std.ascii.isAlphanumeric(c) or c == '-' or c == '_' or c == '.' or c == '~') {
-            try result.append(c);
+            try result.append(allocator, c);
         } else {
-            try result.appendSlice(try std.fmt.allocPrint(allocator, "%{X:0>2}", .{c}));
+            try result.appendSlice(allocator, try std.fmt.allocPrint(allocator, "%{X:0>2}", .{c}));
         }
     }
 
-    return context.Value{ .string = try result.toOwnedSlice() };
+    return context.Value{ .string = try result.toOwnedSlice(allocator) };
 }
 
 // Number filters
@@ -349,17 +349,17 @@ fn joinFilter(allocator: Allocator, value: context.Value, args: []const context.
 
     switch (value) {
         .array => |arr| {
-            var result = ArrayList(u8).init(allocator);
-            defer result.deinit();
+            var result = ArrayList(u8){};
+            defer result.deinit(allocator);
 
             for (arr.items, 0..) |item, i| {
-                if (i > 0) try result.appendSlice(separator);
+                if (i > 0) try result.appendSlice(allocator, separator);
                 const item_str = try item.toString(allocator);
                 defer allocator.free(item_str);
-                try result.appendSlice(item_str);
+                try result.appendSlice(allocator, item_str);
             }
 
-            return context.Value{ .string = try result.toOwnedSlice() };
+            return context.Value{ .string = try result.toOwnedSlice(allocator) };
         },
         else => return try value.clone(allocator),
     }
@@ -371,12 +371,12 @@ fn reverseFilter(allocator: Allocator, value: context.Value, args: []const conte
 
     switch (value) {
         .array => |arr| {
-            var new_array = ArrayList(context.Value).init(allocator);
+            var new_array = ArrayList(context.Value){};
 
             var i = arr.items.len;
             while (i > 0) {
                 i -= 1;
-                try new_array.append(try arr.items[i].clone(allocator));
+                try new_array.append(allocator, try arr.items[i].clone(allocator));
             }
 
             return context.Value{ .array = new_array };
@@ -400,11 +400,11 @@ fn sortFilter(allocator: Allocator, value: context.Value, args: []const context.
 
     switch (value) {
         .array => |arr| {
-            var new_array = ArrayList(context.Value).init(allocator);
+            var new_array = ArrayList(context.Value){};
 
             // Simple sort for numbers and strings
             for (arr.items) |item| {
-                try new_array.append(try item.clone(allocator));
+                try new_array.append(allocator, try item.clone(allocator));
             }
 
             // Basic bubble sort for simplicity
@@ -451,7 +451,7 @@ fn uniqueFilter(allocator: Allocator, value: context.Value, args: []const contex
 
     switch (value) {
         .array => |arr| {
-            var new_array = ArrayList(context.Value).init(allocator);
+            var new_array = ArrayList(context.Value){};
 
             for (arr.items) |item| {
                 var is_duplicate = false;
@@ -463,7 +463,7 @@ fn uniqueFilter(allocator: Allocator, value: context.Value, args: []const contex
                 }
 
                 if (!is_duplicate) {
-                    try new_array.append(try item.clone(allocator));
+                    try new_array.append(allocator, try item.clone(allocator));
                 }
             }
 
@@ -495,21 +495,21 @@ fn escapeFilter(allocator: Allocator, value: context.Value, args: []const contex
     const str_value = try value.toString(allocator);
     defer allocator.free(str_value);
 
-    var result = ArrayList(u8).init(allocator);
-    defer result.deinit();
+    var result = ArrayList(u8){};
+    defer result.deinit(allocator);
 
     for (str_value) |c| {
         switch (c) {
-            '&' => try result.appendSlice("&amp;"),
-            '<' => try result.appendSlice("&lt;"),
-            '>' => try result.appendSlice("&gt;"),
-            '"' => try result.appendSlice("&quot;"),
-            '\'' => try result.appendSlice("&#x27;"),
-            else => try result.append(c),
+            '&' => try result.appendSlice(allocator, "&amp;"),
+            '<' => try result.appendSlice(allocator, "&lt;"),
+            '>' => try result.appendSlice(allocator, "&gt;"),
+            '"' => try result.appendSlice(allocator, "&quot;"),
+            '\'' => try result.appendSlice(allocator, "&#x27;"),
+            else => try result.append(allocator, c),
         }
     }
 
-    return context.Value{ .string = try result.toOwnedSlice() };
+    return context.Value{ .string = try result.toOwnedSlice(allocator) };
 }
 
 /// Mark value as safe (no-op in this implementation)

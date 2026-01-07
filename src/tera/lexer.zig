@@ -104,12 +104,12 @@ pub const Lexer = struct {
             .position = 0,
             .line = 1,
             .column = 1,
-            .tokens = ArrayList(Token).init(allocator),
+            .tokens = ArrayList(Token){},
         };
     }
 
     pub fn deinit(self: *Self) void {
-        self.tokens.deinit();
+        self.tokens.deinit(self.allocator);
     }
 
     /// Tokenize the entire input
@@ -121,7 +121,7 @@ pub const Lexer = struct {
         // Add EOF token
         try self.addToken(.eof, "");
 
-        return self.tokens.toOwnedSlice();
+        return try self.tokens.toOwnedSlice(self.allocator);
     }
 
     /// Get the next token
@@ -424,7 +424,7 @@ pub const Lexer = struct {
 
     /// Add a token to the list
     fn addToken(self: *Self, token_type: TokenType, content: []const u8) !void {
-        try self.tokens.append(Token{
+        try self.tokens.append(self.allocator, Token{
             .type = token_type,
             .content = content,
             .line = self.line,

@@ -32,7 +32,7 @@ pub const Config = struct {
     redact: bool = false,
     build_dir: []const u8,
 
-    pub fn format(self: Config, comptime _: []const u8, _: anytype, writer: anytype) !void {
+    pub fn format(self: Config, writer: *std.Io.Writer) !void {
         inline for (std.meta.fields(Config)) |f| {
             switch (f.type) {
                 ?[]const u8 => try writer.print("{s}:{?s}\n", .{
@@ -120,19 +120,22 @@ pub fn main() !void {
         \\-o, --output <str>     Destination folder
         \\-i, --input <str>      Input file
     );
+    var buf: [128]u8 = undefined;
+
+    // Report useful error and exit.
+    var stderr = std.fs.File.stderr().writer(&buf).interface;
     var diag = clap.Diagnostic{};
     var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
         .diagnostic = &diag,
         .allocator = alloc,
     }) catch |err| {
-        // Report useful error and exit.
-        diag.report(std.io.getStdErr().writer(), err) catch {};
+        diag.report(&stderr, err) catch {};
         return err;
     };
     defer res.deinit();
     if (res.args.help != 0) {
         std.debug.print("SC2 Policy Center PDF Generator\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
-        return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
+        return clap.help(&stderr, clap.Help, &params, .{});
     }
 
     if (res.args.output) |c| {
@@ -155,18 +158,18 @@ pub fn main() !void {
         config.redact = true;
     }
 
-    panlog.debug("Running with Configuration:\n{}\n", .{config});
+    panlog.debug("Running with Configuration:\n{f}\n", .{config});
 
-    var global_args = Array([]u8).init(alloc);
+    var global_args = Array([]u8){};
     defer {
-        // for (global_args.items) |a|
-        //     alloc.free(a);
-        global_args.deinit();
+        for (global_args.items) |a|
+            alloc.free(a);
+        global_args.deinit(alloc);
     }
 
     try create_global_args(alloc, &global_args, config);
     try create_global_args(alloc, &global_args, config);
-    defer destroy_global_args(alloc, global_args);
+    defer destroy_global_args(alloc, &global_args);
 
     try process_md_file(
         alloc,

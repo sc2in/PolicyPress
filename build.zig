@@ -42,15 +42,18 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
     {
-        // Build the config parser tool
-        const config_parser = b.addExecutable(.{
-            .name = "config_parser",
+        const config_mod = b.addModule("config_parser", .{
             .root_source_file = b.path("src/config.zig"),
             .target = target,
             .optimize = .Debug,
         });
-        config_parser.root_module.addImport("tomlz", tomlz.module("tomlz"));
-        config_parser.root_module.addImport("datetime", pg.module("datetime"));
+        config_mod.addImport("tomlz", tomlz.module("tomlz"));
+        config_mod.addImport("datetime", pg.module("datetime"));
+        // Build the config parser tool
+        const config_parser = b.addExecutable(.{
+            .name = "config_parser",
+            .root_module = config_mod,
+        });
 
         // const build_options = b.addOptions();
         // build_options.addOption([]const u8, "base_url", b.option([]const u8, "base_url", "Base URL of the policy center") orelse "http://[::1]:1111");
@@ -176,11 +179,14 @@ pub fn build(b: *std.Build) !void {
         test_step.dependOn(&run_unit_tests.step);
     }
     {
-        const policy_report = b.addExecutable(.{
-            .name = "policy_report",
+        const report_mod = b.addModule("policy_report", .{
             .target = target,
             .optimize = .ReleaseFast,
             .root_source_file = b.path("src/control_report.zig"),
+        });
+        const policy_report = b.addExecutable(.{
+            .name = "policy_report",
+            .root_module = report_mod,
         });
         policy_report.root_module.addImport("clap", clap.module("clap"));
         policy_report.root_module.addImport("yaml", yaml.module("yaml"));

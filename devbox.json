@@ -67,7 +67,7 @@
         "zig build preview -- -d zig-out/docs"
       ],
       "ci": [
-        "if [ $PUBLISH == \"true\" ]; then",
+        "if [[ \"${PUBLISH}\" == \"true\" ]]; then",
         "devbox run build-site",
         "devbox run build-pdfs",
         "else",

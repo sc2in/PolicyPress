@@ -37,8 +37,8 @@
     // internet connectivity.
     .dependencies = .{
         .tomlz = .{
-            .url = "git+https://github.com/AidanMaskelyne/tomlz#a37aa16599a482ea93e9ad165dc2332d1d9ec347",
-            .hash = "tomlz-1.0.0-AAAAADJcAwDQGBFR7C385_E9KQTond1YVRFzmKF3ztYF",
+            .url = "git+https://github.com/tsunaminoai/tomlz.git#b6362cb00e89d8f4996a9198a6ef33ac0523f52a",
+            .hash = "tomlz-0.3.0-H2E6wzxKAgD6D_3w6raXVf-FpUmFduKFWXQOCg6dQSGb",
         },
         .mvzr = .{
             .url = "git+https://github.com/mnemnion/mvzr#17a44b46cfe48ef46818d51bdf1161783dfe66e1",

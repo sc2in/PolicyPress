@@ -51,9 +51,9 @@ test "policy processing" {
     try tst.expect(rev.contains("approved_by"));
     try tst.expect(rev.contains("version"));
 
-    var t1 = Array(u8).init(tst.allocator);
-    defer t1.deinit();
-    try t1.appendSlice(test_policy);
+    var t1 = Array(u8){};
+    defer t1.deinit(tst.allocator);
+    try t1.appendSlice(tst.allocator, test_policy);
     var f1 = try utils.get_metadata(tst.allocator, &t1, .{
         .redact = true,
         .is_draft = false,
@@ -66,17 +66,17 @@ test "policy processing" {
     defer tst.allocator.free(out_file_name);
     try tst.expectEqualStrings("Test_Policy_(Redacted)_-_v1.1.pdf", out_file_name);
 
-    try utils.replace_zola_at(&t1, "https://test.lol");
-    try utils.replace_org(&t1, "loltest");
-    try utils.replace_mermaid(&t1);
-    try utils.redact(&t1, true);
+    try utils.replace_zola_at(tst.allocator, &t1, "https://test.lol");
+    try utils.replace_org(tst.allocator, &t1, "loltest");
+    try utils.replace_mermaid(tst.allocator, &t1);
+    try utils.redact(tst.allocator, &t1, true);
 
     try tst.expect(std.mem.indexOf(u8, t1.items, "~~~mermaid") != null);
     try tst.expect(std.mem.indexOf(u8, t1.items, &[_]u8{'_'} ** 10) != null);
     try tst.expectEqual(3, std.mem.count(u8, t1.items, "https://test.lol/"));
     try tst.expectEqual(0, std.mem.count(u8, t1.items, "{% end %}"));
 
-    var args = Array([]u8).init(tst.allocator);
+    var args = Array([]u8){};
     var env = try std.process.getEnvMap(tst.allocator);
     defer env.deinit();
 
@@ -95,7 +95,7 @@ test "policy processing" {
     global_config.build_dir = try tmp.dir.realpathAlloc(tst.allocator, ".");
 
     try pandoc.create_global_args(tst.allocator, &args, global_config);
-    defer pandoc.destroy_global_args(tst.allocator, args);
+    defer pandoc.destroy_global_args(tst.allocator, &args);
     const md = utils.MDFile{ .path = "content/policies/test_policy.md" };
     pandoc.process_md_file(tst.allocator, md, args, global_config) catch |e| {
         std.debug.print("Test Policy Pandoc Call Failed! \nConfig:{any}\n", .{global_config});

@@ -30,37 +30,37 @@ pub const Value = union(enum) {
             },
             .boolean => |b| return allocator.dupe(u8, if (b) "true" else "false"),
             .array => |arr| {
-                var result = ArrayList(u8).init(allocator);
-                defer result.deinit();
+                var result = ArrayList(u8){};
+                defer result.deinit(allocator);
 
-                try result.append('[');
+                try result.append(allocator, '[');
                 for (arr.items, 0..) |item, i| {
-                    if (i > 0) try result.appendSlice(", ");
+                    if (i > 0) try result.appendSlice(allocator, ", ");
                     const item_str = try item.toString(allocator);
                     defer allocator.free(item_str);
-                    try result.appendSlice(item_str);
+                    try result.appendSlice(allocator, item_str);
                 }
-                try result.append(']');
+                try result.append(allocator, ']');
 
-                return result.toOwnedSlice();
+                return result.toOwnedSlice(allocator);
             },
             .object => |obj| {
-                var result = ArrayList(u8).init(allocator);
-                defer result.deinit();
-                try result.append('{');
+                var result = ArrayList(u8){};
+                defer result.deinit(allocator);
+                try result.append(allocator, '{');
                 var it = obj.data.iterator();
                 var first = true;
                 while (it.next()) |entry| {
-                    if (!first) try result.appendSlice(", ");
+                    if (!first) try result.appendSlice(allocator, ", ");
                     first = false;
-                    try result.appendSlice(entry.key_ptr.*);
-                    try result.appendSlice(": ");
+                    try result.appendSlice(allocator, entry.key_ptr.*);
+                    try result.appendSlice(allocator, ": ");
                     const val_str = try entry.value_ptr.toString(allocator);
                     defer allocator.free(val_str);
-                    try result.appendSlice(val_str);
+                    try result.appendSlice(allocator, val_str);
                 }
-                try result.append('}');
-                return try result.toOwnedSlice();
+                try result.append(allocator, '}');
+                return try result.toOwnedSlice(allocator);
             },
             .null_value => return allocator.dupe(u8, ""),
         }
@@ -126,9 +126,9 @@ pub const Value = union(enum) {
             .number => |n| return Self{ .number = n },
             .boolean => |b| return Self{ .boolean = b },
             .array => |arr| {
-                var new_array = ArrayList(Value).init(allocator);
+                var new_array = ArrayList(Value){};
                 for (arr.items) |item| {
-                    try new_array.append(try item.clone(allocator));
+                    try new_array.append(allocator, try item.clone(allocator));
                 }
                 return Self{ .array = new_array };
             },
@@ -156,7 +156,7 @@ pub const Value = union(enum) {
                 for (arr.items) |*item| {
                     item.deinit(allocator);
                 }
-                arr.deinit();
+                arr.deinit(allocator);
             },
             .object => |*obj| obj.deinit(),
             else => {},
@@ -334,11 +334,11 @@ fn parseJsonValue(context: *Context, json_value: std.json.Value, prefix: []const
             try context.set(prefix, Value{ .string = s });
         },
         .array => |arr| {
-            var array_list = ArrayList(Value).init(context.allocator);
+            var array_list = ArrayList(Value){};
 
             for (arr.items) |item| {
                 const value = try jsonValueToValue(item, context.allocator);
-                try array_list.append(value);
+                try array_list.append(context.allocator, value);
             }
 
             try context.set(prefix, Value{ .array = array_list });
@@ -377,9 +377,9 @@ fn jsonValueToValue(json_value: std.json.Value, allocator: Allocator) !Value {
         .float => |f| return Value{ .number = f },
         .string => |s| return Value{ .string = try allocator.dupe(u8, s) },
         .array => |arr| {
-            var array_list = ArrayList(Value).init(allocator);
+            var array_list = ArrayList(Value){};
             for (arr.items) |item| {
-                try array_list.append(try jsonValueToValue(item, allocator));
+                try array_list.append(allocator, try jsonValueToValue(item, allocator));
             }
             return Value{ .array = array_list };
         },

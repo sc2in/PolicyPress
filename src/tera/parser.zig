@@ -30,6 +30,7 @@ pub const Node = struct {
     type: NodeType,
     content: []const u8,
     children: ArrayList(*Node),
+    allocator: Allocator,
     attributes: std.StringHashMap([]const u8),
 
     const Self = @This();
@@ -37,9 +38,10 @@ pub const Node = struct {
     pub fn init(allocator: Allocator, node_type: NodeType, content: []const u8) !*Self {
         const node = try allocator.create(Self);
         node.* = Self{
+            .allocator = allocator,
             .type = node_type,
             .content = content,
-            .children = ArrayList(*Node).init(allocator),
+            .children = ArrayList(*Node){},
             .attributes = std.StringHashMap([]const u8).init(allocator),
         };
         return node;
@@ -50,12 +52,12 @@ pub const Node = struct {
             child.deinit(allocator);
             allocator.destroy(child);
         }
-        self.children.deinit();
+        self.children.deinit(allocator);
         self.attributes.deinit();
     }
 
     pub fn addChild(self: *Self, child: *Node) !void {
-        try self.children.append(child);
+        try self.children.append(self.allocator, child);
     }
 
     pub fn setAttribute(self: *Self, key: []const u8, value: []const u8) !void {
@@ -233,16 +235,16 @@ pub const Parser = struct {
                 self.advance();
 
                 // Parse remaining content until tag end
-                var content = ArrayList(u8).init(self.allocator);
-                defer content.deinit();
+                var content = ArrayList(u8){};
+                defer content.deinit(self.allocator);
 
                 while (self.position < self.tokens.len and self.current().type != .tag_end) {
                     const token = self.current();
-                    try content.appendSlice(token.content);
+                    try content.appendSlice(self.allocator, token.content);
                     self.advance();
                 }
 
-                try node.setAttribute("content", try content.toOwnedSlice());
+                try node.setAttribute("content", try content.toOwnedSlice(self.allocator));
                 self.expect(.tag_end);
                 return node;
             },
@@ -449,17 +451,17 @@ pub const Parser = struct {
     fn parseComment(self: *Self) !*Node {
         self.expect(.comment_start);
 
-        var content = ArrayList(u8).init(self.allocator);
-        defer content.deinit();
+        var content = ArrayList(u8){};
+        defer content.deinit(self.allocator);
 
         while (self.position < self.tokens.len and self.current().type != .comment_end) {
-            try content.appendSlice(self.current().content);
+            try content.appendSlice(self.allocator, self.current().content);
             self.advance();
         }
 
         self.expect(.comment_end);
 
-        const node = try Node.init(self.allocator, .comment, try content.toOwnedSlice());
+        const node = try Node.init(self.allocator, .comment, try content.toOwnedSlice(self.allocator));
         return node;
     }
 

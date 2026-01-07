@@ -176,10 +176,10 @@ pub fn main() !void {
     );
 }
 
-pub fn destroy_global_args(a: Allocator, args: Array([]u8)) void {
+pub fn destroy_global_args(a: Allocator, args: *Array([]u8)) void {
     for (args.items) |arg|
         a.free(arg);
-    args.deinit();
+    args.deinit(a);
 }
 
 ///Populates the global_args array with command-line arguments for Pandoc, based on the current global configuration
@@ -223,10 +223,10 @@ inline fn add_arg(
     comptime fmt: []const u8,
     value: anytype,
 ) !void {
-    if (prefix.len > 0) try args.append(try a.dupe(u8, prefix));
+    if (prefix.len > 0) try args.append(a, try a.dupe(u8, prefix));
 
     const arg = try std.fmt.allocPrint(a, fmt, value);
-    try args.append(arg);
+    try args.append(a, arg);
 }
 
 /// Processes a single markdown file: loads contents, applies replacements, extracts metadata, writes a temporary file, and invokes Pandoc to generate the PDF.
@@ -251,17 +251,16 @@ pub fn process_md_file(
     const raw = try file.readToEndAlloc(a, 100_000_000);
     var contents = Array(u8){
         .items = raw,
-        .allocator = a,
         .capacity = raw.len,
     };
-    defer contents.deinit();
-    var local = Array([]u8).init(a);
-    defer destroy_global_args(a, local);
+    defer contents.deinit(a);
+    var local = Array([]u8){};
+    defer destroy_global_args(a, &local);
 
-    try u.replace_org(&contents, config.org);
-    try u.replace_zola_at(&contents, config.base_url);
-    try u.replace_mermaid(&contents);
-    try u.redact(&contents, config.redact);
+    try u.replace_org(a, &contents, config.org);
+    try u.replace_zola_at(a, &contents, config.base_url);
+    try u.replace_mermaid(a, &contents);
+    try u.redact(a, &contents, config.redact);
 
     var fm = try u.get_metadata(a, &contents, config);
     defer fm.deinit(a);
@@ -281,7 +280,7 @@ pub fn process_md_file(
     }
     try tmp.writeAll(contents.items);
 
-    try local.insertSlice(0, &.{try a.dupe(u8, "pandoc")});
+    try local.insertSlice(a, 0, &.{try a.dupe(u8, "pandoc")});
     const cwd = try std.fs.cwd().realpathAlloc(a, ".");
     defer a.free(cwd);
 
@@ -291,9 +290,9 @@ pub fn process_md_file(
     const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else return error.NoResourcePathDefined;
     defer a.free(basedir);
     const res_path = try std.fmt.allocPrint(a, "--resource-path={s}:{s}:{s}/templates", .{ env.get("PATH") orelse "", basedir, cwd });
-    try local.append(res_path);
+    try local.append(a, res_path);
 
-    try local.append(try std.fs.path.join(a, &.{ config.build_dir, tmp_file }));
+    try local.append(a, try std.fs.path.join(a, &.{ config.build_dir, tmp_file }));
 
     const out = try fm.filename(a);
     defer a.free(out);
@@ -301,11 +300,11 @@ pub fn process_md_file(
 
     try add_arg(a, &local, "-o", "{s}{s}{s}", .{ config.build_dir, "/", out });
 
-    var combined = Array([]const u8).init(a);
-    defer combined.deinit();
+    var combined = Array([]const u8){};
+    defer combined.deinit(a);
 
-    try combined.appendSlice(local.items);
-    try combined.appendSlice(global_args.items);
+    try combined.appendSlice(a, local.items);
+    try combined.appendSlice(a, global_args.items);
 
     try run_pandoc(a, combined);
 }
@@ -337,7 +336,7 @@ pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
     try child.collectOutput(a, &out, &err, 100_000);
 
     const exit_code = child.wait() catch |e| {
-        panlog.err("Error in pandoc: {s}\nRan with: {s}\n", .{ err.items, args.items });
+        panlog.err("Error in pandoc: {s}\nRan with: {any}\n", .{ err.items, args.items });
         return e;
     };
     panlog.debug("{any} {s}\n", .{ exit_code, out.items });

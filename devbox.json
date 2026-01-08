@@ -67,6 +67,7 @@
         "zig build preview -- -d zig-out/docs"
       ],
       "ci": [
+        "devbox run test",
         "if [[ \"${PUBLISH}\" == \"true\" ]]; then",
         "devbox run build-site",
         "devbox run build-pdfs",

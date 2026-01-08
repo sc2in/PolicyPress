@@ -19,7 +19,7 @@
     ],
     "scripts": {
       "build-pdfs": [
-        "zig build -Doptimize=ReleaseSafe pdf"
+        "zig build -Doptimize=ReleaseSafe pdfs"
       ],
       "build-pdfs-zola": [
         "echo Unfinished",
@@ -32,10 +32,10 @@
         "done"
       ],
       "build-pdfs-draft": [
-        "zig build -Doptimize=ReleaseSafe pdf -- -d"
+        "zig build -Doptimize=ReleaseSafe pdfs -- -d"
       ],
       "build-pdfs-draft-redact": [
-        "zig build -Doptimize=ReleaseSafe pdf -- -d -r"
+        "zig build -Doptimize=ReleaseSafe pdfs -- -d -r"
       ],
       "build-site": [
         "zola build"

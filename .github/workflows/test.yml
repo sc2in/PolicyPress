@@ -21,5 +21,8 @@ jobs:
       - name: Setup Nix cache
         uses: DeterminateSystems/magic-nix-cache-action@v7
       
+      - name: Install devbox
+        uses: jetify-com/devbox-install-action@v0.12.0
+        
       - name: Run tests
         run: devbox run test

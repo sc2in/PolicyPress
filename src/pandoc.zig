@@ -74,7 +74,8 @@ pub const Config = struct {
         config.logo_path = try std.fs.path.join(alloc, &.{ config.root, "static", e.getString("logo") orelse return error.NoLogoInExtra });
         config.color = try alloc.dupe(u8, e.getString("pdf_color") orelse return error.NoPDFColorInExtra);
         config.org = try alloc.dupe(u8, e.getString("organization") orelse return error.NoOrganizationInExtra);
-        config.build_dir = try alloc.dupe(u8, "zig-out/pdfs");
+        if (config.build_dir.len == 0)
+            config.build_dir = try alloc.dupe(u8, "zig-out/pdfs");
         return config;
     }
     pub fn deinit(self: Config, alloc: Allocator) void {
@@ -107,9 +108,11 @@ pub fn main() !void {
 
     const alloc = gpa.allocator();
     var config = try Config.load_config_toml(alloc);
+    errdefer config.deinit(alloc);
     defer config.deinit(alloc);
 
     var workfile: []u8 = undefined;
+    defer alloc.free(workfile);
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
@@ -161,13 +164,7 @@ pub fn main() !void {
     panlog.debug("Running with Configuration:\n{f}\n", .{config});
 
     var global_args = Array([]u8){};
-    defer {
-        for (global_args.items) |a|
-            alloc.free(a);
-        global_args.deinit(alloc);
-    }
 
-    try create_global_args(alloc, &global_args, config);
     try create_global_args(alloc, &global_args, config);
     defer destroy_global_args(alloc, &global_args);
 

@@ -14,11 +14,21 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    const stdout_writer = std.io.getStdOut().writer();
+    var buffer: [128]u8 = undefined;
+    var output_writer: std.fs.File.Writer = std.fs.File.stdout().writer(&buffer);
+    const stdout: *std.Io.Writer = &output_writer.interface;
 
     const config = try Config.load_config_toml(allocator);
     defer config.deinit(allocator);
 
     // std.debug.print("{}\n", .{config});
-    try std.json.stringify(config, .{ .whitespace = .indent_1 }, stdout_writer);
+    const output = try std.json.Stringify.valueAlloc(
+        allocator,
+        config,
+        .{ .whitespace = .indent_1 },
+    );
+    defer allocator.free(output);
+
+    try stdout.print("{s}\n", .{output});
+    try stdout.flush();
 }

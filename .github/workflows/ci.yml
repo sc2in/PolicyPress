@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: ['main', 'develop', 'develop/zig-0.15.1']
+  pull_request:
+    branches: ['main', 'develop', 'develop/zig-0.15.1']
+
+env:
+  NIXED_USER: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v12
+      
+      - name: Setup Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+      
+      - name: Run CI
+        run: devbox run ci

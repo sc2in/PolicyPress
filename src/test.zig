@@ -84,10 +84,11 @@ test "policy processing" {
 
     var global_config = try pandoc.Config.load_config_toml(tst.allocator);
     defer global_config.deinit(tst.allocator);
-    tst.allocator.free(global_config.root);
-    tst.allocator.free(global_config.build_dir);
 
-    global_config.root = try tst.allocator.dupe(u8, env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv);
+    // Free and replace root
+    tst.allocator.free(global_config.root);
+    global_config.root = try tst.allocator.dupe(u8, env.get("DEVBOX_PROJECT_ROOT") orelse
+        return error.NotRunningInDevboxEnv);
 
     global_config.is_draft = true;
     global_config.redact = true;

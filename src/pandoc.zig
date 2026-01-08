@@ -34,15 +34,10 @@ pub const Config = struct {
 
     pub fn format(self: Config, writer: *std.Io.Writer) !void {
         inline for (std.meta.fields(Config)) |f| {
-            switch (f.type) {
-                ?[]const u8 => try writer.print("{s}:{?s}\n", .{
-                    f.name,
-                    @field(self, f.name),
-                }),
-                else => try writer.print("{s}: {any}\n", .{
-                    f.name,
-                    @field(self, f.name),
-                }),
+            if (f.type != bool and f.type != u16) {
+                try writer.print("{s}: {s}\n", .{ f.name, @field(self, f.name) });
+            } else {
+                try writer.print("{s}: {}\n", .{ f.name, @field(self, f.name) });
             }
         }
     }
@@ -62,6 +57,12 @@ pub const Config = struct {
         const e = t.getTable("extra") orelse return error.NoExtraInConfig;
         //BUG: This doesnt work in zig 0.14.1, but should in 0.14.0.
         // const b = try tomlz.decode(BuildConfig, allocator, content);
+
+        // if (b.root.len == 0) return error.NoRootInConfig;
+        // if (b.base_url.len == 0) return error.NoBaseUrlInConfig;
+        // if (b.logo_path.len == 0) return error.NoLogoInExtra;
+        // if (b.color.len == 0) return error.NoPDFColorInExtra;
+        // if (b.org.len == 0) return error.NoOrganizationInExtra;
         var config: Config = undefined;
         const date = dt.datetime.Datetime.now().date;
 
@@ -70,7 +71,7 @@ pub const Config = struct {
 
         config.base_url = try alloc.dupe(u8, t.getString("base_url") orelse return error.NoBaseUrlInConfig);
         config.policy_dir = try alloc.dupe(u8, e.getString("policy_dir") orelse return error.NoPolicyDirInExtra);
-        config.logo_path = try std.fs.path.join(alloc, &.{ "static", e.getString("logo") orelse return error.NoLogoInExtra });
+        config.logo_path = try std.fs.path.join(alloc, &.{ config.root, "static", e.getString("logo") orelse return error.NoLogoInExtra });
         config.color = try alloc.dupe(u8, e.getString("pdf_color") orelse return error.NoPDFColorInExtra);
         config.org = try alloc.dupe(u8, e.getString("organization") orelse return error.NoOrganizationInExtra);
         config.build_dir = try alloc.dupe(u8, "zig-out/pdfs");
@@ -101,12 +102,10 @@ pub const std_options: std.Options = .{
 const panlog = std.log.scoped(.pandoc);
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa = std.heap.DebugAllocator(.{}){};
     defer _ = gpa.deinit();
-    var arena = std.heap.ArenaAllocator.init(gpa.allocator());
-    defer arena.deinit();
 
-    const alloc = arena.allocator();
+    const alloc = gpa.allocator();
     var config = try Config.load_config_toml(alloc);
     defer config.deinit(alloc);
 
@@ -132,10 +131,11 @@ pub fn main() !void {
         diag.report(&stderr, err) catch {};
         return err;
     };
+    // std.debug.print("{any}", .{res});
     defer res.deinit();
     if (res.args.help != 0) {
         std.debug.print("SC2 Policy Center PDF Generator\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
-        return clap.help(&stderr, clap.Help, &params, .{});
+        return clap.helpToFile(std.fs.File.stderr(), clap.Help, &params, .{});
     }
 
     if (res.args.output) |c| {

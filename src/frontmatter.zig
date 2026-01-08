@@ -34,12 +34,12 @@ pub fn init(alloc: Allocator, source: []const u8, input_kind: Kind) !FrontMatter
             y.load(alloc) catch |err| switch (err) {
                 error.ParseFailure => {
                     var buffer: [128]u8 = undefined;
-                    var output_writer: std.fs.File.Writer = std.fs.File.stdout().writer(&buffer);
+                    var output_writer: std.fs.File.Writer = std.fs.File.stderr().writer(&buffer);
                     const stderr: *std.Io.Writer = &output_writer.interface;
-                    try stderr.flush();
 
                     std.debug.assert(y.parse_errors.errorMessageCount() > 0);
                     y.parse_errors.renderToStdErr(.{ .ttyconf = std.io.tty.detectConfig(std.fs.File.stdout()) });
+                    try stderr.flush();
                     return error.ParseFailure;
                 },
                 else => return err,

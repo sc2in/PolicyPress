@@ -53,7 +53,7 @@ pub fn init(alloc: Allocator, source: []const u8, input_kind: Kind) !FrontMatter
             // defer doc.deinit(alloc);
 
             var val: tomlz.Value = .{ .table = doc };
-            orig.toml = doc;
+            orig = .{ .toml = doc };
             break :blk try tomlValueToJson(alloc, &val);
         },
         // else => return error.UnhandledSourceType,
@@ -194,14 +194,27 @@ pub fn yamlNodeToJson(allocator: std.mem.Allocator, node: Yaml.Value) !JsonValue
             return list;
         },
         .scalar => |s| {
+            // Try to parse as integer
+            if (std.fmt.parseInt(i64, s, 10)) |int_val| {
+                return JsonValue{ .integer = int_val };
+            } else |_| {}
+
+            // Try to parse as float
+            if (std.fmt.parseFloat(f64, s)) |float_val| {
+                return JsonValue{ .float = float_val };
+            } else |_| {}
+
+            // Try to parse as boolean
+            if (std.mem.eql(u8, s, "true")) {
+                return JsonValue{ .bool = true };
+            } else if (std.mem.eql(u8, s, "false")) {
+                return JsonValue{ .bool = false };
+            }
+
+            // Default to string
             return JsonValue{ .string = s };
         },
-        // .int => |i| {
-        //     return JsonValue{ .integer = i };
-        // },
-        // .float => |f| {
-        //     return JsonValue{ .float = f };
-        // },
+
         .boolean => |b| {
             return JsonValue{ .bool = b };
         },

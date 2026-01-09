@@ -1,18 +1,20 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.10.7/.schema/devbox.schema.json",
   "packages": {
-    "pandoc":                     "latest",
+    "pandoc": "latest",
     "github:sc2in/eisvogel-tex#": "",
-    "zola":                       "latest",
-    "imagemagick":                "latest",
+    "zola": "latest",
+    "imagemagick": "latest",
     "mermaid-filter": {
-      "version":            "latest",
-      "excluded_platforms": ["aarch64-darwin"]
+      "version": "latest",
+      "excluded_platforms": [
+        "aarch64-darwin"
+      ]
     },
     "watchexec": "latest",
-    "zig":       "0.15.1",
-    "zls":       "0.15.0",
-    "act":       "latest"
+    "zig": "0.15.1",
+    "zls": "0.15.0",
+    "act": "latest"
   },
   "shell": {
     "init_hook": [
@@ -70,9 +72,9 @@
       "ci": [
         "echo $SHELL",
         "devbox run test",
-        "if [ -n \"$PUBLISH\" ] && [ \"$PUBLISH\" = \"true\" ]; then devbox run build-site && devbox run build-pdf; else devbox run build-pdfs-draft; fi"
+        "if [ -n \"$PUBLISH\" ] && [ \"$PUBLISH\" = \"true\" ]; then devbox run build-site && devbox run build-pdfs; else devbox run build-pdfs-draft; fi"
       ],
-       "test-ci-local": [
+      "test-ci-local": [
         "act -r push -W .github/workflows/ci.yml -s GITHUB_TOKEN=$(gh auth token) --env \"NIX_CONFIG=access-tokens = github.com=$(gh auth token)\""
       ],
       "cross-test": [

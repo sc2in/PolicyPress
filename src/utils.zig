@@ -69,7 +69,7 @@ pub fn get_metadata(a: Allocator, txt: *Array(u8), config: anytype) !FrontMatter
         else => return err,
     };
     const map = y.docs.items[0].map;
-    panlog.debug("Procesing: {s}\n", .{map.get("title").?.string});
+    panlog.debug("Procesing: {s}\n", .{map.get("title").?.scalar});
     const extra = map.get("extra").?.map;
     const major_revisions = extra.get("major_revisions").?.list;
     std.mem.sort(
@@ -80,13 +80,13 @@ pub fn get_metadata(a: Allocator, txt: *Array(u8), config: anytype) !FrontMatter
     );
 
     const most_recent = major_revisions[0];
-    const m = try most_recent.asMap();
+    const m = most_recent.asMap();
 
     const rd = "{s} (Redacted) (Draft)";
     const r = "{s} (Redacted)";
     const d = "{s} (Draft)";
     const e = "{s}";
-    const t = map.get("title").?.string;
+    const t = map.get("title").?.scalar;
     const title = if (config.redact and config.is_draft)
         try std.fmt.allocPrint(a, rd, .{t})
     else if (config.redact)
@@ -97,10 +97,10 @@ pub fn get_metadata(a: Allocator, txt: *Array(u8), config: anytype) !FrontMatter
         try std.fmt.allocPrint(a, e, .{t});
     return .{
         .title = title,
-        .last_reviewed = try a.dupe(u8, extra.get("last_reviewed").?.string),
-        .most_recent_version = switch (m.get("version").?) {
-            .string => |s| try a.dupe(u8, s),
-            .float => |f| try std.fmt.allocPrint(a, "{d:0.1}", .{f}),
+        .last_reviewed = try a.dupe(u8, extra.get("last_reviewed").?.scalar),
+        .most_recent_version = switch (m.?.get("version").?) {
+            .scalar => |s| try a.dupe(u8, s),
+            // .float => |f| try std.fmt.allocPrint(a, "{d:0.1}", .{f}),
             else => return error.InvalidVersionType,
         },
     };
@@ -108,9 +108,9 @@ pub fn get_metadata(a: Allocator, txt: *Array(u8), config: anytype) !FrontMatter
 
 /// Comparator function for sorting YAML revision values in ascending order.
 pub fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
-    if (a != .string or b != .string) return false;
-    const as = a.string;
-    const bs = b.string;
+    if (a != .scalar or b != .scalar) return false;
+    const as = a.scalar;
+    const bs = b.scalar;
     if (as.len < bs.len) return false;
 
     for (as, 0..) |ac, i| {
@@ -120,19 +120,19 @@ pub fn revisions_lt(_: @TypeOf(.{}), a: Yaml.Value, b: Yaml.Value) bool {
 }
 
 /// Replaces all instances of the organization placeholder in the markdown text with the actual organization name from the global configuration.
-pub fn replace_org(txt: *Array(u8), with: []const u8) !void {
+pub fn replace_org(alloc: Allocator, txt: *Array(u8), with: []const u8) !void {
     const orgsc: mvzr.Regex = mvzr.compile("\\{\\{\\s*org\\(\\)\\s*\\}\\}").?;
 
     if (!orgsc.isMatch(txt.items)) return;
 
-    var new = try txt.clone();
+    var new = try txt.clone(alloc);
 
     var iter = orgsc.iterator(txt.items);
     while (iter.next()) |match| {
-        try new.replaceRange(match.start, match.slice.len, with);
+        try new.replaceRange(alloc, match.start, match.slice.len, with);
         iter = orgsc.iterator(new.items);
     }
-    txt.deinit();
+    txt.deinit(alloc);
     txt.* = new;
 }
 
@@ -140,11 +140,11 @@ pub fn replace_org(txt: *Array(u8), with: []const u8) !void {
 /// Example: [Privacy](@/policies/privacy-policy.md) -> [Privacy](https://security.sc2.in/policies/privacy-policy.html)
 /// Example: [Acceptable Use](@/policies/aup/) -> [Acceptable Use](https://security.sc2.in/policies/aup/)
 /// Example: [Image passthrough](@/policies/aup/image.png) -> [Image passthrough](https://security.sc2.in/policies/aup/image.png)
-pub fn replace_zola_at(txt: *Array(u8), base_url: []const u8) !void {
+pub fn replace_zola_at(alloc: Allocator, txt: *Array(u8), base_url: []const u8) !void {
     const at: mvzr.Regex = mvzr.compile("\\]\\(@/.+?\\)").?;
     if (!at.isMatch(txt.items)) return;
 
-    var new = try txt.clone();
+    var new = try txt.clone(alloc);
 
     var iter = at.iterator(txt.items);
 
@@ -152,41 +152,41 @@ pub fn replace_zola_at(txt: *Array(u8), base_url: []const u8) !void {
         const ref = match.slice[4 .. match.slice.len - 1];
 
         const file = if (std.mem.endsWith(u8, ref, "/_index.md"))
-            try txt.allocator.dupe(u8, ref[0 .. ref.len - 9])
+            try alloc.dupe(u8, ref[0 .. ref.len - 9])
         else if (std.mem.endsWith(u8, ref, "/index.md"))
-            try txt.allocator.dupe(u8, ref[0 .. ref.len - 8])
+            try alloc.dupe(u8, ref[0 .. ref.len - 8])
         else if (std.mem.endsWith(u8, ref, ".md"))
-            try std.fmt.allocPrint(txt.allocator, "{s}.html", .{ref[0 .. ref.len - 3]})
+            try std.fmt.allocPrint(alloc, "{s}.html", .{ref[0 .. ref.len - 3]})
         else
-            try txt.allocator.dupe(u8, ref);
-        defer txt.allocator.free(file);
+            try alloc.dupe(u8, ref);
+        defer alloc.free(file);
 
-        const link = try std.fmt.allocPrint(txt.allocator, "]({s}/{s})", .{
+        const link = try std.fmt.allocPrint(alloc, "]({s}/{s})", .{
             base_url,
             file,
         });
-        defer txt.allocator.free(link);
-        try new.replaceRange(match.start, match.slice.len, link);
+        defer alloc.free(link);
+        try new.replaceRange(alloc, match.start, match.slice.len, link);
 
         iter = at.iterator(new.items);
     }
-    txt.deinit();
+    txt.deinit(alloc);
     txt.* = new;
 }
 
 test "replace_zola_at" {
     const allocator = tst.allocator;
 
-    var arr = Array(u8).init(allocator);
-    defer arr.deinit();
-    try arr.appendSlice(
+    var arr = Array(u8){};
+    defer arr.deinit(allocator);
+    try arr.appendSlice(allocator,
         \\[some section](@/policies/privacy/_index.md)
         \\[some dir](@/policies/privacy/index.md)
         \\[some link](@/policies/aup.md)
         \\[an image](@/policies/image.png)
     );
 
-    try replace_zola_at(&arr, "https://example.com");
+    try replace_zola_at(allocator, &arr, "https://example.com");
 
     const expected =
         \\[some section](https://example.com/policies/privacy/)
@@ -198,24 +198,24 @@ test "replace_zola_at" {
 }
 
 /// Finds and replaces custom Mermaid code blocks in the markdown with a standardized code block format.
-pub fn replace_mermaid(txt: *Array(u8)) !void {
+pub fn replace_mermaid(alloc: Allocator, txt: *Array(u8)) !void {
     const mermaid: mvzr.Regex = mvzr.compile("\\{%\\s*mermaid\\(\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;
     if (!mermaid.isMatch(txt.items)) return;
 
-    var new = try txt.clone();
+    var new = try txt.clone(alloc);
 
     var iter = mermaid.iterator(txt.items);
     while (iter.next()) |m| {
         const s = std.mem.indexOf(u8, m.slice, "%}") orelse return error.InvalidShortCode;
         const e = std.mem.lastIndexOf(u8, m.slice, "{%") orelse return error.InvalidShortCode;
         const inner = m.slice[s + 2 .. e - 1];
-        const replace = try std.fmt.allocPrint(txt.allocator, "~~~mermaid{s}\n~~~", .{inner});
-        defer txt.allocator.free(replace);
+        const replace = try std.fmt.allocPrint(alloc, "~~~mermaid{s}\n~~~", .{inner});
+        defer alloc.free(replace);
 
-        try new.replaceRange(m.start, m.slice.len, replace);
+        try new.replaceRange(alloc, m.start, m.slice.len, replace);
         iter = mermaid.iterator(new.items);
     }
-    txt.deinit();
+    txt.deinit(alloc);
     txt.* = new;
 }
 
@@ -304,8 +304,8 @@ pub fn get_logo_color(a: Allocator, path: []const u8) ![]u8 {
 
 test "revisions_lt sorts revisions lexically" {
     // Simulate two YAML values
-    const a = Yaml.Value{ .string = "2022-01-01" };
-    const b = Yaml.Value{ .string = "2023-01-01" };
+    const a = Yaml.Value{ .scalar = "2022-01-01" };
+    const b = Yaml.Value{ .scalar = "2023-01-01" };
     try tst.expect(revisions_lt(.{}, a, b));
     try tst.expect(!revisions_lt(.{}, b, a));
 }
@@ -313,11 +313,11 @@ test "revisions_lt sorts revisions lexically" {
 test "replace_org replaces organization shortcode" {
     const allocator = tst.allocator;
 
-    var arr = Array(u8).init(allocator);
-    defer arr.deinit();
-    try arr.appendSlice("Welcome to {{ org() }}!");
+    var arr = Array(u8){};
+    defer arr.deinit(allocator);
+    try arr.appendSlice(allocator, "Welcome to {{ org() }}!");
 
-    try replace_org(&arr, "AcmeCorp");
+    try replace_org(allocator, &arr, "AcmeCorp");
 
     try tst.expectEqualStrings("Welcome to AcmeCorp!", arr.items);
 }
@@ -325,9 +325,9 @@ test "replace_org replaces organization shortcode" {
 test "replace_mermaid replaces mermaid shortcode with code block" {
     const allocator = tst.allocator;
 
-    var arr = Array(u8).init(allocator);
-    defer arr.deinit();
-    try arr.appendSlice(
+    var arr = Array(u8){};
+    defer arr.deinit(allocator);
+    try arr.appendSlice(allocator,
         \\Some text
         \\{% mermaid() %}
         \\graph TD;
@@ -336,7 +336,7 @@ test "replace_mermaid replaces mermaid shortcode with code block" {
         \\End text
     );
 
-    try replace_mermaid(&arr);
+    try replace_mermaid(allocator, &arr);
 
     const expected =
         \\Some text
@@ -371,7 +371,7 @@ test {
     var fm = try FM.parse(alloc, contents);
     defer fm.deinit();
 
-    // std.debug.print("{s}\n", .{(try fm.get("title")).?.string});
+    // std.debug.print("{s}\n", .{(try fm.get("title")).?.scalar});
 }
 test {
     _ = ffm;
@@ -443,11 +443,11 @@ pub const FM = struct {
     }
 };
 
-pub fn redact(txt: *Array(u8), remove: bool) !void {
+pub fn redact(a: Allocator, txt: *Array(u8), remove: bool) !void {
     const r: mvzr.Regex = mvzr.compile("\\{%\\s*redact\\(\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;
     if (!r.isMatch(txt.items)) return;
 
-    var new = try txt.clone();
+    var new = try txt.clone(a);
 
     var iter = r.iterator(txt.items);
     while (iter.next()) |m| {
@@ -455,21 +455,21 @@ pub fn redact(txt: *Array(u8), remove: bool) !void {
         const e = std.mem.lastIndexOf(u8, m.slice, "{%") orelse return error.InvalidShortCode;
         const inner = m.slice[s + 2 .. e - 1];
         const replace = if (remove) blk: {
-            const replace = try txt.allocator.alloc(u8, m.slice.len);
+            const replace = try a.alloc(u8, m.slice.len);
             @memset(replace, '_');
             break :blk replace;
         } else blk: {
-            const replace = try txt.allocator.alloc(u8, m.slice.len);
+            const replace = try a.alloc(u8, m.slice.len);
             @memset(replace, ' ');
             @memcpy(replace[0..inner.len], inner);
             break :blk replace;
         };
-        defer txt.allocator.free(replace);
+        defer a.free(replace);
 
-        try new.replaceRange(m.start, m.slice.len, replace);
+        try new.replaceRange(a, m.start, m.slice.len, replace);
         iter = r.iterator(new.items);
     }
-    txt.deinit();
+    txt.deinit(a);
     txt.* = new;
 }
 
@@ -479,22 +479,22 @@ test "Redaction" {
         \\This is a test policy for demonstration purposes. It contains sensitive information that should not be disclosed.
         \\{% end %}
     ;
-    var ts = Array(u8).init(tst.allocator);
-    defer ts.deinit();
+    var ts = Array(u8){};
+    defer ts.deinit(tst.allocator);
 
     const expected = [_]u8{'_'} ** t.len;
 
-    try ts.appendSlice(t);
-    try redact(&ts, true);
+    try ts.appendSlice(tst.allocator, t);
+    try redact(tst.allocator, &ts, true);
     // std.debug.print("{s}\n", .{ts.items});
     try tst.expectEqualStrings(&expected, ts.items);
 
-    var t2 = Array(u8).init(tst.allocator);
-    defer t2.deinit();
+    var t2 = Array(u8){};
+    defer t2.deinit(tst.allocator);
 
     const expected2 = "This is a test policy for demonstration purposes. It contains sensitive information that should not be disclosed.";
 
-    try t2.appendSlice(t);
-    try redact(&t2, false);
+    try t2.appendSlice(tst.allocator, t);
+    try redact(tst.allocator, &t2, false);
     try tst.expectEqualStrings(std.mem.trim(u8, expected2, "\n "), std.mem.trim(u8, t2.items, "\n "));
 }

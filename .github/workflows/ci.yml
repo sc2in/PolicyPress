@@ -4,7 +4,7 @@ on:
   push:
     branches: ['**']
   pull_request:
-    branches: ['**']
+    branches: ['main']
 
 env:
   NIXED_USER: true
@@ -27,3 +27,8 @@ jobs:
 
       - name: Run CI
         run: devbox run ci
+        env:
+          # Disable Chromium sandbox for mermaid-filter
+          PUPPETEER_ARGS: '--no-sandbox --disable-setuid-sandbox'
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false'
+

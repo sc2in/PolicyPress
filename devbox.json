@@ -68,13 +68,9 @@
         "zig build preview -- -d zig-out/docs"
       ],
       "ci": [
+        "echo $SHELL",
         "devbox run test",
-        "if [ \"${PUBLISH}\" == \"true\" ]; then",
-        "devbox run build-site",
-        "devbox run build-pdfs",
-        "else",
-        "devbox run build-pdfs-draft",
-        "fi"
+        "if [ -n \"$PUBLISH\" ] && [ \"$PUBLISH\" = \"true\" ]; then devbox run build-site && devbox run build-pdf; else devbox run build-pdfs-draft; fi"
       ],
        "test-ci-local": [
         "act -r push -W .github/workflows/ci.yml -s GITHUB_TOKEN=$(gh auth token) --env \"NIX_CONFIG=access-tokens = github.com=$(gh auth token)\""

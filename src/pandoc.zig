@@ -298,6 +298,32 @@ pub fn process_md_file(
     defer a.free(out);
     std.mem.replaceScalar(u8, out, ' ', '_');
 
+    // Sanitize the output filename to prevent path traversal and unsafe characters.
+    var prev_dot = false;
+    for (out, 0..) |*ch, idx| {
+        var c = ch.*;
+        // Replace any path separators with an underscore.
+        if (c == '/' or c == '\\') {
+            c = '_';
+        }
+        // Allow only alphanumerics, '_', '-', and '.'; map others to '_'.
+        if (!std.ascii.isAlphanumeric(c) and c != '_' and c != '-' and c != '.') {
+            c = '_';
+        }
+        // Prevent leading '.' and ".." sequences.
+        if (c == '.') {
+            if (idx == 0 or prev_dot) {
+                c = '_';
+                prev_dot = false;
+            } else {
+                prev_dot = true;
+            }
+        } else {
+            prev_dot = false;
+        }
+        ch.* = c;
+    }
+
     try add_arg(a, &local, "-o", "{s}{s}{s}", .{ config.build_dir, "/", out });
 
     var combined = Array([]const u8){};

@@ -111,8 +111,10 @@ pub fn main() !void {
     errdefer config.deinit(alloc);
     defer config.deinit(alloc);
 
-    var workfile: []u8 = undefined;
-    defer alloc.free(workfile);
+    var workfile: ?[]u8 = null;
+    defer {
+        if (workfile) |w| alloc.free(w);
+    }
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
@@ -167,13 +169,15 @@ pub fn main() !void {
 
     try create_global_args(alloc, &global_args, config);
     defer destroy_global_args(alloc, &global_args);
-
-    try process_md_file(
-        alloc,
-        .{ .path = workfile },
-        global_args,
-        config,
-    );
+    if (workfile) |w|
+        try process_md_file(
+            alloc,
+            .{ .path = w },
+            global_args,
+            config,
+        )
+    else
+        return error.InputFileNotProvided;
 }
 
 pub fn destroy_global_args(a: Allocator, args: *Array([]u8)) void {

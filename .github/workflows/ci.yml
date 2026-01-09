@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  # pull_request:
+  #   branches: ['main']
+
+env:
+  NIXED_USER: true
+  PUBLISH: ${{ github.ref == 'refs/heads/main' && 'true' || 'false' }}
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v12
+      
+      # - name: Setup Nix cache
+      #   uses: DeterminateSystems/magic-nix-cache-action@v7
+      
+      - name: Install devbox
+        uses: jetify-com/devbox-install-action@v0.12.0
+
+      - name: Run CI
+        run: devbox run ci
+        env:
+          # Disable Chromium sandbox for mermaid-filter
+          PUPPETEER_ARGS: '--no-sandbox --disable-setuid-sandbox'
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false'
+
+      - name: Upload artifacts
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: zig-out
+          path: zig-out/
+          retention-days: 7

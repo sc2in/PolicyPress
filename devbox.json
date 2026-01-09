@@ -1,14 +1,18 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.10.7/.schema/devbox.schema.json",
   "packages": {
-    "pandoc":               "latest", 
+    "pandoc":                     "latest",
     "github:sc2in/eisvogel-tex#": "",
     "zola":                       "latest",
     "imagemagick":                "latest",
-    "mermaid-filter":             "latest",
-    "zig":                        "latest",
-    "zls":                        "latest",
-    "watchexec":                  "latest"
+    "mermaid-filter": {
+      "version":            "latest",
+      "excluded_platforms": ["aarch64-darwin"]
+    },
+    "watchexec": "latest",
+    "zig":       "0.15.1",
+    "zls":       "0.15.0",
+    "act":       "latest"
   },
   "shell": {
     "init_hook": [
@@ -16,7 +20,7 @@
     ],
     "scripts": {
       "build-pdfs": [
-        "zig build -Doptimize=ReleaseSafe pdf"
+        "zig build -Doptimize=ReleaseSafe pdfs"
       ],
       "build-pdfs-zola": [
         "echo Unfinished",
@@ -29,10 +33,10 @@
         "done"
       ],
       "build-pdfs-draft": [
-        "zig build -Doptimize=ReleaseSafe pdf -- -d"
+        "zig build -Doptimize=ReleaseSafe pdfs -- -d"
       ],
       "build-pdfs-draft-redact": [
-        "zig build -Doptimize=ReleaseSafe pdf -- -d -r"
+        "zig build -Doptimize=ReleaseSafe pdfs -- -d -r"
       ],
       "build-site": [
         "zola build"
@@ -64,12 +68,12 @@
         "zig build preview -- -d zig-out/docs"
       ],
       "ci": [
-        "if [ $PUBLISH == \"true\" ]; then",
-        "devbox run build-site",
-        "devbox run build-pdfs",
-        "else",
-        "devbox run build-pdfs-draft",
-        "fi"
+        "echo $SHELL",
+        "devbox run test",
+        "if [ -n \"$PUBLISH\" ] && [ \"$PUBLISH\" = \"true\" ]; then devbox run build-site && devbox run build-pdf; else devbox run build-pdfs-draft; fi"
+      ],
+       "test-ci-local": [
+        "act -r push -W .github/workflows/ci.yml -s GITHUB_TOKEN=$(gh auth token) --env \"NIX_CONFIG=access-tokens = github.com=$(gh auth token)\""
       ],
       "cross-test": [
         "zig build -Doptimize=Debug -Dtarget=x86_64-linux test",

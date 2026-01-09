@@ -62,8 +62,8 @@ pub fn deinit(self: *Self) void {
 
 pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
     const a = self.arena.allocator();
-    var ret = Array(u8).init(a);
-    defer ret.deinit();
+    var ret = Array(u8){};
+    defer ret.deinit(a);
 
     var pr = try std.fs.cwd().openDir(policy_root, .{
         .access_sub_paths = true,
@@ -73,14 +73,14 @@ pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
     var walk = try pr.walk(a);
     defer walk.deinit();
 
-    var files = Array([]u8).init(a);
-    defer files.deinit();
+    var files = Array([]u8){};
+    defer files.deinit(a);
 
     while (try walk.next()) |entry| {
         if (entry.kind != .file) continue;
         if (std.mem.endsWith(u8, entry.basename, "_index.md")) continue;
         if (std.mem.endsWith(u8, entry.basename, ".md"))
-            try files.append(try a.dupe(u8, entry.path));
+            try files.append(a, try a.dupe(u8, entry.path));
     }
 
     for (files.items) |path| {
@@ -112,17 +112,17 @@ pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
     }
 
     var iter = self.map.iterator();
-    try ret.appendSlice("{");
+    try ret.appendSlice(a, "{");
     while (iter.next()) |c| {
         const line = try std.fmt.allocPrint(a, "\"{s}\": {},", .{ c.key_ptr.*, c.value_ptr.found });
         defer a.free(line);
 
-        try ret.appendSlice(line);
+        try ret.appendSlice(a, line);
     }
     if (ret.items.len > 1)
         _ = ret.pop();
-    try ret.appendSlice("}");
-    return try ret.toOwnedSlice();
+    try ret.appendSlice(a, "}");
+    return try ret.toOwnedSlice(a);
 }
 
 test {

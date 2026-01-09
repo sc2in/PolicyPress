@@ -32,17 +32,12 @@ pub const Config = struct {
     redact: bool = false,
     build_dir: []const u8,
 
-    pub fn format(self: Config, comptime _: []const u8, _: anytype, writer: anytype) !void {
+    pub fn format(self: Config, writer: *std.Io.Writer) !void {
         inline for (std.meta.fields(Config)) |f| {
-            switch (f.type) {
-                ?[]const u8 => try writer.print("{s}:{?s}\n", .{
-                    f.name,
-                    @field(self, f.name),
-                }),
-                else => try writer.print("{s}: {any}\n", .{
-                    f.name,
-                    @field(self, f.name),
-                }),
+            if (f.type != bool and f.type != u16) {
+                try writer.print("{s}: {s}\n", .{ f.name, @field(self, f.name) });
+            } else {
+                try writer.print("{s}: {}\n", .{ f.name, @field(self, f.name) });
             }
         }
     }
@@ -62,6 +57,12 @@ pub const Config = struct {
         const e = t.getTable("extra") orelse return error.NoExtraInConfig;
         //BUG: This doesnt work in zig 0.14.1, but should in 0.14.0.
         // const b = try tomlz.decode(BuildConfig, allocator, content);
+
+        // if (b.root.len == 0) return error.NoRootInConfig;
+        // if (b.base_url.len == 0) return error.NoBaseUrlInConfig;
+        // if (b.logo_path.len == 0) return error.NoLogoInExtra;
+        // if (b.color.len == 0) return error.NoPDFColorInExtra;
+        // if (b.org.len == 0) return error.NoOrganizationInExtra;
         var config: Config = undefined;
         const date = dt.datetime.Datetime.now().date;
 
@@ -70,10 +71,11 @@ pub const Config = struct {
 
         config.base_url = try alloc.dupe(u8, t.getString("base_url") orelse return error.NoBaseUrlInConfig);
         config.policy_dir = try alloc.dupe(u8, e.getString("policy_dir") orelse return error.NoPolicyDirInExtra);
-        config.logo_path = try std.fs.path.join(alloc, &.{ "static", e.getString("logo") orelse return error.NoLogoInExtra });
+        config.logo_path = try std.fs.path.join(alloc, &.{ config.root, "static", e.getString("logo") orelse return error.NoLogoInExtra });
         config.color = try alloc.dupe(u8, e.getString("pdf_color") orelse return error.NoPDFColorInExtra);
         config.org = try alloc.dupe(u8, e.getString("organization") orelse return error.NoOrganizationInExtra);
-        config.build_dir = try alloc.dupe(u8, "zig-out/pdfs");
+        if (config.build_dir.len == 0)
+            config.build_dir = try alloc.dupe(u8, "zig-out/pdfs");
         return config;
     }
     pub fn deinit(self: Config, alloc: Allocator) void {
@@ -101,16 +103,18 @@ pub const std_options: std.Options = .{
 const panlog = std.log.scoped(.pandoc);
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa = std.heap.DebugAllocator(.{}){};
     defer _ = gpa.deinit();
-    var arena = std.heap.ArenaAllocator.init(gpa.allocator());
-    defer arena.deinit();
 
-    const alloc = arena.allocator();
+    const alloc = gpa.allocator();
     var config = try Config.load_config_toml(alloc);
+    errdefer config.deinit(alloc);
     defer config.deinit(alloc);
 
-    var workfile: []u8 = undefined;
+    var workfile: ?[]u8 = null;
+    defer {
+        if (workfile) |w| alloc.free(w);
+    }
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
@@ -120,19 +124,23 @@ pub fn main() !void {
         \\-o, --output <str>     Destination folder
         \\-i, --input <str>      Input file
     );
+    var buf: [128]u8 = undefined;
+
+    // Report useful error and exit.
+    var stderr = std.fs.File.stderr().writer(&buf).interface;
     var diag = clap.Diagnostic{};
     var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
         .diagnostic = &diag,
         .allocator = alloc,
     }) catch |err| {
-        // Report useful error and exit.
-        diag.report(std.io.getStdErr().writer(), err) catch {};
+        diag.report(&stderr, err) catch {};
         return err;
     };
+    // std.debug.print("{any}", .{res});
     defer res.deinit();
     if (res.args.help != 0) {
         std.debug.print("SC2 Policy Center PDF Generator\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
-        return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
+        return clap.helpToFile(std.fs.File.stderr(), clap.Help, &params, .{});
     }
 
     if (res.args.output) |c| {
@@ -155,31 +163,27 @@ pub fn main() !void {
         config.redact = true;
     }
 
-    panlog.debug("Running with Configuration:\n{}\n", .{config});
+    panlog.debug("Running with Configuration:\n{f}\n", .{config});
 
-    var global_args = Array([]u8).init(alloc);
-    defer {
-        // for (global_args.items) |a|
-        //     alloc.free(a);
-        global_args.deinit();
-    }
+    var global_args = Array([]u8){};
 
     try create_global_args(alloc, &global_args, config);
-    try create_global_args(alloc, &global_args, config);
-    defer destroy_global_args(alloc, global_args);
-
-    try process_md_file(
-        alloc,
-        .{ .path = workfile },
-        global_args,
-        config,
-    );
+    defer destroy_global_args(alloc, &global_args);
+    if (workfile) |w|
+        try process_md_file(
+            alloc,
+            .{ .path = w },
+            global_args,
+            config,
+        )
+    else
+        return error.InputFileNotProvided;
 }
 
-pub fn destroy_global_args(a: Allocator, args: Array([]u8)) void {
+pub fn destroy_global_args(a: Allocator, args: *Array([]u8)) void {
     for (args.items) |arg|
         a.free(arg);
-    args.deinit();
+    args.deinit(a);
 }
 
 ///Populates the global_args array with command-line arguments for Pandoc, based on the current global configuration
@@ -223,10 +227,10 @@ inline fn add_arg(
     comptime fmt: []const u8,
     value: anytype,
 ) !void {
-    if (prefix.len > 0) try args.append(try a.dupe(u8, prefix));
+    if (prefix.len > 0) try args.append(a, try a.dupe(u8, prefix));
 
     const arg = try std.fmt.allocPrint(a, fmt, value);
-    try args.append(arg);
+    try args.append(a, arg);
 }
 
 /// Processes a single markdown file: loads contents, applies replacements, extracts metadata, writes a temporary file, and invokes Pandoc to generate the PDF.
@@ -251,17 +255,16 @@ pub fn process_md_file(
     const raw = try file.readToEndAlloc(a, 100_000_000);
     var contents = Array(u8){
         .items = raw,
-        .allocator = a,
         .capacity = raw.len,
     };
-    defer contents.deinit();
-    var local = Array([]u8).init(a);
-    defer destroy_global_args(a, local);
+    defer contents.deinit(a);
+    var local = Array([]u8){};
+    defer destroy_global_args(a, &local);
 
-    try u.replace_org(&contents, config.org);
-    try u.replace_zola_at(&contents, config.base_url);
-    try u.replace_mermaid(&contents);
-    try u.redact(&contents, config.redact);
+    try u.replace_org(a, &contents, config.org);
+    try u.replace_zola_at(a, &contents, config.base_url);
+    try u.replace_mermaid(a, &contents);
+    try u.redact(a, &contents, config.redact);
 
     var fm = try u.get_metadata(a, &contents, config);
     defer fm.deinit(a);
@@ -281,7 +284,7 @@ pub fn process_md_file(
     }
     try tmp.writeAll(contents.items);
 
-    try local.insertSlice(0, &.{try a.dupe(u8, "pandoc")});
+    try local.insertSlice(a, 0, &.{try a.dupe(u8, "pandoc")});
     const cwd = try std.fs.cwd().realpathAlloc(a, ".");
     defer a.free(cwd);
 
@@ -291,21 +294,47 @@ pub fn process_md_file(
     const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else return error.NoResourcePathDefined;
     defer a.free(basedir);
     const res_path = try std.fmt.allocPrint(a, "--resource-path={s}:{s}:{s}/templates", .{ env.get("PATH") orelse "", basedir, cwd });
-    try local.append(res_path);
+    try local.append(a, res_path);
 
-    try local.append(try std.fs.path.join(a, &.{ config.build_dir, tmp_file }));
+    try local.append(a, try std.fs.path.join(a, &.{ config.build_dir, tmp_file }));
 
     const out = try fm.filename(a);
     defer a.free(out);
     std.mem.replaceScalar(u8, out, ' ', '_');
 
+    // Sanitize the output filename to prevent path traversal and unsafe characters.
+    var prev_dot = false;
+    for (out, 0..) |*ch, idx| {
+        var c = ch.*;
+        // Replace any path separators with an underscore.
+        if (c == '/' or c == '\\') {
+            c = '_';
+        }
+        // Allow only alphanumerics, '_', '-', and '.'; map others to '_'.
+        if (!std.ascii.isAlphanumeric(c) and c != '_' and c != '-' and c != '.') {
+            c = '_';
+        }
+        // Prevent leading '.' and ".." sequences.
+        if (c == '.') {
+            if (idx == 0 or prev_dot) {
+                c = '_';
+                prev_dot = false;
+            } else {
+                prev_dot = true;
+            }
+        } else {
+            prev_dot = false;
+        }
+        ch.* = c;
+    }
+
     try add_arg(a, &local, "-o", "{s}{s}{s}", .{ config.build_dir, "/", out });
 
-    var combined = Array([]const u8).init(a);
-    defer combined.deinit();
+    var combined = Array([]const u8){};
+    defer combined.deinit(a);
 
-    try combined.appendSlice(local.items);
-    try combined.appendSlice(global_args.items);
+    try combined.appendSlice(a, local.items);
+    try combined.appendSlice(a, global_args.items);
 
     try run_pandoc(a, combined);
 }
@@ -337,7 +366,7 @@ pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
     try child.collectOutput(a, &out, &err, 100_000);
 
     const exit_code = child.wait() catch |e| {
-        panlog.err("Error in pandoc: {s}\nRan with: {s}\n", .{ err.items, args.items });
+        panlog.err("Error in pandoc: {s}\nRan with: {any}\n", .{ err.items, args.items });
         return e;
     };
     panlog.debug("{any} {s}\n", .{ exit_code, out.items });

@@ -49,7 +49,7 @@ pub const Tera = struct {
             .allocator = allocator,
             .templates = HashMap([]const u8, parser.Template, std.hash_map.StringContext, std.hash_map.default_max_load_percentage).init(allocator),
             .filters = HashMap([]const u8, filters.FilterFn, std.hash_map.StringContext, std.hash_map.default_max_load_percentage).init(allocator),
-            .names = Array([]u8).init(allocator),
+            .names = Array([]u8){},
         };
 
         // Register built-in filters
@@ -67,7 +67,7 @@ pub const Tera = struct {
         self.filters.deinit();
         for (self.names.items) |n|
             self.allocator.free(n);
-        self.names.deinit();
+        self.names.deinit(self.allocator);
     }
 
     /// Add a template from string content
@@ -84,7 +84,7 @@ pub const Tera = struct {
         const template = parser_instance.parse() catch return TeraError.ParseError;
 
         const owned_name = self.allocator.dupe(u8, name) catch return TeraError.OutOfMemory;
-        self.names.append(owned_name) catch return TeraError.OutOfMemory;
+        self.names.append(self.allocator, owned_name) catch return TeraError.OutOfMemory;
         self.templates.put(owned_name, template) catch return TeraError.OutOfMemory;
     }
 

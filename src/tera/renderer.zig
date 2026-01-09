@@ -24,12 +24,12 @@ pub const Renderer = struct {
             .allocator = allocator,
             .tera = tera,
             .context = ctx,
-            .output = ArrayList(u8).init(allocator),
+            .output = ArrayList(u8){},
         };
     }
 
     pub fn deinit(self: *Self) void {
-        self.output.deinit();
+        self.output.deinit(self.allocator);
     }
 
     /// Render a template and return the output
@@ -40,7 +40,7 @@ pub const Renderer = struct {
         }
 
         try self.renderNode(template.root);
-        return self.output.toOwnedSlice();
+        return try self.output.toOwnedSlice(self.allocator);
     }
 
     /// Render template with inheritance
@@ -48,12 +48,12 @@ pub const Renderer = struct {
         const parent_template = self.tera.getTemplate(parent_name) orelse {
             // Fallback to child template if parent not found
             try self.renderNode(child_template.root);
-            return self.output.toOwnedSlice();
+            return try self.output.toOwnedSlice(self.allocator);
         };
 
         // Render parent template, replacing blocks with child blocks
         try self.renderNodeWithBlocks(parent_template.root, child_template.blocks);
-        return self.output.toOwnedSlice();
+        return try self.output.toOwnedSlice(self.allocator);
     }
 
     /// Render a node
@@ -65,7 +65,7 @@ pub const Renderer = struct {
                 }
             },
             .text => {
-                try self.output.appendSlice(node.content);
+                try self.output.appendSlice(self.allocator, node.content);
             },
             .variable => {
                 try self.renderVariable(node);
@@ -146,7 +146,7 @@ pub const Renderer = struct {
         const str_value = try value.toString(self.allocator);
         defer self.allocator.free(str_value);
 
-        try self.output.appendSlice(str_value);
+        try self.output.appendSlice(self.allocator, str_value);
     }
 
     /// Render if statement
@@ -247,7 +247,7 @@ pub const Renderer = struct {
                 const included_output = try included_renderer.render(included_template);
                 defer self.allocator.free(included_output);
 
-                try self.output.appendSlice(included_output);
+                try self.output.appendSlice(self.allocator, included_output);
             }
         }
     }
@@ -410,17 +410,17 @@ pub const Renderer = struct {
 
         if (self.tera.getFilter(filter_name)) |filter_fn| {
             // Collect filter arguments
-            var args = ArrayList(context.Value).init(self.allocator);
+            var args = ArrayList(context.Value){};
             defer {
                 for (args.items) |*arg| {
                     arg.deinit(self.allocator);
                 }
-                args.deinit();
+                args.deinit(self.allocator);
             }
 
             for (filter_node.children.items) |arg_node| {
                 const arg_value = try self.evaluateExpression(arg_node);
-                try args.append(arg_value);
+                try args.append(self.allocator, arg_value);
             }
 
             return try filter_fn(self.allocator, value, args.items);

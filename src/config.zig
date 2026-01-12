@@ -9,9 +9,9 @@ const dt = @import("datetime");
 const u = @import("utils.zig");
 
 pub const std_options: std.Options = .{
-    .log_level = .err,
+    .log_level = .debug,
     .log_scope_levels = &[_]std.log.ScopeLevel{
-        .{ .scope = .config, .level = .err.default_level },
+        .{ .scope = .config, .level = .default_level },
     },
     .logFn = u.logFn,
 };
@@ -43,6 +43,7 @@ pub const Config = struct {
         }
     }
     pub fn load_config_toml(alloc: Allocator) !Config {
+        conflog.info("Loading config.toml", .{});
         const file = try std.fs.cwd().openFile("config.toml", .{});
         defer file.close();
 
@@ -76,8 +77,7 @@ pub const Config = struct {
             "content",
         });
         config.policy_dir = try std.fs.path.join(alloc, &.{
-            config.root,
-            "content",
+            config.content_dir,
             e.getString("policy_dir").?,
         });
         config.logo_path = try std.fs.path.join(alloc, &.{
@@ -90,7 +90,6 @@ pub const Config = struct {
         config.build_dir = "zig-out/pdfs";
         config.zola_config = t;
         config.redact = e.getBool("redact") orelse return error.NoRedactInZolaExtra;
-        try config.validatePolicyFiles(alloc);
         return config;
     }
     pub fn deinit(self: *Config, alloc: Allocator) void {
@@ -111,6 +110,7 @@ pub const Config = struct {
     }
 
     pub fn validatePolicyFiles(self: Config, alloc: Allocator) !void {
+        conflog.debug("\n\nValidating policies from {s}\n", .{self.policy_dir});
         var policy_dir = try std.fs.cwd().openDir(
             self.policy_dir,
             .{
@@ -127,7 +127,7 @@ pub const Config = struct {
             if (entry.kind != .file) continue;
             if (!std.mem.endsWith(u8, entry.basename, ".md")) continue;
             if (std.mem.eql(u8, entry.basename, "_index.md")) continue;
-            std.debug.print("Validating Policy File: {s}\n", .{entry.path});
+            conflog.debug("Validating Policy File: {s}\n", .{entry.path});
             const file_path = try std.fs.path.join(alloc, &.{ self.policy_dir, entry.path });
             defer alloc.free(file_path);
 
@@ -141,7 +141,7 @@ pub const Config = struct {
             defer frontMatter.deinit();
 
             self.validateFrontMatter(frontMatter) catch |e| {
-                std.debug.print("Error processing {s}\n{}\n", .{ file_path, e });
+                conflog.err("Error processing {s}\n{}\n", .{ file_path, e });
                 return e;
             };
         }
@@ -149,6 +149,7 @@ pub const Config = struct {
 
     pub fn validateFrontMatter(_: Config, frontMatter: fm) !void {
         if (frontMatter.get("title") == null) return error.NoTitleInFrontMatter;
+        conflog.debug("Validating: {s}\n", .{frontMatter.get("title").?.string});
         if (frontMatter.get("description") == null) return error.NoTitleInFrontMatter;
         if (frontMatter.get("extra.last_reviewed") == null) return error.NoLastReviewInFrontMatter;
         const revs = frontMatter.get("extra.major_revisions") orelse return error.NoRevisionsInFrontMatter;
@@ -177,6 +178,7 @@ pub fn main() !void {
 
     const config = try Config.load_config_toml(allocator);
     defer config.deinit(allocator);
+    try config.validatePolicyFiles(allocator);
 
     // std.debug.print("{}\n", .{config});
     const output = try std.json.Stringify.valueAlloc(

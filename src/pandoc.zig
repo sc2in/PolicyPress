@@ -12,80 +12,15 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const tomlz = @import("tomlz");
-const Yaml = @import("yaml").Yaml;
+const FrontMatter = @import("frontmatter.zig");
+const tomlz = FrontMatter.tomlz;
+const Yaml = FrontMatter.Yaml;
 const ctime = @cImport(@cInclude("time.h"));
 const mvzr = @import("mvzr");
 const clap = @import("clap");
 const u = @import("utils.zig");
-const dt = @import("datetime");
 
-pub const Config = struct {
-    base_url: []const u8,
-    org: []const u8,
-    logo_path: []const u8,
-    color: []const u8,
-    policy_dir: []const u8,
-    current_year: u16 = 2025,
-    root: []const u8,
-    is_draft: bool = false,
-    redact: bool = false,
-    build_dir: []const u8,
-
-    pub fn format(self: Config, writer: *std.Io.Writer) !void {
-        inline for (std.meta.fields(Config)) |f| {
-            if (f.type != bool and f.type != u16) {
-                try writer.print("{s}: {s}\n", .{ f.name, @field(self, f.name) });
-            } else {
-                try writer.print("{s}: {}\n", .{ f.name, @field(self, f.name) });
-            }
-        }
-    }
-    pub fn load_config_toml(alloc: Allocator) !Config {
-        const file = try std.fs.cwd().openFile("config.toml", .{});
-        defer file.close();
-
-        const content = try file.readToEndAlloc(alloc, 1024 * 1024 * 1024);
-        defer alloc.free(content);
-
-        return try Config.load(alloc, content);
-    }
-
-    pub fn load(alloc: Allocator, content: []const u8) !Config {
-        var t = try tomlz.parse(alloc, content);
-        defer t.deinit(alloc);
-        const e = t.getTable("extra") orelse return error.NoExtraInConfig;
-        //BUG: This doesnt work in zig 0.14.1, but should in 0.14.0.
-        // const b = try tomlz.decode(BuildConfig, allocator, content);
-
-        // if (b.root.len == 0) return error.NoRootInConfig;
-        // if (b.base_url.len == 0) return error.NoBaseUrlInConfig;
-        // if (b.logo_path.len == 0) return error.NoLogoInExtra;
-        // if (b.color.len == 0) return error.NoPDFColorInExtra;
-        // if (b.org.len == 0) return error.NoOrganizationInExtra;
-        var config: Config = undefined;
-        const date = dt.datetime.Datetime.now().date;
-
-        config.root = try std.fs.cwd().realpathAlloc(alloc, ".");
-        config.current_year = date.year;
-
-        config.base_url = try alloc.dupe(u8, t.getString("base_url") orelse return error.NoBaseUrlInConfig);
-        config.policy_dir = try alloc.dupe(u8, e.getString("policy_dir") orelse return error.NoPolicyDirInExtra);
-        config.logo_path = try std.fs.path.join(alloc, &.{ config.root, "static", e.getString("logo") orelse return error.NoLogoInExtra });
-        config.color = try alloc.dupe(u8, e.getString("pdf_color") orelse return error.NoPDFColorInExtra);
-        config.org = try alloc.dupe(u8, e.getString("organization") orelse return error.NoOrganizationInExtra);
-        if (config.build_dir.len == 0)
-            config.build_dir = try alloc.dupe(u8, "zig-out/pdfs");
-        return config;
-    }
-    pub fn deinit(self: Config, alloc: Allocator) void {
-        inline for (std.meta.fields(Config)) |f| {
-            if (f.type != bool and f.type != u16) {
-                alloc.free(@field(self, f.name));
-            }
-        }
-    }
-};
+const Config = @import("config.zig").Config;
 
 // TODO: Add more robust error propegation from pandoc/mermaid-filter
 // TODO: Add threading support

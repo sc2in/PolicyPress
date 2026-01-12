@@ -7,6 +7,7 @@ const utils = @import("utils.zig");
 const cr = @import("control_report.zig");
 const fm = @import("frontmatter.zig");
 const pandoc = @import("pandoc.zig");
+const config = @import("config.zig").Config;
 
 // TODO
 // - [ ] The reports should generate correctly
@@ -23,6 +24,24 @@ test {
     _ = fm;
     _ = pandoc;
     tst.refAllDeclsRecursive(@This());
+}
+
+test "config loading and validation" {
+    const alloc = tst.allocator;
+    var conf = try config.load(alloc,
+        \\base_url = "http://localhost:1111"
+        \\[extra]
+        \\redact = true
+        \\policy_dir = "policies/"
+        \\policy_root = "policies/_index.md"
+        \\organization = "Star City Security Consulting"
+        \\logo = "logo.png"
+        \\pdf_color = "#0e90f3"
+    );
+    defer conf.deinit(alloc);
+    errdefer conf.deinit(alloc);
+
+    try conf.validatePolicyFiles(alloc);
 }
 
 test "policy processing" {
@@ -82,7 +101,7 @@ test "policy processing" {
 
     var tmp = tst.tmpDir(.{});
 
-    var global_config = try pandoc.Config.load_config_toml(tst.allocator);
+    var global_config = try config.load_config_toml(tst.allocator);
     defer global_config.deinit(tst.allocator);
 
     // Free and replace root

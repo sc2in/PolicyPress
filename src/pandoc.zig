@@ -201,7 +201,12 @@ pub fn process_md_file(
     var fm = try u.get_metadata(a, &contents, config);
     defer fm.deinit(a);
 
-    var build = try std.fs.cwd().openDir(config.build_dir, .{});
+    var build = std.fs.cwd().openDir(config.build_dir, .{
+        .access_sub_paths = true,
+    }) catch |e| {
+        panlog.err("Could not open directory for build: {s}\nError: {}\n", .{ config.build_dir, e });
+        return e;
+    };
     defer build.close();
 
     const tmp_file = std.fs.path.basename(md.path);

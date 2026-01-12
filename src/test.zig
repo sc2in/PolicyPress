@@ -112,8 +112,6 @@ test "policy processing" {
     global_config.is_draft = true;
     global_config.redact = true;
 
-    global_config.build_dir = try tmp.dir.realpathAlloc(tst.allocator, ".");
-
     try pandoc.create_global_args(tst.allocator, &args, global_config);
     defer pandoc.destroy_global_args(tst.allocator, &args);
     const md = utils.MDFile{ .path = "content/policies/test_policy.md" };

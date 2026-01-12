@@ -3,9 +3,9 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const Yaml = @import("yaml").Yaml;
-const JsonValue = std.json.Value;
-const tomlz = @import("tomlz");
+pub const Yaml = @import("yaml").Yaml;
+pub const JsonValue = std.json.Value;
+pub const tomlz = @import("tomlz");
 
 const FrontMatter = @This();
 

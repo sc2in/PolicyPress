@@ -12,80 +12,15 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const tomlz = @import("tomlz");
-const Yaml = @import("yaml").Yaml;
+const FrontMatter = @import("frontmatter.zig");
+const tomlz = FrontMatter.tomlz;
+const Yaml = FrontMatter.Yaml;
 const ctime = @cImport(@cInclude("time.h"));
 const mvzr = @import("mvzr");
 const clap = @import("clap");
 const u = @import("utils.zig");
-const dt = @import("datetime");
 
-pub const Config = struct {
-    base_url: []const u8,
-    org: []const u8,
-    logo_path: []const u8,
-    color: []const u8,
-    policy_dir: []const u8,
-    current_year: u16 = 2025,
-    root: []const u8,
-    is_draft: bool = false,
-    redact: bool = false,
-    build_dir: []const u8,
-
-    pub fn format(self: Config, writer: *std.Io.Writer) !void {
-        inline for (std.meta.fields(Config)) |f| {
-            if (f.type != bool and f.type != u16) {
-                try writer.print("{s}: {s}\n", .{ f.name, @field(self, f.name) });
-            } else {
-                try writer.print("{s}: {}\n", .{ f.name, @field(self, f.name) });
-            }
-        }
-    }
-    pub fn load_config_toml(alloc: Allocator) !Config {
-        const file = try std.fs.cwd().openFile("config.toml", .{});
-        defer file.close();
-
-        const content = try file.readToEndAlloc(alloc, 1024 * 1024 * 1024);
-        defer alloc.free(content);
-
-        return try Config.load(alloc, content);
-    }
-
-    pub fn load(alloc: Allocator, content: []const u8) !Config {
-        var t = try tomlz.parse(alloc, content);
-        defer t.deinit(alloc);
-        const e = t.getTable("extra") orelse return error.NoExtraInConfig;
-        //BUG: This doesnt work in zig 0.14.1, but should in 0.14.0.
-        // const b = try tomlz.decode(BuildConfig, allocator, content);
-
-        // if (b.root.len == 0) return error.NoRootInConfig;
-        // if (b.base_url.len == 0) return error.NoBaseUrlInConfig;
-        // if (b.logo_path.len == 0) return error.NoLogoInExtra;
-        // if (b.color.len == 0) return error.NoPDFColorInExtra;
-        // if (b.org.len == 0) return error.NoOrganizationInExtra;
-        var config: Config = undefined;
-        const date = dt.datetime.Datetime.now().date;
-
-        config.root = try std.fs.cwd().realpathAlloc(alloc, ".");
-        config.current_year = date.year;
-
-        config.base_url = try alloc.dupe(u8, t.getString("base_url") orelse return error.NoBaseUrlInConfig);
-        config.policy_dir = try alloc.dupe(u8, e.getString("policy_dir") orelse return error.NoPolicyDirInExtra);
-        config.logo_path = try std.fs.path.join(alloc, &.{ config.root, "static", e.getString("logo") orelse return error.NoLogoInExtra });
-        config.color = try alloc.dupe(u8, e.getString("pdf_color") orelse return error.NoPDFColorInExtra);
-        config.org = try alloc.dupe(u8, e.getString("organization") orelse return error.NoOrganizationInExtra);
-        if (config.build_dir.len == 0)
-            config.build_dir = try alloc.dupe(u8, "zig-out/pdfs");
-        return config;
-    }
-    pub fn deinit(self: Config, alloc: Allocator) void {
-        inline for (std.meta.fields(Config)) |f| {
-            if (f.type != bool and f.type != u16) {
-                alloc.free(@field(self, f.name));
-            }
-        }
-    }
-};
+const Config = @import("config.zig").Config;
 
 // TODO: Add more robust error propegation from pandoc/mermaid-filter
 // TODO: Add threading support
@@ -155,11 +90,9 @@ pub fn main() !void {
     if (res.args.draft != 0) {
         panlog.info("Draft mode enabled\n", .{});
         config.is_draft = true;
-        config.is_draft = true;
     }
-    if (res.args.redact != 0) {
+    if (res.args.redact != 0 or config.redact == true) {
         panlog.info("Redaction enabled\n", .{});
-        config.redact = true;
         config.redact = true;
     }
 
@@ -240,17 +173,16 @@ pub fn process_md_file(
     global_args: Array([]u8),
     config: Config,
 ) !void {
+    panlog.debug("Processing markdown file: {s}\n", .{md.path});
     var dir = try std.fs.cwd().openDir(config.root, .{});
     defer dir.close();
     var file = dir.openFile(md.path, .{ .mode = .read_only }) catch |e| {
         if (e == error.FileNotFound) {
-            std.debug.print("File: {s}/{s} not found\n", .{ config.root, md.path });
+            panlog.err("File: {s}/{s} not found\n", .{ config.root, md.path });
         }
         return e;
     };
     defer file.close();
-    var build = try std.fs.cwd().openDir(config.build_dir, .{});
-    defer build.close();
 
     const raw = try file.readToEndAlloc(a, 100_000_000);
     var contents = Array(u8){
@@ -268,6 +200,14 @@ pub fn process_md_file(
 
     var fm = try u.get_metadata(a, &contents, config);
     defer fm.deinit(a);
+
+    var build = std.fs.cwd().openDir(config.build_dir, .{
+        .access_sub_paths = true,
+    }) catch |e| {
+        panlog.err("Could not open directory for build: {s}\nError: {}\n", .{ config.build_dir, e });
+        return e;
+    };
+    defer build.close();
 
     const tmp_file = std.fs.path.basename(md.path);
     const tmp = build.createFile(tmp_file, std.fs.File.CreateFlags{ .exclusive = true }) catch |e| blk: {

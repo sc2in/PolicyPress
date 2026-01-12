@@ -50,96 +50,96 @@
       }
     },
     "github:NixOS/nixpkgs/nixpkgs-unstable": {
-      "last_modified": "2026-01-02T14:39:32Z",
-      "resolved": "github:NixOS/nixpkgs/16c7794d0a28b5a37904d55bcca36003b9109aaa?lastModified=1767364772"
+      "last_modified": "2026-01-12T00:44:08Z",
+      "resolved": "github:NixOS/nixpkgs/3fbab70c6e69c87ea2b6e48aa6629da2aa6a23b0?lastModified=1768178648"
     },
     "github:sc2in/eisvogel-tex#": {
       "last_modified": "2024-06-17T20:03:57Z",
       "resolved": "github:sc2in/eisvogel-tex/9384c4be4f7b0944baf6aa06b1c48edde3f285ac?lastModified=1718654637&narHash=sha256-38jKMgzaQ8oBZ8yvvVFb%2FtyUZAN1digOtDp1NuhBc4A%3D"
     },
     "imagemagick@latest": {
-      "last_modified": "2026-01-02T14:39:32Z",
-      "resolved": "github:NixOS/nixpkgs/16c7794d0a28b5a37904d55bcca36003b9109aaa#imagemagick",
+      "last_modified": "2025-06-22T15:15:55Z",
+      "resolved": "github:NixOS/nixpkgs/3078b9a9e75f1790e6d6ef9955fdc6a2d1740cc6#imagemagick",
       "source": "devbox-search",
-      "version": "7.1.2-11",
+      "version": "7.1.1-47",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/fq59i9l5chsnhxh1ahj22df3if39vg0x-imagemagick-7.1.2-11",
+              "path": "/nix/store/3w06dz5yczsy9l5iad6x15if2fsj4rwz-imagemagick-7.1.1-47",
               "default": true
             },
             {
               "name": "dev",
-              "path": "/nix/store/h62nffpg06sg3z8m1f8zylh18bf73rns-imagemagick-7.1.2-11-dev"
+              "path": "/nix/store/iv03zy153mgq00m3xpx4jcz6i6q2g923-imagemagick-7.1.1-47-dev"
             },
             {
               "name": "doc",
-              "path": "/nix/store/fpnfkb98b4914f5rhi3wb4nns37s9qlg-imagemagick-7.1.2-11-doc"
+              "path": "/nix/store/wnw20gk6hpss2sbcxzzj9cxn0ar11s4j-imagemagick-7.1.1-47-doc"
             }
           ],
-          "store_path": "/nix/store/fq59i9l5chsnhxh1ahj22df3if39vg0x-imagemagick-7.1.2-11"
+          "store_path": "/nix/store/3w06dz5yczsy9l5iad6x15if2fsj4rwz-imagemagick-7.1.1-47"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/jgxnhc6dd5s5vn0k0blf6csyi0vab8fd-imagemagick-7.1.2-11",
+              "path": "/nix/store/dasd572y8gbz48bi7dlq5wvw86i3l95z-imagemagick-7.1.1-47",
               "default": true
             },
             {
               "name": "dev",
-              "path": "/nix/store/c3mzw08f2sywj5pcqfyvp2vg3paf0acn-imagemagick-7.1.2-11-dev"
+              "path": "/nix/store/h8bbyl2m8m5sgqaa6rshjjb2c9j5kyfa-imagemagick-7.1.1-47-dev"
             },
             {
               "name": "doc",
-              "path": "/nix/store/p461inbsj7x41shq5nz2c6giqsxwj4aq-imagemagick-7.1.2-11-doc"
+              "path": "/nix/store/6wkhrmmdrm6fwwciblmkzn9v54b7fp5r-imagemagick-7.1.1-47-doc"
             }
           ],
-          "store_path": "/nix/store/jgxnhc6dd5s5vn0k0blf6csyi0vab8fd-imagemagick-7.1.2-11"
+          "store_path": "/nix/store/dasd572y8gbz48bi7dlq5wvw86i3l95z-imagemagick-7.1.1-47"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/v00m47mxdmx2fzvxjg9147qqcvmdnybj-imagemagick-7.1.2-11",
+              "path": "/nix/store/hydd07w5m5k3crqp9gyw6k4gv5ila0x4-imagemagick-7.1.1-47",
               "default": true
             },
             {
               "name": "dev",
-              "path": "/nix/store/r4a0ydcxifpifh1r9z6s4grc8pdwzgvr-imagemagick-7.1.2-11-dev"
+              "path": "/nix/store/7yqlrkfapcw2da81aywnia7x3k2y27i0-imagemagick-7.1.1-47-dev"
             },
             {
               "name": "doc",
-              "path": "/nix/store/mv4avnfgxsf517llf0f4h9ag74pchga0-imagemagick-7.1.2-11-doc"
+              "path": "/nix/store/dv1x6pzqa8bk2gmnaq00nk6klhjpzkcc-imagemagick-7.1.1-47-doc"
             }
           ],
-          "store_path": "/nix/store/v00m47mxdmx2fzvxjg9147qqcvmdnybj-imagemagick-7.1.2-11"
+          "store_path": "/nix/store/hydd07w5m5k3crqp9gyw6k4gv5ila0x4-imagemagick-7.1.1-47"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/dfj4g2rpz8yf1g6ybj7d37p4kmwsl772-imagemagick-7.1.2-11",
+              "path": "/nix/store/3rvn3p974bi9llyfr1sjrg02911l52b7-imagemagick-7.1.1-47",
               "default": true
             },
             {
-              "name": "doc",
-              "path": "/nix/store/y4ncgbx0fwj3fn0j8q71fb1dk5jplzd1-imagemagick-7.1.2-11-doc"
+              "name": "dev",
+              "path": "/nix/store/c1na7xdwr8yd7vr91sqpl6avi0fqz8rf-imagemagick-7.1.1-47-dev"
             },
             {
-              "name": "dev",
-              "path": "/nix/store/47y76bq8qcnpxizqgl0c0j15s7ciix5r-imagemagick-7.1.2-11-dev"
+              "name": "doc",
+              "path": "/nix/store/hwl4bx329n402h935qls985jyxwppsry-imagemagick-7.1.1-47-doc"
             }
           ],
-          "store_path": "/nix/store/dfj4g2rpz8yf1g6ybj7d37p4kmwsl772-imagemagick-7.1.2-11"
+          "store_path": "/nix/store/3rvn3p974bi9llyfr1sjrg02911l52b7-imagemagick-7.1.1-47"
         }
       }
     },
     "mermaid-filter@latest": {
-      "last_modified": "2025-12-31T03:27:36Z",
-      "resolved": "github:NixOS/nixpkgs/f665af0cdb70ed27e1bd8f9fdfecaf451260fc55#mermaid-filter",
+      "last_modified": "2025-06-20T02:24:11Z",
+      "resolved": "github:NixOS/nixpkgs/076e8c6678d8c54204abcb4b1b14c366835a58bb#mermaid-filter",
       "source": "devbox-search",
       "version": "1.4.7",
       "systems": {
@@ -147,75 +147,75 @@
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/ci50d6qm9paa7fxlxbij9d4rzh5jjs2y-mermaid-filter-1.4.7",
+              "path": "/nix/store/fc2xw50xcqkcygvfdz2cwvgnw02x3i1x-mermaid-filter-1.4.7",
               "default": true
             }
           ],
-          "store_path": "/nix/store/ci50d6qm9paa7fxlxbij9d4rzh5jjs2y-mermaid-filter-1.4.7"
+          "store_path": "/nix/store/fc2xw50xcqkcygvfdz2cwvgnw02x3i1x-mermaid-filter-1.4.7"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/8fclryvph6nzzsnkrwsjvhj8pc2ck1qv-mermaid-filter-1.4.7",
+              "path": "/nix/store/yn9vks9q97qcch1sygdq89r8fyjb523y-mermaid-filter-1.4.7",
               "default": true
             }
           ],
-          "store_path": "/nix/store/8fclryvph6nzzsnkrwsjvhj8pc2ck1qv-mermaid-filter-1.4.7"
+          "store_path": "/nix/store/yn9vks9q97qcch1sygdq89r8fyjb523y-mermaid-filter-1.4.7"
         }
       }
     },
     "pandoc@latest": {
-      "last_modified": "2025-12-31T03:27:36Z",
-      "resolved": "github:NixOS/nixpkgs/f665af0cdb70ed27e1bd8f9fdfecaf451260fc55#pandoc",
+      "last_modified": "2025-06-20T02:24:11Z",
+      "resolved": "github:NixOS/nixpkgs/076e8c6678d8c54204abcb4b1b14c366835a58bb#pandoc",
       "source": "devbox-search",
-      "version": "3.7.0.2",
+      "version": "3.6",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/pq3hcbr86l5hdi2b1dx60a7n46jzb25s-pandoc-cli-3.7.0.2",
+              "path": "/nix/store/22qd3hi8finw0hrx7815a3idkslhifwv-pandoc-cli-3.6",
               "default": true
             }
           ],
-          "store_path": "/nix/store/pq3hcbr86l5hdi2b1dx60a7n46jzb25s-pandoc-cli-3.7.0.2"
+          "store_path": "/nix/store/22qd3hi8finw0hrx7815a3idkslhifwv-pandoc-cli-3.6"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/cz73zr2ah6r4lv1brssxyi2g8fly51mx-pandoc-cli-3.7.0.2",
+              "path": "/nix/store/npsj8h6vbpfcryz3ii7fcc2x4hcd10by-pandoc-cli-3.6",
               "default": true
             }
           ],
-          "store_path": "/nix/store/cz73zr2ah6r4lv1brssxyi2g8fly51mx-pandoc-cli-3.7.0.2"
+          "store_path": "/nix/store/npsj8h6vbpfcryz3ii7fcc2x4hcd10by-pandoc-cli-3.6"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/gyg7x70p0cn4kkaqg2gjjg3dah40a16k-pandoc-cli-3.7.0.2",
+              "path": "/nix/store/c0llc9i4p16g4inlpjql7g9385mgnfr5-pandoc-cli-3.6",
               "default": true
             }
           ],
-          "store_path": "/nix/store/gyg7x70p0cn4kkaqg2gjjg3dah40a16k-pandoc-cli-3.7.0.2"
+          "store_path": "/nix/store/c0llc9i4p16g4inlpjql7g9385mgnfr5-pandoc-cli-3.6"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/xhggc7yr5462kdvf5gpgv5zgg3mdkir6-pandoc-cli-3.7.0.2",
+              "path": "/nix/store/asadxmbcddgx2dk5nlx9fpf3hg17w7wh-pandoc-cli-3.6",
               "default": true
             }
           ],
-          "store_path": "/nix/store/xhggc7yr5462kdvf5gpgv5zgg3mdkir6-pandoc-cli-3.7.0.2"
+          "store_path": "/nix/store/asadxmbcddgx2dk5nlx9fpf3hg17w7wh-pandoc-cli-3.6"
         }
       }
     },
     "watchexec@latest": {
-      "last_modified": "2025-12-31T03:27:36Z",
-      "resolved": "github:NixOS/nixpkgs/f665af0cdb70ed27e1bd8f9fdfecaf451260fc55#watchexec",
+      "last_modified": "2025-06-20T02:24:11Z",
+      "resolved": "github:NixOS/nixpkgs/076e8c6678d8c54204abcb4b1b14c366835a58bb#watchexec",
       "source": "devbox-search",
       "version": "2.3.2",
       "systems": {
@@ -223,41 +223,41 @@
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/0rv0p1cxv0l4ri4bl0k518503lfxyb9q-watchexec-2.3.2",
+              "path": "/nix/store/fxcxmjy50praw77dn7h2myhdps56a9nh-watchexec-2.3.2",
               "default": true
             }
           ],
-          "store_path": "/nix/store/0rv0p1cxv0l4ri4bl0k518503lfxyb9q-watchexec-2.3.2"
+          "store_path": "/nix/store/fxcxmjy50praw77dn7h2myhdps56a9nh-watchexec-2.3.2"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/971hvsgzw6h22w1wc7y84129zmpb52qh-watchexec-2.3.2",
+              "path": "/nix/store/lvyazq0pfgw6y7cih1ibq8mqhmmk5ldl-watchexec-2.3.2",
               "default": true
             }
           ],
-          "store_path": "/nix/store/971hvsgzw6h22w1wc7y84129zmpb52qh-watchexec-2.3.2"
+          "store_path": "/nix/store/lvyazq0pfgw6y7cih1ibq8mqhmmk5ldl-watchexec-2.3.2"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/ih3xy4vr46hk7zrgjwp039pckb0gw8kd-watchexec-2.3.2",
+              "path": "/nix/store/n6q9djl042r9pwxf805zn399cpv96yns-watchexec-2.3.2",
               "default": true
             }
           ],
-          "store_path": "/nix/store/ih3xy4vr46hk7zrgjwp039pckb0gw8kd-watchexec-2.3.2"
+          "store_path": "/nix/store/n6q9djl042r9pwxf805zn399cpv96yns-watchexec-2.3.2"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/l1768fcyikw9sx52xifp1zankvbfjprl-watchexec-2.3.2",
+              "path": "/nix/store/hh35j1vvsd9x3mrvbalyi504b7k827q3-watchexec-2.3.2",
               "default": true
             }
           ],
-          "store_path": "/nix/store/l1768fcyikw9sx52xifp1zankvbfjprl-watchexec-2.3.2"
+          "store_path": "/nix/store/hh35j1vvsd9x3mrvbalyi504b7k827q3-watchexec-2.3.2"
         }
       }
     },
@@ -360,50 +360,50 @@
       }
     },
     "zola@latest": {
-      "last_modified": "2025-12-31T03:27:36Z",
-      "resolved": "github:NixOS/nixpkgs/f665af0cdb70ed27e1bd8f9fdfecaf451260fc55#zola",
+      "last_modified": "2025-06-20T02:24:11Z",
+      "resolved": "github:NixOS/nixpkgs/076e8c6678d8c54204abcb4b1b14c366835a58bb#zola",
       "source": "devbox-search",
-      "version": "0.21.0",
+      "version": "0.20.0",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/bdrxq5y15fm8fmndg6gmlxk2clr1rgyy-zola-0.21.0",
+              "path": "/nix/store/gga1xz85s32nwwhzk5jccnby2jgl9nqv-zola-0.20.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/bdrxq5y15fm8fmndg6gmlxk2clr1rgyy-zola-0.21.0"
+          "store_path": "/nix/store/gga1xz85s32nwwhzk5jccnby2jgl9nqv-zola-0.20.0"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/jd6yyn19np6g0vxm03gadnv0inws7334-zola-0.21.0",
+              "path": "/nix/store/m80rccqgrxr19cb23la6drbm50716zq7-zola-0.20.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/jd6yyn19np6g0vxm03gadnv0inws7334-zola-0.21.0"
+          "store_path": "/nix/store/m80rccqgrxr19cb23la6drbm50716zq7-zola-0.20.0"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/sygcig20p1qxjz50jl7qq787ir2pd10r-zola-0.21.0",
+              "path": "/nix/store/9phj9bqdna8z74s2wmga3jbmx83yzfy5-zola-0.20.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/sygcig20p1qxjz50jl7qq787ir2pd10r-zola-0.21.0"
+          "store_path": "/nix/store/9phj9bqdna8z74s2wmga3jbmx83yzfy5-zola-0.20.0"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/c4d2s81hmn5lsjkmqv4bfv564bidxrls-zola-0.21.0",
+              "path": "/nix/store/jrj7h29mjy6zyz3zd3ifa4a1966q2ah4-zola-0.20.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/c4d2s81hmn5lsjkmqv4bfv564bidxrls-zola-0.21.0"
+          "store_path": "/nix/store/jrj7h29mjy6zyz3zd3ifa4a1966q2ah4-zola-0.20.0"
         }
       }
     }

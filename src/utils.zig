@@ -20,7 +20,7 @@ pub fn logFn(
     switch (scope) {
         .parser => {},
         else => switch (level) {
-            inline else => std.debug.print(format, args),
+            inline else => std.log.print(format, args),
         },
     }
 }

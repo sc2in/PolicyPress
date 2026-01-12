@@ -173,11 +173,12 @@ pub fn process_md_file(
     global_args: Array([]u8),
     config: Config,
 ) !void {
+    panlog.debug("Processing markdown file: {s}\n", .{md.path});
     var dir = try std.fs.cwd().openDir(config.root, .{});
     defer dir.close();
     var file = dir.openFile(md.path, .{ .mode = .read_only }) catch |e| {
         if (e == error.FileNotFound) {
-            std.debug.print("File: {s}/{s} not found\n", .{ config.root, md.path });
+            panlog.err("File: {s}/{s} not found\n", .{ config.root, md.path });
         }
         return e;
     };

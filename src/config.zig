@@ -35,7 +35,7 @@ pub const Config = struct {
 
     pub fn format(self: Config, writer: *std.Io.Writer) !void {
         inline for (std.meta.fields(Config)) |f| {
-            if (f.type != bool and f.type != u16) {
+            if (f.type == []const u8) {
                 try writer.print("{s}: {s}\n", .{ f.name, @field(self, f.name) });
             } else {
                 try writer.print("{s}: {}\n", .{ f.name, @field(self, f.name) });

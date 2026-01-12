@@ -90,6 +90,7 @@ pub const Config = struct {
         config.build_dir = "zig-out/pdfs";
         config.zola_config = t;
         config.redact = e.getBool("redact") orelse return error.NoRedactInZolaExtra;
+        try config.validatePolicyFiles(alloc);
         return config;
     }
     pub fn deinit(self: *Config, alloc: Allocator) void {

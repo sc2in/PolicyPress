@@ -134,8 +134,8 @@ pub const Config = struct {
             const file = try std.fs.openFileAbsolute(file_path, .{ .mode = .read_only });
             defer file.close();
 
-            const content = try file.readToEndAlloc(std.heap.page_allocator, 10 * 1024 * 1024);
-            defer std.heap.page_allocator.free(content);
+            const content = try file.readToEndAlloc(alloc, 10 * 1024 * 1024);
+            defer alloc.free(content);
 
             var frontMatter = try fm.initFromMarkdown(alloc, content);
             defer frontMatter.deinit();

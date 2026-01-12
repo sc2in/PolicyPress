@@ -7,6 +7,7 @@ const utils = @import("utils.zig");
 const cr = @import("control_report.zig");
 const fm = @import("frontmatter.zig");
 const pandoc = @import("pandoc.zig");
+const config = @import("config.zig").Config;
 
 // TODO
 // - [ ] The reports should generate correctly
@@ -17,6 +18,17 @@ const pandoc = @import("pandoc.zig");
 //      this requires the same logic that is holding up #45
 // - [x] All frontmatter options should be validated.
 
+const TestConfig =
+    \\base_url = "http://localhost:1111"
+    \\[extra]
+    \\redact = true
+    \\policy_dir = "src/test"
+    \\policy_root = "policies/_index.md"
+    \\organization = "Star City Security Consulting"
+    \\logo = "logo.png"
+    \\pdf_color = "#0e90f3"
+;
+
 test {
     _ = utils;
     _ = cr;
@@ -25,8 +37,26 @@ test {
     tst.refAllDeclsRecursive(@This());
 }
 
+test "config loading and validation" {
+    const alloc = tst.allocator;
+    var env = try std.process.getEnvMap(alloc);
+    defer env.deinit();
+    var conf = try config.load(alloc, TestConfig);
+    defer conf.deinit(alloc);
+    alloc.free(conf.content_dir);
+    conf.content_dir = try std.fs.path.join(alloc, &.{
+        conf.root,
+        "src",
+        "test",
+    });
+    alloc.free(conf.policy_dir);
+    conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
+
+    try conf.validatePolicyFiles(alloc);
+}
+
 test "policy processing" {
-    const test_policy_file = try std.fs.cwd().openFile("content/policies/test_policy.md", .{});
+    const test_policy_file = try std.fs.cwd().openFile("src/test/test_policy.md", .{});
     defer test_policy_file.close();
     const test_policy = try test_policy_file.readToEndAlloc(tst.allocator, std.math.maxInt(usize));
     defer tst.allocator.free(test_policy);
@@ -75,31 +105,40 @@ test "policy processing" {
     try tst.expect(std.mem.indexOf(u8, t1.items, &[_]u8{'_'} ** 10) != null);
     try tst.expectEqual(3, std.mem.count(u8, t1.items, "https://test.lol/"));
     try tst.expectEqual(0, std.mem.count(u8, t1.items, "{% end %}"));
-
+}
+test "pdf rendering" {
     var args = Array([]u8){};
     var env = try std.process.getEnvMap(tst.allocator);
     defer env.deinit();
 
     var tmp = tst.tmpDir(.{});
 
-    var global_config = try pandoc.Config.load_config_toml(tst.allocator);
-    defer global_config.deinit(tst.allocator);
+    const alloc = tst.allocator;
+    var conf = try config.load(alloc, TestConfig);
+    defer conf.deinit(alloc);
 
     // Free and replace root
-    tst.allocator.free(global_config.root);
-    global_config.root = try tst.allocator.dupe(u8, env.get("DEVBOX_PROJECT_ROOT") orelse
-        return error.NotRunningInDevboxEnv);
+    alloc.free(conf.content_dir);
+    conf.content_dir = try std.fs.path.join(alloc, &.{
+        conf.root,
+        "src",
+        "test",
+    });
+    alloc.free(conf.policy_dir);
+    conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
+    conf.build_dir = try tmp.dir.realpathAlloc(alloc, ".");
+    defer alloc.free(conf.build_dir);
 
-    global_config.is_draft = true;
-    global_config.redact = true;
+    // try conf.validatePolicyFiles(alloc);
 
-    global_config.build_dir = try tmp.dir.realpathAlloc(tst.allocator, ".");
+    // global_config.is_draft = true;
+    // global_config.redact = true;
 
-    try pandoc.create_global_args(tst.allocator, &args, global_config);
+    try pandoc.create_global_args(tst.allocator, &args, conf);
     defer pandoc.destroy_global_args(tst.allocator, &args);
-    const md = utils.MDFile{ .path = "content/policies/test_policy.md" };
-    pandoc.process_md_file(tst.allocator, md, args, global_config) catch |e| {
-        std.debug.print("Test Policy Pandoc Call Failed! \nConfig:{any}\n", .{global_config});
+    const md = utils.MDFile{ .path = "src/test/test_policy.md" };
+    pandoc.process_md_file(tst.allocator, md, args, conf) catch |e| {
+        std.debug.print("Test Policy Pandoc Call Failed! \nConfig:{f}\n", .{conf});
         return e;
     };
 

@@ -126,6 +126,8 @@ test "pdf rendering" {
     });
     alloc.free(conf.policy_dir);
     conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
+    conf.build_dir = try tmp.dir.realpathAlloc(alloc, ".");
+    defer alloc.free(conf.build_dir);
 
     // try conf.validatePolicyFiles(alloc);
 

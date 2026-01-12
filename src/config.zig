@@ -150,7 +150,7 @@ pub const Config = struct {
     pub fn validateFrontMatter(_: Config, frontMatter: fm) !void {
         if (frontMatter.get("title") == null) return error.NoTitleInFrontMatter;
         conflog.debug("Validating: {s}\n", .{frontMatter.get("title").?.string});
-        if (frontMatter.get("description") == null) return error.NoTitleInFrontMatter;
+        if (frontMatter.get("description") == null) return error.NoDescriptionInFrontMatter;
         if (frontMatter.get("extra.last_reviewed") == null) return error.NoLastReviewInFrontMatter;
         const revs = frontMatter.get("extra.major_revisions") orelse return error.NoRevisionsInFrontMatter;
         if (revs.array.items.len == 0) return error.NoRevisionsInFrontMatter;

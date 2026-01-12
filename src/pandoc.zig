@@ -90,11 +90,9 @@ pub fn main() !void {
     if (res.args.draft != 0) {
         panlog.info("Draft mode enabled\n", .{});
         config.is_draft = true;
-        config.is_draft = true;
     }
-    if (res.args.redact != 0) {
+    if (res.args.redact != 0 or config.redact == true) {
         panlog.info("Redaction enabled\n", .{});
-        config.redact = true;
         config.redact = true;
     }
 
@@ -184,8 +182,6 @@ pub fn process_md_file(
         return e;
     };
     defer file.close();
-    var build = try std.fs.cwd().openDir(config.build_dir, .{});
-    defer build.close();
 
     const raw = try file.readToEndAlloc(a, 100_000_000);
     var contents = Array(u8){
@@ -203,6 +199,9 @@ pub fn process_md_file(
 
     var fm = try u.get_metadata(a, &contents, config);
     defer fm.deinit(a);
+
+    var build = try std.fs.cwd().openDir(config.build_dir, .{});
+    defer build.close();
 
     const tmp_file = std.fs.path.basename(md.path);
     const tmp = build.createFile(tmp_file, std.fs.File.CreateFlags{ .exclusive = true }) catch |e| blk: {

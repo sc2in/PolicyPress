@@ -24,7 +24,7 @@ pub const Config = struct {
     color: []const u8,
     policy_dir: []const u8,
     content_dir: []const u8,
-    current_year: u16 = 2025,
+    current_year: u16,
     root: []const u8,
     is_draft: bool = false,
     redact: bool = false,

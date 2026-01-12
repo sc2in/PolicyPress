@@ -55,7 +55,7 @@
         "zola check"
       ],
       "dev": [
-        "watchexec -c -- zig build preview"
+        "zig build --watch --prominent-compile-errors -freference-trace=12 test"
       ],
       "serve": [
         "zola serve"

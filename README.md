@@ -35,9 +35,7 @@ Compliance tools are expensive ($15K–50K/year), slow, and lock you into their 
 ## Quick Start
 
 ### Prerequisites
-- **Zig 0.15.1+** ([Install](https://ziglang.org/download/))
-- **Pandoc** (for PDF generation)
-- **Nix** (optional, for reproducible builds)
+- **Devbox** ([Install](https://www.jetify.com/docs/devbox/installing-devbox))
 
 ### Installation
 
@@ -45,44 +43,21 @@ Compliance tools are expensive ($15K–50K/year), slow, and lock you into their 
 ```bash
 git clone https://github.com/sc2in/PolicyPress
 cd PolicyPress
-zig build -Doptimize=ReleaseFast
-./zig-cache/bin/policypress --help
+devbox run ci
 ```
 
-**Option 2: With Nix (reproducible)**
-```bash
-nix flake run github:sc2in/PolicyPress
-```
 
 ### Create Your First Policy
 
-**1. Create a config file** (`policypress.toml`):
+**1. Create a [Zola config](https://www.getzola.org/documentation/getting-started/configuration/) file** (`config.toml`):
 ```toml
-[project]
-name = "Acme Corp"
-organization = "Acme Corp Security"
-version = "1.0"
-
-[frameworks]
-iso27001 = true
-soc2 = true
-scf = true
-
-[output]
-pdf_dir = "./pdfs"
-web_dir = "./site"
-logo = "./assets/logo.png"
+# TODO
 ```
 
 **2. Write a policy** (`policies/access-control.md`):
 ```markdown
 ---
-title: Access Control Policy
-framework: [iso27001, soc2]
-iso27001_control: A.9.1
-soc2_control: CC6.1
-version: 1.0
-last_reviewed: 2026-01-15
+# TODO
 ---
 
 # Access Control Policy
@@ -105,9 +80,11 @@ All systems require multi-factor authentication (MFA).
 
 **3. Generate outputs:**
 ```bash
-policypress build          # Generates PDFs + HTML site
-policypress serve          # Local web server on :8080
-policypress validate       # Check framework coverage
+devbox run ci          # Generates PDFs + HTML site and reports
+devbox run build-pdfs          # Generates PDFs 
+devbox run build-site          # Generates HTML site
+devbox run serve          # Local web server on :8080
+devbox run test       # Run all tests, including checking framework coverage
 ```
 
 ---
@@ -116,16 +93,16 @@ policypress validate       # Check framework coverage
 
 ### Compared to Enterprise Tools
 
-| Feature | PolicyPress | Vanta | Drata | Secureframe |
-|---------|-------------|-------|-------|-------------|
-| **Cost** | Free | $20K–50K/yr | $10K–40K/yr | $15K–25K/yr |
-| **Self-hosted** | ✅ Yes | ❌ No | ❌ No | ❌ No |
-| **Open-source** | ✅ Yes (AGPL) | ❌ No | ❌ No | ❌ No |
-| **Policy versioning** | ✅ Git-native | ❌ Limited | ❌ Limited | ❌ Limited |
-| **Markdown policies** | ✅ Yes | ❌ UI-only | ❌ UI-only | ❌ UI-only |
-| **PDF export** | ✅ Professional | ❌ Basic | ✅ Yes | ✅ Yes |
-| **Evidence automation** | 🔄 In development | ✅ Yes | ✅ Yes | ✅ Yes |
-| **Custom frameworks** | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| Feature                 | PolicyPress      | Vanta       | Drata       | Secureframe |
+| ----------------------- | ---------------- | ----------- | ----------- | ----------- |
+| **Cost**                | Free             | $20K–50K/yr | $10K–40K/yr | $15K–25K/yr |
+| **Self-hosted**         | ✅ Yes            | ❌ No        | ❌ No        | ❌ No        |
+| **Open-source**         | ✅ Yes (AGPL)     | ❌ No        | ❌ No        | ❌ No        |
+| **Policy versioning**   | ✅ Git-native     | ❌ Limited   | ❌ Limited   | ❌ Limited   |
+| **Markdown policies**   | ✅ Yes            | ❌ UI-only   | ❌ UI-only   | ❌ UI-only   |
+| **PDF export**          | ✅ Professional   | ❌ Basic     | ✅ Yes       | ✅ Yes       |
+| **Evidence automation** | 🔄 In development | ✅ Yes       | ✅ Yes       | ✅ Yes       |
+| **Custom frameworks**   | ✅ Yes            | ❌ No        | ❌ No        | ❌ No        |
 
 ### Why Zig?
 
@@ -144,17 +121,17 @@ policypress validate       # Check framework coverage
 - ✅ **Multi-framework Support:** ISO 27001, SOC 2, SCF (extensible)
 - ✅ **Version Control:** Full git history of changes
 - ✅ **Configuration Management:** TOML-based, validated at build time
-- ✅ **Static Site Generation:** Professional compliance portal
 - ✅ **PDF Rendering:** High-quality PDFs with Pandoc + Eisvogel template
-- ✅ **CLI Tooling:** Full command-line interface
+- ✅ **Webhook Support:** Trigger builds on policy changes
 
 ### In Development
 
+- 🔄 **CLI Tooling:** Full command-line interface
+- 🔄 **Static Site Generation:** Professional compliance portal
 - 🔄 **Automated Evidence Collection:** API integrations (GitHub, AWS, GCP)
 - 🔄 **Control Mapping Dashboard:** Visual ISO 27001/SOC 2 coverage
 - 🔄 **Audit Reports:** Automated compliance reports with timestamps
 - 🔄 **Template Library:** Pre-built policies for common frameworks
-- 🔄 **Webhook Support:** Trigger builds on policy changes
 
 ### Planned
 
@@ -190,27 +167,21 @@ Pandoc Processing
 - **PDF Generation:** Pandoc + Eisvogel LaTeX template
 - **Web UI:** Zola static site generator + vanilla JS
 - **Templating:** Tera (Jinja2-compatible)
-- **Configuration:** TOML parsing (custom parser in Zig)
+- **Configuration:** Zola configuration extension
 - **Styling:** SCSS compiled to CSS
-- **CI/CD:** GitHub Actions (Nix flakes + Zig)
+- **CI/CD:** GitHub Actions (Devbox(nix) + Zig)
 
 ---
 
 ## Roadmap
 
-### Q1 2026
 - [ ] Automated AWS/GitHub evidence collection
 - [ ] Control mapping dashboard
 - [ ] Pre-built template library (HIPAA, PCI-DSS, FedRAMP)
-- [ ] API for programmatic access
-
-### Q2 2026
 - [ ] Multi-tenant hosting
 - [ ] Audit report generation (with timestamps)
 - [ ] Policy review workflow
 - [ ] Integrations: Slack, Jira, Linear
-
-### Q3 2026
 - [ ] Managed hosting (PolicyPress Cloud)
 - [ ] White-label version for consultancies
 - [ ] Advanced analytics (control effectiveness, audit trends)
@@ -221,34 +192,7 @@ Pandoc Processing
 
 ### Real-World Use Cases
 
-**Startup getting SOC 2 certified:**
-```bash
-git clone PolicyPress
-cd my-policies
-policypress build --framework soc2
-# 60+ policies auto-generated in 2 minutes
-# PDF reports ready for auditors
-git commit -am "SOC 2 policies v1.0"
-```
-
-**Organization updating policies:**
-```bash
-# Edit policies in markdown
-git diff policies/           # See what changed
-policypress validate         # Check coverage
-policypress build            # Rebuild PDFs
-git commit -am "Updated access control policy"
-# Full audit trail in git history
-```
-
-**Compliance team managing multiple frameworks:**
-```bash
-policypress build --framework iso27001,soc2,scf
-# Generates separate policy sets for each framework
-# Control mapping shows overlaps and gaps
-```
-
----
+TODO
 
 ## Community & Support
 
@@ -266,15 +210,16 @@ We welcome:
 git clone https://github.com/sc2in/PolicyPress
 cd PolicyPress
 devbox shell    # Reproducible dev environment
+zig build docs  # Build documentation pages
 zig build test  # Run tests
-zig build       # Build release binary
+zig build       # Build release binary, site, and pdfs
 ```
 
 ### Community
 
 - **Discussions:** [GitHub Discussions](https://github.com/sc2in/PolicyPress/discussions)
 - **Chat:** [Discord](https://discord.gg/policypress) (coming soon)
-- **Twitter:** [@PolicyPress_io](https://twitter.com/policypress_io)
+
 
 ---
 
@@ -384,9 +329,8 @@ PolicyPress stands on the shoulders of giants:
 
 ## Contact
 
-- **Email:** team@policypress.io (coming soon)
+- **Email:** <inquiries@sc2.in>
 - **GitHub:** [@sc2in](https://github.com/sc2in)
-- **Twitter:** [@PolicyPress_io](https://twitter.com/policypress_io)
 - **Issues:** [GitHub Issues](https://github.com/sc2in/PolicyPress/issues)
 
 ---

@@ -28,11 +28,11 @@
       ],
       "build-pdfs-draft": [
         "devbox run check-links",
-        "zig build -Doptimize=ReleaseSafe pdfs -- -d"
+        "zig build -Doptimize=ReleaseSafe -Ddraft=true pdfs"
       ],
       "build-pdfs-draft-redact": [
         "devbox run check-links",
-        "zig build -Doptimize=ReleaseSafe pdfs -- -d -r"
+        "zig build -Doptimize=ReleaseSafe -Ddraft=true -Dredact=true pdfs"
       ],
 
       "build-site": [

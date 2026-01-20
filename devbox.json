@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.10.7/.schema/devbox.schema.json",
   "packages": {
     "pandoc": "latest",
-    "github:sc2in/eisvogel-tex#": "",
+    "github:sc2in/eisvogel-tex/v3.0#": "",
     "zola": "0.20.0",
     "imagemagick": "latest",
     "mermaid-filter": {
@@ -12,9 +12,9 @@
       ]
     },
     "watchexec": "latest",
-    "zig": "0.15.2",
-    "zls": "0.15.0",
-    "act": "latest"
+    "zig":       "0.15.2",
+    "zls":       "0.15.0",
+    "act":       "latest"
   },
   "shell": {
     "init_hook": [
@@ -34,7 +34,7 @@
         "devbox run check-links",
         "zig build -Doptimize=ReleaseSafe pdfs -- -d -r"
       ],
-      
+
       "build-site": [
         "devbox run check-links",
         "zola build"

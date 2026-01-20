@@ -70,7 +70,6 @@
         "zig build preview -- -d zig-out/docs"
       ],
       "ci": [
-        "echo $SHELL",
         "devbox run clean",
         "devbox run test",
         "if [ -n \"$PUBLISH\" ] && [ \"$PUBLISH\" = \"true\" ]; then devbox run build-site && devbox run build-pdfs; else devbox run build-site && devbox run build-pdfs-draft; fi"

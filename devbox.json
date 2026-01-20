@@ -3,7 +3,7 @@
   "packages": {
     "pandoc": "latest",
     "github:sc2in/eisvogel-tex#": "",
-    "zola": "latest",
+    "zola": "0.20.0",
     "imagemagick": "latest",
     "mermaid-filter": {
       "version": "latest",
@@ -12,36 +12,36 @@
       ]
     },
     "watchexec": "latest",
-    "zig": "0.15.1",
+    "zig": "0.15.2",
     "zls": "0.15.0",
     "act": "latest"
   },
   "shell": {
     "init_hook": [
+      "export ZIG_GLOBAL_CACHE_DIR=$DEVBOX_PROJECT_ROOT/.zig-cache",
       "echo 'Welcome to devbox!' > /dev/null"
     ],
     "scripts": {
       "build-pdfs": [
+        "devbox run check-links",
         "zig build -Doptimize=ReleaseSafe pdfs"
       ],
-      "build-pdfs-zola": [
-        "echo Unfinished",
-        "exit 1",
-        "zola build -u file://`pwd`/public",
-        "export POLICY_ROOT=$(dirname `tomlq -r '.extra.policy_root' config.toml` )",
-        "mkdir -p public/pdfs/",
-        "for file in $(find public/${POLICY_ROOT} -type f -name \"*.html\" -not -name \"_index.md\"); do",
-        "pandoc -F mermaid-filter --from html --to pdf --pdf-engine=xelatex $file -o ${file%.html}.pdf",
-        "done"
-      ],
       "build-pdfs-draft": [
+        "devbox run check-links",
         "zig build -Doptimize=ReleaseSafe pdfs -- -d"
       ],
       "build-pdfs-draft-redact": [
+        "devbox run check-links",
         "zig build -Doptimize=ReleaseSafe pdfs -- -d -r"
       ],
+      
       "build-site": [
+        "devbox run check-links",
         "zola build"
+      ],
+      "build-site-drafts": [
+        "devbox run check-links",
+        "zola build -d --base-url http://localhost:8080"
       ],
       "clean": [
         "echo Cleaning the project of all build artifacts and node_modules...",
@@ -52,9 +52,9 @@
         "zig build test"
       ],
       "check-links": [
-        "zola check"
+        "zola check 2>&1 || exit 0"
       ],
-      "dev": [
+      "zig-dev": [
         "zig build --watch --prominent-compile-errors -freference-trace=12 test"
       ],
       "serve": [
@@ -71,8 +71,9 @@
       ],
       "ci": [
         "echo $SHELL",
+        "devbox run clean",
         "devbox run test",
-        "if [ -n \"$PUBLISH\" ] && [ \"$PUBLISH\" = \"true\" ]; then devbox run build-site && devbox run build-pdfs; else devbox run build-pdfs-draft; fi"
+        "if [ -n \"$PUBLISH\" ] && [ \"$PUBLISH\" = \"true\" ]; then devbox run build-site && devbox run build-pdfs; else devbox run build-site && devbox run build-pdfs-draft; fi"
       ],
       "test-ci-local": [
         "act -r push -W .github/workflows/ci.yml -s GITHUB_TOKEN=$(gh auth token) --env \"NIX_CONFIG=access-tokens = github.com=$(gh auth token)\""

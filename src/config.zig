@@ -11,7 +11,8 @@ const u = @import("utils.zig");
 pub const std_options: std.Options = .{
     .log_level = .debug,
     .log_scope_levels = &[_]std.log.ScopeLevel{
-        .{ .scope = .config, .level = .default_level },
+        .{ .scope = .config, .level = std.log.default_level },
+        .{ .scope = .yaml, .level = .err },
     },
     .logFn = u.logFn,
 };
@@ -31,16 +32,29 @@ pub const Config = struct {
     build_dir: []const u8,
     date: dt.datetime.Date,
 
-    zola_config: toml.Table,
+    zola_config: ?toml.Table,
 
     pub fn format(self: Config, writer: *std.Io.Writer) !void {
-        inline for (std.meta.fields(Config)) |f| {
-            if (f.type == []const u8) {
-                try writer.print("{s}: {s}\n", .{ f.name, @field(self, f.name) });
-            } else {
-                try writer.print("{s}: {}\n", .{ f.name, @field(self, f.name) });
-            }
-        }
+        var buf: [4096]u8 = undefined;
+        var gpa = std.heap.FixedBufferAllocator.init(&buf);
+        const alloc = gpa.allocator();
+        var stringy = self.toValue(alloc) catch |e| {
+            conflog.err("Formatting Error: {}\n", .{e});
+            return error.WriteFailed;
+        };
+        defer stringy.object.deinit();
+
+        // std.debug.print("{}\n", .{config});
+        const output = std.json.Stringify.valueAlloc(
+            alloc,
+            stringy,
+            .{ .whitespace = .indent_1 },
+        ) catch |e| {
+            conflog.err("Stringify Error: {}\n", .{e});
+            return error.WriteFailed;
+        };
+        defer alloc.free(output);
+        try writer.print("{s}", .{output});
     }
     pub fn load_config_toml(alloc: Allocator) !Config {
         conflog.info("Loading config.toml", .{});
@@ -51,6 +65,24 @@ pub const Config = struct {
         defer alloc.free(content);
 
         return try Config.load(alloc, content);
+    }
+    pub fn toValue(self: Config, alloc: Allocator) !std.json.Value {
+        var obj = std.json.ObjectMap.init(alloc);
+        try obj.put("base_url", .{ .string = self.base_url });
+        try obj.put("organization", .{ .string = self.org });
+        try obj.put("logo_path", .{ .string = self.logo_path });
+        try obj.put("pdf_color", .{ .string = self.color });
+        try obj.put("policy_dir", .{ .string = self.policy_dir });
+        try obj.put("content_dir", .{ .string = self.content_dir });
+        try obj.put("current_year", .{ .integer = @intCast(self.current_year) });
+        try obj.put("root", .{ .string = self.root });
+        try obj.put("is_draft", .{ .bool = self.is_draft });
+        try obj.put("redact", .{ .bool = self.redact });
+        try obj.put("build_dir", .{ .string = self.build_dir });
+
+        errdefer obj.deinit();
+
+        return .{ .object = obj };
     }
 
     pub fn load(alloc: Allocator, content: []const u8) !Config {
@@ -93,7 +125,7 @@ pub const Config = struct {
         return config;
     }
     pub fn deinit(self: *Config, alloc: Allocator) void {
-        self.zola_config.deinit(alloc);
+        if (self.zola_config) |*c| c.deinit(alloc);
         alloc.free(self.root);
         alloc.free(self.logo_path);
         alloc.free(self.policy_dir);
@@ -176,18 +208,10 @@ pub fn main() !void {
     var output_writer: std.fs.File.Writer = std.fs.File.stdout().writer(&buffer);
     const stdout: *std.Io.Writer = &output_writer.interface;
 
-    const config = try Config.load_config_toml(allocator);
+    var config = try Config.load_config_toml(allocator);
     defer config.deinit(allocator);
     try config.validatePolicyFiles(allocator);
 
-    // std.debug.print("{}\n", .{config});
-    const output = try std.json.Stringify.valueAlloc(
-        allocator,
-        config,
-        .{ .whitespace = .indent_1 },
-    );
-    defer allocator.free(output);
-
-    try stdout.print("{s}\n", .{output});
+    try stdout.print("{f}\n", .{config});
     try stdout.flush();
 }

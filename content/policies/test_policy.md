@@ -47,11 +47,10 @@ C --> D
 
 ## Zola link replacement
 
-[policy](@/policies/aeip.md)
+[policy](@/policies/example-security-policy.md)
 
 [section](@/policies/_index.md)
 
-[directory](@/policies/incident/digital-forensics/index.md)
 
 ## Redaction
 

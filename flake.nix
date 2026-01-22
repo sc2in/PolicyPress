@@ -81,7 +81,7 @@
 
           src = ./.;
 
-          nativeBuildInputs = [zig];
+          nativeBuildInputs = [zig] ++ runtimeDeps;
           buildInputs = runtimeDeps;
 
           dontConfigure = true;
@@ -100,7 +100,16 @@
               -Doptimize=ReleaseSafe \
               --color off \
               --cache-dir $TMPDIR/.cache \
-              --global-cache-dir $ZIG_GLOBAL_CACHE_DIR 2>&1 | grep -v "falling back to default ABI"
+              --global-cache-dir $ZIG_GLOBAL_CACHE_DIR
+
+            # Verify outputs were created
+            echo "Build outputs:"
+            ls -la $out/ || echo "Output directory missing!"
+          '';
+
+          fixupPhase = ''
+            # Ensure output directory is not read-only for fixup
+            chmod -R u+w "$out" 2>/dev/null || true
           '';
         };
 

@@ -98,6 +98,7 @@
             zig build \
               --prefix $out \
               -Doptimize=ReleaseSafe \
+              -Dtarget=native \
               --color off \
               --cache-dir $TMPDIR/.cache \
               --global-cache-dir $ZIG_GLOBAL_CACHE_DIR
@@ -143,7 +144,7 @@
             echo "  Redact: $REDACT_MODE"
             echo "  Output: $PREFIX"
 
-            zig build "''${BUILD_ARGS[@]}"
+            zig build -Dtarget=native "''${BUILD_ARGS[@]}"
 
             echo "Build complete. Outputs:"
             echo "  PDFs: $PREFIX/pdfs"

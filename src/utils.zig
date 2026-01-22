@@ -361,7 +361,7 @@ pub const DummyProgress = struct {
 test {
     const alloc = tst.allocator;
     var f = try std.fs.cwd().openFile(
-        "content/policies/aeip.md",
+        "content/policies/example-security-policy.md",
         .{ .mode = .read_only },
     );
     defer f.close();

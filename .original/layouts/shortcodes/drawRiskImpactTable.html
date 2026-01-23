@@ -1,3 +1,0 @@
-{{ $dataName := .Get "data" }}
-{{ $data := index .Site.Data.riskAssessment.impact $dataName }} 
-{{ partial "impact-table.html" $data }} 

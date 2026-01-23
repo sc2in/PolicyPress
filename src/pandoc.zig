@@ -27,10 +27,11 @@ const Config = @import("config.zig").Config;
 // TODO?: Link against pandoc directly at somepoint
 
 pub const std_options: std.Options = .{
-    .log_level = .info,
+    .log_level = .warn,
     .log_scope_levels = &[_]std.log.ScopeLevel{
-        .{ .scope = .parser, .level = .debug },
-        .{ .scope = .pandoc, .level = std.log.default_level },
+        .{ .scope = .parser, .level = .warn },
+        .{ .scope = .pandoc, .level = .warn },
+        .{ .scope = .yaml, .level = .err },
     },
     .logFn = u.logFn,
 };

@@ -22,31 +22,32 @@ pub fn build(b: *std.Build) !void {
 
     const yaml = b.dependency("yaml", .{
         .target = target,
-        .optimize = optimize,
+        .optimize = .ReleaseSafe,
     });
     const mvzr = b.dependency("mvzr", .{
         .target = target,
-        .optimize = optimize,
+        .optimize = .ReleaseSafe,
     });
     const clap = b.dependency("clap", .{
         .target = target,
-        .optimize = optimize,
+        .optimize = .ReleaseSafe,
+    });
+    const pg = b.dependency("datetime", .{
+        .target = target,
+        .optimize = .ReleaseSafe,
     });
     const tera_mod = b.addModule("tera", .{
         .target = target,
         .optimize = optimize,
         .root_source_file = b.path("src/tera/tera.zig"),
     });
-    const pg = b.dependency("datetime", .{
-        .target = target,
-        .optimize = optimize,
-    });
     {
         const config_mod = b.addModule("config_parser", .{
             .root_source_file = b.path("src/config.zig"),
             .target = target,
-            .optimize = .Debug,
+            .optimize = optimize,
         });
+        config_mod.addImport("yaml", yaml.module("yaml"));
         config_mod.addImport("tomlz", tomlz.module("tomlz"));
         config_mod.addImport("datetime", pg.module("datetime"));
         // Build the config parser tool

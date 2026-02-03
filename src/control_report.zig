@@ -151,7 +151,7 @@ const Control = struct {
     found: bool = false,
 };
 
-pub const Report = enum(u8) {
+pub const Report = enum {
     SOC2,
     ISO,
     SCF,
@@ -170,7 +170,7 @@ pub fn main() !void {
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
-        \\--report Report        Report type to run
+        \\--report <REPORT>      Report type to run
     );
 
     var buffer: [128]u8 = undefined;
@@ -182,10 +182,17 @@ pub fn main() !void {
     const stderr: *std.Io.Writer = &err_writer.interface;
 
     var diag = clap.Diagnostic{};
-    var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
-        .diagnostic = &diag,
-        .allocator = alloc,
-    }) catch |err| {
+    var res = clap.parse(
+        clap.Help,
+        &params,
+        .{
+            .REPORT = clap.parsers.enumeration(Report),
+        },
+        .{
+            .diagnostic = &diag,
+            .allocator = alloc,
+        },
+    ) catch |err| {
         // Report useful error and exit.
         diag.report(stderr, err) catch {};
         return err;
@@ -201,7 +208,7 @@ pub fn main() !void {
     const path = try std.fmt.allocPrint(
         alloc,
         "templates/opencontrols/standards/{s}.json",
-        .{@tagName(@as(Report, @enumFromInt(res.args.report)))},
+        .{@tagName(res.args.report.?)},
     );
     defer alloc.free(path);
     var rep = try init(
@@ -209,7 +216,7 @@ pub fn main() !void {
         path,
     );
     defer rep.deinit();
-
+    std.debug.print("Getting reports from {s}\n", .{config.policy_dir});
     const r = try rep.report(config.policy_dir);
 
     try stdout.print("{s}", .{r});

@@ -109,6 +109,9 @@
             if [ -d "$out/public" ]; then
               echo "✓ Site generated"
             fi
+            if [ -d "$out/reports" ]; then
+              echo "✓ Reports generated"
+            fi
           '';
 
           fixupPhase = ''
@@ -152,6 +155,7 @@
             echo "Build complete. Outputs:"
             echo "  PDFs: $PREFIX/pdfs"
             echo "  Site: $PREFIX/public"
+            echo "  Reports: $PREFIX/reports"
           '';
         };
       in {

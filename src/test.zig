@@ -8,15 +8,10 @@ const cr = @import("control_report.zig");
 const fm = @import("frontmatter.zig");
 const pandoc = @import("pandoc.zig");
 const config = @import("config.zig").Config;
+const report = @import("control_report.zig");
 
 // TODO
 // - [ ] The reports should generate correctly
-// - [-] The test policy should render in html and pdf correctly
-//   - [x] pdf
-//   - [ ] html
-// - [ ] All configuration options in config.toml should be validated
-//      this requires the same logic that is holding up #45
-// - [x] All frontmatter options should be validated.
 
 const TestConfig =
     \\base_url = "http://localhost:1111"
@@ -34,6 +29,7 @@ test {
     _ = cr;
     _ = fm;
     _ = pandoc;
+    _ = report;
     tst.refAllDeclsRecursive(@This());
 }
 

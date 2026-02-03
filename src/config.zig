@@ -86,7 +86,10 @@ pub const Config = struct {
     }
 
     pub fn load(alloc: Allocator, content: []const u8) !Config {
-        var t = try toml.parse(alloc, content);
+        var t = toml.parse(alloc, content) catch |e| {
+            conflog.err("TOML Parse Error: {}\n", .{e});
+            return error.InvalidTomlConfig;
+        };
         errdefer t.deinit(alloc);
         const e = t.getTable("extra") orelse return error.NoExtraInZolaConfig;
         //BUG: This doesnt work in zig 0.14.1, but should in 0.14.0.

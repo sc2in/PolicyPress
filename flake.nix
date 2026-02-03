@@ -3,8 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    # Pinned nixpkgs for zola 0.20.0
-    nixpkgs-zola.url = "github:NixOS/nixpkgs/a421ac6595024edcfbb1ef950a3712b89161c359";
     flake-parts.url = "github:hercules-ci/flake-parts";
     zig-overlay.url = "github:mitchellh/zig-overlay";
     eisvogel-tex.url = "github:sc2in/eisvogel-tex";
@@ -13,7 +11,6 @@
   outputs = inputs @ {
     self,
     nixpkgs,
-    nixpkgs-zola,
     flake-parts,
     zig-overlay,
     eisvogel-tex,
@@ -31,9 +28,6 @@
           overlays = [zig-overlay.overlays.default];
         };
 
-        # Pinned zola 0.20.0
-        pkgsZola = import nixpkgs-zola {inherit system;};
-
         # Extract version from build.zig.zon (single source of truth)
         version = let
           zon = builtins.readFile ./build.zig.zon;
@@ -46,7 +40,7 @@
         # Runtime dependencies for PDF generation
         runtimeDeps = with pkgsWithOverlay; [
           pandoc
-          pkgsZola.zola
+          zola
           imagemagick
           eisvogel-tex.packages.${system}.default
         ];

@@ -57,7 +57,7 @@ pub const Config = struct {
         try writer.print("{s}", .{output});
     }
     pub fn load_config_toml(alloc: Allocator) !Config {
-        conflog.info("Loading config.toml", .{});
+        conflog.debug("Loading config.toml", .{});
         const file = try std.fs.cwd().openFile("config.toml", .{});
         defer file.close();
 

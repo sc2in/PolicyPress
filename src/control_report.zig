@@ -205,18 +205,23 @@ pub fn main() !void {
         , .{});
         return clap.help(stderr, clap.Help, &params, .{});
     }
-    const path = try std.fmt.allocPrint(
-        alloc,
-        "templates/opencontrols/standards/{s}.json",
-        .{@tagName(res.args.report.?)},
-    );
+    const path = if (res.args.report) |r| blk: {
+        break :blk try std.fmt.allocPrint(
+            alloc,
+            "templates/opencontrols/standards/{s}.json",
+            .{@tagName(r)},
+        );
+    } else {
+        std.debug.print("No Report specified\n", .{});
+        return error.NoReportSpecified;
+    };
     defer alloc.free(path);
     var rep = try init(
         alloc,
         path,
     );
     defer rep.deinit();
-    std.debug.print("Getting reports from {s}\n", .{config.policy_dir});
+    // std.debug.print("Getting reports from {s}\n", .{config.policy_dir});
     const r = try rep.report(config.policy_dir);
 
     try stdout.print("{s}", .{r});

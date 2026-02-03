@@ -200,7 +200,7 @@ pub fn build(b: *std.Build) !void {
         const policy_report_output = run_policy_report.captureStdOut();
         const policy_report_inst = b.addInstallFileWithDir(
             policy_report_output,
-            .prefix,
+            .{ .custom = "reports" },
             "policy_report.json",
         );
 

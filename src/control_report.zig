@@ -7,7 +7,7 @@ const Yaml = @import("yaml").Yaml;
 const FM = @import("frontmatter.zig");
 const clap = @import("clap");
 const Self = @This();
-const BuildConfig = @import("config.zig").BuildConfig;
+const BuildConfig = @import("config.zig").Config;
 
 contents: []u8,
 arena: std.heap.ArenaAllocator,
@@ -114,7 +114,11 @@ pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
     var iter = self.map.iterator();
     try ret.appendSlice(a, "{");
     while (iter.next()) |c| {
-        const line = try std.fmt.allocPrint(a, "\"{s}\": {},", .{ c.key_ptr.*, c.value_ptr.found });
+        const line = try std.fmt.allocPrint(
+            a,
+            "\"{s}\": {},",
+            .{ c.key_ptr.*, c.value_ptr.found },
+        );
         defer a.free(line);
 
         try ret.appendSlice(a, line);
@@ -126,12 +130,17 @@ pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
 }
 
 test {
-    var r = try Self.init(tst.allocator, "templates/opencontrols/standards/SCF.json");
+    var r = try Self.init(
+        tst.allocator,
+        "templates/opencontrols/standards/SCF.json",
+    );
     defer r.deinit();
 
     const out = try r.report("content/policies");
-    _ = out; // autofix
-    // std.debug.print("{s}", .{out});
+    const j = try std.json.parseFromSlice(std.json.Value, tst.allocator, out, .{});
+    defer j.deinit();
+    try tst.expect(j.value.object.count() >= 1239); // test for number of controls read as of 10/2/2025
+    try tst.expect(j.value.object.get("HRS-05").?.bool);
 }
 
 const Control = struct {
@@ -142,9 +151,10 @@ const Control = struct {
     found: bool = false,
 };
 
-pub const Report = enum(u8) {
+pub const Report = enum {
     SOC2,
     ISO,
+    SCF,
 };
 
 pub fn main() !void {
@@ -155,20 +165,36 @@ pub fn main() !void {
 
     const alloc = arena.allocator();
 
-    const config = try BuildConfig.load_config_toml(alloc);
+    var config = try BuildConfig.load_config_toml(alloc);
     defer config.deinit(alloc);
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
-        \\--report Report        Report type to run
+        \\--report <REPORT>      Report type to run
     );
+
+    var buffer: [128]u8 = undefined;
+    var output_writer: std.fs.File.Writer = std.fs.File.stdout().writer(&buffer);
+    const stdout: *std.Io.Writer = &output_writer.interface;
+
+    var buffer2: [128]u8 = undefined;
+    var err_writer: std.fs.File.Writer = std.fs.File.stderr().writer(&buffer2);
+    const stderr: *std.Io.Writer = &err_writer.interface;
+
     var diag = clap.Diagnostic{};
-    var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
-        .diagnostic = &diag,
-        .allocator = alloc,
-    }) catch |err| {
+    var res = clap.parse(
+        clap.Help,
+        &params,
+        .{
+            .REPORT = clap.parsers.enumeration(Report),
+        },
+        .{
+            .diagnostic = &diag,
+            .allocator = alloc,
+        },
+    ) catch |err| {
         // Report useful error and exit.
-        diag.report(std.io.getStdErr().writer(), err) catch {};
+        diag.report(stderr, err) catch {};
         return err;
     };
     defer res.deinit();
@@ -177,19 +203,30 @@ pub fn main() !void {
             \\SC2 Policy Report
             \\Returns a json of controls' presence in the policies
         , .{});
-        return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
+        return clap.help(stderr, clap.Help, &params, .{});
     }
-    var rep = try init(alloc, @tagName(@as(Report, @enumFromInt(res.args.report))));
+    const path = if (res.args.report) |r| blk: {
+        break :blk try std.fmt.allocPrint(
+            alloc,
+            "templates/opencontrols/standards/{s}.json",
+            .{@tagName(r)},
+        );
+    } else {
+        std.debug.print("No Report specified\n", .{});
+        return error.NoReportSpecified;
+    };
+    defer alloc.free(path);
+    var rep = try init(
+        alloc,
+        path,
+    );
     defer rep.deinit();
-
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
-
+    // std.debug.print("Getting reports from {s}\n", .{config.policy_dir});
     const r = try rep.report(config.policy_dir);
 
     try stdout.print("{s}", .{r});
 
-    try bw.flush(); // Don't forget to flush!
+    try stdout.flush(); // Don't forget to flush!
+    try stderr.flush(); // Don't forget to flush!
 
 }

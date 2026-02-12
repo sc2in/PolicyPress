@@ -8,10 +8,6 @@ const math = std.math;
 const ReportType = @import("src/control_report.zig").Report;
 
 pub fn build(b: *std.Build) !void {
-    const draft_option = b.option(bool, "draft", "Produce pdfs with a draft watermark") orelse false;
-    // const redact_option = b.option(bool, "redact", "Produce pdfs with redacted information") orelse false;
-    // const report_option = b.option(ReportType, "report", "Type of report to run") orelse .SCF;
-
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -159,13 +155,14 @@ pub fn build(b: *std.Build) !void {
     run_step.dependOn(&run_policypress.step);
 
     {
-        const docs_step = b.step("docs", "Build Documentation");
+        var docs_step = b.step("docs", "Build Documentation");
         const docs_install = b.addInstallDirectory(.{
             .install_dir = .prefix,
             .install_subdir = "docs",
-            .source_dir = pandoc_sh.getEmittedDocs(),
+            .source_dir = policypress_exe.getEmittedDocs(),
         });
         docs_step.dependOn(&docs_install.step);
+        b.default_step.dependOn(docs_step);
     }
     {
         const test_module = b.addModule("test", .{
@@ -188,88 +185,4 @@ pub fn build(b: *std.Build) !void {
         const test_step = b.step("test", "Run unit tests");
         test_step.dependOn(&run_unit_tests.step);
     }
-    {
-        const web_build = b.addSystemCommand(&.{
-            "zola",
-            "build",
-            "--force",
-        });
-        if (draft_option) web_build.addArg("--drafts");
-        if (optimize != .Debug) web_build.addArg("--minify") else web_build.addArg("--base-url=http://127.0.0.1:1111/");
-        web_build.addArg("-o");
-        const web_output = web_build.addOutputDirectoryArg("public");
-        const web_inst = b.addInstallDirectory(.{
-            .install_dir = .prefix,
-            .source_dir = web_output,
-            .install_subdir = "public",
-        });
-        const web_step = b.step("web", "Build website from zola");
-        web_step.dependOn(&web_inst.step);
-        b.default_step.dependOn(web_step);
-    }
-    // {
-    //     const pdf_step = b.step("pdfs", "Build pdfs directly from the build script");
-
-    //     const wf = b.addWriteFiles();
-
-    //     // const config = try @import("src/config.zig").BuildConfig.load_config_toml(b.allocator);
-
-    //     // const conf = config;
-
-    //     var dir = try std.fs.cwd().openDir(b.pathJoin(&.{ "content", "policies" }), .{
-    //         .iterate = true,
-    //         .access_sub_paths = true,
-    //     });
-    //     defer dir.close();
-
-    //     var walker = try dir.walk(b.allocator);
-    //     defer walker.deinit();
-
-    //     while (try walker.next()) |entry| {
-    //         if (entry.kind == .file and std.mem.endsWith(u8, entry.path, ".md")) {
-    //             const base_name = std.fs.path.basename(entry.path);
-    //             if (std.mem.eql(u8, base_name, "_index.md")) continue;
-
-    //             const input_path = b.pathJoin(&.{ "content", "policies", entry.path });
-    //             const input = b.path(input_path);
-
-    //             // Step 2: Run pandoc wrapper
-    //             const run_wrapper = b.addRunArtifact(pandoc_sh);
-    //             run_wrapper.addArg("--input");
-    //             run_wrapper.addFileArg(input);
-    //             run_wrapper.addArg("--output");
-    //             run_wrapper.expectExitCode(0);
-    //             _ = run_wrapper.captureStdErr();
-    //             const pdf_dir = run_wrapper.addOutputDirectoryArg(base_name);
-    //             if (draft_option) run_wrapper.addArg("-d");
-    //             if (redact_option) run_wrapper.addArg("-r");
-
-    //             const inst = b.addInstallDirectory(.{
-    //                 .install_dir = .prefix,
-    //                 .source_dir = pdf_dir,
-
-    //                 .install_subdir = "pdfs",
-    //             });
-    //             inst.step.dependOn(&run_wrapper.step);
-    //             pdf_step.dependOn(&inst.step);
-    //             // Step 3: Install the generated PDF
-    //             _ = wf.addCopyDirectory(
-    //                 pdf_dir.path(b, ""),
-    //                 "", //b.pathJoin(&.{ base_name, base_name }),
-    //                 .{ .include_extensions = &.{"pdf"} },
-    //             );
-    //         }
-    //     }
-
-    //     const mkdir = b.addInstallDirectory(.{
-    //         .install_dir = .prefix,
-    //         .install_subdir = "pdfs",
-    //         .source_dir = wf.getDirectory(),
-    //         .include_extensions = &.{"pdf"},
-    //     });
-    //     pdf_step.dependOn(&mkdir.step);
-
-    //     // b.default_step.dependOn(report_step);
-    //     b.default_step.dependOn(pdf_step);
-    // }
 }

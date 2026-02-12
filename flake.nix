@@ -75,8 +75,8 @@
 
           src = ./.;
 
-          nativeBuildInputs = [zig] ++ runtimeDeps;
-          buildInputs = runtimeDeps;
+          nativeBuildInputs = [zig];
+          buildInputs = [];
 
           dontConfigure = true;
 
@@ -98,20 +98,6 @@
           '';
 
           installPhase = ''
-            # Outputs are already in $out from --prefix
-            echo "Build outputs:"
-            ls -la $out/ || echo "Output directory missing!"
-
-            # Verify expected outputs exist
-            if [ -d "$out/pdfs" ]; then
-              echo "✓ PDFs generated"
-            fi
-            if [ -d "$out/public" ]; then
-              echo "✓ Site generated"
-            fi
-            if [ -d "$out/reports" ]; then
-              echo "✓ Reports generated"
-            fi
           '';
 
           fixupPhase = ''

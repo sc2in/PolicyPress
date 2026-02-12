@@ -52,6 +52,13 @@ pub fn main() !void {
     var config = try Config.load(alloc, contents);
     defer config.deinit(alloc);
 
+    if (res.args.@"no-draft" != 0) {
+        config.is_draft = false;
+    }
+    if (res.args.@"no-redact" != 0) {
+        config.redact = false;
+    }
+
     //TODO: Verbosity
     // if (res.args.verbose != 0) {
     //     .log_level = .debug;
@@ -70,7 +77,7 @@ pub fn main() !void {
     defer walker.deinit();
 
     const output_path = if (res.args.config) |c| c else "public";
-
+    config.build_dir = output_path;
     var output_dir = std.fs.cwd().openDir(output_path, .{ .access_sub_paths = true }) catch |err| {
         if (err == error.FileNotFound) {
             std.debug.print("Output directory '{s}' does not exist. Attempting to create it.\n", .{output_path});
@@ -135,7 +142,6 @@ pub fn main() !void {
             alloc,
             config,
             input_path,
-            output_path,
             compile_node,
             &error_mutex,
             &error_count,
@@ -172,7 +178,6 @@ fn compileOne(
     alloc: Allocator,
     config: Config,
     input_path: []const u8,
-    output_path: []const u8,
     progress_node: std.Progress.Node,
     error_mutex: *std.Thread.Mutex,
     error_count: *usize,
@@ -188,7 +193,6 @@ fn compileOne(
         alloc,
         config,
         input_path,
-        output_path,
     ) catch |err| {
         error_mutex.lock();
         defer error_mutex.unlock();

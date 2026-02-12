@@ -3,10 +3,10 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const fm = @import("frontmatter.zig");
+const fm = @import("FM");
 const toml = fm.tomlz;
 const dt = @import("datetime");
-const u = @import("utils.zig");
+const u = @import("utils");
 
 pub const std_options: std.Options = .{
     .log_level = .warn,

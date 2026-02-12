@@ -42,11 +42,8 @@ pub fn compile(
     alloc: Allocator,
     config: Config,
     input_file: []const u8,
-    output_path: []const u8,
 ) !void {
-    _ = output_path; // TODO: Use this when we add support for custom output paths
     var global_args = Array([]u8){};
-    // defer destroy_global_args(alloc, &global_args);
 
     try create_global_args(alloc, &global_args, config);
     defer destroy_global_args(alloc, &global_args);

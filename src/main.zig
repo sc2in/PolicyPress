@@ -56,4 +56,68 @@ pub fn main() !void {
     //     .log_level = .debug;
     // }
     std.log.debug("Running PolicyPress with configuration:\n{f}\n", .{config});
+
+    var policy_dir = std.fs.cwd().openDir(config.policy_dir, .{
+        .iterate = true,
+        .access_sub_paths = true,
+    }) catch |err| {
+        std.debug.print("Error opening policy directory '{s}': {}\n", .{ config.policy_dir, err });
+        return err;
+    };
+    defer policy_dir.close();
+    var walker = try policy_dir.walk(alloc);
+    defer walker.deinit();
+
+    const output_path = if (res.args.config) |c| c else "public";
+
+    var output_dir = std.fs.cwd().openDir(output_path, .{ .access_sub_paths = true }) catch |err| {
+        if (err == error.FileNotFound) {
+            std.debug.print("Output directory '{s}' does not exist. Attempting to create it.\n", .{output_path});
+            std.fs.cwd().makeDir(output_path) catch |mkdir_err| {
+                std.debug.print("Error creating output directory '{s}': {}\n", .{ output_path, mkdir_err });
+                return mkdir_err;
+            };
+            // Try opening the directory again after creating it
+            return main();
+        }
+        std.debug.print("Error opening output directory '{s}': {}\n", .{ output_path, err });
+        return err;
+    };
+    defer output_dir.close();
+
+    //     while (try walker.next()) |entry| {
+    //         if (entry.kind == .file and std.mem.endsWith(u8, entry.path, ".md")) {
+    //             const base_name = std.fs.path.basename(entry.path);
+    //             if (std.mem.eql(u8, base_name, "_index.md")) continue;
+
+    //             const input_path = b.pathJoin(&.{ "content", "policies", entry.path });
+    //             const input = b.path(input_path);
+
+    //             // Step 2: Run pandoc wrapper
+    //             const run_wrapper = b.addRunArtifact(pandoc_sh);
+    //             run_wrapper.addArg("--input");
+    //             run_wrapper.addFileArg(input);
+    //             run_wrapper.addArg("--output");
+    //             run_wrapper.expectExitCode(0);
+    //             _ = run_wrapper.captureStdErr();
+    //             const pdf_dir = run_wrapper.addOutputDirectoryArg(base_name);
+    //             if (draft_option) run_wrapper.addArg("-d");
+    //             if (redact_option) run_wrapper.addArg("-r");
+
+    //             const inst = b.addInstallDirectory(.{
+    //                 .install_dir = .prefix,
+    //                 .source_dir = pdf_dir,
+
+    //                 .install_subdir = "pdfs",
+    //             });
+    //             inst.step.dependOn(&run_wrapper.step);
+    //             pdf_step.dependOn(&inst.step);
+    //             // Step 3: Install the generated PDF
+    //             _ = wf.addCopyDirectory(
+    //                 pdf_dir.path(b, ""),
+    //                 "", //b.pathJoin(&.{ base_name, base_name }),
+    //                 .{ .include_extensions = &.{"pdf"} },
+    //             );
+    //         }
+    //     }
 }

@@ -38,6 +38,21 @@ pub const std_options: std.Options = .{
 
 const panlog = std.log.scoped(.pandoc);
 
+pub fn compile(
+    alloc: Allocator,
+    config: Config,
+    input_file: []const u8,
+    output_path: []const u8,
+) !void {
+    _ = output_path; // TODO: Use this when we add support for custom output paths
+    var global_args = Array([]u8){};
+    // defer destroy_global_args(alloc, &global_args);
+
+    try create_global_args(alloc, &global_args, config);
+    defer destroy_global_args(alloc, &global_args);
+
+    try process_md_file(alloc, .{ .path = input_file }, global_args, config);
+}
 pub fn main() !void {
     var gpa = std.heap.DebugAllocator(.{}){};
     defer _ = gpa.deinit();

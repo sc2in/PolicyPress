@@ -52,6 +52,7 @@ pub fn main() !void {
     var config = try Config.load(alloc, contents);
     defer config.deinit(alloc);
 
+    //TODO: Verbosity
     // if (res.args.verbose != 0) {
     //     .log_level = .debug;
     // }
@@ -101,32 +102,4 @@ pub fn main() !void {
             );
         }
     }
-    //             const input = b.path(input_path);
-    //             // Step 2: Run pandoc wrapper
-    //             const run_wrapper = b.addRunArtifact(pandoc_sh);
-    //             run_wrapper.addArg("--input");
-    //             run_wrapper.addFileArg(input);
-    //             run_wrapper.addArg("--output");
-    //             run_wrapper.expectExitCode(0);
-    //             _ = run_wrapper.captureStdErr();
-    //             const pdf_dir = run_wrapper.addOutputDirectoryArg(base_name);
-    //             if (draft_option) run_wrapper.addArg("-d");
-    //             if (redact_option) run_wrapper.addArg("-r");
-
-    //             const inst = b.addInstallDirectory(.{
-    //                 .install_dir = .prefix,
-    //                 .source_dir = pdf_dir,
-
-    //                 .install_subdir = "pdfs",
-    //             });
-    //             inst.step.dependOn(&run_wrapper.step);
-    //             pdf_step.dependOn(&inst.step);
-    //             // Step 3: Install the generated PDF
-    //             _ = wf.addCopyDirectory(
-    //                 pdf_dir.path(b, ""),
-    //                 "", //b.pathJoin(&.{ base_name, base_name }),
-    //                 .{ .include_extensions = &.{"pdf"} },
-    //             );
-    //         }
-    //     }
 }

@@ -63,6 +63,9 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
     utils_mod.addImport("FM", frontmatter_mod);
+    utils_mod.addImport("mvzr", mvzr.module("mvzr"));
+    utils_mod.addImport("yaml", yaml.module("yaml"));
+    utils_mod.addImport("tomlz", tomlz.module("tomlz"));
 
     var pandoc_sh: *std.Build.Step.Compile = undefined;
 
@@ -105,6 +108,8 @@ pub fn build(b: *std.Build) !void {
     pandoc_sh_mod.addImport("FM", frontmatter_mod);
     pandoc_sh_mod.addImport("mvzr", mvzr.module("mvzr"));
     pandoc_sh_mod.addImport("datetime", pg.module("datetime"));
+    pandoc_sh_mod.addImport("config", config_mod);
+    pandoc_sh_mod.addImport("utils", utils_mod);
     pandoc_sh = b.addExecutable(.{
         .root_module = pandoc_sh_mod,
         .name = "pandoc_sh",

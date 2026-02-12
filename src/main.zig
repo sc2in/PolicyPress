@@ -21,6 +21,7 @@ pub fn main() !void {
         \\-o, --output <str>     Path to output directory. (default: public)
         \\--no-draft             Do not add draft watermark to output.
         \\--no-redact            Do not redact text within redaction tags in output.
+        \\-v, --verbose          Enable verbose logging.
     );
     var buf: [128]u8 = undefined;
     // Report useful error and exit.
@@ -40,4 +41,19 @@ pub fn main() !void {
         std.debug.print("PolicyPress\n\n", .{});
         return clap.helpToFile(std.fs.File.stderr(), clap.Help, &params, .{});
     }
+    const config_path = if (res.args.config) |c| c else "config.toml";
+    const config_file = std.fs.cwd().openFile(config_path, .{}) catch |err| {
+        std.debug.print("Error opening config file '{s}': {}\n", .{ config_path, err });
+        return err;
+    };
+    const contents = try config_file.readToEndAlloc(alloc, 1024 * 1024);
+    defer alloc.free(contents);
+
+    var config = try Config.load(alloc, contents);
+    defer config.deinit(alloc);
+
+    // if (res.args.verbose != 0) {
+    //     .log_level = .debug;
+    // }
+    std.log.debug("Running PolicyPress with configuration:\n{f}\n", .{config});
 }

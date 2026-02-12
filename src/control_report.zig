@@ -4,10 +4,10 @@ const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
 const Yaml = @import("yaml").Yaml;
-const FM = @import("frontmatter.zig");
+const FM = @import("FM");
 const clap = @import("clap");
 const Self = @This();
-const BuildConfig = @import("config.zig").Config;
+const BuildConfig = @import("config").Config;
 
 contents: []u8,
 arena: std.heap.ArenaAllocator,

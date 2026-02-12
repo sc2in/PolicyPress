@@ -85,14 +85,23 @@ pub fn main() !void {
     };
     defer output_dir.close();
 
-    //     while (try walker.next()) |entry| {
-    //         if (entry.kind == .file and std.mem.endsWith(u8, entry.path, ".md")) {
-    //             const base_name = std.fs.path.basename(entry.path);
-    //             if (std.mem.eql(u8, base_name, "_index.md")) continue;
+    while (try walker.next()) |entry| {
+        if (entry.kind == .file and std.mem.endsWith(u8, entry.path, ".md")) {
+            const base_name = std.fs.path.basename(entry.path);
+            if (std.mem.eql(u8, base_name, "_index.md")) continue;
 
-    //             const input_path = b.pathJoin(&.{ "content", "policies", entry.path });
+            const input_path = try std.fs.path.join(alloc, &.{ config.policy_dir, entry.path });
+            defer alloc.free(input_path);
+            std.log.debug("Compiling {s}\n", .{input_path});
+            try Pandoc.compile(
+                alloc,
+                config,
+                input_path,
+                output_path,
+            );
+        }
+    }
     //             const input = b.path(input_path);
-
     //             // Step 2: Run pandoc wrapper
     //             const run_wrapper = b.addRunArtifact(pandoc_sh);
     //             run_wrapper.addArg("--input");

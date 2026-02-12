@@ -3,12 +3,11 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const utils = @import("utils.zig");
-const cr = @import("control_report.zig");
-const fm = @import("frontmatter.zig");
-const pandoc = @import("pandoc.zig");
-const config = @import("config.zig").Config;
-const report = @import("control_report.zig");
+const utils = @import("utils");
+const fm = @import("FM");
+const pandoc = @import("pandoc");
+const config = @import("config").Config;
+const report = @import("reports");
 
 // TODO
 // - [ ] The reports should generate correctly
@@ -26,7 +25,6 @@ const TestConfig =
 
 test {
     _ = utils;
-    _ = cr;
     _ = fm;
     _ = pandoc;
     _ = report;
@@ -158,7 +156,7 @@ test "report generation" {
     defer tst.allocator.free(c_path);
     defer tst.allocator.free(p_path);
 
-    var f = try cr.init(tst.allocator, c_file);
+    var f = try report.init(tst.allocator, c_file);
     defer f.deinit();
 
     const rep = try f.report(p_path);

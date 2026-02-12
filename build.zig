@@ -132,6 +132,8 @@ pub fn build(b: *std.Build) !void {
     reports_mod.addImport("yaml", yaml.module("yaml"));
     reports_mod.addImport("tomlz", tomlz.module("tomlz"));
     reports_mod.addImport("datetime", pg.module("datetime"));
+    reports_mod.addImport("config", config_mod);
+    reports_mod.addImport("FM", frontmatter_mod);
 
     const policypress_mod = b.addModule("policypress", .{
         .target = target,
@@ -172,9 +174,12 @@ pub fn build(b: *std.Build) !void {
             .optimize = optimize,
             .link_libc = true,
         });
-        test_module.addImport("tomlz", tomlz.module("tomlz"));
+        test_module.addImport("FM", frontmatter_mod);
+        test_module.addImport("utils", utils_mod);
+        test_module.addImport("pandoc", pandoc_sh_mod);
+        test_module.addImport("config", config_mod);
+        test_module.addImport("reports", reports_mod);
         test_module.addImport("datetime", pg.module("datetime"));
-        test_module.addImport("yaml", yaml.module("yaml"));
         test_module.addImport("mvzr", mvzr.module("mvzr"));
         const unit_tests = b.addTest(.{
             .root_module = test_module,

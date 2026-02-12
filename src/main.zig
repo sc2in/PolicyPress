@@ -1,3 +1,12 @@
+//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: AGPL-3.0-or-later
+//!
+//! This program automates the process of converting Markdown policy documents into styled PDF files.
+//! It loads configuration from a TOML file, processes Markdown files (including YAML front matter and custom placeholders),
+//! applies organization branding, and invokes Pandoc with a set of dynamically constructed arguments to generate PDFs.
+//! The build is highly configurable, supporting custom logos, organization names, color extraction from images,
+//! and options for draft/redacted document states. The system is designed for batch processing of policy directories,
+//! with robust error handling and logging at multiple stages of the pipeline.
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;

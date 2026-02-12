@@ -12,15 +12,15 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const FrontMatter = @import("frontmatter.zig");
+const FrontMatter = @import("FM");
 const tomlz = FrontMatter.tomlz;
 const Yaml = FrontMatter.Yaml;
 const ctime = @cImport(@cInclude("time.h"));
 const mvzr = @import("mvzr");
 const clap = @import("clap");
-const u = @import("utils.zig");
+const u = @import("utils");
 
-const Config = @import("config.zig").Config;
+const Config = @import("config").Config;
 
 // TODO: Add more robust error propegation from pandoc/mermaid-filter
 // TODO: Add threading support

@@ -6,7 +6,7 @@ const math = std.math;
 const Yaml = @import("yaml").Yaml;
 const mvzr = @import("mvzr");
 const tomlz = @import("tomlz");
-const ffm = @import("frontmatter.zig");
+const ffm = @import("FM");
 
 const panlog = std.log.scoped(.pandoc);
 

@@ -4,19 +4,15 @@ const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
 const clap = @import("clap");
+const Config = @import("config").Config;
+const Reports = @import("reports");
+const Pandoc = @import("pandoc");
 
 pub fn main() !void {
     var gpa = std.heap.DebugAllocator(.{}){};
     defer _ = gpa.deinit();
 
     const alloc = gpa.allocator();
-
-    // flags
-    // -c config file (default: config.toml)
-    // -i input_dir (default: content)
-    // -o output_dir (default: public)
-    // -r redact sensitive (default: true)
-    // -d draft mode (default: true)
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.

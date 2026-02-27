@@ -1,10 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.10.7/.schema/devbox.schema.json",
   "packages": {
-    "pandoc":                          "latest",
-    "github:sc2in/eisvogel-tex/v3.0#": "",
-    "zola":                            "0.20.0",
-    "imagemagick":                     "latest",
+    "pandoc": "latest",
+    "github:sc2in/eisvogel-tex": "",
+    "zola": "latest",
+    "imagemagick": "latest",
     "mermaid-filter": {
       "version": "latest",
       "excluded_platforms": [

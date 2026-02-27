@@ -10,7 +10,7 @@ const ReportType = @import("src/control_report.zig").Report;
 pub fn build(b: *std.Build) !void {
     const draft_option = b.option(bool, "draft", "Produce pdfs with a draft watermark") orelse false;
     const redact_option = b.option(bool, "redact", "Produce pdfs with redacted information") orelse false;
-    const report_option = b.option(ReportType, "report", "Type of report to run") orelse .ISO;
+    const report_option = b.option(ReportType, "report", "Type of report to run") orelse .SCF;
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -200,12 +200,13 @@ pub fn build(b: *std.Build) !void {
         const policy_report_output = run_policy_report.captureStdOut();
         const policy_report_inst = b.addInstallFileWithDir(
             policy_report_output,
-            .prefix,
+            .{ .custom = "reports" },
             "policy_report.json",
         );
 
-        const report_step = b.step("reports", "Run reports");
+        var report_step = b.step("reports", "Run reports");
         report_step.dependOn(&policy_report_inst.step);
+        b.default_step.dependOn(report_step);
     }
 
     {

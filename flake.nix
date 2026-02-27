@@ -3,8 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    # Pinned nixpkgs for zola 0.20.0
-    nixpkgs-zola.url = "github:NixOS/nixpkgs/a421ac6595024edcfbb1ef950a3712b89161c359";
     flake-parts.url = "github:hercules-ci/flake-parts";
     zig-overlay.url = "github:mitchellh/zig-overlay";
     eisvogel-tex.url = "github:sc2in/eisvogel-tex";
@@ -13,7 +11,6 @@
   outputs = inputs @ {
     self,
     nixpkgs,
-    nixpkgs-zola,
     flake-parts,
     zig-overlay,
     eisvogel-tex,
@@ -31,9 +28,6 @@
           overlays = [zig-overlay.overlays.default];
         };
 
-        # Pinned zola 0.20.0
-        pkgsZola = import nixpkgs-zola {inherit system;};
-
         # Extract version from build.zig.zon (single source of truth)
         version = let
           zon = builtins.readFile ./build.zig.zon;
@@ -46,7 +40,7 @@
         # Runtime dependencies for PDF generation
         runtimeDeps = with pkgsWithOverlay; [
           pandoc
-          pkgsZola.zola
+          zola
           imagemagick
           eisvogel-tex.packages.${system}.default
         ];
@@ -85,7 +79,6 @@
           buildInputs = runtimeDeps;
 
           dontConfigure = true;
-          dontInstall = true;
 
           buildPhase = ''
             export HOME=$TMPDIR
@@ -102,19 +95,31 @@
               --color off \
               --cache-dir $TMPDIR/.cache \
               --global-cache-dir $ZIG_GLOBAL_CACHE_DIR
+          '';
 
-            # Verify outputs were created
+          installPhase = ''
+            # Outputs are already in $out from --prefix
             echo "Build outputs:"
             ls -la $out/ || echo "Output directory missing!"
+
+            # Verify expected outputs exist
+            if [ -d "$out/pdfs" ]; then
+              echo "✓ PDFs generated"
+            fi
+            if [ -d "$out/public" ]; then
+              echo "✓ Site generated"
+            fi
+            if [ -d "$out/reports" ]; then
+              echo "✓ Reports generated"
+            fi
           '';
 
           fixupPhase = ''
-            # Ensure output directory is not read-only for fixup
             chmod -R u+w "$out" 2>/dev/null || true
           '';
         };
 
-        # Wrapper script for CI usage
+        # Wrapper script for CI usage with environment variables
         policypress-ci = pkgsWithOverlay.writeShellApplication {
           name = "policypress";
           runtimeInputs = runtimeDeps ++ [zig];
@@ -146,9 +151,11 @@
 
             zig build -Dtarget=native "''${BUILD_ARGS[@]}"
 
+            echo ""
             echo "Build complete. Outputs:"
             echo "  PDFs: $PREFIX/pdfs"
             echo "  Site: $PREFIX/public"
+            echo "  Reports: $PREFIX/reports"
           '';
         };
       in {
@@ -171,6 +178,17 @@
               pkgsWithOverlay.watchexec
               pkgsWithOverlay.act
             ];
+
+          shellHook = ''
+            echo "PolicyPress development environment"
+            echo ""
+            echo "Note: For daily development, use 'devbox shell' instead"
+            echo "This flake shell is primarily for CI builds"
+            echo ""
+            echo "CI build commands:"
+            echo "  nix build .#default  - Build production artifacts"
+            echo "  nix run .#ci         - Run CI build script"
+          '';
         };
       };
     };

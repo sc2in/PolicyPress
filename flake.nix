@@ -5,7 +5,6 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     zig-overlay.url = "github:mitchellh/zig-overlay";
-    eisvogel-tex.url = "github:sc2in/eisvogel-tex";
   };
 
   outputs = inputs @ {
@@ -13,7 +12,6 @@
     nixpkgs,
     flake-parts,
     zig-overlay,
-    eisvogel-tex,
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
       systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
@@ -32,10 +30,6 @@
           fontDirectories = [
             pkgs.source-sans # "Source Sans 3" (was "Source Sans Pro")
             pkgs.source-code-pro # "Source Code Pro"
-            # Add any additional fonts your documents need:
-            # pkgs.source-serif-pro
-            # pkgs.noto-fonts
-            # pkgs.liberation_ttf
           ];
         };
 
@@ -56,7 +50,7 @@
           zola
           imagemagick
           mermaid-filter
-          eisvogel-tex.packages.${system}.default
+          typst
         ];
 
         zig = pkgsWithOverlay.zigpkgs."0.15.2";

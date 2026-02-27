@@ -119,7 +119,6 @@ pub const Config = struct {
             e.getString("policy_dir").?,
         });
         config.logo_path = try std.fs.path.join(alloc, &.{
-            config.root,
             "static",
             e.getString("logo").?,
         });

@@ -128,9 +128,7 @@ pub fn destroy_global_args(a: Allocator, args: *Array([]u8)) void {
 pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !void {
     try add_arg(a, args, "", "--data-dir={s}", .{config.root});
     try add_arg(a, args, "", "--resource-path={s}", .{config.root});
-    try add_arg(a, args, "-V", "footer-left={s} \\textcopyright {d}", .{ config.org, config.current_year });
-
-    try add_arg(a, args, "-V", "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{config.logo_path});
+    try add_arg(a, args, "-V", "footer-left={s} © {d}", .{ config.org, config.current_year });
 
     try add_arg(a, args, "-V", "titlepage-logo={s}", .{config.logo_path});
 
@@ -140,17 +138,16 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
 
     try add_arg(a, args, "-F", "mermaid-filter", .{});
     try add_arg(a, args, "-V", "footer-center=Confidental", .{});
-    try add_arg(a, args, "-V", "papersize=letter", .{});
+    try add_arg(a, args, "-V", "papersize=us-letter", .{});
     try add_arg(a, args, "-V", "titlepage=true", .{});
     try add_arg(a, args, "-V", "toc-own-page=true ", .{});
     try add_arg(a, args, "-V", "toc=true", .{});
     try add_arg(a, args, "-V", "toc-depth=3", .{});
     try add_arg(a, args, "-V", "logo-width=6cm", .{});
     try add_arg(a, args, "-V", "table-use-row-colors=true", .{});
-    try add_arg(a, args, "--template", "eisvogel", .{});
-    try add_arg(a, args, "", "--listings", .{});
-    try add_arg(a, args, "", "--webtex", .{});
-    try add_arg(a, args, "", "--pdf-engine=xelatex", .{});
+    try add_arg(a, args, "--template", "templates/eisvogel.typ", .{});
+    // try add_arg(a, args, "", "--webtex", .{});
+    try add_arg(a, args, "", "--pdf-engine=typst", .{});
 
     if (config.is_draft) {
         try add_arg(a, args, "-V", "page-background=static/draft.png", .{});
@@ -309,16 +306,28 @@ pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
     }
     try child.spawn();
     try child.collectOutput(a, &out, &err, 100_000);
-
-    const exit_code = child.wait() catch |e| {
-        panlog.err("Error in pandoc: {s}\nRan with: {any}\n", .{ err.items, args.items });
-        return e;
+    const exit_code = child.wait() catch |e| blk: {
+        panlog.warn("Error in pandoc: {}\nRan with: {any}\n", .{ e, args.items });
+        break :blk std.process.Child.Term{ .Exited = 1 };
     };
     panlog.debug("{any} {s}\n", .{ exit_code, out.items });
     if (err.items.len > 0) {
-        panlog.err("!!! {s}\n!!! Called with:\n", .{err.items});
+        panlog.debug("!!! {s}\n!!! Called with:\n", .{err.items});
         for (args.items) |arg|
-            panlog.err("\t{s}\n", .{arg});
-        // return error.PandocError;
+            panlog.debug("\t{s}\n", .{arg});
+
+        const msg = err.items;
+
+        // Ignore known Typst deprecation warning for image.decode
+        const ignore_image_decode =
+            std.mem.indexOf(u8, msg, "warning: `image.decode` is deprecated") != null;
+
+        // Optionally, ignore generic "warning:" lines but fail on "error:"
+        const has_error =
+            std.mem.indexOf(u8, msg, "error:") != null;
+
+        if (!ignore_image_decode and has_error) {
+            return error.PandocError;
+        }
     }
 }

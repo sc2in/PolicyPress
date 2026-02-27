@@ -28,7 +28,7 @@ jobs:
         run: nix --accept-flake-config profile install nixpkgs#omnix
 
       - name: Run CI
-        run: om ci
+        run: om ci run --include-all-dependencies
 
       - name: Collect artifacts
         if: ${{ success() }}

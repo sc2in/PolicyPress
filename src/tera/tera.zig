@@ -1,3 +1,6 @@
+//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: AGPL-3.0-or-later
+//!
 //! Tera Template Engine Interpreter for Zig 0.14.1
 //! A complete implementation of Tera template engine using only Zig standard library
 //!

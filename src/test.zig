@@ -1,14 +1,15 @@
+//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: AGPL-3.0-or-later
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const utils = @import("utils.zig");
-const cr = @import("control_report.zig");
-const fm = @import("frontmatter.zig");
-const pandoc = @import("pandoc.zig");
-const config = @import("config.zig").Config;
-const report = @import("control_report.zig");
+const utils = @import("utils");
+const fm = @import("FM");
+const pandoc = @import("pandoc");
+const config = @import("config").Config;
+const report = @import("reports");
 
 // TODO
 // - [ ] The reports should generate correctly
@@ -26,7 +27,6 @@ const TestConfig =
 
 test {
     _ = utils;
-    _ = cr;
     _ = fm;
     _ = pandoc;
     _ = report;
@@ -150,15 +150,15 @@ test "report generation" {
     const builddir = try tmp.dir.realpathAlloc(tst.allocator, ".");
     defer tst.allocator.free(builddir);
 
-    const c_file = try std.fs.path.join(tst.allocator, &.{ env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv, "templates/opencontrols/standards/SCF.json" });
+    const c_file = try std.fs.cwd().realpathAlloc(tst.allocator, "templates/opencontrols/standards/SCF.json");
     defer tst.allocator.free(c_file);
 
-    const c_path = try std.fs.path.join(tst.allocator, &.{env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv});
-    const p_path = try std.fs.path.join(tst.allocator, &.{ env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv, "content/policies" });
+    const c_path = try std.fs.cwd().realpathAlloc(tst.allocator, ".");
+    const p_path = try std.fs.path.join(tst.allocator, &.{ c_path, "content/policies" });
     defer tst.allocator.free(c_path);
     defer tst.allocator.free(p_path);
 
-    var f = try cr.init(tst.allocator, c_file);
+    var f = try report.init(tst.allocator, c_file);
     defer f.deinit();
 
     const rep = try f.report(p_path);

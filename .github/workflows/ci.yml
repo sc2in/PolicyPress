@@ -17,26 +17,30 @@ jobs:
       contents: "read"
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v12
-      
+
       - name: Setup Nix cache
         uses: DeterminateSystems/magic-nix-cache-action@v7
-      
-      - name: Run tests
-        run: nix flake check
 
-      - name: Build
-        run: nix build .#
+      - name: Install omnix
+        run: nix --accept-flake-config profile install nixpkgs#omnix
 
-        # Or if you have a separate test target:
-        # run: nix develop -c zig build test
+      - name: Run CI
+        run: om ci
+
+      - name: Collect artifacts
+        if: ${{ success() }}
+        run: |
+          mkdir -p artifacts
+          POLICYPRESS_PATH=$(jq -r '.result.root.build.byName.policypress' result)
+          cp -rL "$POLICYPRESS_PATH"/* artifacts/
 
       - name: Upload artifacts
         if: ${{ success() }}
         uses: actions/upload-artifact@v4
         with:
-          name: result
-          path: result/
+          name: policypress
+          path: artifacts/
           retention-days: 7

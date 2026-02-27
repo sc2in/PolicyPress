@@ -21,11 +21,22 @@
       perSystem = {
         pkgs,
         system,
+        lib,
         ...
       }: let
         pkgsWithOverlay = import nixpkgs {
           inherit system;
           overlays = [zig-overlay.overlays.default];
+        };
+        fontsConf = pkgs.makeFontsConf {
+          fontDirectories = [
+            pkgs.source-sans # "Source Sans 3" (was "Source Sans Pro")
+            pkgs.source-code-pro # "Source Code Pro"
+            # Add any additional fonts your documents need:
+            # pkgs.source-serif-pro
+            # pkgs.noto-fonts
+            # pkgs.liberation_ttf
+          ];
         };
 
         # Extract version from build.zig.zon (single source of truth)
@@ -38,14 +49,28 @@
           else "0.0.0";
 
         # Runtime dependencies for PDF generation
-        runtimeDeps = with pkgsWithOverlay; [
+        runtimeDeps = with pkgs; [
+          source-sans-pro
+          source-code-pro
           pandoc
           zola
           imagemagick
+          mermaid-filter
           eisvogel-tex.packages.${system}.default
         ];
 
         zig = pkgsWithOverlay.zigpkgs."0.15.2";
+
+        # Map Nix system to Zig target triple to avoid native detection in sandbox
+        zigTarget =
+          {
+            "x86_64-linux" = "x86_64-linux-gnu";
+            "aarch64-linux" = "aarch64-linux-gnu";
+            "x86_64-darwin" = "x86_64-macos";
+            "aarch64-darwin" = "aarch64-macos";
+          }.${
+            system
+          };
 
         # Fetch Zig dependencies as a fixed-output derivation
         zigDeps = pkgsWithOverlay.stdenv.mkDerivation {
@@ -53,11 +78,15 @@
           inherit version;
           src = ./.;
 
-          nativeBuildInputs = [zig pkgsWithOverlay.curl pkgsWithOverlay.git];
+          nativeBuildInputs = [zig pkgsWithOverlay.curl pkgsWithOverlay.git pkgsWithOverlay.cacert];
 
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
           outputHash = "sha256-Tgr0ki9qehIMGuQipUopPVXMGo1uzR/ErB3HocJaOBc=";
+
+          impureEnvVars = pkgsWithOverlay.lib.fetchers.proxyImpureEnvVars;
+
+          SSL_CERT_FILE = "${pkgsWithOverlay.cacert}/etc/ssl/certs/ca-bundle.crt";
 
           buildPhase = ''
             export HOME=$TMPDIR
@@ -72,101 +101,49 @@
         policypress = pkgsWithOverlay.stdenv.mkDerivation {
           pname = "policypress";
           inherit version;
+          meta.mainProgram = "policypress";
+          meta.description = "PolicyPress - Policy documentation and compliance tooling";
 
           src = ./.;
 
-          nativeBuildInputs = [zig] ++ runtimeDeps;
-          buildInputs = runtimeDeps;
+          nativeBuildInputs = [zig];
+          buildInputs = [];
 
           dontConfigure = true;
+          FONTCONFIG_FILE = fontsConf;
 
           buildPhase = ''
             export HOME=$TMPDIR
-
             # Copy deps to writable location
             cp -r ${zigDeps} $TMPDIR/zig-cache
             chmod -R u+w $TMPDIR/zig-cache
             export ZIG_GLOBAL_CACHE_DIR=$TMPDIR/zig-cache
 
             zig build \
-              --prefix $out \
               -Doptimize=ReleaseSafe \
-              -Dtarget=native \
+              -Dtarget=${zigTarget} \
+              --prefix $out \
               --color off \
               --cache-dir $TMPDIR/.cache \
               --global-cache-dir $ZIG_GLOBAL_CACHE_DIR
           '';
 
           installPhase = ''
-            # Outputs are already in $out from --prefix
-            echo "Build outputs:"
-            ls -la $out/ || echo "Output directory missing!"
-
-            # Verify expected outputs exist
-            if [ -d "$out/pdfs" ]; then
-              echo "✓ PDFs generated"
-            fi
-            if [ -d "$out/public" ]; then
-              echo "✓ Site generated"
-            fi
-            if [ -d "$out/reports" ]; then
-              echo "✓ Reports generated"
-            fi
           '';
 
           fixupPhase = ''
             chmod -R u+w "$out" 2>/dev/null || true
           '';
         };
-
-        # Wrapper script for CI usage with environment variables
-        policypress-ci = pkgsWithOverlay.writeShellApplication {
-          name = "policypress";
-          runtimeInputs = runtimeDeps ++ [zig];
-          text = ''
-            set -euo pipefail
-
-            CONFIG_FILE="''${CONFIG_FILE:-config.toml}"
-            CONTENT_DIR="''${CONTENT_DIR:-content}"
-            DRAFT_MODE="''${DRAFT_MODE:-true}"
-            REDACT_MODE="''${REDACT_MODE:-true}"
-            PREFIX="''${PREFIX:-zig-out}"
-
-            BUILD_ARGS=("-Doptimize=ReleaseSafe" "--prefix" "$PREFIX")
-
-            if [ "$DRAFT_MODE" = "true" ]; then
-              BUILD_ARGS+=("-Ddraft=true")
-            fi
-
-            if [ "$REDACT_MODE" = "true" ]; then
-              BUILD_ARGS+=("-Dredact=true")
-            fi
-
-            echo "Running PolicyPress with:"
-            echo "  Config: $CONFIG_FILE"
-            echo "  Content: $CONTENT_DIR"
-            echo "  Draft: $DRAFT_MODE"
-            echo "  Redact: $REDACT_MODE"
-            echo "  Output: $PREFIX"
-
-            zig build -Dtarget=native "''${BUILD_ARGS[@]}"
-
-            echo ""
-            echo "Build complete. Outputs:"
-            echo "  PDFs: $PREFIX/pdfs"
-            echo "  Site: $PREFIX/public"
-            echo "  Reports: $PREFIX/reports"
-          '';
-        };
       in {
         packages = {
           default = policypress;
-          ci = policypress-ci;
         };
 
         apps.default = {
           type = "app";
-          program = "${policypress-ci}/bin/policypress";
+          program = "${lib.getExe policypress}";
+          inherit (policypress) meta;
         };
 
         devShells.default = pkgsWithOverlay.mkShell {
@@ -176,18 +153,18 @@
               zig
               pkgsWithOverlay.zls
               pkgsWithOverlay.watchexec
-              pkgsWithOverlay.act
+              pkgsWithOverlay.omnix
+              pkgsWithOverlay.typst
             ];
 
           shellHook = ''
+            export FONTCONFIG_FILE="${fontsConf}"
             echo "PolicyPress development environment"
             echo ""
-            echo "Note: For daily development, use 'devbox shell' instead"
-            echo "This flake shell is primarily for CI builds"
-            echo ""
-            echo "CI build commands:"
-            echo "  nix build .#default  - Build production artifacts"
-            echo "  nix run .#ci         - Run CI build script"
+            echo "Commands:"
+            echo "  om ci          - Run CI locally (builds & checks all flake outputs)"
+            echo "  nix build .#   - Build production artifacts"
+            echo "  nix run .#     - Run policypress"
           '';
         };
       };

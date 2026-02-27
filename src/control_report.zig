@@ -1,13 +1,16 @@
+//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: AGPL-3.0-or-later
+
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
 const Yaml = @import("yaml").Yaml;
-const FM = @import("frontmatter.zig");
+const FM = @import("FM");
 const clap = @import("clap");
 const Self = @This();
-const BuildConfig = @import("config.zig").Config;
+const BuildConfig = @import("config").Config;
 
 contents: []u8,
 arena: std.heap.ArenaAllocator,

@@ -54,11 +54,15 @@
           inherit version;
           src = ./.;
 
-          nativeBuildInputs = [zig pkgsWithOverlay.curl pkgsWithOverlay.git];
+          nativeBuildInputs = [zig pkgsWithOverlay.curl pkgsWithOverlay.git pkgsWithOverlay.cacert];
 
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
           outputHash = "sha256-Tgr0ki9qehIMGuQipUopPVXMGo1uzR/ErB3HocJaOBc=";
+
+          impureEnvVars = pkgsWithOverlay.lib.fetchers.proxyImpureEnvVars;
+
+          SSL_CERT_FILE = "${pkgsWithOverlay.cacert}/etc/ssl/certs/ca-bundle.crt";
 
           buildPhase = ''
             export HOME=$TMPDIR
@@ -115,6 +119,7 @@
         apps.default = {
           type = "app";
           program = "${lib.getExe policypress}";
+          inherit (policypress) meta;
         };
 
         devShells.default = pkgsWithOverlay.mkShell {
@@ -124,18 +129,16 @@
               zig
               pkgsWithOverlay.zls
               pkgsWithOverlay.watchexec
-              pkgsWithOverlay.act
+              pkgsWithOverlay.omnix
             ];
 
           shellHook = ''
             echo "PolicyPress development environment"
             echo ""
-            echo "Note: For daily development, use 'devbox shell' instead"
-            echo "This flake shell is primarily for CI builds"
-            echo ""
-            echo "CI build commands:"
-            echo "  nix build .#default  - Build production artifacts"
-            echo "  nix run .#         - Run policypress with defaults (draft and redact enabled)"
+            echo "Commands:"
+            echo "  om ci          - Run CI locally (builds & checks all flake outputs)"
+            echo "  nix build .#   - Build production artifacts"
+            echo "  nix run .#     - Run policypress"
           '';
         };
       };

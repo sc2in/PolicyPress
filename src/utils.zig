@@ -1,3 +1,5 @@
+//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: AGPL-3.0-or-later
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
@@ -6,7 +8,7 @@ const math = std.math;
 const Yaml = @import("yaml").Yaml;
 const mvzr = @import("mvzr");
 const tomlz = @import("tomlz");
-const ffm = @import("frontmatter.zig");
+const ffm = @import("FM");
 
 const panlog = std.log.scoped(.pandoc);
 

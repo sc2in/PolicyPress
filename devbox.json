@@ -75,7 +75,7 @@
         "if [ -n \"$PUBLISH\" ] && [ \"$PUBLISH\" = \"true\" ]; then devbox run build-site && devbox run build-pdfs; else devbox run build-site && devbox run build-pdfs-draft; fi"
       ],
       "test-ci-local": [
-        "act -r push -W .github/workflows/ci.yml -s GITHUB_TOKEN=$(gh auth token) --env \"NIX_CONFIG=access-tokens = github.com=$(gh auth token)\""
+        "act -r push -W .github/workflows/ci.yml -s GITHUB_TOKEN=$(gh auth token) --env \"NIX_CONFIG=access-tokens = github.com=$(gh auth token)\" --env NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt --container-options \"-v /etc/ssl/certs:/etc/ssl/certs:ro\""
       ],
       "cross-test": [
         "zig build -Doptimize=Debug -Dtarget=x86_64-linux test",

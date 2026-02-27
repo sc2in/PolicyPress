@@ -25,7 +25,7 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@v7
 
       - name: Install omnix
-        run: nix --accept-flake-config profile install nixpkgs#omnix
+        run: nix --accept-flake-config profile add nixpkgs#omnix
 
       - name: Run CI
         run: om ci run --include-all-dependencies

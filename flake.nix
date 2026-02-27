@@ -28,6 +28,16 @@
           inherit system;
           overlays = [zig-overlay.overlays.default];
         };
+        fontsConf = pkgs.makeFontsConf {
+          fontDirectories = [
+            pkgs.source-sans # "Source Sans 3" (was "Source Sans Pro")
+            pkgs.source-code-pro # "Source Code Pro"
+            # Add any additional fonts your documents need:
+            # pkgs.source-serif-pro
+            # pkgs.noto-fonts
+            # pkgs.liberation_ttf
+          ];
+        };
 
         # Extract version from build.zig.zon (single source of truth)
         version = let
@@ -39,10 +49,13 @@
           else "0.0.0";
 
         # Runtime dependencies for PDF generation
-        runtimeDeps = with pkgsWithOverlay; [
+        runtimeDeps = with pkgs; [
+          source-sans-pro
+          source-code-pro
           pandoc
           zola
           imagemagick
+          mermaid-filter
           eisvogel-tex.packages.${system}.default
         ];
 
@@ -97,10 +110,10 @@
           buildInputs = [];
 
           dontConfigure = true;
+          FONTCONFIG_FILE = fontsConf;
 
           buildPhase = ''
             export HOME=$TMPDIR
-
             # Copy deps to writable location
             cp -r ${zigDeps} $TMPDIR/zig-cache
             chmod -R u+w $TMPDIR/zig-cache
@@ -141,13 +154,11 @@
               pkgsWithOverlay.zls
               pkgsWithOverlay.watchexec
               pkgsWithOverlay.omnix
+              pkgsWithOverlay.typst
             ];
 
-          # Provide the dynamic linker path so Zig's native target
-          # detection doesn't warn on NixOS (no FHS layout)
-          NIX_LD = "${pkgsWithOverlay.stdenv.cc.libc}/lib/ld-linux-x86-64.so.2";
-
           shellHook = ''
+            export FONTCONFIG_FILE="${fontsConf}"
             echo "PolicyPress development environment"
             echo ""
             echo "Commands:"

@@ -1,0 +1,37 @@
+ci:
+  default:
+    root:
+      dir: .
+      steps:
+        build:
+          enable: true
+        flake-check:
+          enable: true
+        custom:
+          zig-test:
+            type: devshell
+            command:
+              - zig
+              - build
+              - test
+          zola-check:
+            type: devshell
+            command:
+              - zola
+              - check
+              - --skip-external-links
+
+develop:
+  default:
+    readme: |
+      🏛️ Welcome to **PolicyPress**
+
+      Commands:
+        om ci         - Run full CI locally
+        zig build     - Build the project
+        zola serve    - Live preview the site
+
+health:
+  default:
+    nix-version:
+      supported: ">=2.16.0"

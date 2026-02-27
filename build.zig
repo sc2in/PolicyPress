@@ -8,7 +8,9 @@ const math = std.math;
 const ReportType = @import("src/control_report.zig").Report;
 
 pub fn build(b: *std.Build) !void {
-    const target = b.standardTargetOptions(.{});
+    const target = b.standardTargetOptions(.{
+        .default_target = defaultTarget(),
+    });
     const optimize = b.standardOptimizeOption(.{});
 
     const tomlz = b.dependency("tomlz", .{
@@ -185,4 +187,17 @@ pub fn build(b: *std.Build) !void {
         const test_step = b.step("test", "Run unit tests");
         test_step.dependOn(&run_unit_tests.step);
     }
+}
+
+/// On NixOS there is no standard FHS layout, so Zig's native target detection
+/// probes many non-existent paths which is slow. Detect NixOS and return an
+/// explicit target query to skip the probing.
+fn defaultTarget() std.Target.Query {
+    if (std.fs.accessAbsolute("/etc/NIXOS", .{})) |_| {
+        return .{
+            .os_tag = .linux,
+            .abi = .gnu,
+        };
+    } else |_| {}
+    return .{};
 }

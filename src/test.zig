@@ -150,11 +150,11 @@ test "report generation" {
     const builddir = try tmp.dir.realpathAlloc(tst.allocator, ".");
     defer tst.allocator.free(builddir);
 
-    const c_file = try std.fs.path.join(tst.allocator, &.{ env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv, "templates/opencontrols/standards/SCF.json" });
+    const c_file = try std.fs.cwd().realpathAlloc(tst.allocator, "templates/opencontrols/standards/SCF.json");
     defer tst.allocator.free(c_file);
 
-    const c_path = try std.fs.path.join(tst.allocator, &.{env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv});
-    const p_path = try std.fs.path.join(tst.allocator, &.{ env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv, "content/policies" });
+    const c_path = try std.fs.cwd().realpathAlloc(tst.allocator, ".");
+    const p_path = try std.fs.path.join(tst.allocator, &.{ c_path, "content/policies" });
     defer tst.allocator.free(c_path);
     defer tst.allocator.free(p_path);
 

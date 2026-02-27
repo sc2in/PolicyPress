@@ -48,6 +48,17 @@
 
         zig = pkgsWithOverlay.zigpkgs."0.15.2";
 
+        # Map Nix system to Zig target triple to avoid native detection in sandbox
+        zigTarget =
+          {
+            "x86_64-linux" = "x86_64-linux-gnu";
+            "aarch64-linux" = "aarch64-linux-gnu";
+            "x86_64-darwin" = "x86_64-macos";
+            "aarch64-darwin" = "aarch64-macos";
+          }.${
+            system
+          };
+
         # Fetch Zig dependencies as a fixed-output derivation
         zigDeps = pkgsWithOverlay.stdenv.mkDerivation {
           pname = "policypress-zig-deps";
@@ -97,7 +108,7 @@
 
             zig build \
               -Doptimize=ReleaseSafe \
-              -Dtarget=native \
+              -Dtarget=${zigTarget} \
               --prefix $out \
               --color off \
               --cache-dir $TMPDIR/.cache \
@@ -131,6 +142,10 @@
               pkgsWithOverlay.watchexec
               pkgsWithOverlay.omnix
             ];
+
+          # Provide the dynamic linker path so Zig's native target
+          # detection doesn't warn on NixOS (no FHS layout)
+          NIX_LD = "${pkgsWithOverlay.stdenv.cc.libc}/lib/ld-linux-x86-64.so.2";
 
           shellHook = ''
             echo "PolicyPress development environment"

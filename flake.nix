@@ -21,6 +21,7 @@
       perSystem = {
         pkgs,
         system,
+        lib,
         ...
       }: let
         pkgsWithOverlay = import nixpkgs {
@@ -72,6 +73,8 @@
         policypress = pkgsWithOverlay.stdenv.mkDerivation {
           pname = "policypress";
           inherit version;
+          meta.mainProgram = "policypress";
+          meta.description = "PolicyPress - Policy documentation and compliance tooling";
 
           src = ./.;
 
@@ -89,9 +92,9 @@
             export ZIG_GLOBAL_CACHE_DIR=$TMPDIR/zig-cache
 
             zig build \
-              --prefix $out \
               -Doptimize=ReleaseSafe \
               -Dtarget=native \
+              --prefix $out \
               --color off \
               --cache-dir $TMPDIR/.cache \
               --global-cache-dir $ZIG_GLOBAL_CACHE_DIR
@@ -104,55 +107,14 @@
             chmod -R u+w "$out" 2>/dev/null || true
           '';
         };
-
-        # Wrapper script for CI usage with environment variables
-        policypress-ci = pkgsWithOverlay.writeShellApplication {
-          name = "policypress";
-          runtimeInputs = runtimeDeps ++ [zig];
-          text = ''
-            set -euo pipefail
-
-            CONFIG_FILE="''${CONFIG_FILE:-config.toml}"
-            CONTENT_DIR="''${CONTENT_DIR:-content}"
-            DRAFT_MODE="''${DRAFT_MODE:-true}"
-            REDACT_MODE="''${REDACT_MODE:-true}"
-            PREFIX="''${PREFIX:-zig-out}"
-
-            BUILD_ARGS=("-Doptimize=ReleaseSafe" "--prefix" "$PREFIX")
-
-            if [ "$DRAFT_MODE" = "true" ]; then
-              BUILD_ARGS+=("-Ddraft=true")
-            fi
-
-            if [ "$REDACT_MODE" = "true" ]; then
-              BUILD_ARGS+=("-Dredact=true")
-            fi
-
-            echo "Running PolicyPress with:"
-            echo "  Config: $CONFIG_FILE"
-            echo "  Content: $CONTENT_DIR"
-            echo "  Draft: $DRAFT_MODE"
-            echo "  Redact: $REDACT_MODE"
-            echo "  Output: $PREFIX"
-
-            zig build -Dtarget=native "''${BUILD_ARGS[@]}"
-
-            echo ""
-            echo "Build complete. Outputs:"
-            echo "  PDFs: $PREFIX/pdfs"
-            echo "  Site: $PREFIX/public"
-            echo "  Reports: $PREFIX/reports"
-          '';
-        };
       in {
         packages = {
           default = policypress;
-          ci = policypress-ci;
         };
 
         apps.default = {
           type = "app";
-          program = "${policypress-ci}/bin/policypress";
+          program = "${lib.getExe policypress}";
         };
 
         devShells.default = pkgsWithOverlay.mkShell {
@@ -173,7 +135,7 @@
             echo ""
             echo "CI build commands:"
             echo "  nix build .#default  - Build production artifacts"
-            echo "  nix run .#ci         - Run CI build script"
+            echo "  nix run .#         - Run policypress with defaults (draft and redact enabled)"
           '';
         };
       };

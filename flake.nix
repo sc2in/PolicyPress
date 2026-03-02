@@ -151,10 +151,11 @@
             runtimeDeps
             ++ [
               zig
-              pkgsWithOverlay.zls
-              pkgsWithOverlay.watchexec
+              pkgsWithOverlay.act
               pkgsWithOverlay.omnix
+              pkgsWithOverlay.watchexec
               pkgsWithOverlay.typst
+              pkgsWithOverlay.zls
             ];
 
           shellHook = ''

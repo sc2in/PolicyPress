@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+      contents: "write"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v12
+
+      - name: Setup Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+
+      - name: Install omnix
+        run: nix --accept-flake-config profile add nixpkgs#omnix
+
+      - name: Run CI
+        run: om ci run --include-all-dependencies
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p release-artifacts
+          POLICYPRESS_PATH=$(jq -r '.result.root.build.byName.policypress' result)
+          cp -rL "$POLICYPRESS_PATH"/* release-artifacts/
+
+      - name: Create release archive
+        run: |
+          cd release-artifacts
+          tar czf ../policypress-${{ github.ref_name }}.tar.gz bin/ docs/
+          cd ..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: policypress-${{ github.ref_name }}.tar.gz
+          generate_release_notes: true

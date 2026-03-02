@@ -23,6 +23,9 @@ jobs:
 
       - name: Setup Nix cache
         uses: DeterminateSystems/flakehub-cache-action@main
+        with:
+          use-gha-cache: "enabled"
+          flakehub-flake-name: "sc2in/PolicyPress"
 
       - name: Install omnix
         run: nix --accept-flake-config profile add nixpkgs#omnix
@@ -44,3 +47,17 @@ jobs:
           name: policypress
           path: artifacts/
           retention-days: 7
+
+      - name: Create release archive
+        if: ${{ success() && github.ref_type == 'tag' && github.ref == 'refs/heads/main' }}
+        run: |
+          cd release-artifacts
+          tar czf ../policypress-${{ github.ref_name }}.tar.gz bin/ docs/
+          cd ..
+
+      - name: Create GitHub Release
+        if: ${{ success() && github.ref_type == 'tag' && github.ref == 'refs/heads/main' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: policypress-${{ github.ref_name }}.tar.gz
+          generate_release_notes: true

@@ -22,7 +22,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v12
 
       - name: Setup Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@v7
+        uses: DeterminateSystems/flakehub-cache-action@main
 
       - name: Install omnix
         run: nix --accept-flake-config profile add nixpkgs#omnix

@@ -1,3 +1,108 @@
+// Sidebar content wrapper: sticky, scrollable, bounded height on large screens.
+// The wrapper (not the inner .docs-sidebar) is the sticky container so that the
+// absolutely-positioned toggle button (outside this wrapper) is unaffected.
+.sidebar-col-content {
+  @include media-breakpoint-up(lg) {
+    position: sticky;
+    top: 4rem;
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    overflow-x: clip;
+    padding-right: 0.5rem;
+    border-right: 1px solid $gray-200;
+  }
+}
+
+
+// Collapsible section toggle button inside sidebar.
+.sidebar-section-toggle {
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $gray-900 !important;
+  text-decoration: none !important;
+  text-transform: uppercase;
+
+  &:focus {
+    outline: 3px solid $primary;
+    outline-offset: 2px;
+  }
+
+  .sidebar-chevron {
+    float: right;
+    transition: transform 0.2s ease;
+    font-style: normal;
+  }
+
+  &[aria-expanded="false"] .sidebar-chevron {
+    transform: rotate(-90deg);
+  }
+}
+
+// Mobile toggle button.
+.sidebar-toggle {
+  font-size: $font-size-sm;
+}
+
+// Content column: allow flexbox to shrink it below its content's natural width
+// so that wide mermaid diagrams don't push the TOC off screen.
+.policy-content-col {
+  min-width: 0;
+}
+
+// TOC column: fixed minimum width so it stays readable.
+.policy-toc-col {
+  @include media-breakpoint-up(xl) {
+    flex: 0 0 220px;
+    width: 220px;
+    max-width: 220px;
+  }
+}
+
+// Floating sticky TOC on policy pages.
+.policy-toc {
+  @include media-breakpoint-up(xl) {
+    position: sticky;
+    top: 4rem;
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    padding-left: 1rem;
+    border-left: 1px solid $gray-200;
+    font-size: $font-size-sm;
+
+    h3 {
+      font-size: $font-size-sm;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: $gray-600;
+      margin-bottom: 0.5rem;
+    }
+
+    ul {
+      padding-left: 0;
+      list-style: none;
+    }
+
+    ul ul {
+      padding-left: 1rem;
+    }
+
+    a {
+      color: $gray-700;
+      text-decoration: none;
+      display: block;
+      padding: 0.2rem 0;
+
+      &:hover {
+        color: $primary;
+      }
+    }
+  }
+
+  @include media-breakpoint-down(xl) {
+    display: none;
+  }
+}
+
 // WCAG-compliant sidebar styles
 .docs-links,
 .docs-toc {
@@ -60,22 +165,22 @@
 .docs-links h3,
 .page-links h3 {
   text-transform: uppercase;
-  font-size: $font-size-base;
+  font-size: $font-size-md;
   margin: 1.25rem 0 0.5rem 0;
   padding: 1.5rem 0 0 0;
-  color: $gray-900; // Ensure sufficient contrast
+  color: $gray-900;
 }
 
 .docs-links h4,
 .page-links h4 {
   text-transform: none;
-  font-size: $font-size-base * 0.95;
+  font-size: $font-size-base;
   margin: 1rem 0 0.25rem 1rem;
   padding: 0.5rem 0 0 0;
-  font-weight: 600; // Improved visual hierarchy
-  color: $gray-800; // Ensure sufficient contrast
-  border-left: 2px solid $primary; // Visual indicator
-padding-left: 1.25rem; // More gap
+  font-weight: 600;
+  color: $gray-800;
+  border-left: 2px solid $primary;
+  padding-left: 1.25rem;
 }
 
 @include media-breakpoint-up(lg) {
@@ -106,10 +211,10 @@ padding-left: 1.25rem; // More gap
 
 // Enhanced link styles with proper contrast ratios
 a.docs-link {
-  color: $gray-900; // Ensure 4.5:1 contrast ratio
+  color: $gray-900;
   display: block;
-  padding: 0.5rem 0.75rem; // Increased target size (WCAG 2.5.5)
-  font-size: $font-size-base;
+  padding: 0.5rem 0.75rem;
+  font-size: $font-size-md;
   text-decoration: none;
   border-radius: 4px;
   transition: all 0.1s ease;
@@ -182,7 +287,6 @@ a.docs-link {
   text-decoration: none;
   color: $primary;
   background-color: $light;
-  transform: translateX(4px);
 }
 
 // Enhanced sidebar link styles
@@ -245,5 +349,86 @@ a.docs-link {
   .docs-link,
   .page-links a {
     transition: none;
+  }
+}
+
+// Zero-height sticky wrapper anchors the toggle at 50% viewport height
+// regardless of how tall the sidebar column is.
+.sidebar-toggle-wrap {
+  position: sticky;
+  top: calc(50vh - 16px); // 16px = half button height (32px / 2)
+  height: 0;
+  overflow: visible;
+  z-index: 20;
+}
+
+// Desktop sidebar collapse toggle button
+.sidebar-desktop-toggle {
+  position: absolute;
+  right: -16px;
+  top: 0;
+  z-index: 20;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bs-body-bg, #fff);
+  border: 2px solid $gray-400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: $gray-700;
+  transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  padding: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+
+  &:hover {
+    color: $primary;
+    border-color: $primary;
+  }
+
+  &:focus {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+// The sidebar column itself needs relative positioning for the toggle button
+.sidebar-col {
+  position: relative;
+}
+
+// Collapsed state: hide sidebar content, keep toggle button visible on the edge
+.sidebar-col.sidebar-collapsed {
+  flex: 0 0 0 !important;
+  width: 0 !important;
+  // No overflow: hidden here — the button is absolutely positioned and must remain visible.
+  // Content is clipped by the inner .sidebar-col-content wrapper instead.
+  padding: 0 !important;
+  min-width: 0 !important;
+
+  .sidebar-col-content {
+    overflow: hidden;
+    width: 0;
+  }
+
+  .sidebar-desktop-toggle {
+    transform: rotate(180deg);
+    display: flex !important;
+  }
+}
+
+// Dark mode toggle button
+body.dark .sidebar-desktop-toggle,
+[data-bs-theme="dark"] .sidebar-desktop-toggle {
+  background: $gray-800;
+  border-color: $gray-600;
+  color: $gray-400;
+
+  &:hover {
+    color: $link-color-dark;
+    border-color: $link-color-dark;
   }
 }

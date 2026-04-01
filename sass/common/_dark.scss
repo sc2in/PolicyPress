@@ -18,6 +18,38 @@ $navbar-dark-active-color:          $link-color-dark;
 
 /** Theme styles */
 
+// Applied immediately via inline script in <head> (sets data-bs-theme before first paint).
+// Covers the window between DOMContentLoaded and when JS adds body.dark.
+html[data-bs-theme="dark"] body {
+  background: $body-bg-dark;
+  color: $body-color-dark;
+}
+
+html[data-bs-theme="dark"] body .navbar {
+  background: $body-bg-dark;
+  border-bottom: 1px solid $border-dark;
+}
+
+html[data-bs-theme="dark"] body .navbar-light .navbar-brand {
+  color: $navbar-dark-color !important;
+}
+
+html[data-bs-theme="dark"] body .navbar-light .navbar-nav .nav-link {
+  color: $navbar-dark-color;
+}
+
+html[data-bs-theme="dark"] body .navbar .btn-link {
+  color: $navbar-dark-color;
+}
+
+html[data-bs-theme="dark"] body .form-control.is-search {
+  background: $body-overlay-dark;
+  color: $body-color-dark;
+  border-color: $border-dark;
+  &::placeholder { color: darken($body-color-dark, 15%); }
+}
+
+// Full dark mode — applied once JS adds body.dark
 body.dark {
   background: $body-bg-dark;
   color: $body-color-dark;
@@ -108,10 +140,15 @@ body.dark .showcase-meta a:focus {
 }
 
 body.dark .docs-link:hover,
-body.dark .docs-link.active,
 body.dark .page-links a:hover {
   text-decoration: none;
   color: $link-color-dark;
+  background-color: $gray-700;
+}
+
+body.dark a.docs-link.active {
+  background-color: darken($link-color-dark, 20%);
+  color: $white;
 }
 
 body.dark .navbar-light .navbar-text a {
@@ -256,6 +293,20 @@ body.dark .docs-links h3:not(:first-child) {
 
 body.dark a.docs-link {
   color: $body-color-dark;
+}
+
+body.dark .docs-links h3,
+body.dark .page-links h3,
+body.dark .docs-links h3.sidebar-link,
+body.dark .page-links h3.sidebar-link {
+  color: $body-color-dark;
+  border-top-color: $border-dark;
+}
+
+body.dark .docs-links h4,
+body.dark .page-links h4 {
+  color: darken($body-color-dark, 10%);
+  border-left-color: $link-color-dark;
 }
 
 body.dark .page-links li:not(:first-child) {
@@ -434,4 +485,18 @@ body.dark .copy-status:active::after {
     --pp-dropdown-border: #{$gray-700};
     --pp-dropdown-shadow: rgba(0, 0, 0, 0.4);
   }
+}
+
+// Text selection in dark mode
+[data-bs-theme="dark"] ::selection,
+body.dark ::selection {
+  background-color: lighten($primary, 10%);
+  color: $white;
+}
+
+// Report section-title hover in dark mode
+[data-bs-theme="dark"],
+body.dark {
+  --pp-section-title-bg: #{$gray-800};
+  --pp-section-title-hover-bg: #{$gray-700};
 }

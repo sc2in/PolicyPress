@@ -34,11 +34,17 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = .ReleaseSafe,
     });
-    const tera_mod = b.addModule("tera", .{
+    const zetta_dep = b.dependency("zetta", .{
         .target = target,
         .optimize = optimize,
-        .root_source_file = b.path("src/tera/tera.zig"),
     });
+    const zetta_mod = zetta_dep.module("zetta");
+
+    const zigmark_dep = b.dependency("zigmark", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const zigmark_mod = zigmark_dep.module("zigmark");
 
     const frontmatter_mod = b.addModule("frontmatter", .{
         .target = target,
@@ -47,6 +53,8 @@ pub fn build(b: *std.Build) !void {
     });
     frontmatter_mod.addImport("yaml", yaml.module("yaml"));
     frontmatter_mod.addImport("tomlz", tomlz.module("tomlz"));
+    frontmatter_mod.addImport("zetta", zetta_mod);
+    frontmatter_mod.addImport("zigmark", zigmark_mod);
     const config_mod = b.addModule("config_parser", .{
         .root_source_file = b.path("src/config.zig"),
         .target = target,
@@ -62,8 +70,7 @@ pub fn build(b: *std.Build) !void {
     });
     utils_mod.addImport("FM", frontmatter_mod);
     utils_mod.addImport("mvzr", mvzr.module("mvzr"));
-    utils_mod.addImport("yaml", yaml.module("yaml"));
-    utils_mod.addImport("tomlz", tomlz.module("tomlz"));
+    utils_mod.addImport("zigmark", zigmark_mod);
 
     var pandoc_sh: *std.Build.Step.Compile = undefined;
 
@@ -102,7 +109,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-    pandoc_sh_mod.addImport("tera", tera_mod);
+    pandoc_sh_mod.addImport("zetta", zetta_mod);
     pandoc_sh_mod.addImport("FM", frontmatter_mod);
     pandoc_sh_mod.addImport("mvzr", mvzr.module("mvzr"));
     pandoc_sh_mod.addImport("datetime", pg.module("datetime"));

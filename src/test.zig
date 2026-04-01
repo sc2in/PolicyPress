@@ -6,7 +6,7 @@ const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
 const utils = @import("utils");
-const fm = @import("FM");
+const zigmark = @import("zigmark");
 const pandoc = @import("pandoc");
 const config = @import("config").Config;
 const report = @import("reports");
@@ -27,7 +27,7 @@ const TestConfig =
 
 test {
     _ = utils;
-    _ = fm;
+    _ = zigmark;
     _ = pandoc;
     _ = report;
     tst.refAllDeclsRecursive(@This());
@@ -57,12 +57,13 @@ test "policy processing" {
     const test_policy = try test_policy_file.readToEndAlloc(tst.allocator, std.math.maxInt(usize));
     defer tst.allocator.free(test_policy);
 
-    var frontmatter = try fm.initFromMarkdown(tst.allocator, test_policy);
+    var frontmatter = try zigmark.Frontmatter.initFromMarkdown(tst.allocator, test_policy);
     defer frontmatter.deinit();
     try tst.expectEqualStrings("Test Policy", frontmatter.get("title").?.string);
     try tst.expectEqualStrings("A policy for testing purposes", frontmatter.get("description").?.string);
     try tst.expectEqualStrings("2024-11-13", frontmatter.get("date").?.string);
-    try tst.expectEqual(.integer, std.meta.activeTag(frontmatter.get("weight").?));
+    // zigmark's YAML parser normalises bare integers to .float (tries float first).
+    try tst.expectEqual(.float, std.meta.activeTag(frontmatter.get("weight").?));
     try tst.expectEqual(.object, std.meta.activeTag(frontmatter.get("taxonomies").?));
     try tst.expectEqual(.array, std.meta.activeTag(frontmatter.get("taxonomies.SCF").?));
     try tst.expectEqual(.array, std.meta.activeTag(frontmatter.get("taxonomies.TSC2017").?));

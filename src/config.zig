@@ -6,8 +6,8 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const fm = @import("FM");
-const toml = fm.tomlz;
+const zigmark = @import("zigmark");
+const toml = @import("tomlz");
 const dt = @import("datetime");
 const u = @import("utils");
 
@@ -175,7 +175,7 @@ pub const Config = struct {
             const content = try file.readToEndAlloc(alloc, 10 * 1024 * 1024);
             defer alloc.free(content);
 
-            var frontMatter = try fm.initFromMarkdown(alloc, content);
+            var frontMatter = try zigmark.Frontmatter.initFromMarkdown(alloc, content);
             defer frontMatter.deinit();
 
             self.validateFrontMatter(frontMatter) catch |e| {
@@ -185,7 +185,7 @@ pub const Config = struct {
         }
     }
 
-    pub fn validateFrontMatter(_: Config, frontMatter: fm) !void {
+    pub fn validateFrontMatter(_: Config, frontMatter: zigmark.Frontmatter) !void {
         if (frontMatter.get("title") == null) return error.NoTitleInFrontMatter;
         conflog.debug("Validating: {s}\n", .{frontMatter.get("title").?.string});
         if (frontMatter.get("description") == null) return error.NoDescriptionInFrontMatter;

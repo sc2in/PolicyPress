@@ -1,31 +1,75 @@
 {% extends "reports/base.html" %}
+{% import 'macros/coverage-bar.html' as macros_coverage %}
 
 {% block report_content %}
 {% set tax = get_taxonomy(kind="TSC2017") %}
-{% set data =
-load_data(path="templates/opencontrols/standards/TSC-2017 (SOC2).yml") %}
+{% set data = load_data(path="templates/opencontrols/standards/TSC-2017 (SOC2).yml") %}
 {% set line_items = tax.items | group_by(attribute="name") %}
 
+{% set covered_count = tax.items | length %}
+{% set_global total_count = 0 %}
+{% for key, item in data %}{% set_global total_count = total_count + 1 %}{% endfor %}
+{{ macros_coverage::coverage_bar(covered=covered_count, total=total_count, label="SOC 2 TSC Coverage") }}
+
+{# Group controls by family using set_global to track family transitions #}
+{% set_global cur_family = "" %}
+{% set_global open_section = false %}
+
 {% for key, item in data %}
+{% if item.family != cur_family %}
+  {# Close previous section if one was open #}
+  {% if open_section %}
+  </div><!-- end section-content -->
+</div><!-- end report-section -->
+  {% endif %}
+  {% set_global cur_family = item.family %}
+  {% set_global open_section = true %}
 <div class="report-section">
-  <h2 class="section-title">{{ key }}</h2>
+  <h2 class="section-title">{{ item.family }}</h2>
   <div class="section-content">
+{% endif %}
+
+{% set control_policies = line_items[key] | default(value=[]) %}
     <div class="control-item">
-      {% if key in line_items and 0 < line_items[key] | length %}
+      <div class="control-header">
+        <h3>
+          {% if control_policies | length > 0 %}
+          {% set _term = line_items[key] | first %}
+          <a href="{{ _term.permalink | safe }}" class="control-id-link">
+            {{ key }}
+          </a>
+          {% else %}
+          <span class="control-id-link">{{ key }}</span>
+          {% endif %}:
+          {{ item.name }}
+          {% if control_policies | length > 0 %}
+          <span class="badge bg-success-subtle text-success-emphasis ms-1" style="font-size: 0.7em;">
+            {{ control_policies | length }} {% if control_policies | length == 1 %}policy{% else %}policies{% endif %}
+          </span>
+          {% endif %}
+        </h3>
+        <div class="control-description">{{ item.description }}</div>
+      </div>
+
+      {% if control_policies | length > 0 %}
       <ul class="policy-list">
-        {% for line_item in line_items[key] %}
+        {% for line_item in control_policies %}
         {% for policy in line_item.pages %}
         <li>
-          <a href="{{ get_url(path=policy.path) }}">{{ policy.title }}</a>
+          <a href="{{ policy.permalink | safe }}">{{ policy.title }}</a>
         </li>
         {% endfor %}
         {% endfor %}
       </ul>
       {% else %}
-      <div class="no-policies">No policies found for {{ key }}</div>
+      <div class="no-policies">No policies mapped to {{ key }}</div>
       {% endif %}
     </div>
-  </div>
-</div>
 {% endfor %}
+
+{# Close the last open section #}
+{% if open_section %}
+  </div><!-- end section-content -->
+</div><!-- end report-section -->
+{% endif %}
 {% endblock report_content %}

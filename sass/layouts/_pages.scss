@@ -1,3 +1,15 @@
+// Mermaid diagrams: scale SVG to fit the content column width.
+// The SVG renderer sets absolute pixel widths; max-width: 100% on the SVG
+// tells it to shrink-to-fit without blowing out the flex layout.
+.docs-content .mermaid {
+  overflow-x: auto;
+
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
 .docs-content > h2[id]::before,
 .docs-content > h3[id]::before,
 .docs-content > h4[id]::before {

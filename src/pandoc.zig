@@ -45,7 +45,6 @@ pub fn main() !void {
 
     const alloc = gpa.allocator();
     var config = try Config.load_config_toml(alloc);
-    errdefer config.deinit(alloc);
     defer config.deinit(alloc);
 
     var workfile: ?[]u8 = null;

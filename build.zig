@@ -97,6 +97,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
     pandoc_sh_mod.addImport("zetta", zetta_mod);
+    pandoc_sh_mod.addImport("clap", clap.module("clap"));
     pandoc_sh_mod.addImport("mvzr", mvzr.module("mvzr"));
     pandoc_sh_mod.addImport("datetime", pg.module("datetime"));
     pandoc_sh_mod.addImport("config", config_mod);

@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: "write"
-      contents: "read"
+      contents: "write"
     steps:
       - uses: actions/checkout@v4
 
@@ -37,8 +37,8 @@ jobs:
         if: ${{ success() }}
         run: |
           mkdir -p artifacts
-          POLICYPRESS_PATH=$(jq -r '.result.root.build.byName.policypress' result)
-          cp -rL "$POLICYPRESS_PATH"/* artifacts/
+          # om ci leaves a 'result' symlink to the Nix build output
+          cp -rL result/* artifacts/
 
       - name: Upload artifacts
         if: ${{ success() }}
@@ -49,14 +49,12 @@ jobs:
           retention-days: 7
 
       - name: Create release archive
-        if: ${{ success() && github.ref_type == 'tag' && github.ref == 'refs/heads/main' }}
+        if: ${{ success() && github.ref_type == 'tag' }}
         run: |
-          cd release-artifacts
-          tar czf ../policypress-${{ github.ref_name }}.tar.gz bin/ docs/
-          cd ..
+          tar czf policypress-${{ github.ref_name }}.tar.gz -C artifacts .
 
       - name: Create GitHub Release
-        if: ${{ success() && github.ref_type == 'tag' && github.ref == 'refs/heads/main' }}
+        if: ${{ success() && github.ref_type == 'tag' }}
         uses: softprops/action-gh-release@v2
         with:
           files: policypress-${{ github.ref_name }}.tar.gz

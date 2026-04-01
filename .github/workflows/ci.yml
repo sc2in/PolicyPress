@@ -37,11 +37,7 @@ jobs:
         if: ${{ success() }}
         run: |
           mkdir -p artifacts
-          # om ci may produce result, result-<name>, or result-<name>-<output> symlinks
-          for r in result result-*; do
-            [ -e "$r" ] || continue
-            cp -rL "$r/." artifacts/
-          done
+          nix build --no-link --print-out-paths .# | xargs -I{} cp -rL {}/ artifacts/
 
       - name: Upload artifacts
         if: ${{ success() }}

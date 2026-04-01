@@ -5,6 +5,7 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
+
 const ReportType = @import("src/control_report.zig").Report;
 
 pub fn build(b: *std.Build) !void {
@@ -30,11 +31,11 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = .ReleaseSafe,
     });
-    const zetta_dep = b.dependency("zetta", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    const zetta_mod = zetta_dep.module("zetta");
+    // const zetta_dep = b.dependency("zetta", .{
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // const zetta_mod = zetta_dep.module("zetta");
 
     const zigmark_dep = b.dependency("zigmark", .{
         .target = target,
@@ -96,7 +97,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-    pandoc_sh_mod.addImport("zetta", zetta_mod);
+    // pandoc_sh_mod.addImport("zetta", zetta_mod);
     pandoc_sh_mod.addImport("clap", clap.module("clap"));
     pandoc_sh_mod.addImport("mvzr", mvzr.module("mvzr"));
     pandoc_sh_mod.addImport("datetime", pg.module("datetime"));

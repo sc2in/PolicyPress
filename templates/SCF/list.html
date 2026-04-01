@@ -1,43 +1,72 @@
 {% extends "reports/base.html" %}
+{% import 'macros/coverage-bar.html' as macros_coverage %}
 
 {% block report_content %}
-{# Pre-load all data once #}
 {% set tax = get_taxonomy(kind="SCF") %}
 {% set data = load_data(path="templates/opencontrols/standards/SCF.yml") %}
 {% set line_items = tax.items | group_by(attribute="name") %}
 
-{# Create domain groups efficiently #}
+{% set covered_count = tax.items | length %}
+{% set total_count = data | length %}
+{{ macros_coverage::coverage_bar(covered=covered_count, total=total_count, label="SCF Control Coverage") }}
+
 {% set domain_groups = data | group_by(attribute="domain") %}
 
-{# Render each domain section #}
 {% for domain, domain_items in domain_groups %}
+{% set_global domain_covered = 0 %}
+{% for ctrl_id, ctrl_group in domain_items | group_by(attribute="control_id") %}
+  {% if ctrl_id in line_items %}
+    {% set_global domain_covered = domain_covered + 1 %}
+  {% endif %}
+{% endfor %}
+{% set domain_total = domain_items | group_by(attribute="control_id") | length %}
+
 <div class="report-section">
-  <h2 class="section-title">{{ domain }}</h2>
+  <h2 class="section-title">
+    {{ domain }}
+    {% set _dc = domain_covered | float %}
+    {% set _dt = domain_total | float %}
+    {% set _dpct = 0 %}
+    {% if domain_total > 0 %}{% set _dpct = (_dc / _dt * 100) | round | int %}{% endif %}
+    <span class="badge ms-2 float-end
+      {%- if _dpct >= 80 %} bg-success
+      {%- elif _dpct >= 50 %} bg-warning text-dark
+      {%- else %} bg-secondary
+      {%- endif %}"
+      style="font-size: 0.75em;">
+      {{ domain_covered }}/{{ domain_total }}
+    </span>
+  </h2>
   <div class="section-content">
-    {# Group controls within this domain #}
-    {% for control_id, control_group in domain_items |
-    group_by(attribute="control_id") %}
+    {% for control_id, control_group in domain_items | group_by(attribute="control_id") %}
     {% set control = control_group | first %}
+    {% set control_policies = line_items[control_id] | default(value=[]) %}
     <div class="control-item">
       <div class="control-header">
-        <h2>{{ control.control_id }}: {{ control.control }}</h2>
+        <h3>
+          <span class="control-id-link">{{ control.control_id }}</span>:
+          {{ control.control | trim }}
+          {% if control_policies | length > 0 %}
+          <span class="badge bg-success-subtle text-success-emphasis ms-1" style="font-size: 0.7em;">
+            {{ control_policies | length }} {% if control_policies | length == 1 %}policy{% else %}policies{% endif %}
+          </span>
+          {% endif %}
+        </h3>
         <div class="control-description">{{ control.description }}</div>
       </div>
 
-      {# Use the map function to process policies if they exist #}
-      {% set control_policies = line_items[control_id] | default(value=[]) %}
       {% if control_policies | length > 0 %}
       <ul class="policy-list">
         {% for line_item in control_policies %}
         {% for policy in line_item.pages %}
         <li>
-          <a href="{{ get_url(path=policy.path) }}">{{ policy.title }}</a>
+          <a href="{{ policy.permalink | safe }}">{{ policy.title }}</a>
         </li>
         {% endfor %}
         {% endfor %}
       </ul>
       {% else %}
-      <div class="no-policies">No policies found for {{ control_id }}</div>
+      <div class="no-policies">No policies mapped to {{ control.control_id }}</div>
       {% endif %}
     </div>
     {% endfor %}

@@ -38,8 +38,11 @@
     .dependencies = .{
         // Breakout projects — co-located siblings, referenced as path deps.
         // Switch to git+https URLs with hashes before publishing to FlakeHub.
-        .zetta = .{ .path = "../zetta" },
-        .zigmark = .{ .path = "../zigmark" },
+        // .zetta = .{ .path = "../zetta" },
+        .zigmark = .{
+            .url = "git+https://github.com/sc2in/zigmark#8f1dd6e1d0bee951e22788d46a9754e36042cd81",
+            .hash = "zigmark-0.5.0-cwOiyOu7CQCpsHzHQxXKOo17vdx8LA3F7nvXPa4ri8Ag",
+        },
         .tomlz = .{
             .url = "git+https://github.com/tsunaminoai/tomlz.git#b6362cb00e89d8f4996a9198a6ef33ac0523f52a",
             .hash = "tomlz-0.3.0-H2E6wzxKAgD6D_3w6raXVf-FpUmFduKFWXQOCg6dQSGb",

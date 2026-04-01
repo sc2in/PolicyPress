@@ -62,8 +62,7 @@ test "policy processing" {
     try tst.expectEqualStrings("Test Policy", frontmatter.get("title").?.string);
     try tst.expectEqualStrings("A policy for testing purposes", frontmatter.get("description").?.string);
     try tst.expectEqualStrings("2024-11-13", frontmatter.get("date").?.string);
-    // zigmark's YAML parser normalises bare integers to .float (tries float first).
-    try tst.expectEqual(.float, std.meta.activeTag(frontmatter.get("weight").?));
+    try tst.expectEqual(.integer, std.meta.activeTag(frontmatter.get("weight").?));
     try tst.expectEqual(.object, std.meta.activeTag(frontmatter.get("taxonomies").?));
     try tst.expectEqual(.array, std.meta.activeTag(frontmatter.get("taxonomies.SCF").?));
     try tst.expectEqual(.array, std.meta.activeTag(frontmatter.get("taxonomies.TSC2017").?));

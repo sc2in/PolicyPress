@@ -36,6 +36,10 @@
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
     .dependencies = .{
+        // Breakout projects — co-located siblings, referenced as path deps.
+        // Switch to git+https URLs with hashes before publishing to FlakeHub.
+        .zetta = .{ .path = "../zetta" },
+        .zigmark = .{ .path = "../zigmark" },
         .tomlz = .{
             .url = "git+https://github.com/tsunaminoai/tomlz.git#b6362cb00e89d8f4996a9198a6ef33ac0523f52a",
             .hash = "tomlz-0.3.0-H2E6wzxKAgD6D_3w6raXVf-FpUmFduKFWXQOCg6dQSGb",

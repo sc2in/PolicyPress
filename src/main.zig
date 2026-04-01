@@ -85,7 +85,7 @@ pub fn main() !void {
     var walker = try policy_dir.walk(alloc);
     defer walker.deinit();
 
-    const output_path = if (res.args.config) |c| c else "public";
+    const output_path = if (res.args.output) |o| o else "public";
     config.build_dir = output_path;
     var output_dir = std.fs.cwd().openDir(output_path, .{ .access_sub_paths = true }) catch |err| {
         if (err == error.FileNotFound) {

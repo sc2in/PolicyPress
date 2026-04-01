@@ -1,0 +1,85 @@
+name: PolicyPress
+description: Build ISMS policy PDFs and a Zola static site from markdown content.
+author: sc2in
+
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  config_path:
+    description: Path to the Zola config.toml file.
+    required: false
+    default: config.toml
+  output_dir:
+    description: Output directory for PDFs and reports.
+    required: false
+    default: public
+  draft_mode:
+    description: >
+      Set to 'true' to stamp PDFs with a DRAFT watermark.
+      Set to 'false' (default) to produce clean production PDFs.
+    required: false
+    default: 'false'
+  redact_mode:
+    description: >
+      Set to 'true' to redact content inside redaction shortcode tags.
+      Set to 'false' (default) to include all content.
+    required: false
+    default: 'false'
+
+outputs:
+  pdf_path:
+    description: Path to the directory containing generated PDFs.
+    value: ${{ steps.build.outputs.pdf_path }}
+  site_path:
+    description: Path to the directory containing the built static site.
+    value: ${{ steps.build.outputs.site_path }}
+  report_path:
+    description: Path to the directory containing compliance reports.
+    value: ${{ steps.build.outputs.report_path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install Nix
+      uses: DeterminateSystems/determinate-nix-action@v3
+
+    - name: Setup Nix cache
+      uses: DeterminateSystems/flakehub-cache-action@main
+
+    - name: Build PDFs and site
+      id: build
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        DRAFT_FLAG=""
+        REDACT_FLAG=""
+        if [ "${{ inputs.draft_mode }}" != "true" ]; then
+          DRAFT_FLAG="--no-draft"
+        fi
+        if [ "${{ inputs.redact_mode }}" != "true" ]; then
+          REDACT_FLAG="--no-redact"
+        fi
+
+        # Run policypress and zola inside the devshell which provides all
+        # runtime dependencies: pandoc, zola, imagemagick, mermaid-filter,
+        # eisvogel-tex, and required fonts.
+        nix develop "github:sc2in/policypress" --command bash -c "
+          set -euo pipefail
+          zola build
+          policypress \
+            -c '${{ inputs.config_path }}' \
+            -o '${{ inputs.output_dir }}' \
+            ${DRAFT_FLAG} \
+            ${REDACT_FLAG}
+        "
+
+        PDF_PATH="${{ inputs.output_dir }}/pdf"
+        REPORT_PATH="${{ inputs.output_dir }}/reports"
+        SITE_PATH="public"
+
+        echo "pdf_path=${PDF_PATH}"       >> "$GITHUB_OUTPUT"
+        echo "site_path=${SITE_PATH}"     >> "$GITHUB_OUTPUT"
+        echo "report_path=${REPORT_PATH}" >> "$GITHUB_OUTPUT"

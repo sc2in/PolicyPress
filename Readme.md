@@ -221,7 +221,16 @@ PolicyPress is developed and maintained by [Star City Security Consulting, LLC (
 
 **With assistance from:**
 
-- [Claude](https://claude.ai) (Anthropic) — pair programming and code review throughout development
+- [Perplexity.ai](https://www.perplexity.ai) — research assistance
+- [Github Copilot](https://copilot.github.com/) — pair programming and code review
+- [Claude](https://claude.ai) (Anthropic) — pair programming and code review
+
+**Built on:**
+
+- [Zola](https://www.getzola.org/) — static site generator
+- [Eisvogel](https://github.com/Wandmalfarbe/pandoc-latex-template) — PDF template by Pascal Wagler
+- [Secure Controls Framework (SCF)](https://securecontrolsframework.com/) — control taxonomy
+- [AICPA Trust Services Criteria (TSC)](https://www.aicpa-cima.com/resources/landing/2017-trust-services-criteria) — SOC 2 control framework
 
 ## License
 

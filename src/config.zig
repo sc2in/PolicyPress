@@ -125,9 +125,9 @@ pub const Config = struct {
         });
         config.color = e.getString("pdf_color").?;
         config.org = e.getString("organization").?;
-        config.build_dir = "zig-out/pdfs";
+        config.build_dir = "public";
         config.zola_config = t;
-        config.redact = e.getBool("redact") orelse return error.NoRedactInZolaExtra;
+        config.redact = e.getBool("redact") orelse false;
         return config;
     }
     pub fn deinit(self: *Config, alloc: Allocator) void {

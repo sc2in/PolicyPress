@@ -6,7 +6,7 @@
     //
     // It is redundant to include "zig" in this name because it is already
     // within the Zig package namespace.
-    .name = .policy_center,
+    .name = .policypress,
 
     // This is a [Semantic Version](https://semver.org/).
     // In a future version of Zig it will be used for package deduplication.
@@ -24,7 +24,7 @@
     // original project's identity. Thus it is recommended to leave the comment
     // on the following line intact, so that it shows up in code reviews that
     // modify the field.
-    .fingerprint = 0x6a2406391dae515e, // Changing this has security and trust implications.
+    .fingerprint = 0xed2ff41332290ae6, // Changing this has security and trust implications.
 
     // Tracks the earliest Zig version that the package considers to be a
     // supported use case.
@@ -40,8 +40,8 @@
         // Switch to git+https URLs with hashes before publishing to FlakeHub.
         // .zetta = .{ .path = "../zetta" },
         .zigmark = .{
-            .url = "git+https://github.com/sc2in/zigmark#8f1dd6e1d0bee951e22788d46a9754e36042cd81",
-            .hash = "zigmark-0.5.0-cwOiyOu7CQCpsHzHQxXKOo17vdx8LA3F7nvXPa4ri8Ag",
+            .url = "git+https://github.com/sc2in/zigmark#0f92cb4d5ee836ef69a8ad3619a31ae7a0ba9a2a",
+            .hash = "zigmark-0.5.0-cwOiyBbLCQCm3nkkIyCFyRVzKv79NOBsJaBjdGX41XEH",
         },
         .tomlz = .{
             .url = "git+https://github.com/tsunaminoai/tomlz.git#b6362cb00e89d8f4996a9198a6ef33ac0523f52a",

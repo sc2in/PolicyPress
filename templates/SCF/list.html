@@ -3,7 +3,7 @@
 
 {% block report_content %}
 {% set tax = get_taxonomy(kind="SCF") %}
-{% set data = load_data(path="templates/opencontrols/standards/SCF.yml") %}
+{% set data = load_data(path=config.extra.scf_controls | default(value="templates/opencontrols/standards/SCF.yml")) %}
 {% set line_items = tax.items | group_by(attribute="name") %}
 
 {% set covered_count = tax.items | length %}

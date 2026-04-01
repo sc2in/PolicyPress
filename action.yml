@@ -48,38 +48,49 @@ runs:
     - name: Setup Nix cache
       uses: DeterminateSystems/flakehub-cache-action@main
 
-    - name: Build PDFs and site
-      id: build
+    - name: Fetch policypress theme
+      uses: actions/checkout@v4
+      with:
+        repository: sc2in/policypress
+        ref: ${{ github.action_ref }}
+        path: themes/policypress
+
+    - name: Copy pandoc templates
       shell: bash
+      run: |
+        # pandoc looks for eisvogel.latex in {data-dir}/templates/ (where
+        # data-dir defaults to the site root). Copy it from the theme so
+        # consumers don't need to vendor it.
+        mkdir -p templates
+        cp -n themes/policypress/templates/eisvogel.latex templates/
+        cp -n themes/policypress/templates/eisvogel.pdf templates/ 2>/dev/null || true
+
+    - name: Build site and PDFs
+      id: build
+      shell: nix develop "github:sc2in/policypress" --command bash -e {0}
       run: |
         set -euo pipefail
 
-        DRAFT_FLAG=""
-        REDACT_FLAG=""
-        if [ "${{ inputs.draft_mode }}" != "true" ]; then
-          DRAFT_FLAG="--no-draft"
+        # Build the Zola static site
+        zola build
+
+        # Build flags — explicitly set draft/redact so action inputs always
+        # override whatever is in the consumer's config.toml.
+        ARGS=(-c "${{ inputs.config_path }}" -o "${{ inputs.output_dir }}")
+        if [ "${{ inputs.draft_mode }}" = "true" ]; then
+          ARGS+=(--draft)
+        else
+          ARGS+=(--no-draft)
         fi
-        if [ "${{ inputs.redact_mode }}" != "true" ]; then
-          REDACT_FLAG="--no-redact"
+        if [ "${{ inputs.redact_mode }}" = "true" ]; then
+          ARGS+=(--redact)
+        else
+          ARGS+=(--no-redact)
         fi
 
-        # Run policypress and zola inside the devshell which provides all
-        # runtime dependencies: pandoc, zola, imagemagick, mermaid-filter,
-        # eisvogel-tex, and required fonts.
-        nix develop "github:sc2in/policypress" --command bash -c "
-          set -euo pipefail
-          zola build
-          policypress \
-            -c '${{ inputs.config_path }}' \
-            -o '${{ inputs.output_dir }}' \
-            ${DRAFT_FLAG} \
-            ${REDACT_FLAG}
-        "
+        # Generate PDFs — policypress and all runtime deps are in the devshell
+        policypress "${ARGS[@]}"
 
-        PDF_PATH="${{ inputs.output_dir }}/pdf"
-        REPORT_PATH="${{ inputs.output_dir }}/reports"
-        SITE_PATH="public"
-
-        echo "pdf_path=${PDF_PATH}"       >> "$GITHUB_OUTPUT"
-        echo "site_path=${SITE_PATH}"     >> "$GITHUB_OUTPUT"
-        echo "report_path=${REPORT_PATH}" >> "$GITHUB_OUTPUT"
+        echo "pdf_path=${{ inputs.output_dir }}/pdf"     >> "$GITHUB_OUTPUT"
+        echo "site_path=public"                          >> "$GITHUB_OUTPUT"
+        echo "report_path=${{ inputs.output_dir }}/reports" >> "$GITHUB_OUTPUT"

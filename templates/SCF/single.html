@@ -1,7 +1,7 @@
 {% extends "reports/base.html" %}
 
 {% block report_content %}
-{% set data = load_data(path="templates/opencontrols/standards/SCF.yml") %}
+{% set data = load_data(path=config.extra.scf_controls | default(value="templates/opencontrols/standards/SCF.yml")) %}
 {% set control_data = data | filter(attribute="control_id", value=term.name) | first | default(value=false) %}
 
 <div class="report-section">
@@ -39,9 +39,12 @@
       {% endif %}
 
       <div class="mt-3">
-        <a href="{{ get_url(path='@/reports/scf.md') }}" class="btn btn-sm btn-outline-secondary">
+        {% set _scf_back = config.extra.scf_report_page | default(value="") %}
+        {% if _scf_back %}
+        <a href="{{ get_url(path=_scf_back) | safe }}" class="btn btn-sm btn-outline-secondary">
           &larr; Back to SCF Overview
         </a>
+        {% endif %}
       </div>
     </div>
   </div>

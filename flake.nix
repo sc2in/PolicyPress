@@ -82,7 +82,7 @@
 
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
-          outputHash = "sha256-GkjpNbk4iFmg0k3g44BEv7JLMaRTN8q9b6+3qV3QZ3U=";
+          outputHash = "sha256-1ohqMPtZOgDiM+qAoOXcXbiJxz/yCVrrcPJdcFmxhHA=";
 
           impureEnvVars = pkgsWithOverlay.lib.fetchers.proxyImpureEnvVars;
 

@@ -13,51 +13,108 @@ macros_policies_latest_revision -%}
 
 {% block content %}
 
-<article>
-  <h1 class="text-center">{{ section.title }}</h1>
-  <div class="text-center">{{ section.content | safe }}</div>
-  <div class="card-list">
-    {% set index_path = current_path ~ "_index.md" |
-    trim_start_matches(pat="/") %}
-    {% set index = get_section(path=index_path) %}
-    {% for page in index.pages %}
-    <div class="card my-3">
-      <div class="card-body">
-        <a class="stretched-link" href="{{ page.permalink }}">
-          <i class="glyphicon glyphicon-file"></i>
-          <strong>{{ page.title }}</strong>
-        </a>
-        {% if page.extra.lead %}
-        <p class="lead">{{ page.extra.lead | safe }}</p>
-        {% elif page.description %}
-        <p class="lead">{{ page.description | safe }}</p>
-        {% endif %}
-        <p class="text-muted">
-          {# {{
-          macros_policies_latest_revision::policies_latest_revision(page=page)
-          | default(value="") }} #}
-        </p>
-      </div>
-    </div>
-    {% endfor %}
-    {% if index.subsections %}
-    {% for sub in section.subsections %}
-    {% set s = get_section(path=sub) %}
-    <div class="card my-3">
-      <div class="card-body">
-        <a class="stretched-link" href="{{ s.permalink }}">
-          <i class="glyphicon glyphicon-folder-close"></i>
-          {{ s.title }} &rarr;
-        </a>
-      </div>
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% for s in index.subsections %}
-    {% set subsection = get_section(path=s) %}
+{% set index_path = current_path ~ "_index.md" | trim_start_matches(pat="/") %}
+{% set index = get_section(path=index_path) %}
 
-    {% endfor %}
+<article id="main-content">
+  <h1>{{ section.title }}</h1>
+  {% if section.content %}
+  <div class="section-description">{{ section.content | safe }}</div>
+  {% endif %}
+
+  {% if index.pages %}
+  <div class="table-responsive mt-4">
+    <table class="table table-hover policy-index-table">
+      <thead>
+        <tr>
+          <th scope="col">Policy</th>
+          <th scope="col">Version</th>
+          <th scope="col">Last Reviewed</th>
+          <th scope="col">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for page in index.pages %}
+        {% set versions = page.extra.major_revisions | default(value=[]) %}
+        {% set current_version = versions | sort(attribute="date") | reverse | first | default(value="") %}
+        <tr>
+          <td>
+            <a href="{{ page.permalink | safe }}">{{ page.title }}</a>
+          </td>
+          <td>
+            {% if current_version %}
+              <span class="badge bg-secondary">v{{ current_version.version }}</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if page.extra.last_reviewed %}
+              {{ page.extra.last_reviewed | date(format="%b %d, %Y") }}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-muted small">
+            {% if page.description %}
+              {{ page.description | truncate(length=100) }}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+  {% endif %}
+
+  {% if index.subsections %}
+  {% for sub in index.subsections %}
+  {% set s = get_section(path=sub) %}
+  <h2 class="mt-4">{{ s.title }}</h2>
+  {% if s.pages %}
+  <div class="table-responsive">
+    <table class="table table-hover policy-index-table">
+      <thead>
+        <tr>
+          <th scope="col">Policy</th>
+          <th scope="col">Version</th>
+          <th scope="col">Last Reviewed</th>
+          <th scope="col">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for page in s.pages %}
+        {% set versions = page.extra.major_revisions | default(value=[]) %}
+        {% set current_version = versions | sort(attribute="date") | reverse | first | default(value="") %}
+        <tr>
+          <td><a href="{{ page.permalink | safe }}">{{ page.title }}</a></td>
+          <td>
+            {% if current_version %}
+              <span class="badge bg-secondary">v{{ current_version.version }}</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if page.extra.last_reviewed %}
+              {{ page.extra.last_reviewed | date(format="%b %d, %Y") }}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-muted small">
+            {% if page.description %}
+              {{ page.description | truncate(length=100) }}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  {% endfor %}
+  {% endif %}
 </article>
 
 {% endblock content %}

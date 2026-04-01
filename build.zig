@@ -18,10 +18,6 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
 
-    const yaml = b.dependency("yaml", .{
-        .target = target,
-        .optimize = .ReleaseSafe,
-    });
     const mvzr = b.dependency("mvzr", .{
         .target = target,
         .optimize = .ReleaseSafe,
@@ -46,29 +42,20 @@ pub fn build(b: *std.Build) !void {
     });
     const zigmark_mod = zigmark_dep.module("zigmark");
 
-    const frontmatter_mod = b.addModule("frontmatter", .{
-        .target = target,
-        .optimize = optimize,
-        .root_source_file = b.path("src/frontmatter.zig"),
-    });
-    frontmatter_mod.addImport("yaml", yaml.module("yaml"));
-    frontmatter_mod.addImport("tomlz", tomlz.module("tomlz"));
-    frontmatter_mod.addImport("zetta", zetta_mod);
-    frontmatter_mod.addImport("zigmark", zigmark_mod);
     const config_mod = b.addModule("config_parser", .{
         .root_source_file = b.path("src/config.zig"),
         .target = target,
         .optimize = optimize,
     });
     config_mod.addImport("datetime", pg.module("datetime"));
-    config_mod.addImport("FM", frontmatter_mod);
+    config_mod.addImport("tomlz", tomlz.module("tomlz"));
+    config_mod.addImport("zigmark", zigmark_mod);
 
     const utils_mod = b.addModule("utils", .{
         .root_source_file = b.path("src/utils.zig"),
         .target = target,
         .optimize = optimize,
     });
-    utils_mod.addImport("FM", frontmatter_mod);
     utils_mod.addImport("mvzr", mvzr.module("mvzr"));
     utils_mod.addImport("zigmark", zigmark_mod);
 
@@ -110,7 +97,6 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
     pandoc_sh_mod.addImport("zetta", zetta_mod);
-    pandoc_sh_mod.addImport("FM", frontmatter_mod);
     pandoc_sh_mod.addImport("mvzr", mvzr.module("mvzr"));
     pandoc_sh_mod.addImport("datetime", pg.module("datetime"));
     pandoc_sh_mod.addImport("config", config_mod);
@@ -134,11 +120,10 @@ pub fn build(b: *std.Build) !void {
         .root_source_file = b.path("src/control_report.zig"),
     });
     reports_mod.addImport("clap", clap.module("clap"));
-    reports_mod.addImport("yaml", yaml.module("yaml"));
     reports_mod.addImport("tomlz", tomlz.module("tomlz"));
     reports_mod.addImport("datetime", pg.module("datetime"));
     reports_mod.addImport("config", config_mod);
-    reports_mod.addImport("FM", frontmatter_mod);
+    reports_mod.addImport("zigmark", zigmark_mod);
 
     const policypress_mod = b.addModule("policypress", .{
         .target = target,
@@ -180,7 +165,7 @@ pub fn build(b: *std.Build) !void {
             .optimize = optimize,
             .link_libc = true,
         });
-        test_module.addImport("FM", frontmatter_mod);
+        test_module.addImport("zigmark", zigmark_mod);
         test_module.addImport("utils", utils_mod);
         test_module.addImport("pandoc", pandoc_sh_mod);
         test_module.addImport("config", config_mod);

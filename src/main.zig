@@ -1,5 +1,5 @@
 //! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: AGPL-3.0-or-later
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 //!
 //! This program automates the process of converting Markdown policy documents into styled PDF files.
 //! It loads configuration from a TOML file, processes Markdown files (including YAML front matter and custom placeholders),
@@ -28,8 +28,10 @@ pub fn main() !void {
         \\-c, --config <str>     Path to config file. (default: config.toml)
         \\-i, --input  <str>     Path to input content directory. (default: content)
         \\-o, --output <str>     Path to output directory. (default: public)
-        \\--no-draft             Do not add draft watermark to output.
-        \\--no-redact            Do not redact text within redaction tags in output.
+        \\--draft                Add draft watermark to output (overrides config.toml).
+        \\--no-draft             Do not add draft watermark to output (overrides config.toml).
+        \\--redact               Redact content within redaction tags (overrides config.toml).
+        \\--no-redact            Do not redact text within redaction tags (overrides config.toml).
         \\-v, --verbose          Enable verbose logging.
     );
     var buf: [128]u8 = undefined;
@@ -61,8 +63,14 @@ pub fn main() !void {
     var config = try Config.load(alloc, contents);
     defer config.deinit(alloc);
 
+    if (res.args.draft != 0) {
+        config.is_draft = true;
+    }
     if (res.args.@"no-draft" != 0) {
         config.is_draft = false;
+    }
+    if (res.args.redact != 0) {
+        config.redact = true;
     }
     if (res.args.@"no-redact" != 0) {
         config.redact = false;
@@ -85,7 +93,7 @@ pub fn main() !void {
     var walker = try policy_dir.walk(alloc);
     defer walker.deinit();
 
-    const output_path = if (res.args.config) |c| c else "public";
+    const output_path = if (res.args.output) |o| o else "public";
     config.build_dir = output_path;
     var output_dir = std.fs.cwd().openDir(output_path, .{ .access_sub_paths = true }) catch |err| {
         if (err == error.FileNotFound) {

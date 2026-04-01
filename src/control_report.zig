@@ -1,13 +1,12 @@
 //! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: AGPL-3.0-or-later
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const Yaml = @import("yaml").Yaml;
-const FM = @import("FM");
+const zigmark = @import("zigmark");
 const clap = @import("clap");
 const Self = @This();
 const BuildConfig = @import("config").Config;
@@ -93,7 +92,7 @@ pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
         const contents = try f.readToEndAlloc(a, 10_000_000);
         defer a.free(contents);
 
-        var fm = FM.initFromMarkdown(a, contents) catch |e| {
+        var fm = zigmark.Frontmatter.initFromMarkdown(a, contents) catch |e| {
             std.debug.print("Could not parse {s}\n", .{path});
             return e;
         };

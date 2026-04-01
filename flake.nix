@@ -82,7 +82,7 @@
 
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
-          outputHash = "sha256-Tgr0ki9qehIMGuQipUopPVXMGo1uzR/ErB3HocJaOBc=";
+          outputHash = "sha256-1ohqMPtZOgDiM+qAoOXcXbiJxz/yCVrrcPJdcFmxhHA=";
 
           impureEnvVars = pkgsWithOverlay.lib.fetchers.proxyImpureEnvVars;
 
@@ -150,6 +150,7 @@
           buildInputs =
             runtimeDeps
             ++ [
+              policypress
               zig
               pkgsWithOverlay.act
               pkgsWithOverlay.omnix

@@ -109,8 +109,13 @@ pub fn get_metadata(a: Allocator, txt: *Array(u8), config: anytype) !FrontMatter
         .object => |o| o,
         else => return error.InvalidRevisionFormat,
     };
-    const version_str = switch (most_recent_obj.get("version") orelse return error.NoVersionForRevision) {
+    // zigmark's YAML parser returns quoted numeric scalars (e.g. "1.1") as .float,
+    // so accept both .string and numeric variants and normalise to a slice.
+    var ver_buf: [32]u8 = undefined;
+    const version_str: []const u8 = switch (most_recent_obj.get("version") orelse return error.NoVersionForRevision) {
         .string => |s| s,
+        .float => |f| try std.fmt.bufPrint(&ver_buf, "{d}", .{f}),
+        .integer => |n| try std.fmt.bufPrint(&ver_buf, "{d}", .{n}),
         else => return error.InvalidVersionType,
     };
 

@@ -220,6 +220,10 @@ pub fn yamlNodeToJson(allocator: std.mem.Allocator, node: Yaml.Value) !JsonValue
         .boolean => |b| {
             return JsonValue{ .bool = b };
         },
+        .empty => {
+            // Null/empty YAML node (e.g. bare key with no value, or `~`)
+            return .null;
+        },
         else => |u| {
             std.debug.print("Unsuported type: {}\n", .{u});
             return error.UnsupportedYamlType;

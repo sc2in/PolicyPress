@@ -1,0 +1,36 @@
+{% macro coverage_bar(covered, total, label="Coverage") %}
+{% if total > 0 %}
+{% set _c = covered | float %}
+{% set _t = total | float %}
+{% set pct = (_c / _t * 100) | round | int %}
+{% else %}
+{% set pct = 0 %}
+{% endif %}
+<div class="coverage-summary mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-1">
+    <span class="coverage-label fw-semibold">{{ label }}</span>
+    <span class="coverage-numbers text-muted small">
+      {{ covered }} / {{ total }} controls mapped
+      <span class="badge ms-1
+        {%- if pct >= 80 %} bg-success
+        {%- elif pct >= 50 %} bg-warning text-dark
+        {%- else %} bg-danger
+        {%- endif %}">{{ pct }}%</span>
+    </span>
+  </div>
+  <div class="progress" style="height: 8px;"
+       role="progressbar"
+       aria-valuenow="{{ pct }}"
+       aria-valuemin="0"
+       aria-valuemax="100"
+       aria-label="{{ label }}: {{ pct }}% ({{ covered }} of {{ total }} controls)">
+    <div class="progress-bar
+      {%- if pct >= 80 %} bg-success
+      {%- elif pct >= 50 %} bg-warning
+      {%- else %} bg-danger
+      {%- endif %}"
+      style="width: {{ pct }}%">
+    </div>
+  </div>
+</div>
+{% endmacro %}

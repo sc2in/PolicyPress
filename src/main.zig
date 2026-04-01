@@ -28,8 +28,10 @@ pub fn main() !void {
         \\-c, --config <str>     Path to config file. (default: config.toml)
         \\-i, --input  <str>     Path to input content directory. (default: content)
         \\-o, --output <str>     Path to output directory. (default: public)
-        \\--no-draft             Do not add draft watermark to output.
-        \\--no-redact            Do not redact text within redaction tags in output.
+        \\--draft                Add draft watermark to output (overrides config.toml).
+        \\--no-draft             Do not add draft watermark to output (overrides config.toml).
+        \\--redact               Redact content within redaction tags (overrides config.toml).
+        \\--no-redact            Do not redact text within redaction tags (overrides config.toml).
         \\-v, --verbose          Enable verbose logging.
     );
     var buf: [128]u8 = undefined;
@@ -61,8 +63,14 @@ pub fn main() !void {
     var config = try Config.load(alloc, contents);
     defer config.deinit(alloc);
 
+    if (res.args.draft != 0) {
+        config.is_draft = true;
+    }
     if (res.args.@"no-draft" != 0) {
         config.is_draft = false;
+    }
+    if (res.args.redact != 0) {
+        config.redact = true;
     }
     if (res.args.@"no-redact" != 0) {
         config.redact = false;

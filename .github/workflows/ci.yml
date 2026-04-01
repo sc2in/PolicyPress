@@ -37,8 +37,11 @@ jobs:
         if: ${{ success() }}
         run: |
           mkdir -p artifacts
-          # om ci leaves a 'result' symlink to the Nix build output
-          cp -rL result/* artifacts/
+          # om ci may produce result, result-<name>, or result-<name>-<output> symlinks
+          for r in result result-*; do
+            [ -e "$r" ] || continue
+            cp -rL "$r/." artifacts/
+          done
 
       - name: Upload artifacts
         if: ${{ success() }}

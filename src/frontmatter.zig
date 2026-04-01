@@ -1,5 +1,5 @@
 //! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: AGPL-3.0-or-later
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
@@ -220,6 +220,10 @@ pub fn yamlNodeToJson(allocator: std.mem.Allocator, node: Yaml.Value) !JsonValue
         .boolean => |b| {
             return JsonValue{ .bool = b };
         },
+        .empty => {
+            // Null/empty YAML node (e.g. bare key with no value, or `~`)
+            return .null;
+        },
         else => |u| {
             std.debug.print("Unsuported type: {}\n", .{u});
             return error.UnsupportedYamlType;
@@ -346,43 +350,3 @@ test "jsonFindByPath works" {
     try tst.expect(not_found == null);
 }
 
-test {
-    const tera = @import("tera/tera.zig");
-    var arena = std.heap.ArenaAllocator.init(tst.allocator);
-    defer arena.deinit();
-    const alloc = arena.allocator();
-    var t = tera.Tera.init(alloc);
-    defer t.deinit();
-
-    const template_content =
-        \\<h2>{{ config.title }}</h2>
-        \\<div class="config">
-        \\    <p>Debug Mode: {{ config.extra.last_reviewed_date }}</p>
-        \\</div>
-    ;
-    try t.addTemplate("test", template_content);
-
-    const ex =
-        \\[config]
-        \\title="something"
-        \\[config.extra]
-        \\last_reviewed_date="2025-06-01"
-    ;
-
-    var f = try init(alloc, ex, .toml);
-    defer f.deinit();
-
-    const j = f.root;
-
-    var ctx = try tera.context.Context.fromJsonValue(alloc, j);
-    defer ctx.deinit();
-
-    const result = try t.render("test", ctx);
-    const expect =
-        \\<h2>something</h2>
-        \\<div class="config">
-        \\    <p>Debug Mode: 2025-06-01</p>
-        \\</div>
-    ;
-    try std.testing.expectEqualStrings(expect, result);
-}

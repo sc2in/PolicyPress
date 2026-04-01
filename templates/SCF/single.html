@@ -1,0 +1,52 @@
+{% extends "reports/base.html" %}
+
+{% block report_content %}
+{% set data = load_data(path=config.extra.scf_controls | default(value="templates/opencontrols/standards/SCF.yml")) %}
+{% set control_data = data | filter(attribute="control_id", value=term.name) | first | default(value=false) %}
+
+<div class="report-section">
+  <h2 class="section-title active">
+    {{ term.name }}
+    {% if control_data %}— {{ control_data.control | trim }}{% endif %}
+  </h2>
+  <div class="section-content active">
+    <div class="control-item">
+      {% if control_data %}
+      <div class="control-header">
+        <div class="text-muted small mb-1">
+          <span class="badge bg-secondary">{{ control_data.domain }}</span>
+        </div>
+        <div class="control-description">{{ control_data.description }}</div>
+      </div>
+      {% endif %}
+
+      <h3 class="mt-3 mb-2" style="font-size: 1rem;">Policies satisfying this control</h3>
+      {% if term.pages %}
+      <ul class="policy-list">
+        {% for policy in term.pages %}
+        <li>
+          <a href="{{ policy.permalink | safe }}">{{ policy.title }}</a>
+          {% if policy.extra.last_reviewed %}
+          <span class="text-muted small ms-2">
+            Last reviewed {{ policy.extra.last_reviewed | date(format="%b %d, %Y") }}
+          </span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="no-policies">No policies have been mapped to {{ term.name }} yet.</div>
+      {% endif %}
+
+      <div class="mt-3">
+        {% set _scf_back = config.extra.scf_report_page | default(value="") %}
+        {% if _scf_back %}
+        <a href="{{ get_url(path=_scf_back) | safe }}" class="btn btn-sm btn-outline-secondary">
+          &larr; Back to SCF Overview
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock report_content %}

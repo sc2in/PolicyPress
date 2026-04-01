@@ -1,13 +1,10 @@
 //! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: AGPL-3.0-or-later
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const FrontMatter = @import("FM");
-const tomlz = FrontMatter.tomlz;
-const Yaml = FrontMatter.Yaml;
 const ctime = @cImport(@cInclude("time.h"));
 const mvzr = @import("mvzr");
 const clap = @import("clap");
@@ -48,7 +45,6 @@ pub fn main() !void {
 
     const alloc = gpa.allocator();
     var config = try Config.load_config_toml(alloc);
-    errdefer config.deinit(alloc);
     defer config.deinit(alloc);
 
     var workfile: ?[]u8 = null;

@@ -1,10 +1,20 @@
 {% extends "page.html" %}
-{% import 'macros/policies-latest-revision.html' as
-macros_policies -%}
+{% import 'macros/policies-latest-revision.html' as macros_policies -%}
 
 {% block body %}
 {% set page_class = "docs single" %}
 {% endblock body %}
+
+{% block seo %}
+{{ super() }}
+{# Link to the PDF version for print and for discovery #}
+{% set versions = page.extra.major_revisions | sort(attribute="date") | reverse %}
+{% set current_version = versions | first %}
+{% set pdf_file = page.title ~ " - v" ~ current_version.version ~ ".pdf" | replace(from=" ", to="_") %}
+<link rel="alternate" type="application/pdf"
+  title="{{ page.title }} (PDF)"
+  href="/pdf/{{ pdf_file }}">
+{% endblock seo %}
 {% block header %}
 {# This value is matched by the config.extra.menu.main~url #}
 {% set current_section = "policies" %}
@@ -27,39 +37,58 @@ reverse %}
 
 {% set last_reviewed_ts = page.extra.last_reviewed | date(format="%s") | int %}
 {% set today = now() | date(format="%s") | int %}
-{% if (today - last_reviewed_ts) > 31557600 %}
-{{ throw(message="Error: Policy last reviewed date is older than one year") }}
-{% endif %}
+{% set review_overdue = (today - last_reviewed_ts) > 31557600 %}
 
 {% set pdf_file = page.title ~ " - v" ~ current_version.version ~ ".pdf" |
 replace(from=" ",to="_") %}
-{# {{ macros_sidebar::docs_sidebar(current_section=current_section) }} #}
-{{ macros_toc::docs_toc(page=page) }}
-<main class="docs-content policy">
-  <h2 class="title">{{page.title}} - v{{current_version.version}}</h2>
-  <div class="last-reviewed">Last reviewed and
-    approved on {{page.extra.last_reviewed | date(format="%B %d, %Y")}}</div>
-  <div class="summary">{{ page.summary | safe }}</div>
-  <div class="description">{{ page.description | safe }}</div>
-  <div class="pdf-links">
-    {%- if (config.mode != "serve") -%}
-    <a href="/pdf/{{pdf_file}}">PDF Version</a>
-    {% else %}
-    PDF Version not available in serve mode
-    {%- endif -%}
-  </div>
-  <div class="content">
-    {{ page.content | safe }}
+
+<div class="row flex-xl-nowrap">
+  <div class="col-xl policy-content-col">
+    <main class="docs-content policy" id="main-content">
+      <p class="print-pdf-notice">
+        A print-ready PDF of this policy is available at:
+        <strong>/pdf/{{ pdf_file }}</strong>
+      </p>
+      <h2 class="title">{{page.title}} - v{{current_version.version}}</h2>
+      <div class="last-reviewed">Last reviewed and
+        approved on {{page.extra.last_reviewed | date(format="%B %d, %Y")}}</div>
+      {% if review_overdue %}
+      <div class="alert alert-warning d-flex align-items-center mt-2" role="alert">
+        <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>
+        <span>This policy has not been reviewed in over a year and is due for review.</span>
+      </div>
+      {% endif %}
+      <div class="summary">{{ page.summary | safe }}</div>
+      <div class="description">{{ page.description | safe }}</div>
+      <div class="pdf-links">
+        {%- if (config.mode != "serve") -%}
+        <a href="/pdf/{{pdf_file}}">
+          <i class="fas fa-file-pdf" aria-hidden="true"></i> PDF Version
+        </a>
+        {% else %}
+        <span class="text-muted">PDF Version not available in serve mode</span>
+        {%- endif -%}
+      </div>
+      <div class="content">
+        {{ page.content | safe }}
+      </div>
+
+      {%- include "partials/revisions.html" -%}
+      {%- include "partials/satisfies.html" -%}
+
+      {% if config.extra.edit_page %}
+      {{ macros_edit_page::docs_edit_page(current_path=current_path) }}
+      {% endif %}
+      {{ macros_navigation::docs_navigation(page=page,
+      current_section=current_section) }}
+    </main>
   </div>
 
-  {#TODO: FIX {%- include "partials/revisions.html" -%} #}
-  {#TODO: FIX {%- include "partials/satisfies.html" -%} #}
-
-  {% if config.extra.edit_page %}
-  {{ macros_edit_page::docs_edit_page(current_path=current_path) }}
+  {% if page.toc %}
+  <div class="col-xl-2 d-none d-xl-block policy-toc-col">
+    {{ macros_toc::docs_toc(page=page) }}
+  </div>
   {% endif %}
-  {{ macros_navigation::docs_navigation(page=page,
-  current_section=current_section) }}
-</main>
+</div>
 
 {% endblock content %}

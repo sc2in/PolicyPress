@@ -60,3 +60,26 @@ p.meta {
   text-align: center;
   margin-bottom: 2rem;
 }
+
+// Print: hide navigation chrome and prompt user to use the PDF version.
+@media print {
+  .navbar,
+  .docs-sidebar,
+  .sidebar-col,
+  .policy-toc-col,
+  .docs-navigation,
+  .edit-page,
+  .skip-link,
+  .sidebar-toggle-wrap {
+    display: none !important;
+  }
+
+  .print-pdf-notice {
+    display: block !important;
+  }
+}
+
+// Hidden by default; shown only in print view above.
+.print-pdf-notice {
+  display: none;
+}

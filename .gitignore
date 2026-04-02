@@ -1,5 +1,6 @@
 .devbox
 .direnv
+.pre-commit-config.yaml
 .DS_Store
 .hugo_build.lock
 .netlify

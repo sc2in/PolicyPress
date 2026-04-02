@@ -25,7 +25,9 @@
   background-color: $primary;
   border-color: $primary;
 
-  .alert-link { color: $white; }
+  .alert-link {
+    color: $white;
+  }
 }
 
 .alert-warning {
@@ -33,7 +35,9 @@
   color: darken($yellow, 45%);
   border-color: mix($yellow, $white, 40%);
 
-  .alert-link { color: darken($yellow, 45%); }
+  .alert-link {
+    color: darken($yellow, 45%);
+  }
 }
 
 [data-bs-theme="dark"] {
@@ -93,11 +97,15 @@
     align-items: center;
     gap: 0.5rem;
 
-    i { font-size: 0.9em; }
+    i {
+      font-size: 0.9em;
+    }
   }
 
   .admonition-body {
-    > *:last-child { margin-bottom: 0; }
+    > *:last-child {
+      margin-bottom: 0;
+    }
   }
 }
 

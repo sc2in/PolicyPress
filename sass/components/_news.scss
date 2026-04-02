@@ -331,7 +331,11 @@
   .article-content {
     margin-bottom: 3rem;
 
-    h2, h3, h4, h5, h6 {
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
       color: var(--bs-heading-color);
       margin-top: 2rem;
       margin-bottom: 1rem;
@@ -343,7 +347,8 @@
       color: var(--bs-body-color);
     }
 
-    ul, ol {
+    ul,
+    ol {
       margin-bottom: 1.5rem;
       padding-left: 1.5rem;
 
@@ -438,21 +443,27 @@
             background: #1da1f2;
             color: $white;
 
-            &:hover { background: darken(#1da1f2, 10%); }
+            &:hover {
+              background: darken(#1da1f2, 10%);
+            }
           }
 
           &.linkedin {
             background: #0077b5;
             color: $white;
 
-            &:hover { background: darken(#0077b5, 10%); }
+            &:hover {
+              background: darken(#0077b5, 10%);
+            }
           }
 
           &.email {
             background: $gray-600;
             color: $white;
 
-            &:hover { background: darken($gray-600, 10%); }
+            &:hover {
+              background: darken($gray-600, 10%);
+            }
           }
         }
       }
@@ -486,7 +497,9 @@
             color: var(--bs-link-color);
           }
 
-          &.prev { text-align: left; }
+          &.prev {
+            text-align: left;
+          }
 
           &.next {
             text-align: right;

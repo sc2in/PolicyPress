@@ -11,7 +11,11 @@ $link-color-dark: $blue-300;
 // CSS Custom Properties — used by our own components (not Bootstrap's compiled elements).
 :root {
   // PolicyPress component variables
-  --pp-hero-bg: linear-gradient(135deg, rgba(93, 47, 134, 0.07) 0%, rgba(108, 117, 125, 0.07) 100%);
+  --pp-hero-bg: linear-gradient(
+    135deg,
+    rgba(93, 47, 134, 0.07) 0%,
+    rgba(108, 117, 125, 0.07) 100%
+  );
   --pp-card-bg: #{$white};
   --pp-card-shadow: rgba(0, 0, 0, 0.08);
   --pp-navbar-bg: rgba(255, 255, 255, 0.95);
@@ -41,7 +45,7 @@ $link-color-dark: $blue-300;
   --pp-space-xl: 3rem;
 
   --pp-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --pp-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
+  --pp-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
   --pp-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
 
   --pp-radius-sm: 6px;
@@ -67,9 +71,13 @@ $link-color-dark: $blue-300;
 //   2) Explicit selectors to override Bootstrap 5.2's hardcoded compiled colors
 [data-bs-theme="dark"] {
   // --- CSS variables (our components) ---
-  --pp-hero-bg: linear-gradient(135deg, rgba(93, 47, 134, 0.20) 0%, rgba(108, 117, 125, 0.20) 100%);
+  --pp-hero-bg: linear-gradient(
+    135deg,
+    rgba(93, 47, 134, 0.2) 0%,
+    rgba(108, 117, 125, 0.2) 100%
+  );
   --pp-card-bg: #{$gray-800};
-  --pp-card-shadow: rgba(0, 0, 0, 0.30);
+  --pp-card-shadow: rgba(0, 0, 0, 0.3);
   --pp-navbar-bg: rgba(33, 37, 41, 0.95);
   --pp-navbar-border: rgba(73, 80, 87, 0.6);
   --pp-feature-icon-bg: #{lighten($primary, 10%)};
@@ -85,7 +93,7 @@ $link-color-dark: $blue-300;
   --pp-search-border: #{$gray-600};
   --pp-dropdown-bg: #{$gray-800};
   --pp-dropdown-border: #{$gray-700};
-  --pp-dropdown-shadow: rgba(0, 0, 0, 0.40);
+  --pp-dropdown-shadow: rgba(0, 0, 0, 0.4);
   --pp-section-title-bg: #{$gray-800};
   --pp-section-title-hover-bg: #{$gray-700};
   --pp-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
@@ -110,15 +118,29 @@ $link-color-dark: $blue-300;
     background-color: $body-bg-dark;
   }
 
-  a:not(.btn):not(.nav-link):not(.navbar-brand):not(.docs-link):not(.dropdown-item) {
+  a:not(.btn):not(.nav-link):not(.navbar-brand):not(.docs-link):not(
+      .dropdown-item
+    ) {
     color: $link-color-dark;
   }
 
-  .text-muted { color: darken($body-color-dark, 10%) !important; }
-  .text-body  { color: $body-color-dark !important; }
-  .bg-light   { background-color: $body-overlay-dark !important; }
-  .bg-white   { background-color: $body-bg-dark !important; }
-  .border-top, .border-bottom, .border-start, .border-end, .border {
+  .text-muted {
+    color: darken($body-color-dark, 10%) !important;
+  }
+  .text-body {
+    color: $body-color-dark !important;
+  }
+  .bg-light {
+    background-color: $body-overlay-dark !important;
+  }
+  .bg-white {
+    background-color: $body-bg-dark !important;
+  }
+  .border-top,
+  .border-bottom,
+  .border-start,
+  .border-end,
+  .border {
     border-color: $border-dark !important;
   }
 
@@ -127,14 +149,26 @@ $link-color-dark: $blue-300;
     background-color: $body-bg-dark !important;
     border-bottom-color: $border-dark;
 
-    .navbar-brand { color: $body-color-dark !important; }
-    .nav-link     { color: $body-color-dark !important;
-      &:hover, &:focus { color: $link-color-dark !important; }
+    .navbar-brand {
+      color: $body-color-dark !important;
     }
-    .btn-link     { color: $body-color-dark !important;
-      &:hover, &:focus { color: $link-color-dark !important; }
+    .nav-link {
+      color: $body-color-dark !important;
+      &:hover,
+      &:focus {
+        color: $link-color-dark !important;
+      }
     }
-    .navbar-toggler { border-color: $border-dark; }
+    .btn-link {
+      color: $body-color-dark !important;
+      &:hover,
+      &:focus {
+        color: $link-color-dark !important;
+      }
+    }
+    .navbar-toggler {
+      border-color: $border-dark;
+    }
   }
 
   // Cards (Bootstrap 5.2 cards hardcode $white background)
@@ -143,12 +177,15 @@ $link-color-dark: $blue-300;
     border-color: $border-dark;
     color: $body-color-dark;
 
-    .card-header, .card-footer {
+    .card-header,
+    .card-footer {
       background-color: $body-bg-dark;
       border-color: $border-dark;
     }
 
-    &.bg-light { background-color: $body-overlay-dark !important; }
+    &.bg-light {
+      background-color: $body-overlay-dark !important;
+    }
   }
 
   // Tables
@@ -156,9 +193,16 @@ $link-color-dark: $blue-300;
     color: $body-color-dark;
     border-color: $border-dark;
 
-    th, td { border-color: $border-dark; }
-    thead   { background-color: $body-overlay-dark; }
-    tbody tr:nth-of-type(odd) { background-color: rgba($white, 0.03); }
+    th,
+    td {
+      border-color: $border-dark;
+    }
+    thead {
+      background-color: $body-overlay-dark;
+    }
+    tbody tr:nth-of-type(odd) {
+      background-color: rgba($white, 0.03);
+    }
   }
 
   // Code & preformatted text
@@ -179,8 +223,12 @@ $link-color-dark: $blue-300;
     border-color: $border-dark;
     color: $body-color-dark;
 
-    &::placeholder { color: darken($body-color-dark, 20%); }
-    &:focus        { box-shadow: 0 0 0 0.2rem rgba($link-color-dark, 0.25); }
+    &::placeholder {
+      color: darken($body-color-dark, 20%);
+    }
+    &:focus {
+      box-shadow: 0 0 0 0.2rem rgba($link-color-dark, 0.25);
+    }
   }
 
   // Alerts
@@ -195,15 +243,26 @@ $link-color-dark: $blue-300;
   }
 
   // Footer & navigation borders
-  .footer      { border-top-color: $border-dark; }
-  .docs-navigation, .blog-navigation { border-top-color: $border-dark; }
+  .footer {
+    border-top-color: $border-dark;
+  }
+  .docs-navigation,
+  .blog-navigation {
+    border-top-color: $border-dark;
+  }
 
   // Sidebar borders
   .docs-sidebar,
-  .sidebar-col-content { border-color: $border-dark; }
+  .sidebar-col-content {
+    border-color: $border-dark;
+  }
 
-  .docs-links h3:not(:first-child) { border-top-color: $border-dark; }
-  .page-links li:not(:first-child)  { border-top-color: $border-dark; }
+  .docs-links h3:not(:first-child) {
+    border-top-color: $border-dark;
+  }
+  .page-links li:not(:first-child) {
+    border-top-color: $border-dark;
+  }
 
   // Docs active link
   a.docs-link.active {
@@ -212,14 +271,22 @@ $link-color-dark: $blue-300;
   }
 
   // Logo swap (if site provides .logo-light / .logo-dark variants)
-  .logo-light { display: none !important; }
-  .logo-dark  { display: inline-block !important; }
+  .logo-light {
+    display: none !important;
+  }
+  .logo-dark {
+    display: inline-block !important;
+  }
 
   // Code copy button
-  .copy-status::after        { color: $body-color-dark; }
+  .copy-status::after {
+    color: $body-color-dark;
+  }
   .copy-status:hover::after,
   .copy-status:focus::after,
-  .copy-status:active::after { color: $link-color-dark; }
+  .copy-status:active::after {
+    color: $link-color-dark;
+  }
 }
 
 // Text selection

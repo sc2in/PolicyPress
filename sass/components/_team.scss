@@ -90,9 +90,15 @@
       font-size: 1.1rem;
       transition: var(--pp-transition);
 
-      &:hover { color: var(--bs-link-color); }
-      &.email:hover { color: $success; }
-      &.phone:hover { color: $info; }
+      &:hover {
+        color: var(--bs-link-color);
+      }
+      &.email:hover {
+        color: $success;
+      }
+      &.phone:hover {
+        color: $info;
+      }
     }
   }
 }
@@ -164,9 +170,13 @@
           text-decoration: none;
           font-size: 0.9rem;
 
-          &:hover { color: var(--bs-link-color); }
+          &:hover {
+            color: var(--bs-link-color);
+          }
 
-          i { font-size: 1rem; }
+          i {
+            font-size: 1rem;
+          }
         }
       }
     }

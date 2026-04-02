@@ -1,0 +1,7 @@
+sass/bootstrap/
+static/plugins/
+static/*.js
+public/
+zig-out/
+.zig-cache/
+test-out/

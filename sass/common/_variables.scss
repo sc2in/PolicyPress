@@ -43,10 +43,6 @@ $enable-negative-margins: true;
 $enable-deprecation-messages: true;
 $enable-important-utilities: true;
 
-/** Bootstrap navbar fix (https://git.io/fADqW) */
-$navbar-dark-toggler-icon-bg: none;
-$navbar-light-toggler-icon-bg: none;
-
 // Options
 //
 // Quickly modify global styling by enabling or disabling optional features.
@@ -143,7 +139,7 @@ $spacer: 1rem;
 
 // Navbar
 
-$navbar-padding-y: $spacer / 2;
+$navbar-padding-y: $spacer * 0.5;
 $navbar-padding-x: null;
 
 $navbar-nav-link-padding-x: 0.5rem;
@@ -166,7 +162,3 @@ $alert-margin-bottom: 0;
 $alert-border-radius: 0;
 $alert-link-font-weight: $headings-font-weight;
 $alert-border-width: 0;
-
-$alert-bg-scale: 0;
-$alert-border-scale: 0;
-$alert-color-scale: 0;

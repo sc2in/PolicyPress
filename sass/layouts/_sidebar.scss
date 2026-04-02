@@ -13,7 +13,6 @@
   }
 }
 
-
 // Collapsible section toggle button inside sidebar.
 .sidebar-section-toggle {
   font-size: $font-size-base;
@@ -106,7 +105,6 @@
   }
 }
 
-
 // Improved heading styles with proper contrast
 .docs-links h3,
 .page-links h3 {
@@ -135,7 +133,7 @@
     margin: 1.125rem 1.5rem 0.75rem 0;
     padding: 1.375rem 0 0 0;
   }
-  
+
   .docs-links h4,
   .page-links h4 {
     margin: 0.75rem 1.25rem 0.5rem 1rem;
@@ -164,7 +162,7 @@ a.docs-link {
   text-decoration: none;
   border-radius: 4px;
   transition: var(--pp-transition);
-  
+
   // Enhanced focus indicator (WCAG 2.4.7)
   &:focus {
     outline: 3px solid $primary;
@@ -172,13 +170,13 @@ a.docs-link {
     background-color: $light;
     box-shadow: 0 0 0 1px $primary;
   }
-  
+
   // Active state indicator (WCAG 2.4.8)
   &.active {
     background-color: $primary;
     color: $white;
     font-weight: 600;
-    
+
     &::before {
       content: "Current page: ";
       position: absolute;
@@ -194,19 +192,19 @@ a.docs-link {
   li {
     margin-top: 0.375rem;
     padding-top: 0.375rem;
-    
+
     &:not(:first-child) {
       border-top: 1px dashed $gray-300; // Improved contrast
     }
   }
-  
+
   ul ul li {
     border-top: none;
     padding-left: 1.5rem; // Increased indentation for hierarchy
     margin-top: 0.125rem;
     padding-top: 0.125rem;
   }
-  
+
   a {
     color: var(--bs-body-color);
     display: block;
@@ -215,7 +213,7 @@ a.docs-link {
     text-decoration: none;
     border-radius: var(--pp-radius-sm);
     transition: var(--pp-transition);
-    
+
     // Enhanced focus indicator
     &:focus {
       outline: 3px solid $primary;
@@ -309,7 +307,9 @@ a.docs-link {
   font-size: 1.2rem;
   line-height: 1;
   color: $gray-700;
-  transition: var(--pp-transition), transform 0.2s ease;
+  transition:
+    var(--pp-transition),
+    transform 0.2s ease;
   padding: 0;
   box-shadow: var(--pp-shadow-sm);
 

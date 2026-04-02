@@ -109,7 +109,7 @@ body {
     border-right: 1px solid $gray-200;
   }
 
-  @supports ((position:-webkit-sticky) or (position:sticky)) {
+  @supports ((position: -webkit-sticky) or (position: sticky)) {
     .docs-sidebar {
       position: -webkit-sticky;
       position: sticky;
@@ -152,7 +152,7 @@ body {
   order: 2;
 }
 
-@supports ((position:-webkit-sticky) or (position:sticky)) {
+@supports ((position: -webkit-sticky) or (position: sticky)) {
   .docs-toc {
     position: -webkit-sticky;
     position: sticky;
@@ -167,7 +167,8 @@ body {
   order: 1;
 }
 
-.docs-navigation, .blog-navigation {
+.docs-navigation,
+.blog-navigation {
   margin-top: 2rem;
   margin-bottom: 0;
   padding-top: 2rem;
@@ -182,7 +183,8 @@ body {
 }
 
 @include media-breakpoint-up(lg) {
-  .docs-navigation, .blog-navigation {
+  .docs-navigation,
+  .blog-navigation {
     margin-bottom: -1rem;
 
     a {
@@ -268,7 +270,9 @@ article {
 .docs-content .content,
 .news-article,
 .page .content {
-  font-feature-settings: "kern" 1, "liga" 1;
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1;
 }
 
 .docs-content .content > *,
@@ -334,12 +338,18 @@ article {
     content: "";
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     page-break-after: avoid;
     color: #000;
   }
 
-  pre, blockquote {
+  pre,
+  blockquote {
     page-break-inside: avoid;
     border: 1px solid #ccc;
   }

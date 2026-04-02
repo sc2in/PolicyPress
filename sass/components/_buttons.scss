@@ -38,15 +38,17 @@ body .toggle-dark {
   display: block;
 }
 
-body .toggle-light {
+// Light mode: show sun icon, hide moon icon
+.toggle-light {
   display: none;
 }
 
-body.dark .toggle-light {
+// Dark mode: show moon icon, hide sun icon
+[data-bs-theme="dark"] .toggle-light {
   display: block;
 }
 
-body.dark .toggle-dark {
+[data-bs-theme="dark"] .toggle-dark {
   display: none;
 }
 

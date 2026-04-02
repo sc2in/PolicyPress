@@ -13,6 +13,7 @@
 *.err
 *.log
 *.pdf
+static/pdfs/
 *.tmp.html
 **/internal/*
 **/node_modules/*

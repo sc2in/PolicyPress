@@ -27,7 +27,7 @@ pub fn main() !void {
         \\-h, --help             Display this help and exit.
         \\-c, --config <str>     Path to config file. (default: config.toml)
         \\-i, --input  <str>     Path to input content directory. (default: content)
-        \\-o, --output <str>     Path to output directory. (default: public)
+        \\-o, --output <str>     Path to output directory. (default: public/pdfs)
         \\--draft                Add draft watermark to output (overrides config.toml).
         \\--no-draft             Do not add draft watermark to output (overrides config.toml).
         \\--redact               Redact content within redaction tags (overrides config.toml).
@@ -93,7 +93,7 @@ pub fn main() !void {
     var walker = try policy_dir.walk(alloc);
     defer walker.deinit();
 
-    const output_path = if (res.args.output) |o| o else "public";
+    const output_path = if (res.args.output) |o| o else "public/pdfs";
     config.build_dir = output_path;
     var output_dir = std.fs.cwd().openDir(output_path, .{ .access_sub_paths = true }) catch |err| {
         if (err == error.FileNotFound) {

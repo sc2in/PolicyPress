@@ -196,6 +196,7 @@ pub fn process_md_file(
 
     try u.replace_org(a, &contents, config.org);
     try u.replace_zola_at(a, &contents, config.base_url);
+    try u.replace_admonitions(a, &contents);
     try u.replace_mermaid(a, &contents);
     try u.redact(a, &contents, config.redact);
 

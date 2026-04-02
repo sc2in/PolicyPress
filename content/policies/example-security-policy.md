@@ -22,6 +22,7 @@ taxonomies:
     - CRY-01
     - DCH-01
 extra:
+  math: true
   owner: Security Team
   last_reviewed: 2026-01-15
   major_revisions:
@@ -85,8 +86,8 @@ All sensitive data must be encrypted both at rest and in transit:
 - **In Transit**: TLS 1.3 or higher for network communications
 - **Key Management**: Cryptographic keys must be stored in approved key management systems
 
-{% redact() %}
 Current encryption key rotation schedule: Every 90 days
+{% redact() %}
 Key custodian: <security-team@organization.com>
 Recovery keys stored in: Corporate vault system
 {% end %}
@@ -153,6 +154,26 @@ All personnel must complete security awareness training:
 - Report security incidents promptly
 - Complete required security training
 - Protect credentials and access tokens
+
+{% admonition(type="note") %}
+Annual compliance attestation is required from all staff with access to confidential data. Attestation records are retained for a minimum of three years.
+{% end %}
+
+{% admonition(type="tip") %}
+Use the self-service compliance portal to complete your annual attestation — it takes less than five minutes and sends your manager an automatic confirmation.
+{% end %}
+
+{% admonition(type="warning") %}
+Access will be suspended automatically if the annual attestation is not completed within 30 days of the due date.
+{% end %}
+
+{% admonition(type="important", title="Legal Hold") %}
+If you receive a legal hold notice, do not delete or modify any documents, emails, or records without explicit written authorisation from Legal.
+{% end %}
+
+{% admonition(type="danger") %}
+Sharing credentials or bypassing MFA controls is a terminable offence and may trigger regulatory reporting obligations.
+{% end %}
 
 ## Compliance and Enforcement
 

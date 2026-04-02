@@ -1,0 +1,24 @@
+{% set t = type | default(value="note") %}
+{% set label = title | default(value=t | upper) %}
+
+{% if t == "warning" %}
+  {% set icon = "fas fa-exclamation-triangle" %}
+{% elif t == "danger" %}
+  {% set icon = "fas fa-times-circle" %}
+{% elif t == "tip" %}
+  {% set icon = "fas fa-lightbulb" %}
+{% elif t == "important" %}
+  {% set icon = "fas fa-flag" %}
+{% else %}
+  {% set icon = "fas fa-info-circle" %}
+{% endif %}
+
+<div class="admonition admonition-{{ t }}" role="note">
+  <p class="admonition-title">
+    <i class="{{ icon }}" aria-hidden="true"></i>
+    {{ label }}
+  </p>
+  <div class="admonition-body">
+    {{ body | safe }}
+  </div>
+</div>

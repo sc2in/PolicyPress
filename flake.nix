@@ -184,6 +184,21 @@
           inherit (policypress) meta;
         };
 
+        apps.serve = {
+          type = "app";
+          program = toString (pkgs.writeShellScript "policypress-serve" ''
+            set -e
+            mkdir -p static/pdfs
+            ${lib.getExe policypress} -o static/pdfs || true
+            ${lib.getExe policypress} -o static/pdfs --draft || true
+            ${lib.getExe pkgs.zola} serve &
+            ZOLA_PID=$!
+            trap 'kill $ZOLA_PID 2>/dev/null' EXIT INT TERM
+            ${lib.getExe pkgs.watchexec} -w content -e md -- sh -c '${lib.getExe policypress} -o static/pdfs; ${lib.getExe policypress} -o static/pdfs --draft'
+            wait
+          '');
+        };
+
         devShells.default = pkgsWithOverlay.mkShell {
           buildInputs =
             runtimeDeps

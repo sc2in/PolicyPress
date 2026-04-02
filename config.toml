@@ -161,6 +161,7 @@ include_content = true
 
 [extra]
 redact = true
+show_draft_pdfs = true
 policy_dir = "policies/"
 policy_root = "policies/_index.md"
 scf_report_page = "@/reports/scf.md"

@@ -1,0 +1,106 @@
+// Shared accessibility utilities — defined once, used site-wide.
+// Components should not redeclare these.
+
+// Skip link for keyboard navigation (WCAG 2.4.1)
+.skip-link {
+  position: fixed;
+  top: -40px;
+  left: 6px;
+  background: $primary;
+  color: $white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: var(--pp-radius-sm);
+  z-index: 1000;
+  font-weight: bold;
+
+  &:focus {
+    top: 6px;
+    outline: 3px solid $warning;
+    outline-offset: 2px;
+  }
+}
+
+// Screen reader only
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// High contrast mode — applied to any interactive element
+@media (forced-colors: active) {
+  a:focus,
+  button:focus,
+  [role="button"]:focus {
+    outline: 3px solid ButtonText;
+    outline-offset: 2px;
+  }
+}
+
+// Respect reduced motion preference site-wide
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// Sidebar + TOC scrollbar — styled once, applies everywhere these classes appear
+.docs-links,
+.docs-toc,
+.sidebar-col-content {
+  scrollbar-width: thin;
+  scrollbar-color: $gray-600 transparent;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $gray-600;
+    border-radius: 3px;
+  }
+
+  &:hover {
+    scrollbar-color: $gray-700 transparent;
+
+    &::-webkit-scrollbar-thumb {
+      background: $gray-700;
+    }
+  }
+}
+
+[data-bs-theme="dark"] {
+  .docs-links,
+  .docs-toc,
+  .sidebar-col-content {
+    scrollbar-color: $gray-600 transparent;
+
+    &::-webkit-scrollbar-thumb {
+      background: $gray-600;
+    }
+
+    &:hover {
+      scrollbar-color: $gray-500 transparent;
+
+      &::-webkit-scrollbar-thumb {
+        background: $gray-500;
+      }
+    }
+  }
+}

@@ -2,15 +2,15 @@
 .team-container {
   .page-header {
     margin-bottom: 3rem;
-    
+
     h1 {
       margin-bottom: 1rem;
-      color: $gray-900;
+      color: var(--bs-heading-color);
     }
-    
+
     .lead {
       font-size: 1.125rem;
-      color: $gray-600;
+      color: var(--bs-secondary-color);
     }
   }
 }
@@ -23,26 +23,27 @@
 }
 
 .team-member-card {
-  background: $white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--pp-card-bg);
+  border-radius: var(--pp-radius-sm);
+  box-shadow: var(--pp-shadow-sm);
+  border: 1px solid var(--bs-border-color);
+  transition: var(--pp-transition);
   position: relative;
   overflow: hidden;
-  
+
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--pp-shadow-md);
   }
-  
+
   .card-body {
     padding: 1.5rem;
     text-align: center;
   }
-  
+
   .member-photo {
     margin-bottom: 1rem;
-    
+
     img {
       width: 80px;
       height: 80px;
@@ -50,56 +51,48 @@
       border: 3px solid $primary;
     }
   }
-  
+
   .member-name {
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
-    
+
     a {
-      color: $gray-900;
+      color: var(--bs-heading-color);
       text-decoration: none;
-      
+
       &:hover {
-        color: $primary;
+        color: var(--bs-link-color);
       }
     }
   }
-  
+
   .member-position {
-    color: $primary;
+    color: var(--bs-link-color);
     font-weight: 500;
     margin-bottom: 0.75rem;
   }
-  
+
   .member-description {
-    color: $gray-600;
+    color: var(--bs-secondary-color);
     margin-bottom: 1rem;
     font-size: 0.95rem;
     line-height: 1.5;
   }
-  
+
   .member-contact {
     display: flex;
     gap: 0.75rem;
     justify-content: center;
-    
+
     .contact-link {
-      color: $gray-500;
+      color: var(--bs-secondary-color);
       font-size: 1.1rem;
-      transition: color 0.2s ease;
-      
-      &:hover {
-        color: $primary;
-      }
-      
-      &.email:hover {
-        color: $success;
-      }
-      
-      &.phone:hover {
-        color: $info;
-      }
+      transition: var(--pp-transition);
+
+      &:hover { color: var(--bs-link-color); }
+      &.email:hover { color: $success; }
+      &.phone:hover { color: $info; }
     }
   }
 }
@@ -108,21 +101,21 @@
 .team-member-profile {
   max-width: 800px;
   margin: 2rem auto;
-  
+
   .member-header {
     display: flex;
     gap: 2rem;
     margin-bottom: 2rem;
     align-items: center;
-    
+
     @media (max-width: 768px) {
       flex-direction: column;
       text-align: center;
     }
-    
+
     .member-photo-large {
       flex-shrink: 0;
-      
+
       img {
         width: 150px;
         height: 150px;
@@ -130,119 +123,116 @@
         border: 4px solid $primary;
       }
     }
-    
+
     .member-header-info {
       flex: 1;
-      
+
       .member-name {
         font-size: 2rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
-        color: $gray-900;
+        color: var(--bs-heading-color);
       }
-      
+
       .member-position {
         font-size: 1.25rem;
-        color: $primary;
+        color: var(--bs-link-color);
         font-weight: 600;
         margin-bottom: 0.5rem;
       }
-      
+
       .member-department {
-        color: $gray-600;
+        color: var(--bs-secondary-color);
         font-size: 1rem;
         margin-bottom: 1rem;
       }
-      
+
       .member-contact-info {
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
-        
+
         @media (max-width: 768px) {
           justify-content: center;
         }
-        
+
         .contact-link {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          color: $gray-600;
+          color: var(--bs-secondary-color);
           text-decoration: none;
           font-size: 0.9rem;
-          
-          &:hover {
-            color: $primary;
-          }
-          
-          i {
-            font-size: 1rem;
-          }
+
+          &:hover { color: var(--bs-link-color); }
+
+          i { font-size: 1rem; }
         }
       }
     }
   }
-  
+
   .member-content {
     margin-bottom: 2rem;
-    
+
     p {
       margin-bottom: 1rem;
       line-height: 1.6;
     }
   }
-  
+
   .member-certifications {
     margin-bottom: 2rem;
-    
+
     h3 {
-      color: $gray-900;
+      color: var(--bs-heading-color);
       margin-bottom: 1rem;
     }
-    
+
     .certifications-list {
       list-style: none;
       padding: 0;
-      
+
       .certification-item {
-        background: $light;
+        background: var(--pp-quick-action-bg);
+        color: var(--bs-body-color);
         padding: 0.5rem 1rem;
         margin-bottom: 0.5rem;
-        border-radius: 4px;
+        border-radius: var(--pp-radius-sm);
         border-left: 4px solid $primary;
       }
     }
   }
-  
+
   .member-skills {
     margin-bottom: 2rem;
-    
+
     h3 {
-      color: $gray-900;
+      color: var(--bs-heading-color);
       margin-bottom: 1rem;
     }
-    
+
     .skills-tags {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
-      
+
       .skill-tag {
         background: $primary;
         color: $white;
         padding: 0.25rem 0.75rem;
-        border-radius: 20px;
+        border-radius: var(--pp-radius-pill);
         font-size: 0.85rem;
         font-weight: 500;
       }
     }
   }
-  
+
   .member-navigation {
     text-align: center;
     padding-top: 2rem;
-    border-top: 1px solid $gray-200;
-    
+    border-top: 1px solid var(--bs-border-color);
+
     .btn {
       display: inline-flex;
       align-items: center;

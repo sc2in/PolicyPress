@@ -47,6 +47,7 @@ config.mode == "Serve" -%}
   </head>
   {% block body %}{% set page_class="home" %}{% endblock body %}
   <body class="{{ page_class }}">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     {% block header %}
     {{ macros_header::header(current_section="/") }}
     {% endblock header %}

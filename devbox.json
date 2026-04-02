@@ -58,7 +58,9 @@
         "zig build --watch --prominent-compile-errors -freference-trace=12 test"
       ],
       "serve": [
-        "zola serve"
+        "mkdir -p static/pdfs",
+        "policypress -o static/pdfs || true",
+        "zola serve & watchexec -w content -e md -- policypress -o static/pdfs"
       ],
       "preview": [
         "zola build --base-url http://0.0.0.0:1111",

@@ -1,9 +1,7 @@
 {% set redact = config.extra.redact or false %}
 
 {% if redact %}
-<span class="redaction">
-  {% for i in range(end=(body|length)) %}_{% endfor %}
-</span>
+<span class="redaction" aria-label="[redacted]" role="img">{{ body | safe }}</span>
 {% else %}
 {{ body | safe }}
-{%endif%}
+{% endif %}

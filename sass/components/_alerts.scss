@@ -1,63 +1,130 @@
+// ─── Bootstrap alerts ────────────────────────────────────────────────────────
+// Override Bootstrap's compiled-in alert colors that break in dark mode.
+
 .alert {
-  font-family: $font-family-monospace;
   font-size: $font-size-sm;
 }
 
 .alert-icon {
   margin-right: 0.75rem;
-}
-
-.docs .alert {
-  margin: 2rem -1.5rem;
+  flex-shrink: 0;
 }
 
 .alert .alert-link {
   text-decoration: underline;
-}
+  font-weight: $headings-font-weight;
 
-.alert-dark {
-  color: $white;
-  background-color: $black;
-}
-
-.alert-dark .alert-link {
-  color: $white;
-}
-
-.alert-light {
-  color: $black;
-}
-
-.alert-warning {
-  background: $beige;
-  color: $black;
-}
-
-/*
-.alert-light {
-  color: #215888;
-  background: linear-gradient(-45deg, rgb(212, 245, 255), rgb(234, 250, 255), rgb(234, 250, 255), #d3f6ef);
-}
-
-.alert-light .alert-link {
-  color: #215888;
-}
-*/
-
-.alert-white {
-  background-color: rgba(255, 255, 255, 0.95);
+  &:hover,
+  &:focus {
+    text-decoration: none;
+  }
 }
 
 .alert-primary {
   color: $white;
   background-color: $primary;
+  border-color: $primary;
+
+  .alert-link { color: $white; }
 }
 
-.alert-primary .alert-link {
-  color: $white;
+.alert-warning {
+  background-color: mix($yellow, $white, 20%);
+  color: darken($yellow, 45%);
+  border-color: mix($yellow, $white, 40%);
+
+  .alert-link { color: darken($yellow, 45%); }
 }
 
-.alert .alert-link:hover,
-.alert .alert-link:focus {
-  text-decoration: none;
+[data-bs-theme="dark"] {
+  .alert-warning {
+    background-color: rgba($yellow, 0.12);
+    color: $yellow;
+    border-color: rgba($yellow, 0.3);
+  }
+
+  .alert-primary {
+    background-color: $primary;
+    color: $white;
+  }
+}
+
+// ─── Admonitions ─────────────────────────────────────────────────────────────
+// Used via {% admonition(type="warning") %}...{% end %} shortcode.
+// Each type sets two local CSS vars: --adm-color (border + title) and
+// --adm-bg (subtle background tint). Dark mode swaps to brighter accents.
+
+.admonition {
+  --adm-color: #{$cyan};
+  --adm-bg: #{rgba($cyan, 0.07)};
+
+  border-left: 3px solid var(--adm-color);
+  background: var(--adm-bg);
+  padding: 0.875rem 1.125rem;
+  margin: 1.5rem 0;
+  border-radius: 0 var(--pp-radius-sm) var(--pp-radius-sm) 0;
+
+  &.admonition-warning {
+    --adm-color: #{$orange};
+    --adm-bg: #{rgba($orange, 0.07)};
+  }
+
+  &.admonition-danger {
+    --adm-color: #{$red};
+    --adm-bg: #{rgba($red, 0.07)};
+  }
+
+  &.admonition-tip {
+    --adm-color: #{$green};
+    --adm-bg: #{rgba($green, 0.07)};
+  }
+
+  &.admonition-important {
+    --adm-color: #{$primary};
+    --adm-bg: #{rgba($primary, 0.08)};
+  }
+
+  .admonition-title {
+    font-weight: 600;
+    font-size: $font-size-md;
+    color: var(--adm-color);
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    i { font-size: 0.9em; }
+  }
+
+  .admonition-body {
+    > *:last-child { margin-bottom: 0; }
+  }
+}
+
+// Dark mode: brighter accents so borders read against gray-900
+[data-bs-theme="dark"] {
+  .admonition {
+    --adm-color: #{$cyan};
+    --adm-bg: #{rgba($cyan, 0.1)};
+
+    &.admonition-warning {
+      --adm-color: #{$yellow};
+      --adm-bg: #{rgba($yellow, 0.08)};
+    }
+
+    &.admonition-danger {
+      --adm-color: #{lighten($red, 15%)};
+      --adm-bg: #{rgba($red, 0.12)};
+    }
+
+    &.admonition-tip {
+      --adm-color: #{$teal};
+      --adm-bg: #{rgba($teal, 0.1)};
+    }
+
+    &.admonition-important {
+      --adm-color: #{lighten($primary, 20%)};
+      --adm-bg: #{rgba($primary, 0.12)};
+    }
+  }
 }

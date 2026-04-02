@@ -143,17 +143,27 @@
           '';
         };
       in {
-        pre-commit.settings.hooks = {
+        pre-commit.settings.hooks = let
+          vendorExcludes = [
+            "^sass/bootstrap/"
+            "^static/plugins/"
+            "^static/[^/]+\\.js$"
+          ];
+        in {
           trim-trailing-whitespace = {
             enable = true;
-            excludes = ["\\.md$"];
+            excludes = vendorExcludes ++ ["\\.md$"];
           };
-          end-of-file-fixer.enable = true;
+          end-of-file-fixer = {
+            enable = true;
+            excludes = vendorExcludes;
+          };
           check-yaml.enable = true;
           check-toml.enable = true;
           mixed-line-endings = {
             enable = true;
             args = ["--fix=lf"];
+            excludes = vendorExcludes;
           };
           prettier = {
             enable = true;
@@ -161,6 +171,8 @@
             args = ["--write"];
           };
         };
+
+        formatter = pkgs.prettier;
 
         packages = {
           default = policypress;

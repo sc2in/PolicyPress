@@ -349,4 +349,3 @@ test "jsonFindByPath works" {
     const not_found = jsonFindByPath(root, "foo.bar.qux");
     try tst.expect(not_found == null);
 }
-

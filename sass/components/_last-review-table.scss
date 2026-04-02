@@ -1,33 +1,31 @@
-.policy-review-date-table{
-        display: table;
-        width: 100%;
-        .row{
-                
-                display: table-row;
-                .header, .cell{
-                        display: table-cell;
-                        padding: 0.5rem;
-                        text-align: center;
-                        vertical-align: middle;
-                }
-                .header{
-                        font-weight: bold;
-                }
-                .title {
-                        font-weight: bold;
-                        text-align: left;
-                }
-        }
-        }
-        .nine-month{
-                background-color: rgb(240, 157, 157);
-                font-weight: bold;
-        }
-        .six-month{
-                background-color: rgb(226, 188, 118);
-
-        }
-        .recent{
-                
-                background-color: rgb(162, 222, 162);
-        }
+.policy-review-date-table {
+  display: table;
+  width: 100%;
+  .row {
+    display: table-row;
+    .header,
+    .cell {
+      display: table-cell;
+      padding: 0.5rem;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .header {
+      font-weight: bold;
+    }
+    .title {
+      font-weight: bold;
+      text-align: left;
+    }
+  }
+}
+.nine-month {
+  background-color: rgb(240, 157, 157);
+  font-weight: bold;
+}
+.six-month {
+  background-color: rgb(226, 188, 118);
+}
+.recent {
+  background-color: rgb(162, 222, 162);
+}

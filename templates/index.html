@@ -29,9 +29,10 @@ description=description, is_home=true) }}
 
 {% block content %}
 {% set fp = config.extra.frontpage %}
+{% set homepage_style = config.extra.homepage_style | default(value="dashboard") %}
 
-<!-- Skip link for accessibility -->
-<a href="#main-content" class="skip-link">Skip to main content</a>
+{% if homepage_style == "marketing" %}
+{# ===== MARKETING LAYOUT (opt-in via extra.homepage_style = "marketing") ===== #}
 
 <!-- Hero Section -->
 <section class="hero-section" role="banner">
@@ -65,11 +66,7 @@ description=description, is_home=true) }}
             </span>
             <span class="meta-item">
               <i class="fas fa-code-branch" aria-hidden="true"></i>
-              <a
-                href="{{ config.extra.docs_repo | default(value='https://github.com/sc2in/PolicyPress') }}"
-                target="_blank" rel="noopener noreferrer">
-                Version {{ config.extra.version | default(value='1.0.0') }}
-              </a>
+              Version {{ config.extra.version | default(value='1.0.0') }}
             </span>
           </div>
         </div>
@@ -78,34 +75,26 @@ description=description, is_home=true) }}
   </div>
 </section>
 
-<!-- Features Section -->
 <section id="main-content" class="features-section">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-lg-10">
         <div class="section-header text-center">
-          <h2>{{ fp.features.title |
-            default(value="Comprehensive Security Management") }}</h2>
-          <p class="section-subtitle">{{ fp.features.subtitle |
-            default(value="Everything you need to maintain robust security policies and compliance")
-            }}</p>
+          <h2>{{ fp.features.title | default(value="Comprehensive Security Management") }}</h2>
+          <p class="section-subtitle">{{ fp.features.subtitle | default(value="Everything you need to maintain robust security policies and compliance") }}</p>
         </div>
-
         <div class="features-grid">
           {% if fp.features.cards %}
           {% for card in fp.features.cards %}
           <div class="feature-card">
             {% if card.icon %}
-            <div class="feature-icon">
-              <i class="{{ card.icon }}" aria-hidden="true"></i>
-            </div>
+            <div class="feature-icon"><i class="{{ card.icon }}" aria-hidden="true"></i></div>
             {% endif %}
             <div class="feature-content">
               <h3>{{ card.title }}</h3>
               <p>{{ card.description | markdown(inline=true) | safe }}</p>
               {% if card.link %}
-              <a href="{{ get_url(path=card.link.url) | safe }}"
-                class="feature-link"
+              <a href="{{ get_url(path=card.link.url) | safe }}" class="feature-link"
                 aria-label="Learn more about {{ card.title }}">
                 {{ card.link.text | default(value="Learn more") }}
                 <i class="fas fa-arrow-right" aria-hidden="true"></i>
@@ -114,70 +103,6 @@ description=description, is_home=true) }}
             </div>
           </div>
           {% endfor %}
-          {% else %}
-          <!-- Default features if none configured -->
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-file-alt" aria-hidden="true"></i>
-            </div>
-            <div class="feature-content">
-              <h3>Policy Management</h3>
-              <p>Centralized repository for all security policies with version
-                control and review tracking.</p>
-              <a href="/policies/" class="feature-link"
-                aria-label="View all policies">
-                View Policies <i class="fas fa-arrow-right"
-                  aria-hidden="true"></i>
-              </a>
-            </div>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-users" aria-hidden="true"></i>
-            </div>
-            <div class="feature-content">
-              <h3>Team Directory</h3>
-              <p>Meet the security professionals responsible for maintaining our
-                organization's security posture.</p>
-              <a href="/team/" class="feature-link" aria-label="Meet the team">
-                Meet the Team <i class="fas fa-arrow-right"
-                  aria-hidden="true"></i>
-              </a>
-            </div>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-newspaper" aria-hidden="true"></i>
-            </div>
-            <div class="feature-content">
-              <h3>Latest Updates</h3>
-              <p>Stay informed about policy changes, security updates, and
-                important announcements.</p>
-              <a href="/news/" class="feature-link"
-                aria-label="View latest news">
-                Latest News <i class="fas fa-arrow-right"
-                  aria-hidden="true"></i>
-              </a>
-            </div>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-chart-line" aria-hidden="true"></i>
-            </div>
-            <div class="feature-content">
-              <h3>Compliance Reports</h3>
-              <p>Generate detailed compliance reports for SOC 2, ISO 27001, and
-                other security frameworks.</p>
-              <a href="/reports/" class="feature-link"
-                aria-label="View compliance reports">
-                View Reports <i class="fas fa-arrow-right"
-                  aria-hidden="true"></i>
-              </a>
-            </div>
-          </div>
           {% endif %}
         </div>
       </div>
@@ -185,88 +110,38 @@ description=description, is_home=true) }}
   </div>
 </section>
 
-<!-- Quick Actions Section -->
+{% if fp.quick_actions.actions %}
 <section class="quick-actions-section">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-lg-10">
         <div class="section-header text-center">
           <h2>{{ fp.quick_actions.title | default(value="Quick Actions") }}</h2>
-          <p class="section-subtitle">{{ fp.quick_actions.subtitle |
-            default(value="Common tasks and resources") }}</p>
+          <p class="section-subtitle">{{ fp.quick_actions.subtitle | default(value="Common tasks and resources") }}</p>
         </div>
-
         <div class="quick-actions-grid">
-          {% if fp.quick_actions.actions %}
           {% for action in fp.quick_actions.actions %}
           <div class="quick-action-card">
-            <div class="action-icon">
-              <i class="{{ action.icon }}" aria-hidden="true"></i>
-            </div>
+            <div class="action-icon"><i class="{{ action.icon }}" aria-hidden="true"></i></div>
             <div class="action-content">
               <h3>{{ action.title }}</h3>
               <p>{{ action.description }}</p>
               {% if action.button %}
-              <a href="{{ action.button.url | safe }}"
-                class="btn btn-outline-primary btn-sm"
-                {% if action.button.external %}target="_blank"
-                rel="noopener noreferrer" {% endif %}>
+              <a href="{{ action.button.url | safe }}" class="btn btn-outline-primary btn-sm"
+                {% if action.button.external %}target="_blank" rel="noopener noreferrer"{% endif %}>
                 {{ action.button.text }}
               </a>
               {% endif %}
             </div>
           </div>
           {% endfor %}
-          {% else %}
-          <!-- Default quick actions -->
-          <div class="quick-action-card">
-            <div class="action-icon">
-              <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
-            </div>
-            <div class="action-content">
-              <h3>Report Security Incident</h3>
-              <p>Report security incidents or policy violations immediately.</p>
-              <a href="mailto:security@sc2.in"
-                class="btn btn-outline-primary btn-sm">
-                Report Incident
-              </a>
-            </div>
-          </div>
-
-          <div class="quick-action-card">
-            <div class="action-icon">
-              <i class="fas fa-question-circle" aria-hidden="true"></i>
-            </div>
-            <div class="action-content">
-              <h3>Get Help</h3>
-              <p>Need assistance with security policies or procedures?</p>
-              <a href="mailto:help@sc2.in"
-                class="btn btn-outline-primary btn-sm">
-                Contact Support
-              </a>
-            </div>
-          </div>
-
-          <div class="quick-action-card">
-            <div class="action-icon">
-              <i class="fas fa-download" aria-hidden="true"></i>
-            </div>
-            <div class="action-content">
-              <h3>Download Policies</h3>
-              <p>Download policy documents in PDF format for offline access.</p>
-              <a href="/reports/" class="btn btn-outline-primary btn-sm">
-                Download PDFs
-              </a>
-            </div>
-          </div>
-          {% endif %}
         </div>
       </div>
     </div>
   </div>
 </section>
+{% endif %}
 
-<!-- Statistics Section -->
 {% if fp.statistics %}
 <section class="statistics-section">
   <div class="container">
@@ -286,19 +161,16 @@ description=description, is_home=true) }}
 </section>
 {% endif %}
 
-<!-- Recent Updates Section -->
+{% set news_section = get_section(path="news/_index.md") %}
+{% if news_section and news_section.pages %}
 <section class="recent-updates-section">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-lg-10">
         <div class="section-header text-center">
           <h2>Recent Updates</h2>
-          <p class="section-subtitle">Stay informed about the latest policy
-            changes and security updates</p>
+          <p class="section-subtitle">Stay informed about the latest policy changes and security updates</p>
         </div>
-
-        {% set news_section = get_section(path="news/_index.md") %}
-        {% if news_section and news_section.pages %}
         <div class="updates-grid">
           {% for update in news_section.pages | slice(end=3) %}
           <article class="update-card">
@@ -314,22 +186,82 @@ description=description, is_home=true) }}
               <a href="{{ update.permalink | safe }}">{{ update.title }}</a>
             </h3>
             <p class="update-excerpt">
-              {{ update.description | default(value=update.content | safe |
-              striptags | truncate(length=120)) }}
+              {{ update.description | default(value=update.content | safe | striptags | truncate(length=120)) }}
             </p>
           </article>
           {% endfor %}
         </div>
-
         <div class="text-center">
           <a href="/news/" class="btn btn-outline-primary">
-            View All Updates <i class="fas fa-arrow-right"
-              aria-hidden="true"></i>
+            View All Updates <i class="fas fa-arrow-right" aria-hidden="true"></i>
           </a>
         </div>
-        {% endif %}
       </div>
     </div>
   </div>
 </section>
+{% endif %}
+
+{% else %}
+{# ===== DASHBOARD LAYOUT (default) ===== #}
+
+<div id="main-content" class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-xl-10">
+
+      <!-- Dashboard header -->
+      <div class="dashboard-header">
+        <h1>{{ config.extra.organization | default(value=config.title) }}</h1>
+        <p class="dashboard-desc">
+          {{ config.description | default(value="Internal security policy documentation") }}
+        </p>
+      </div>
+
+      <!-- Navigation tiles — configured from extra.frontpage.features.cards -->
+      {% if fp.features.cards %}
+      <div class="policy-index-grid" role="navigation" aria-label="Document sections">
+        {% for card in fp.features.cards %}
+        <a href="{{ get_url(path=card.link.url | default(value='/')) | safe }}"
+          class="policy-category-card">
+          {% if card.icon %}
+          <span class="category-icon" aria-hidden="true">
+            <i class="{{ card.icon }}"></i>
+          </span>
+          {% endif %}
+          <span class="category-name">{{ card.title }}</span>
+          <span class="category-meta">{{ card.description | striptags | truncate(length=60) }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Recent activity strip -->
+      {% set news_section = get_section(path="news/_index.md") %}
+      {% if news_section and news_section.pages %}
+      <div class="activity-strip">
+        <h2>Recent Updates</h2>
+        <ul class="activity-list" role="list">
+          {% for item in news_section.pages | slice(end=5) %}
+          <li>
+            <time datetime="{{ item.date | date(format='%Y-%m-%d') }}">
+              {{ item.date | date(format='%b %d') }}
+            </time>
+            <a href="{{ item.permalink | safe }}">{{ item.title }}</a>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="mt-2">
+          <a href="/news/" class="btn btn-sm btn-outline-secondary">
+            All updates <i class="fas fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
 {% endblock content %}

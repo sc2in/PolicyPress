@@ -442,3 +442,110 @@ test "Redaction" {
     try redact(tst.allocator, &t2, false);
     try tst.expectEqualStrings(std.mem.trim(u8, expected2, "\n "), std.mem.trim(u8, t2.items, "\n "));
 }
+
+/// Converts {% admonition(type="...", title="...") %}...{% end %} shortcodes
+/// to pandoc blockquotes before the markdown reaches pandoc.
+/// Each type maps to a Unicode prefix so the callout is visually distinct in
+/// the rendered PDF without requiring a custom LaTeX filter.
+pub fn replace_admonitions(alloc: Allocator, txt: *Array(u8)) !void {
+    const re: mvzr.Regex = mvzr.compile("\\{%\\s*admonition\\([^)]*\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;
+    if (!re.isMatch(txt.items)) return;
+
+    var new = try txt.clone(alloc);
+
+    var iter = re.iterator(txt.items);
+    while (iter.next()) |m| {
+        // Locate the end of the opening tag and start of the closing tag.
+        const tag_end = std.mem.indexOf(u8, m.slice, "%}") orelse return error.InvalidShortCode;
+        const close_start = std.mem.lastIndexOf(u8, m.slice, "{%") orelse return error.InvalidShortCode;
+
+        // Extract the parameter string between the outer parentheses.
+        const open_tag = m.slice[0 .. tag_end + 2];
+        const paren_open = std.mem.indexOf(u8, open_tag, "(") orelse return error.InvalidShortCode;
+        const paren_close = std.mem.lastIndexOf(u8, open_tag, ")") orelse return error.InvalidShortCode;
+        const params = open_tag[paren_open + 1 .. paren_close];
+
+        // Parse type="..." (default: "note").
+        const adm_type: []const u8 = if (std.mem.indexOf(u8, params, "type=\"")) |ti| blk: {
+            const start = ti + 6;
+            const end = std.mem.indexOfPos(u8, params, start, "\"") orelse break :blk "note";
+            break :blk params[start..end];
+        } else "note";
+
+        // Parse optional title="...".
+        const custom_title: ?[]const u8 = if (std.mem.indexOf(u8, params, "title=\"")) |ti| blk: {
+            const start = ti + 7;
+            const end = std.mem.indexOfPos(u8, params, start, "\"") orelse break :blk null;
+            break :blk params[start..end];
+        } else null;
+
+        // Plain ASCII labels — font-agnostic, works with any LaTeX setup.
+        const prefix: []const u8 =
+            if (std.mem.eql(u8, adm_type, "warning")) "WARNING"
+            else if (std.mem.eql(u8, adm_type, "danger")) "DANGER"
+            else if (std.mem.eql(u8, adm_type, "tip")) "TIP"
+            else if (std.mem.eql(u8, adm_type, "important")) "IMPORTANT"
+            else "NOTE";
+
+        const heading = if (custom_title) |ct|
+            try std.fmt.allocPrint(alloc, "{s}: {s}", .{ prefix, ct })
+        else
+            try alloc.dupe(u8, prefix);
+        defer alloc.free(heading);
+
+        // Body is everything between the opening %} and the closing {%.
+        const body_raw = std.mem.trim(u8, m.slice[tag_end + 2 .. close_start], " \n\r");
+
+        // Build a pandoc blockquote: "> **heading**\n>\n> line\n> ..."
+        var blockquote = Array(u8){};
+        defer blockquote.deinit(alloc);
+
+        try blockquote.appendSlice(alloc, "> **");
+        try blockquote.appendSlice(alloc, heading);
+        try blockquote.appendSlice(alloc, "**\n>\n");
+
+        var lines = std.mem.splitScalar(u8, body_raw, '\n');
+        while (lines.next()) |line| {
+            try blockquote.appendSlice(alloc, "> ");
+            try blockquote.appendSlice(alloc, std.mem.trimRight(u8, line, " \r"));
+            try blockquote.append(alloc, '\n');
+        }
+
+        try new.replaceRange(alloc, m.start, m.slice.len, blockquote.items);
+        iter = re.iterator(new.items);
+    }
+    txt.deinit(alloc);
+    txt.* = new;
+}
+
+test "Admonition replacement" {
+    const input =
+        \\{% admonition(type="warning") %}
+        \\Access will be suspended after 30 days.
+        \\{% end %}
+    ;
+    var buf = Array(u8){};
+    defer buf.deinit(tst.allocator);
+    try buf.appendSlice(tst.allocator, input);
+    try replace_admonitions(tst.allocator, &buf);
+
+    try tst.expect(std.mem.indexOf(u8, buf.items, "> **") != null);
+    try tst.expect(std.mem.indexOf(u8, buf.items, "WARNING") != null);
+    try tst.expect(std.mem.indexOf(u8, buf.items, "Access will be suspended") != null);
+    // Shortcode tags must be gone.
+    try tst.expect(std.mem.indexOf(u8, buf.items, "{%") == null);
+
+    // Custom title variant.
+    const input2 =
+        \\{% admonition(type="important", title="Legal Hold") %}
+        \\Do not delete any records.
+        \\{% end %}
+    ;
+    var buf2 = Array(u8){};
+    defer buf2.deinit(tst.allocator);
+    try buf2.appendSlice(tst.allocator, input2);
+    try replace_admonitions(tst.allocator, &buf2);
+
+    try tst.expect(std.mem.indexOf(u8, buf2.items, "IMPORTANT") != null);
+    try tst.expect(std.mem.indexOf(u8, buf2.items, "Legal Hold") != null);
+}

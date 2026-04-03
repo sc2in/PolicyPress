@@ -67,16 +67,16 @@ render = false
 
 [[taxonomies]]
 name = "TSC2017"
-feed  = true 
+feed  = true
 render = true
 [[taxonomies]]
 name = "ISO27001"
 feed  = false
-render = false 
+render = false
 [[taxonomies]]
 name = "SCF"
 feed  = false
-render = false 
+render = false
 
 # Configuration of the Markdown rendering
 [markdown]
@@ -144,7 +144,7 @@ insert_anchor_links = "right"
 # # When set to "true", missing highlight languages are treated as errors. Defaults to false but recommended to set to true.
 # error_on_missing_language = false
 
-# # Whether to use inline hex colours (`inline`) or CSS classes (`class`) 
+# # Whether to use inline hex colours (`inline`) or CSS classes (`class`)
 # style = "inline"
 # # The syntax highlighting theme to use.
 # # See https://highlightjs.org/demo/
@@ -161,6 +161,7 @@ include_content = true
 
 [extra]
 redact = true
+show_draft_pdfs = true
 policy_dir = "policies/"
 policy_root = "policies/_index.md"
 scf_report_page = "@/reports/scf.md"
@@ -368,4 +369,3 @@ weight = 10
 name = "Acceptable Use"
 url = "/policies/acceptable-use/"
 weight = 20
-

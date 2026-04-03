@@ -25,13 +25,13 @@
 // Optimized collapsible functionality with performance improvements
 document.addEventListener('DOMContentLoaded', function() {
   const toggles = document.querySelectorAll('.section-title');
-  
+
   // Use event delegation for better performance
   document.addEventListener('click', function(e) {
     if (e.target.classList.contains('section-title')) {
       e.target.classList.toggle('active');
       const content = e.target.nextElementSibling;
-      
+
       if (content.classList.contains('active')) {
         content.classList.remove('active');
         content.style.maxHeight = '0';
@@ -41,14 +41,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
-  
+
   // Lazy loading for large sections
   const observerOptions = {
     root: null,
     rootMargin: '50px',
     threshold: 0.1
   };
-  
+
   const observer = new IntersectionObserver(function(entries) {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }, observerOptions);
-  
+
   // Observe all report sections
   document.querySelectorAll('.report-section').forEach(section => {
     observer.observe(section);

@@ -1,32 +1,30 @@
-var suggestions = document.getElementById('suggestions');
-var userinput = document.getElementById('userinput');
+var suggestions = document.getElementById("suggestions");
+var userinput = document.getElementById("userinput");
 
-document.addEventListener('keydown', inputFocus);
+document.addEventListener("keydown", inputFocus);
 
 function inputFocus(e) {
-
-  if (e.keyCode === 191
-      && document.activeElement.tagName !== "INPUT"
-      && document.activeElement.tagName !== "TEXTAREA") {
+  if (
+    e.keyCode === 191 &&
+    document.activeElement.tagName !== "INPUT" &&
+    document.activeElement.tagName !== "TEXTAREA"
+  ) {
     e.preventDefault();
     userinput.focus();
   }
 
-  if (e.keyCode === 27 ) {
+  if (e.keyCode === 27) {
     userinput.blur();
-    suggestions.classList.add('d-none');
+    suggestions.classList.add("d-none");
   }
-
 }
 
-document.addEventListener('click', function(event) {
-
+document.addEventListener("click", function (event) {
   var isClickInsideElement = suggestions.contains(event.target);
 
   if (!isClickInsideElement) {
-    suggestions.classList.add('d-none');
+    suggestions.classList.add("d-none");
   }
-
 });
 
 /*
@@ -34,30 +32,30 @@ Source:
   - https://dev.to/shubhamprakash/trap-focus-using-javascript-6a3
 */
 
-document.addEventListener('keydown',suggestionFocus);
+document.addEventListener("keydown", suggestionFocus);
 
-function suggestionFocus(e){
-  const focusableSuggestions= suggestions.querySelectorAll('a');
-  if (suggestions.classList.contains('d-none')
-      || focusableSuggestions.length === 0) {
+function suggestionFocus(e) {
+  const focusableSuggestions = suggestions.querySelectorAll("a");
+  if (
+    suggestions.classList.contains("d-none") ||
+    focusableSuggestions.length === 0
+  ) {
     return;
   }
-  const focusable= [...focusableSuggestions];
+  const focusable = [...focusableSuggestions];
   const index = focusable.indexOf(document.activeElement);
 
   let nextIndex = 0;
 
   if (e.keyCode === 38) {
     e.preventDefault();
-    nextIndex= index > 0 ? index-1 : 0;
+    nextIndex = index > 0 ? index - 1 : 0;
     focusableSuggestions[nextIndex].focus();
-  }
-  else if (e.keyCode === 40) {
+  } else if (e.keyCode === 40) {
     e.preventDefault();
-    nextIndex= index+1 < focusable.length ? index+1 : index;
+    nextIndex = index + 1 < focusable.length ? index + 1 : index;
     focusableSuggestions[nextIndex].focus();
   }
-
 }
 
 /*
@@ -67,58 +65,57 @@ Source:
   - http://elasticlunr.com/
   - https://github.com/getzola/zola/blob/master/docs/static/search.js
 */
-(function(){
+(function () {
   var index = elasticlunr.Index.load(window.searchIndex);
-  userinput.addEventListener('input', show_results, true);
-  suggestions.addEventListener('click', accept_suggestion, true);
-  
-  function show_results(){
+  userinput.addEventListener("input", show_results, true);
+  suggestions.addEventListener("click", accept_suggestion, true);
+
+  function show_results() {
     var value = this.value.trim();
     var options = {
       bool: "OR",
       fields: {
-        title: {boost: 2},
-        body: {boost: 1},
-      }
+        title: { boost: 2 },
+        body: { boost: 1 },
+      },
     };
     var results = index.search(value, options);
 
-    var entry, childs = suggestions.childNodes;
-    var i = 0, len = results.length;
+    var entry,
+      childs = suggestions.childNodes;
+    var i = 0,
+      len = results.length;
     var items = value.split(/\s+/);
-    suggestions.classList.remove('d-none');
+    suggestions.classList.remove("d-none");
 
-    results.forEach(function(page) {
-      if (page.doc.body !== '') {
-        entry = document.createElement('div');
+    results.forEach(function (page) {
+      if (page.doc.body !== "") {
+        entry = document.createElement("div");
 
-        entry.innerHTML = '<a href><span></span><span></span></a>';
-  
-        a = entry.querySelector('a'),
-        t = entry.querySelector('span:first-child'),
-        d = entry.querySelector('span:nth-child(2)');
+        entry.innerHTML = "<a href><span></span><span></span></a>";
+
+        ((a = entry.querySelector("a")),
+          (t = entry.querySelector("span:first-child")),
+          (d = entry.querySelector("span:nth-child(2)")));
         a.href = page.ref;
         t.textContent = page.doc.title;
         d.innerHTML = makeTeaser(page.doc.body, items);
-  
+
         suggestions.appendChild(entry);
       }
     });
 
-    while(childs.length > len){
-        suggestions.removeChild(childs[i])
+    while (childs.length > len) {
+      suggestions.removeChild(childs[i]);
     }
-
   }
 
-  function accept_suggestion(){
+  function accept_suggestion() {
+    while (suggestions.lastChild) {
+      suggestions.removeChild(suggestions.lastChild);
+    }
 
-      while(suggestions.lastChild){
-
-          suggestions.removeChild(suggestions.lastChild);
-      }
-
-      return false;
+    return false;
   }
 
   // Taken from mdbook
@@ -136,23 +133,22 @@ Source:
     var NORMAL_WORD_WEIGHT = 2;
     var FIRST_WORD_WEIGHT = 8;
     var TEASER_MAX_WORDS = 30;
-  
+
     var stemmedTerms = terms.map(function (w) {
       return elasticlunr.stemmer(w.toLowerCase());
     });
     var termFound = false;
     var index = 0;
     var weighted = []; // contains elements of ["word", weight, index_in_document]
-  
+
     // split in sentences, then words
     var sentences = body.toLowerCase().split(". ");
     for (var i in sentences) {
       var words = sentences[i].split(/[\s\n]/);
       var value = FIRST_WORD_WEIGHT;
       for (var j in words) {
-        
         var word = words[j];
-  
+
         if (word.length > 0) {
           for (var k in stemmedTerms) {
             if (elasticlunr.stemmer(word).startsWith(stemmedTerms[k])) {
@@ -163,22 +159,22 @@ Source:
           weighted.push([word, value, index]);
           value = NORMAL_WORD_WEIGHT;
         }
-  
+
         index += word.length;
-        index += 1;  // ' ' or '.' if last word in sentence
+        index += 1; // ' ' or '.' if last word in sentence
       }
-  
-      index += 1;  // because we split at a two-char boundary '. '
+
+      index += 1; // because we split at a two-char boundary '. '
     }
-  
+
     if (weighted.length === 0) {
       if (body.length !== undefined && body.length > TEASER_MAX_WORDS * 10) {
-        return body.substring(0, TEASER_MAX_WORDS * 10) + '...';
+        return body.substring(0, TEASER_MAX_WORDS * 10) + "...";
       } else {
         return body;
       }
     }
-  
+
     var windowWeights = [];
     var windowSize = Math.min(weighted.length, TEASER_MAX_WORDS);
     // We add a window with all the weights first
@@ -187,13 +183,13 @@ Source:
       curSum += weighted[i][1];
     }
     windowWeights.push(curSum);
-  
+
     for (var i = 0; i < weighted.length - windowSize; i++) {
       curSum -= weighted[i][1];
       curSum += weighted[i + windowSize][1];
       windowWeights.push(curSum);
     }
-  
+
     // If we didn't find the term, just pick the first window
     var maxSumIndex = 0;
     if (termFound) {
@@ -206,7 +202,7 @@ Source:
         }
       }
     }
-  
+
     var teaser = [];
     var startIndex = weighted[maxSumIndex][2];
     for (var i = maxSumIndex; i < maxSumIndex + windowSize; i++) {
@@ -216,7 +212,7 @@ Source:
         teaser.push(body.substring(startIndex, word[2]));
         startIndex = word[2];
       }
-  
+
       // add <em/> around search terms
       if (word[1] === TERM_WEIGHT) {
         teaser.push("<b>");
@@ -224,8 +220,12 @@ Source:
 
       startIndex = word[2] + word[0].length;
       // Check the string is ascii characters or not
-      var re = /^[\x00-\xff]+$/
-      if (word[1] !== TERM_WEIGHT && word[0].length >= 12 && !re.test(word[0])) {
+      var re = /^[\x00-\xff]+$/;
+      if (
+        word[1] !== TERM_WEIGHT &&
+        word[0].length >= 12 &&
+        !re.test(word[0])
+      ) {
         // If the string's length is too long, it maybe a Chinese/Japance/Korean article
         // if using substring method directly, it may occur error codes on emoji chars
         var strBefor = body.substring(word[2], startIndex);
@@ -234,7 +234,7 @@ Source:
       } else {
         teaser.push(body.substring(word[2], startIndex));
       }
-  
+
       if (word[1] === TERM_WEIGHT) {
         teaser.push("</b>");
       }
@@ -242,11 +242,10 @@ Source:
     teaser.push("…");
     return teaser.join("");
   }
-}());
-
+})();
 
 // Get substring by bytes
-// If using JavaScript inline substring method, it will return error codes 
+// If using JavaScript inline substring method, it will return error codes
 // Source: https://www.52pojie.cn/thread-1059814-1-1.html
 function substringByByte(str, maxLength) {
   var result = "";
@@ -258,7 +257,7 @@ function substringByByte(str, maxLength) {
     var code = str.codePointAt(i).toString(16);
     if (code.length > 4) {
       i++;
-      if ((i + 1) < str.length) {
+      if (i + 1 < str.length) {
         flag = str.codePointAt(i + 1).toString(16) == "200d";
       }
     }
@@ -269,7 +268,7 @@ function substringByByte(str, maxLength) {
         if (length <= maxLength) {
           result += str.substr(length2, i - length2 + 1);
         } else {
-          break
+          break;
         }
       }
     } else {
@@ -280,7 +279,7 @@ function substringByByte(str, maxLength) {
           result += str.substr(length2, i - length2 + 1);
           length2 = i + 1;
         } else {
-          break
+          break;
         }
         len = 0;
         continue;
@@ -288,13 +287,13 @@ function substringByByte(str, maxLength) {
       length += getByteByHex(code);
       if (length <= maxLength) {
         if (code.length <= 4) {
-          result += str[i]
+          result += str[i];
         } else {
-          result += str[i - 1] + str[i]
+          result += str[i - 1] + str[i];
         }
         length2 = i + 1;
       } else {
-        break
+        break;
       }
     }
   }

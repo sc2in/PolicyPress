@@ -53,7 +53,7 @@
         }
 
         &::after {
-          content: '\02795'; // plus sign
+          content: "\02795"; // plus sign
           font-size: 0.9rem;
           color: var(--bs-secondary-color);
           float: right;
@@ -62,7 +62,7 @@
         }
 
         &.active::after {
-          content: '\2796'; // minus sign
+          content: "\2796"; // minus sign
           transform: rotate(180deg);
         }
       }
@@ -70,7 +70,7 @@
       .section-content {
         padding: 1.5rem;
         background: var(--bs-body-bg);
-        
+
         .control-item {
           margin-bottom: 1.5rem;
           padding-bottom: 1.5rem;
@@ -110,7 +110,7 @@
               position: relative;
 
               &::before {
-                content: '▶';
+                content: "▶";
                 position: absolute;
                 left: 0;
                 color: var(--bs-link-color);
@@ -196,13 +196,13 @@
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease;
-    
+
     &.active {
       max-height: none;
       overflow: visible;
     }
   }
-  
+
   .section-title.active + .section-content {
     max-height: 2000px; // Large enough for content
   }
@@ -211,7 +211,7 @@
 // Optimize rendering for large lists
 .policy-list {
   contain: layout;
-  
+
   li {
     contain: layout;
   }

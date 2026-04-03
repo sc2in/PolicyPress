@@ -10,10 +10,15 @@
 {# Link to the PDF version for print and for discovery #}
 {% set versions = page.extra.major_revisions | sort(attribute="date") | reverse %}
 {% set current_version = versions | first %}
-{% set pdf_file = page.title ~ " - v" ~ current_version.version ~ ".pdf" | replace(from=" ", to="_") %}
+{%- set title_slug = page.title | replace(from=" ", to="_") -%}
+{%- if config.extra.redact -%}
+  {%- set pdf_official = title_slug ~ "__Redacted__-_v" ~ current_version.version ~ ".pdf" -%}
+{%- else -%}
+  {%- set pdf_official = title_slug ~ "_-_v" ~ current_version.version ~ ".pdf" -%}
+{%- endif -%}
 <link rel="alternate" type="application/pdf"
   title="{{ page.title }} (PDF)"
-  href="/pdf/{{ pdf_file }}">
+  href="/pdfs/{{ pdf_official }}">
 {% endblock seo %}
 {% block header %}
 {# This value is matched by the config.extra.menu.main~url #}
@@ -39,15 +44,22 @@ reverse %}
 {% set today = now() | date(format="%s") | int %}
 {% set review_overdue = (today - last_reviewed_ts) > 31557600 %}
 
-{% set pdf_file = page.title ~ " - v" ~ current_version.version ~ ".pdf" |
-replace(from=" ",to="_") %}
+{%- set title_slug = page.title | replace(from=" ", to="_") -%}
+{# policypress sanitizes '(' and ')' to '_', so (Redacted) becomes __Redacted__ #}
+{%- if config.extra.redact -%}
+  {%- set pdf_official = title_slug ~ "__Redacted__-_v" ~ current_version.version ~ ".pdf" -%}
+  {%- set pdf_draft = title_slug ~ "__Redacted___Draft__-_v" ~ current_version.version ~ ".pdf" -%}
+{%- else -%}
+  {%- set pdf_official = title_slug ~ "_-_v" ~ current_version.version ~ ".pdf" -%}
+  {%- set pdf_draft = title_slug ~ "__Draft__-_v" ~ current_version.version ~ ".pdf" -%}
+{%- endif -%}
 
 <div class="row flex-xl-nowrap">
   <div class="col-xl policy-content-col">
     <main class="docs-content policy" id="main-content">
       <p class="print-pdf-notice">
         A print-ready PDF of this policy is available at:
-        <strong>/pdf/{{ pdf_file }}</strong>
+        <strong>/pdfs/{{ pdf_official }}</strong>
       </p>
       <h2 class="title">{{page.title}} - v{{current_version.version}}</h2>
       <div class="last-reviewed">Last reviewed and
@@ -61,13 +73,14 @@ replace(from=" ",to="_") %}
       <div class="summary">{{ page.summary | safe }}</div>
       <div class="description">{{ page.description | safe }}</div>
       <div class="pdf-links">
-        {%- if (config.mode != "serve") -%}
-        <a href="/pdf/{{pdf_file}}">
+        <a href="/pdfs/{{ pdf_official }}">
           <i class="fas fa-file-pdf" aria-hidden="true"></i> PDF Version
         </a>
-        {% else %}
-        <span class="text-muted">PDF Version not available in serve mode</span>
-        {%- endif -%}
+        {%- if config.extra.show_draft_pdfs | default(value=false) %}
+        <a href="/pdfs/{{ pdf_draft }}">
+          <i class="fas fa-file-pdf" aria-hidden="true"></i> Draft Version
+        </a>
+        {%- endif %}
       </div>
       <div class="content">
         {{ page.content | safe }}

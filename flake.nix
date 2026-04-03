@@ -6,6 +6,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     zig-overlay.url = "github:mitchellh/zig-overlay";
     eisvogel-tex.url = "github:sc2in/eisvogel-tex";
+    git-hooks.url = "github:cachix/git-hooks.nix";
   };
 
   outputs = inputs @ {
@@ -14,11 +15,17 @@
     flake-parts,
     zig-overlay,
     eisvogel-tex,
+    git-hooks,
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
+      imports = [
+        inputs.git-hooks.flakeModule
+      ];
+
       systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
 
       perSystem = {
+        config,
         pkgs,
         system,
         lib,
@@ -136,6 +143,37 @@
           '';
         };
       in {
+        pre-commit.settings.hooks = let
+          vendorExcludes = [
+            "^sass/bootstrap/"
+            "^static/plugins/"
+            "^static/[^/]+\\.js$"
+          ];
+        in {
+          trim-trailing-whitespace = {
+            enable = true;
+            excludes = vendorExcludes ++ ["\\.md$"];
+          };
+          end-of-file-fixer = {
+            enable = true;
+            excludes = vendorExcludes;
+          };
+          check-yaml.enable = true;
+          check-toml.enable = true;
+          mixed-line-endings = {
+            enable = true;
+            args = ["--fix=lf"];
+            excludes = vendorExcludes;
+          };
+          prettier = {
+            enable = true;
+            types_or = ["scss" "javascript"];
+            args = ["--write"];
+          };
+        };
+
+        formatter = pkgs.prettier;
+
         packages = {
           default = policypress;
         };
@@ -144,6 +182,21 @@
           type = "app";
           program = "${lib.getExe policypress}";
           inherit (policypress) meta;
+        };
+
+        apps.serve = {
+          type = "app";
+          program = toString (pkgs.writeShellScript "policypress-serve" ''
+            set -e
+            mkdir -p static/pdfs
+            ${lib.getExe policypress} -o static/pdfs || true
+            ${lib.getExe policypress} -o static/pdfs --draft || true
+            ${lib.getExe pkgs.zola} serve &
+            ZOLA_PID=$!
+            trap 'kill $ZOLA_PID 2>/dev/null' EXIT INT TERM
+            ${lib.getExe pkgs.watchexec} -w content -e md -- sh -c '${lib.getExe policypress} -o static/pdfs; ${lib.getExe policypress} -o static/pdfs --draft'
+            wait
+          '');
         };
 
         devShells.default = pkgsWithOverlay.mkShell {
@@ -159,15 +212,17 @@
               pkgsWithOverlay.zls
             ];
 
-          shellHook = ''
-            export FONTCONFIG_FILE="${fontsConf}"
-            echo "PolicyPress development environment"
-            echo ""
-            echo "Commands:"
-            echo "  om ci          - Run CI locally (builds & checks all flake outputs)"
-            echo "  nix build .#   - Build production artifacts"
-            echo "  nix run .#     - Run policypress"
-          '';
+          shellHook =
+            config.pre-commit.installationScript
+            + ''
+              export FONTCONFIG_FILE="${fontsConf}"
+              echo "PolicyPress development environment"
+              echo ""
+              echo "Commands:"
+              echo "  om ci          - Run CI locally (builds & checks all flake outputs)"
+              echo "  nix build .#   - Build production artifacts"
+              echo "  nix run .#     - Run policypress"
+            '';
         };
       };
     };

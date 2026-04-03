@@ -13,12 +13,11 @@
   }
 }
 
-
 // Collapsible section toggle button inside sidebar.
 .sidebar-section-toggle {
   font-size: $font-size-base;
   font-weight: 600;
-  color: $gray-900 !important;
+  color: var(--bs-heading-color) !important;
   text-decoration: none !important;
   text-transform: uppercase;
 
@@ -29,7 +28,7 @@
 
   .sidebar-chevron {
     float: right;
-    transition: transform 0.2s ease;
+    transition: var(--pp-transition);
     font-style: normal;
   }
 
@@ -49,22 +48,25 @@
   min-width: 0;
 }
 
-// TOC column: fixed minimum width so it stays readable.
+// TOC column: sticky at the column level. align-self: flex-start is required —
+// without it the column stretches to the full row height and sticky has nowhere
+// to travel within its containing block.
 .policy-toc-col {
   @include media-breakpoint-up(xl) {
     flex: 0 0 220px;
     width: 220px;
     max-width: 220px;
+    align-self: flex-start;
+    position: sticky;
+    top: 4rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
   }
 }
 
-// Floating sticky TOC on policy pages.
+// TOC nav styles — sticky positioning is handled by the parent column above.
 .policy-toc {
   @include media-breakpoint-up(xl) {
-    position: sticky;
-    top: 4rem;
-    max-height: calc(100vh - 5rem);
-    overflow-y: auto;
     padding-left: 1rem;
     border-left: 1px solid $gray-200;
     font-size: $font-size-sm;
@@ -73,7 +75,7 @@
       font-size: $font-size-sm;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: $gray-600;
+      color: var(--bs-secondary-color);
       margin-bottom: 0.5rem;
     }
 
@@ -87,77 +89,19 @@
     }
 
     a {
-      color: $gray-700;
+      color: var(--bs-body-color);
       text-decoration: none;
       display: block;
       padding: 0.2rem 0;
 
       &:hover {
-        color: $primary;
+        color: var(--bs-link-color);
       }
     }
   }
 
   @include media-breakpoint-down(xl) {
     display: none;
-  }
-}
-
-// WCAG-compliant sidebar styles
-.docs-links,
-.docs-toc {
-  scrollbar-width: thin;
-  scrollbar-color: $gray-600 $white; // Improved contrast
-}
-
-.docs-links::-webkit-scrollbar,
-.docs-toc::-webkit-scrollbar {
-  width: 5px;
-}
-
-.docs-links::-webkit-scrollbar-track,
-.docs-toc::-webkit-scrollbar-track {
-  background: $white;
-}
-
-.docs-links::-webkit-scrollbar-thumb,
-.docs-toc::-webkit-scrollbar-thumb {
-  background: $gray-600; // Improved contrast
-}
-
-.docs-links:hover,
-.docs-toc:hover {
-  scrollbar-width: thin;
-  scrollbar-color: $gray-700 $white; // Improved hover contrast
-}
-
-.docs-links:hover::-webkit-scrollbar-thumb,
-.docs-toc:hover::-webkit-scrollbar-thumb {
-  background: $gray-700; // Improved hover contrast
-}
-
-.docs-links::-webkit-scrollbar-thumb:hover,
-.docs-toc::-webkit-scrollbar-thumb:hover {
-  background: $gray-700; // Improved hover contrast
-}
-
-// Skip link for keyboard navigation (WCAG 2.4.1)
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 6px;
-  background: $primary;
-  color: $white;
-  padding: 8px;
-  text-decoration: none;
-  border-radius: 4px;
-  z-index: 1000;
-  font-weight: bold;
-  
-  &:focus {
-    top: 6px;
-    outline: 3px solid $warning;
-    outline-offset: 2px;
   }
 }
 
@@ -168,7 +112,7 @@
   font-size: $font-size-md;
   margin: 1.25rem 0 0.5rem 0;
   padding: 1.5rem 0 0 0;
-  color: $gray-900;
+  color: var(--bs-heading-color);
 }
 
 .docs-links h4,
@@ -178,7 +122,7 @@
   margin: 1rem 0 0.25rem 1rem;
   padding: 0.5rem 0 0 0;
   font-weight: 600;
-  color: $gray-800;
+  color: var(--bs-body-color);
   border-left: 2px solid $primary;
   padding-left: 1.25rem;
 }
@@ -189,7 +133,7 @@
     margin: 1.125rem 1.5rem 0.75rem 0;
     padding: 1.375rem 0 0 0;
   }
-  
+
   .docs-links h4,
   .page-links h4 {
     margin: 0.75rem 1.25rem 0.5rem 1rem;
@@ -211,14 +155,14 @@
 
 // Enhanced link styles with proper contrast ratios
 a.docs-link {
-  color: $gray-900;
+  color: var(--bs-body-color);
   display: block;
   padding: 0.5rem 0.75rem;
   font-size: $font-size-md;
   text-decoration: none;
   border-radius: 4px;
-  transition: all 0.1s ease;
-  
+  transition: var(--pp-transition);
+
   // Enhanced focus indicator (WCAG 2.4.7)
   &:focus {
     outline: 3px solid $primary;
@@ -226,13 +170,13 @@ a.docs-link {
     background-color: $light;
     box-shadow: 0 0 0 1px $primary;
   }
-  
+
   // Active state indicator (WCAG 2.4.8)
   &.active {
     background-color: $primary;
     color: $white;
     font-weight: 600;
-    
+
     &::before {
       content: "Current page: ";
       position: absolute;
@@ -248,28 +192,28 @@ a.docs-link {
   li {
     margin-top: 0.375rem;
     padding-top: 0.375rem;
-    
+
     &:not(:first-child) {
       border-top: 1px dashed $gray-300; // Improved contrast
     }
   }
-  
+
   ul ul li {
     border-top: none;
     padding-left: 1.5rem; // Increased indentation for hierarchy
     margin-top: 0.125rem;
     padding-top: 0.125rem;
   }
-  
+
   a {
-    color: $gray-900; // Ensure 4.5:1 contrast ratio
+    color: var(--bs-body-color);
     display: block;
-    padding: 0.5rem 0.75rem; // Increased target size
+    padding: 0.25rem 0.75rem;
     font-size: $font-size-base * 0.9375;
     text-decoration: none;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    
+    border-radius: var(--pp-radius-sm);
+    transition: var(--pp-transition);
+
     // Enhanced focus indicator
     &:focus {
       outline: 3px solid $primary;
@@ -282,11 +226,15 @@ a.docs-link {
 
 // Improved hover states with sufficient contrast
 .docs-link:hover,
-.docs-link.active,
 .page-links a:hover {
   text-decoration: none;
-  color: $primary;
-  background-color: $light;
+  color: var(--bs-link-color);
+  background-color: rgba(var(--bs-primary-rgb), 0.06);
+}
+
+.docs-link.active {
+  background-color: $primary;
+  color: $white;
 }
 
 // Enhanced sidebar link styles
@@ -295,35 +243,22 @@ a.docs-link {
   text-transform: none;
   font-size: $font-size-md;
   font-weight: 600;
-  color: $gray-900; // Ensure sufficient contrast
-  
+  color: var(--bs-heading-color);
+
   a {
-    color: $gray-900; // Ensure sufficient contrast
-    
+    color: var(--bs-heading-color);
+
     &:hover {
       text-decoration: underline;
-      color: $primary;
+      color: var(--bs-link-color);
     }
-    
+
     &:focus {
       outline: 3px solid $primary;
       outline-offset: 2px;
-      background-color: $light;
+      background-color: rgba(var(--bs-primary-rgb), 0.05);
     }
   }
-}
-
-// Screen reader only content
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 // High contrast mode support
@@ -332,23 +267,15 @@ a.docs-link {
   .page-links {
     border: 2px solid currentColor;
   }
-  
+
   .docs-link,
   .page-links a {
     border: 1px solid currentColor;
-    
+
     &:focus {
       outline: 4px solid;
       outline-offset: 2px;
     }
-  }
-}
-
-// Reduced motion support
-@media (prefers-reduced-motion: reduce) {
-  .docs-link,
-  .page-links a {
-    transition: none;
   }
 }
 
@@ -365,7 +292,7 @@ a.docs-link {
 // Desktop sidebar collapse toggle button
 .sidebar-desktop-toggle {
   position: absolute;
-  right: -16px;
+  right: -12px;
   top: 0;
   z-index: 20;
   width: 32px;
@@ -380,9 +307,11 @@ a.docs-link {
   font-size: 1.2rem;
   line-height: 1;
   color: $gray-700;
-  transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  transition:
+    var(--pp-transition),
+    transform 0.2s ease;
   padding: 0;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  box-shadow: var(--pp-shadow-sm);
 
   &:hover {
     color: $primary;
@@ -404,14 +333,16 @@ a.docs-link {
 .sidebar-col.sidebar-collapsed {
   flex: 0 0 0 !important;
   width: 0 !important;
-  // No overflow: hidden here — the button is absolutely positioned and must remain visible.
-  // Content is clipped by the inner .sidebar-col-content wrapper instead.
   padding: 0 !important;
   min-width: 0 !important;
 
   .sidebar-col-content {
-    overflow: hidden;
+    // overflow: hidden alone doesn't clip sticky/absolute descendants in all browsers.
+    // visibility: hidden + clip-path ensures nothing bleeds into the content column.
     width: 0;
+    overflow: clip;
+    visibility: hidden;
+    clip-path: inset(0);
   }
 
   .sidebar-desktop-toggle {
@@ -421,7 +352,6 @@ a.docs-link {
 }
 
 // Dark mode toggle button
-body.dark .sidebar-desktop-toggle,
 [data-bs-theme="dark"] .sidebar-desktop-toggle {
   background: $gray-800;
   border-color: $gray-600;

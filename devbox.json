@@ -58,7 +58,7 @@
         "zig build --watch --prominent-compile-errors -freference-trace=12 test"
       ],
       "serve": [
-        "zola serve"
+        "nix run .#serve"
       ],
       "preview": [
         "zola build --base-url http://0.0.0.0:1111",

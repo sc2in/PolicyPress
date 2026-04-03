@@ -24,8 +24,13 @@ h6,
   margin: 2rem 0 1rem;
 }
 
+// Slightly smaller base to keep the 3-column layout comfortable at ~1400px.
+html {
+  font-size: 14px; // 1rem = 14px
+}
+
 body {
-  font-size: $font-size-md;
+  font-size: 1.25rem; // ≈17.5px
 }
 
 @include media-breakpoint-up(md) {
@@ -104,7 +109,7 @@ body {
     border-right: 1px solid $gray-200;
   }
 
-  @supports ((position:-webkit-sticky) or (position:sticky)) {
+  @supports ((position: -webkit-sticky) or (position: sticky)) {
     .docs-sidebar {
       position: -webkit-sticky;
       position: sticky;
@@ -147,7 +152,7 @@ body {
   order: 2;
 }
 
-@supports ((position:-webkit-sticky) or (position:sticky)) {
+@supports ((position: -webkit-sticky) or (position: sticky)) {
   .docs-toc {
     position: -webkit-sticky;
     position: sticky;
@@ -162,7 +167,8 @@ body {
   order: 1;
 }
 
-.docs-navigation, .blog-navigation {
+.docs-navigation,
+.blog-navigation {
   margin-top: 2rem;
   margin-bottom: 0;
   padding-top: 2rem;
@@ -177,7 +183,8 @@ body {
 }
 
 @include media-breakpoint-up(lg) {
-  .docs-navigation, .blog-navigation {
+  .docs-navigation,
+  .blog-navigation {
     margin-bottom: -1rem;
 
     a {
@@ -239,5 +246,128 @@ body {
 article {
   hr {
     margin: 3rem 0;
+  }
+}
+
+// Redaction blocks — body text is hidden behind a solid black bar.
+// white-space: pre-wrap preserves line breaks for multi-line redactions.
+.redaction {
+  display: inline;
+  background-color: $black;
+  color: transparent;
+  white-space: pre-wrap;
+  border-radius: 2px;
+  user-select: none;
+  cursor: default;
+
+  // Keep the block solid in dark mode too
+  [data-bs-theme="dark"] & {
+    background-color: $gray-900;
+  }
+}
+
+// Prose readability — constrain line length on policy/doc content
+.docs-content .content,
+.news-article,
+.page .content {
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1;
+}
+
+.docs-content .content > *,
+.news-article .article-content > * {
+  max-width: 72ch;
+}
+
+// Policy document heading hierarchy — subtle left accent on h2
+.docs-content .content {
+  h2 {
+    border-left: 3px solid var(--bs-link-color);
+    padding-left: 0.75rem;
+    margin-left: -0.75rem;
+  }
+}
+
+// Print styles — clean single-column layout for policy documents
+@media print {
+  .navbar,
+  .docs-sidebar,
+  .sidebar-col,
+  .sidebar-toggle-wrap,
+  .docs-toc,
+  .policy-toc-col,
+  footer,
+  .footer,
+  .docs-navigation,
+  .blog-navigation,
+  .share-buttons,
+  .article-navigation {
+    display: none !important;
+  }
+
+  body {
+    padding-top: 0 !important;
+    font-size: 10pt;
+    color: #000;
+    background: #fff;
+  }
+
+  .col-sm,
+  .policy-content-col,
+  .wrap.container {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: none !important;
+    padding: 0 !important;
+  }
+
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #555;
+  }
+
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    page-break-after: avoid;
+    color: #000;
+  }
+
+  pre,
+  blockquote {
+    page-break-inside: avoid;
+    border: 1px solid #ccc;
+  }
+
+  table {
+    page-break-inside: avoid;
+  }
+
+  // Admonitions: force border to black so low-contrast colors (cyan, yellow)
+  // don't disappear on monochrome printers; drop background tint.
+  .admonition {
+    border-left-color: #000 !important;
+    border-left-width: 4px;
+    background: transparent !important;
+    page-break-inside: avoid;
+  }
+
+  .admonition-title {
+    color: #000 !important;
   }
 }

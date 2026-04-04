@@ -31,6 +31,7 @@ macros_policies_latest_revision -%}
           <th scope="col">Version</th>
           <th scope="col">Last Reviewed</th>
           <th scope="col">Description</th>
+          <th scope="col">Frameworks</th>
         </tr>
       </thead>
       <tbody>
@@ -60,6 +61,14 @@ macros_policies_latest_revision -%}
               {{ page.description | truncate(length=100) }}
             {% endif %}
           </td>
+          <td class="text-nowrap">
+            {% if page.taxonomies.SCF %}
+              <span class="badge bg-primary-subtle text-primary-emphasis" title="{{ page.taxonomies.SCF | length }} SCF controls">SCF {{ page.taxonomies.SCF | length }}</span>
+            {% endif %}
+            {% if page.taxonomies.TSC2017 %}
+              <span class="badge bg-success-subtle text-success-emphasis" title="{{ page.taxonomies.TSC2017 | length }} SOC 2 controls">SOC 2 {{ page.taxonomies.TSC2017 | length }}</span>
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -80,6 +89,7 @@ macros_policies_latest_revision -%}
           <th scope="col">Version</th>
           <th scope="col">Last Reviewed</th>
           <th scope="col">Description</th>
+          <th scope="col">Frameworks</th>
         </tr>
       </thead>
       <tbody>
@@ -105,6 +115,14 @@ macros_policies_latest_revision -%}
           <td class="text-muted small">
             {% if page.description %}
               {{ page.description | truncate(length=100) }}
+            {% endif %}
+          </td>
+          <td class="text-nowrap">
+            {% if page.taxonomies.SCF %}
+              <span class="badge bg-primary-subtle text-primary-emphasis" title="{{ page.taxonomies.SCF | length }} SCF controls">SCF {{ page.taxonomies.SCF | length }}</span>
+            {% endif %}
+            {% if page.taxonomies.TSC2017 %}
+              <span class="badge bg-success-subtle text-success-emphasis" title="{{ page.taxonomies.TSC2017 | length }} SOC 2 controls">SOC 2 {{ page.taxonomies.TSC2017 | length }}</span>
             {% endif %}
           </td>
         </tr>

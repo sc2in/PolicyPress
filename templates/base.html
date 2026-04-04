@@ -23,6 +23,14 @@ config.mode == "Serve" -%}
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script>
+      (function() {
+        var s = localStorage.getItem('theme');
+        var dark = s === 'dark' || (!s && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+        if (dark) document.documentElement.classList.add('dark-early');
+      })();
+    </script>
     {{ macros_head::resource() }}
     {{ macros_head::stylesheet() }}
 
@@ -39,6 +47,7 @@ config.mode == "Serve" -%}
   </head>
   {% block body %}{% set page_class="home" %}{% endblock body %}
   <body class="{{ page_class }}">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     {% block header %}
     {{ macros_header::header(current_section="/") }}
     {% endblock header %}
@@ -46,8 +55,20 @@ config.mode == "Serve" -%}
       <div class="row flex-xl-nowrap">
 
         {% block sidebar %}
-        <div class="col-sm-4">
-          {{ macros_sidebar::sidebar(path=current_path) }}
+        <div id="sidebar-col" class="col-sm-4 sidebar-col">
+          <div class="sidebar-toggle-wrap d-none d-lg-block">
+            <button id="sidebar-toggle"
+              class="sidebar-desktop-toggle"
+              type="button"
+              aria-label="Toggle sidebar"
+              aria-expanded="true"
+              aria-controls="sidebar-col">
+              <span aria-hidden="true">&#8249;</span>
+            </button>
+          </div>
+          <div class="sidebar-col-content">
+            {{ macros_sidebar::sidebar(path=current_path) }}
+          </div>
         </div>
         {% endblock sidebar %}
         <div class="col-sm justify-content-center">

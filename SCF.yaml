@@ -1,4 +1,4 @@
-﻿SCF:  
+﻿SCF:
   - AAT-01  # Artificial Intelligence (AI) & Autonomous Technologies Governance
   - AAT-01.1  # AI & Autonomous Technologies-Related Legal Requirements Definition
   - AAT-01.3  # AI & Autonomous Technologies Value Sustainment
@@ -16,7 +16,7 @@
   - AAT-07.2  # AI & Autonomous Technologies Likelihood & Impact Risk Analysis
   - AAT-08  # Assigned Responsibilities for AI & Autonomous Technologies
   - AAT-09  # AI & Autonomous Technologies Risk Profiling
-  - AAT-10  # Artificial Intelligence Test, Evaluation, Validation & Verification (AI TEVV) 
+  - AAT-10  # Artificial Intelligence Test, Evaluation, Validation & Verification (AI TEVV)
   - AAT-10.9  # AI & Autonomous Technologies Model Validation
   - AAT-10.13  # AI TEVV Post-Deployment Monitoring
   - AAT-10.14  # Updating AI & Autonomous Technologies
@@ -68,7 +68,7 @@
   - AST-06.1  # Asset Storage In Automobiles
   - AST-07  # Kiosks & Point of Sale (PoS) Devices
   - AST-08  # Tamper Detection
-  - AST-09  # Secure Disposal, Destruction or Re-Use of Equipment 
+  - AST-09  # Secure Disposal, Destruction or Re-Use of Equipment
   - AST-10  # Return of Assets
   - AST-11  # Removal of Assets
   - AST-12  # Use of Personal Devices
@@ -77,7 +77,7 @@
   - AST-14.1  # Bluetooth & Wireless Devices
   - AST-14.2  # Infrared Communications
   - AST-15  # Tamper Protection
-  - AST-15.1  # Inspection of Systems, Components & Devices 
+  - AST-15.1  # Inspection of Systems, Components & Devices
   - AST-16  # Bring Your Own Device (BYOD) Usage
   - AST-17  # Prohibited Equipment & Services
   - AST-18  # Roots of Trust Protection
@@ -156,7 +156,7 @@
   - CFG-02.2  # Automated Central Management & Verification
   - CFG-02.3  # Retention Of Previous Configurations
   - CFG-02.4  # Development & Test Environment Configurations
-  - CFG-02.5  # Configure Systems, Components or Services for High-Risk Areas 
+  - CFG-02.5  # Configure Systems, Components or Services for High-Risk Areas
   - CFG-02.6  # Network Device Configuration File Synchronization
   - CFG-02.7  # Approved Configuration Deviations
   - CFG-02.8  # Respond To Unauthorized Changes
@@ -178,7 +178,7 @@
   - CHG-01  # Change Management Program
   - CHG-02  # Configuration Change Control
   - CHG-02.1  # Prohibition Of Changes
-  - CHG-02.2  # Test, Validate & Document Changes 
+  - CHG-02.2  # Test, Validate & Document Changes
   - CHG-02.3  # Security Representative for Change
   - CHG-02.4  # Automated Security Response
   - CHG-02.5  # Cryptographic Management
@@ -208,7 +208,7 @@
   - CLD-10  # Sensitive Data In Public Cloud Providers
   - CLD-11  # Cloud Access Point (CAP)
   - CLD-12  # Content Delivery Network (CDN)
-  - CPL-01  # Statutory, Regulatory & Contractual Compliance 
+  - CPL-01  # Statutory, Regulatory & Contractual Compliance
   - CPL-01.1  # Non-Compliance Oversight
   - CPL-01.2  # Compliance Scope
   - CPL-02  # Security & Privacy Controls Oversight
@@ -1019,7 +1019,7 @@
   - TDA-06.4  # Supporting Toolchain
   - TDA-06.5  # Software Design Review
   - TDA-07  # Secure Development Environments
-  - TDA-08  # Separation of Development, Testing and Operational Environments 
+  - TDA-08  # Separation of Development, Testing and Operational Environments
   - TDA-08.1  # Secure Migration Practices
   - TDA-09  # Security & Privacy Testing Throughout Development
   - TDA-09.1  # Continuous Monitoring Plan

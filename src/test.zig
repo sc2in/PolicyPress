@@ -1,22 +1,18 @@
+//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const utils = @import("utils.zig");
-const cr = @import("control_report.zig");
-const fm = @import("frontmatter.zig");
-const pandoc = @import("pandoc.zig");
-const config = @import("config.zig").Config;
+const utils = @import("utils");
+const zigmark = @import("zigmark");
+const pandoc = @import("pandoc");
+const config = @import("config").Config;
+const report = @import("reports");
 
 // TODO
 // - [ ] The reports should generate correctly
-// - [-] The test policy should render in html and pdf correctly
-//   - [x] pdf
-//   - [ ] html
-// - [ ] All configuration options in config.toml should be validated
-//      this requires the same logic that is holding up #45
-// - [x] All frontmatter options should be validated.
 
 const TestConfig =
     \\base_url = "http://localhost:1111"
@@ -31,9 +27,9 @@ const TestConfig =
 
 test {
     _ = utils;
-    _ = cr;
-    _ = fm;
+    _ = zigmark;
     _ = pandoc;
+    _ = report;
     tst.refAllDeclsRecursive(@This());
 }
 
@@ -61,7 +57,7 @@ test "policy processing" {
     const test_policy = try test_policy_file.readToEndAlloc(tst.allocator, std.math.maxInt(usize));
     defer tst.allocator.free(test_policy);
 
-    var frontmatter = try fm.initFromMarkdown(tst.allocator, test_policy);
+    var frontmatter = try zigmark.Frontmatter.initFromMarkdown(tst.allocator, test_policy);
     defer frontmatter.deinit();
     try tst.expectEqualStrings("Test Policy", frontmatter.get("title").?.string);
     try tst.expectEqualStrings("A policy for testing purposes", frontmatter.get("description").?.string);
@@ -154,15 +150,15 @@ test "report generation" {
     const builddir = try tmp.dir.realpathAlloc(tst.allocator, ".");
     defer tst.allocator.free(builddir);
 
-    const c_file = try std.fs.path.join(tst.allocator, &.{ env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv, "templates/opencontrols/standards/SCF.json" });
+    const c_file = try std.fs.cwd().realpathAlloc(tst.allocator, "templates/opencontrols/standards/SCF.json");
     defer tst.allocator.free(c_file);
 
-    const c_path = try std.fs.path.join(tst.allocator, &.{env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv});
-    const p_path = try std.fs.path.join(tst.allocator, &.{ env.get("DEVBOX_PROJECT_ROOT") orelse return error.NotRunningInDevboxEnv, "content/policies" });
+    const c_path = try std.fs.cwd().realpathAlloc(tst.allocator, ".");
+    const p_path = try std.fs.path.join(tst.allocator, &.{ c_path, "content/policies" });
     defer tst.allocator.free(c_path);
     defer tst.allocator.free(p_path);
 
-    var f = try cr.init(tst.allocator, c_file);
+    var f = try report.init(tst.allocator, c_file);
     defer f.deinit();
 
     const rep = try f.report(p_path);

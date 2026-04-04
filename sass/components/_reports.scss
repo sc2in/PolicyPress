@@ -53,7 +53,7 @@
         }
 
         &::after {
-          content: '\02795'; // plus sign
+          content: "\02795"; // plus sign
           font-size: 0.9rem;
           color: var(--bs-secondary-color);
           float: right;
@@ -62,7 +62,7 @@
         }
 
         &.active::after {
-          content: '\2796'; // minus sign
+          content: "\2796"; // minus sign
           transform: rotate(180deg);
         }
       }
@@ -70,7 +70,7 @@
       .section-content {
         padding: 1.5rem;
         background: var(--bs-body-bg);
-        
+
         .control-item {
           margin-bottom: 1.5rem;
           padding-bottom: 1.5rem;
@@ -110,7 +110,7 @@
               position: relative;
 
               &::before {
-                content: '▶';
+                content: "▶";
                 position: absolute;
                 left: 0;
                 color: var(--bs-link-color);
@@ -144,14 +144,48 @@
   }
 }
 
-// Dark mode specific variables
-body.dark {
-  --pp-section-title-bg: #{darken($gray-800, 5%)};
-  --pp-section-title-hover-bg: #{$gray-700};
+// Coverage summary bar
+.coverage-summary {
+  .coverage-label {
+    font-size: $font-size-base;
+  }
+
+  .coverage-numbers {
+    font-size: $font-size-sm;
+  }
+
+  .progress {
+    border-radius: 4px;
+  }
 }
 
-// Light mode specific variables
-body:not(.dark) {
+// Control ID badge (plain span or link)
+.control-id-link {
+  font-family: $font-family-monospace;
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--bs-secondary-color);
+
+  &[href] {
+    color: $primary;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// Control item h3 override within report sections
+.control-item h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: var(--bs-heading-color);
+}
+
+// Light mode variables (default)
+:root {
   --pp-section-title-bg: #{$gray-100};
   --pp-section-title-hover-bg: #{$gray-200};
 }
@@ -162,13 +196,13 @@ body:not(.dark) {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease;
-    
+
     &.active {
       max-height: none;
       overflow: visible;
     }
   }
-  
+
   .section-title.active + .section-content {
     max-height: 2000px; // Large enough for content
   }
@@ -177,7 +211,7 @@ body:not(.dark) {
 // Optimize rendering for large lists
 .policy-list {
   contain: layout;
-  
+
   li {
     contain: layout;
   }

@@ -1,3 +1,15 @@
+// Mermaid diagrams: scale SVG to fit the content column width.
+// The SVG renderer sets absolute pixel widths; max-width: 100% on the SVG
+// tells it to shrink-to-fit without blowing out the flex layout.
+.docs-content .mermaid {
+  overflow-x: auto;
+
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
 .docs-content > h2[id]::before,
 .docs-content > h3[id]::before,
 .docs-content > h4[id]::before {
@@ -47,4 +59,27 @@ p.meta {
 .page-header {
   text-align: center;
   margin-bottom: 2rem;
+}
+
+// Print: hide navigation chrome and prompt user to use the PDF version.
+@media print {
+  .navbar,
+  .docs-sidebar,
+  .sidebar-col,
+  .policy-toc-col,
+  .docs-navigation,
+  .edit-page,
+  .skip-link,
+  .sidebar-toggle-wrap {
+    display: none !important;
+  }
+
+  .print-pdf-notice {
+    display: block !important;
+  }
+}
+
+// Hidden by default; shown only in print view above.
+.print-pdf-notice {
+  display: none;
 }

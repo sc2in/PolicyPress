@@ -1,0 +1,96 @@
+name: PolicyPress
+description: Build ISMS policy PDFs and a Zola static site from markdown content.
+author: sc2in
+
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  config_path:
+    description: Path to the Zola config.toml file.
+    required: false
+    default: config.toml
+  output_dir:
+    description: Output directory for PDFs and reports.
+    required: false
+    default: public
+  draft_mode:
+    description: >
+      Set to 'true' to stamp PDFs with a DRAFT watermark.
+      Set to 'false' (default) to produce clean production PDFs.
+    required: false
+    default: 'false'
+  redact_mode:
+    description: >
+      Set to 'true' to redact content inside redaction shortcode tags.
+      Set to 'false' (default) to include all content.
+    required: false
+    default: 'false'
+
+outputs:
+  pdf_path:
+    description: Path to the directory containing generated PDFs.
+    value: ${{ steps.build.outputs.pdf_path }}
+  site_path:
+    description: Path to the directory containing the built static site.
+    value: ${{ steps.build.outputs.site_path }}
+  report_path:
+    description: Path to the directory containing compliance reports.
+    value: ${{ steps.build.outputs.report_path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install Nix
+      uses: DeterminateSystems/determinate-nix-action@v3
+
+    - name: Setup Nix cache
+      uses: DeterminateSystems/flakehub-cache-action@main
+
+    - name: Fetch policypress theme
+      uses: actions/checkout@v4
+      with:
+        repository: sc2in/policypress
+        ref: ${{ github.action_ref }}
+        path: themes/policypress
+
+    - name: Copy pandoc templates
+      shell: bash
+      run: |
+        # pandoc looks for eisvogel.latex in {data-dir}/templates/ (where
+        # data-dir defaults to the site root). Copy it from the theme so
+        # consumers don't need to vendor it.
+        mkdir -p templates
+        cp -n themes/policypress/templates/eisvogel.latex templates/
+        cp -n themes/policypress/templates/eisvogel.pdf templates/ 2>/dev/null || true
+
+    - name: Build site and PDFs
+      id: build
+      shell: nix develop "github:sc2in/policypress" --command bash -e {0}
+      run: |
+        set -euo pipefail
+
+        # Build the Zola static site
+        zola build
+
+        # Build flags — explicitly set draft/redact so action inputs always
+        # override whatever is in the consumer's config.toml.
+        ARGS=(-c "${{ inputs.config_path }}" -o "${{ inputs.output_dir }}")
+        if [ "${{ inputs.draft_mode }}" = "true" ]; then
+          ARGS+=(--draft)
+        else
+          ARGS+=(--no-draft)
+        fi
+        if [ "${{ inputs.redact_mode }}" = "true" ]; then
+          ARGS+=(--redact)
+        else
+          ARGS+=(--no-redact)
+        fi
+
+        # Generate PDFs — policypress and all runtime deps are in the devshell
+        policypress "${ARGS[@]}"
+
+        echo "pdf_path=${{ inputs.output_dir }}/pdf"     >> "$GITHUB_OUTPUT"
+        echo "site_path=public"                          >> "$GITHUB_OUTPUT"
+        echo "report_path=${{ inputs.output_dir }}/reports" >> "$GITHUB_OUTPUT"

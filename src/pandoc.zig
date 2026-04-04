@@ -1,49 +1,50 @@
 //! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: AGPL-3.0-or-later
-//!
-//! This program automates the process of converting Markdown policy documents into styled PDF files.
-//! It loads configuration from a TOML file, processes Markdown files (including YAML front matter and custom placeholders),
-//! applies organization branding, and invokes Pandoc with a set of dynamically constructed arguments to generate PDFs.
-//! The build is highly configurable, supporting custom logos, organization names, color extraction from images,
-//! and options for draft/redacted document states. The system is designed for batch processing of policy directories,
-//! with robust error handling and logging at multiple stages of the pipeline.
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const FrontMatter = @import("frontmatter.zig");
-const tomlz = FrontMatter.tomlz;
-const Yaml = FrontMatter.Yaml;
 const ctime = @cImport(@cInclude("time.h"));
 const mvzr = @import("mvzr");
 const clap = @import("clap");
-const u = @import("utils.zig");
+const u = @import("utils");
 
-const Config = @import("config.zig").Config;
+const Config = @import("config").Config;
 
 // TODO: Add more robust error propegation from pandoc/mermaid-filter
-// TODO: Add threading support
 // TODO?: Link against pandoc directly at somepoint
 
 pub const std_options: std.Options = .{
-    .log_level = .info,
+    .log_level = .warn,
     .log_scope_levels = &[_]std.log.ScopeLevel{
-        .{ .scope = .parser, .level = .debug },
-        .{ .scope = .pandoc, .level = std.log.default_level },
+        .{ .scope = .parser, .level = .warn },
+        .{ .scope = .pandoc, .level = .warn },
+        .{ .scope = .yaml, .level = .err },
     },
     .logFn = u.logFn,
 };
 
 const panlog = std.log.scoped(.pandoc);
 
+pub fn compile(
+    alloc: Allocator,
+    config: Config,
+    input_file: []const u8,
+) !void {
+    var global_args = Array([]u8){};
+
+    try create_global_args(alloc, &global_args, config);
+    defer destroy_global_args(alloc, &global_args);
+
+    try process_md_file(alloc, .{ .path = input_file }, global_args, config);
+}
 pub fn main() !void {
     var gpa = std.heap.DebugAllocator(.{}){};
     defer _ = gpa.deinit();
 
     const alloc = gpa.allocator();
     var config = try Config.load_config_toml(alloc);
-    errdefer config.deinit(alloc);
     defer config.deinit(alloc);
 
     var workfile: ?[]u8 = null;
@@ -133,7 +134,7 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
 
     try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{if (config.color[0] == '#') config.color[1..] else config.color});
 
-    try add_arg(a, args, "-F", "{s}/.devbox/nix/profile/default/bin/mermaid-filter", .{config.root});
+    try add_arg(a, args, "-F", "mermaid-filter", .{});
     try add_arg(a, args, "-V", "footer-center=Confidental", .{});
     try add_arg(a, args, "-V", "papersize=letter", .{});
     try add_arg(a, args, "-V", "titlepage=true", .{});
@@ -195,6 +196,7 @@ pub fn process_md_file(
 
     try u.replace_org(a, &contents, config.org);
     try u.replace_zola_at(a, &contents, config.base_url);
+    try u.replace_admonitions(a, &contents);
     try u.replace_mermaid(a, &contents);
     try u.redact(a, &contents, config.redact);
 

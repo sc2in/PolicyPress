@@ -1,0 +1,53 @@
+{% extends "reports/base.html" %}
+
+{% block report_content %}
+{% set data = load_data(path=config.extra.tsc2017_controls | default(value="templates/opencontrols/standards/TSC-2017 (SOC2).yml")) %}
+{% set control_data = data[term.name] | default(value=false) %}
+
+<div class="report-section">
+  <h2 class="section-title active">
+    {{ term.name }}
+    {% if control_data %}— {{ control_data.name }}{% endif %}
+  </h2>
+  <div class="section-content active">
+    <div class="control-item">
+      {% if control_data %}
+      <div class="control-header">
+        <div class="text-muted small mb-1">
+          <span class="badge bg-secondary">{{ control_data.family }}</span>
+          SOC 2 Trust Services Criteria
+        </div>
+        <div class="control-description">{{ control_data.description }}</div>
+      </div>
+      {% endif %}
+
+      <h3 class="mt-3 mb-2" style="font-size: 1rem;">Policies satisfying this criterion</h3>
+      {% if term.pages %}
+      <ul class="policy-list">
+        {% for policy in term.pages %}
+        <li>
+          <a href="{{ policy.permalink | safe }}">{{ policy.title }}</a>
+          {% if policy.extra.last_reviewed %}
+          <span class="text-muted small ms-2">
+            Last reviewed {{ policy.extra.last_reviewed | date(format="%b %d, %Y") }}
+          </span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="no-policies">No policies have been mapped to {{ term.name }} yet.</div>
+      {% endif %}
+
+      <div class="mt-3">
+        {% set _tsc_back = config.extra.soc2_report_page | default(value="") %}
+        {% if _tsc_back %}
+        <a href="{{ get_url(path=_tsc_back) | safe }}" class="btn btn-sm btn-outline-secondary">
+          &larr; Back to SOC 2 TSC Overview
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock report_content %}

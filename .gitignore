@@ -22,3 +22,4 @@ hugo_stats.json
 resources
 tmp.*
 zig-out
+.claude

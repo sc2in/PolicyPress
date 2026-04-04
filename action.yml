@@ -20,13 +20,13 @@ inputs:
       Set to 'true' to stamp PDFs with a DRAFT watermark.
       Set to 'false' (default) to produce clean production PDFs.
     required: false
-    default: 'false'
+    default: "false"
   redact_mode:
     description: >
       Set to 'true' to redact content inside redaction shortcode tags.
       Set to 'false' (default) to include all content.
     required: false
-    default: 'false'
+    default: "false"
 
 outputs:
   pdf_path:

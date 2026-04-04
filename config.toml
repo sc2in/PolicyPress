@@ -37,7 +37,6 @@ generate_robots_txt = true
 # ignored_content = []
 
 
-
 # When set to "all", paginated pages are not a part of the sitemap, default is "none"
 exclude_paginated_pages_in_sitemap = "none"
 
@@ -62,20 +61,20 @@ author = "PolicyPress"
 
 [[taxonomies]]
 name = "tags"
-feed  = true
+feed = true
 render = false
 
 [[taxonomies]]
 name = "TSC2017"
-feed  = true
+feed = true
 render = true
 [[taxonomies]]
 name = "ISO27001"
-feed  = false
+feed = false
 render = false
 [[taxonomies]]
 name = "SCF"
-feed  = false
+feed = false
 render = false
 
 # Configuration of the Markdown rendering
@@ -181,7 +180,7 @@ language_code = "en-US"
 theme_color = "#fff"
 
 # More about site's title
-title_separator = "|"  # set as |, -, _, etc
+title_separator = "|"                         # set as |, -, _, etc
 title_addition = "Modern Documentation Theme"
 
 
@@ -199,8 +198,7 @@ repo_branch = "main"
 # options: true, false. Enable math support globally,
 # default: false. You can always enable math on a per page.
 math = false
-library = "katex"  # options: "katex", "mathjax". default is "katex".
-
+library = "katex" # options: "katex", "mathjax". default is "katex".
 
 
 [extra.menu]
@@ -230,13 +228,13 @@ icon = "fas fa-newspaper"
 weight = 30
 
 [extra.policyteam]
-  [[extra.policyteam.members]]
-    name = "Alice Beuler"
-    title = "Chief Security Officer"
-    email = "abeuler@sc2.in"
-    phone = "+91 123 456 7890"
-    image = "logo.svg"
-    page = "team/abeuler.md"
+[[extra.policyteam.members]]
+name = "Alice Beuler"
+title = "Chief Security Officer"
+email = "abeuler@sc2.in"
+phone = "+91 123 456 7890"
+image = "logo.svg"
+page = "team/abeuler.md"
 
 
 # Homepage configuration
@@ -317,9 +315,6 @@ number = "100%"
 label = "Coverage"
 
 
-
-
-
 ## Open Graph + Twitter Cards
 [extra.open]
 enable = true
@@ -338,7 +333,7 @@ logo = "logo.png"
 twitter = "https://twitter.com/sc2in"
 linked_in = "sc2in"
 github = "https://github.com/sc2in"
-section = "policies" # see config.extra.main~url
+section = "policies"                  # see config.extra.main~url
 ## Sitelinks Search Box
 site_links_search_box = true
 

@@ -132,6 +132,9 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .root_source_file = b.path("src/main.zig"),
     });
+    const build_opts = b.addOptions();
+    build_opts.addOption([]const u8, "install_prefix", b.install_prefix);
+    policypress_mod.addImport("build_options", build_opts.createModule());
     policypress_mod.addImport("clap", clap.module("clap"));
     policypress_mod.addImport("config", config_mod);
     policypress_mod.addImport("pandoc", pandoc_sh_mod);

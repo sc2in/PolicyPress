@@ -13,6 +13,7 @@ const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
 const clap = @import("clap");
+const build_options = @import("build_options");
 const Config = @import("config").Config;
 const Reports = @import("reports");
 const Pandoc = @import("pandoc");
@@ -27,7 +28,7 @@ pub fn main() !void {
         \\-h, --help             Display this help and exit.
         \\-c, --config <str>     Path to config file. (default: config.toml)
         \\-i, --input  <str>     Path to input content directory. (default: content)
-        \\-o, --output <str>     Path to output directory. (default: public/pdfs)
+        \\-o, --output <str>     Path to output directory. (default: <prefix>/pdfs)
         \\--draft                Add draft watermark to output (overrides config.toml).
         \\--no-draft             Do not add draft watermark to output (overrides config.toml).
         \\--redact               Redact content within redaction tags (overrides config.toml).
@@ -93,7 +94,9 @@ pub fn main() !void {
     var walker = try policy_dir.walk(alloc);
     defer walker.deinit();
 
-    const output_path = if (res.args.output) |o| o else "public/pdfs";
+    const default_output = try std.fmt.allocPrint(alloc, "{s}/pdfs", .{build_options.install_prefix});
+    defer alloc.free(default_output);
+    const output_path = if (res.args.output) |o| o else default_output;
     config.build_dir = output_path;
     var output_dir = std.fs.cwd().openDir(output_path, .{ .access_sub_paths = true }) catch |err| {
         if (err == error.FileNotFound) {

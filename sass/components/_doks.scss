@@ -44,19 +44,19 @@ Doks — based on Ascetic by (c) Ivan Sagalaev <Maniac@SoftwareManiacs.Org>
   font-style: italic;
 }
 
-body.dark .hljs {
+[data-bs-theme="dark"] .hljs {
   background: $body-overlay-dark;
   color: $body-color-dark;
 }
 
-body.dark .hljs-string,
-body.dark .hljs-variable,
-body.dark .hljs-template-variable,
-body.dark .hljs-symbol,
-body.dark .hljs-bullet,
-body.dark .hljs-section,
-body.dark .hljs-addition,
-body.dark .hljs-attribute,
-body.dark .hljs-link {
+[data-bs-theme="dark"] .hljs-string,
+[data-bs-theme="dark"] .hljs-variable,
+[data-bs-theme="dark"] .hljs-template-variable,
+[data-bs-theme="dark"] .hljs-symbol,
+[data-bs-theme="dark"] .hljs-bullet,
+[data-bs-theme="dark"] .hljs-section,
+[data-bs-theme="dark"] .hljs-addition,
+[data-bs-theme="dark"] .hljs-attribute,
+[data-bs-theme="dark"] .hljs-link {
   color: $blue-300;
 }

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(zig build:*)",
+      "Bash(devbox run:*)",
+      "Bash(curl -s http://localhost:1111/policies/)",
+      "Bash(curl -s http://localhost:1111/)",
+      "Bash(curl -s http://localhost:1111/news/)",
+      "Bash(nix log:*)"
+    ]
+  }
+}

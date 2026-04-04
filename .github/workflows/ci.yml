@@ -3,42 +3,58 @@ name: CI
 on:
   push:
     branches: ['**']
-  # pull_request:
-  #   branches: ['main']
+  pull_request:
+    branches: ['main']
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-  
-env:
-  NIXED_USER: true
-  PUBLISH: ${{ github.ref == 'refs/heads/main' && 'true' || 'false' }}
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+      contents: "write"
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v12
-      
-      # - name: Setup Nix cache
-      #   uses: DeterminateSystems/magic-nix-cache-action@v7
-      
-      - name: Install devbox
-        uses: jetify-com/devbox-install-action@v0.12.0
+        uses: DeterminateSystems/determinate-nix-action@v3
+
+      - name: Setup Nix cache
+        uses: DeterminateSystems/flakehub-cache-action@main
+        with:
+          use-gha-cache: "enabled"
+          flakehub-flake-name: "sc2in/PolicyPress"
+
+      - name: Install omnix
+        run: nix --accept-flake-config profile add nixpkgs#omnix
 
       - name: Run CI
-        run: devbox run ci
-        env:
-          # Disable Chromium sandbox for mermaid-filter
-          PUPPETEER_ARGS: '--no-sandbox --disable-setuid-sandbox'
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false'
+        run: om ci run --include-all-dependencies
+
+      - name: Collect artifacts
+        if: ${{ success() }}
+        run: |
+          mkdir -p artifacts
+          nix build --no-link --print-out-paths .# | xargs -I{} cp -rL {}/ artifacts/
 
       - name: Upload artifacts
         if: ${{ success() }}
         uses: actions/upload-artifact@v4
         with:
-          name: zig-out
-          path: zig-out/
+          name: policypress
+          path: artifacts/
           retention-days: 7
+
+      - name: Create release archive
+        if: ${{ success() && github.ref_type == 'tag' }}
+        run: |
+          tar czf policypress-${{ github.ref_name }}.tar.gz -C artifacts .
+
+      - name: Create GitHub Release
+        if: ${{ success() && github.ref_type == 'tag' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: policypress-${{ github.ref_name }}.tar.gz
+          generate_release_notes: true

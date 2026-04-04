@@ -1,87 +1,105 @@
 {% macro sidebar(path, current_section="") %}
-<!-- Skip link for keyboard navigation -->
-<a href="#main-content" class="skip-link">Skip to main content</a>
+<div class="docs-sidebar" role="complementary" aria-label="Documentation navigation" id="docsSidebar">
+  <!-- Mobile/collapsed toggle -->
+  <button class="sidebar-toggle btn btn-sm btn-outline-secondary d-lg-none mb-2"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#sidebarNav"
+    aria-expanded="true"
+    aria-controls="sidebarNav"
+    aria-label="Toggle navigation menu">
+    <span aria-hidden="true">&#9776;</span> Menu
+  </button>
 
-<div class="docs-sidebar" role="complementary"
-	aria-label="Documentation navigation">
-	<nav class="docs-links" aria-label="Main navigation" role="navigation">
-		{% set index_path = current_section ~ "/_index.md" |
-		trim_start_matches(pat="/") %}
-		{% set index = get_section(path=index_path) %}
+  <div class="collapse show" id="sidebarNav">
+    <nav class="docs-links" aria-label="Main navigation" role="navigation">
+      {% set index_path = current_section ~ "/_index.md" | trim_start_matches(pat="/") %}
+      {% set index = get_section(path=index_path) %}
 
-		{% if index.pages %}
-		<h3 id="section-{{ index.title | slugify }}">{{ index.title }}</h3>
-		<ul class="list-unstyled" role="list"
-			aria-labelledby="section-{{ index.title | slugify }}">
-			{% for page in index.pages %}
-			<li role="listitem">
-				<a class="docs-link{% if path == page.path %} active{% endif %}"
-					href="{{ page.permalink | safe }}"
-					{% if path == page.path %}
-					aria-current="page"
-					aria-describedby="current-page-indicator"
-					{% endif %}>
-					{{ page.title }}
-				</a>
-			</li>
-			{% endfor %}
-		</ul>
-		{% endif %}
+      {% if index.pages %}
+      <h3 id="section-{{ index.title | slugify }}">{{ index.title }}</h3>
+      <ul class="list-unstyled" role="list"
+        aria-labelledby="section-{{ index.title | slugify }}">
+        {% for page in index.pages %}
+        <li role="listitem">
+          <a class="docs-link{% if path == page.path %} active{% endif %}"
+            href="{{ page.permalink | safe }}"
+            {% if path == page.path %}aria-current="page"{% endif %}>
+            {{ page.title }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
 
-		{% if index.subsections %}
-		{% for s in index.subsections %}
-		{% set subsection = get_section(path=s) %}
-		{% if subsection.pages %}
-		<h3 id="subsection-{{ subsection.title | slugify }}">{{ subsection.title
-			}}</h3>
-		<ul class="list-unstyled" role="list"
-			aria-labelledby="subsection-{{ subsection.title | slugify }}">
-			{% for page in subsection.pages %}
-			<li role="listitem">
-				<a class="docs-link{% if path == page.path %} active{% endif %}"
-					href="{{ page.permalink | safe }}"
-					{% if path == page.path %}
-					aria-current="page"
-					aria-describedby="current-page-indicator"
-					{% endif %}>
-					{{ page.title }}
-				</a>
-			</li>
-			{% endfor %}
-		</ul>
-		{% endif %}
+      {% if index.subsections %}
+      {% for s in index.subsections %}
+      {% set subsection = get_section(path=s) %}
+      {% if subsection.pages %}
+      {% set sub_id = "sub-" ~ subsection.title | slugify %}
+      <h3 id="section-{{ subsection.title | slugify }}">
+        <button class="sidebar-section-toggle btn btn-link p-0 text-start w-100"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#{{ sub_id }}"
+          aria-expanded="true"
+          aria-controls="{{ sub_id }}">
+          {{ subsection.title }}
+          <span class="sidebar-chevron" aria-hidden="true">&#8964;</span>
+        </button>
+      </h3>
+      <ul class="list-unstyled collapse show" id="{{ sub_id }}" role="list"
+        aria-labelledby="section-{{ subsection.title | slugify }}">
+        {% for page in subsection.pages %}
+        <li role="listitem">
+          <a class="docs-link{% if path == page.path %} active{% endif %}"
+            href="{{ page.permalink | safe }}"
+            {% if path == page.path %}aria-current="page"{% endif %}>
+            {{ page.title }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
 
-		{% if subsection.subsections %}
-		{% for ss in subsection.subsections %}
-		{% set ss_section = get_section(path=ss) %}
-		{% if ss_section.pages %}
-		<h4 id="subsubsection-{{ ss_section.title | slugify }}">{{ ss_section.title
-			}}</h4>
-		<ul class="list-unstyled subsection" role="list"
-			aria-labelledby="subsubsection-{{ ss_section.title | slugify }}">
-			{% for page in ss_section.pages %}
-			<li role="listitem">
-				<a class="docs-link{% if path == page.path %} active{% endif %}"
-					href="{{ page.permalink | safe }}"
-					{% if path == page.path %}
-					aria-current="page"
-					aria-describedby="current-page-indicator"
-					{% endif %}>
-					{{ page.title }}
-				</a>
-			</li>
-			{% endfor %}
-		</ul>
-		{% endif %}
-		{% endfor %}
-		{% endif %}
-		{% endfor %}
-		{% endif %}
-	</nav>
+      {% if subsection.subsections %}
+      {% for ss in subsection.subsections %}
+      {% set ss_section = get_section(path=ss) %}
+      {% if ss_section.pages %}
+      {% set ss_id = "ss-" ~ ss_section.title | slugify %}
+      <h4 id="subsection-{{ ss_section.title | slugify }}">
+        <button class="sidebar-section-toggle btn btn-link p-0 text-start w-100"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#{{ ss_id }}"
+          aria-expanded="true"
+          aria-controls="{{ ss_id }}">
+          {{ ss_section.title }}
+          <span class="sidebar-chevron" aria-hidden="true">&#8964;</span>
+        </button>
+      </h4>
+      <ul class="list-unstyled subsection collapse show" id="{{ ss_id }}" role="list"
+        aria-labelledby="subsection-{{ ss_section.title | slugify }}">
+        {% for page in ss_section.pages %}
+        <li role="listitem">
+          <a class="docs-link{% if path == page.path %} active{% endif %}"
+            href="{{ page.permalink | safe }}"
+            {% if path == page.path %}aria-current="page"{% endif %}>
+            {{ page.title }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% endfor %}
+      {% endif %}
+      {% endfor %}
+      {% endif %}
+    </nav>
+  </div>
 
-	<!-- Screen reader only current page indicator -->
-	<div id="current-page-indicator" class="sr-only">
-		You are currently viewing this page
-	</div>
+  <div id="current-page-indicator" class="sr-only">
+    You are currently viewing this page
+  </div>
 </div>
 {% endmacro %}

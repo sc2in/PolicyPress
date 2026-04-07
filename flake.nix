@@ -40,6 +40,7 @@
           pkgs,
           system,
           lib,
+          inputs,
           ...
         }:
         let
@@ -175,7 +176,7 @@
 
           # --- Checks (nix flake check) ----------------------------------------
 
-          checks.formatting = config.treefmt.build.check;
+          checks.formatting = config.treefmt.build.check inputs.self;
 
           checks.test = (mkPolicypress null).overrideAttrs (old: {
             pname = "policypress-test";

@@ -30,6 +30,9 @@ jobs:
       - name: Install omnix
         run: nix --accept-flake-config profile add nixpkgs#omnix
 
+      - name: Configure permissions
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
       - name: Run CI
         run: om ci run --include-all-dependencies
 

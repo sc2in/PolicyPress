@@ -9,6 +9,7 @@ const b = @import("builtin");
 
 const config = @import("config").Config;
 const pandoc = @import("pandoc");
+const typst = @import("typst");
 const report = @import("reports");
 const utils = @import("utils");
 const zigmark = @import("zigmark");
@@ -31,6 +32,7 @@ test {
     _ = utils;
     _ = zigmark;
     _ = pandoc;
+    _ = typst;
     _ = report;
     tst.refAllDeclsRecursive(@This());
 }
@@ -144,6 +146,40 @@ test "pdf rendering" {
     };
 
     tmp.cleanup();
+}
+
+test "pdf rendering (typst)" {
+    const alloc = tst.allocator;
+    var conf = try config.load(alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    alloc.free(conf.content_dir);
+    conf.content_dir = try std.fs.path.join(alloc, &.{ conf.root, "src", "test" });
+    alloc.free(conf.policy_dir);
+    conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    conf.build_dir = try tmp.dir.realpathAlloc(alloc, ".");
+    defer alloc.free(conf.build_dir);
+
+    // Use the mermaid-free fixture so the test runs in the Nix sandbox
+    // (Chrome/user-namespaces are unavailable there).
+    typst.compile(alloc, conf, "src/test/test_policy_render.md") catch |e| {
+        std.debug.print("Typst compile failed!\nConfig:{f}\n", .{conf});
+        return e;
+    };
+
+    // Verify at least one PDF landed in the temp dir.
+    var found = false;
+    var it = tmp.dir.iterate();
+    while (try it.next()) |entry| {
+        if (std.mem.endsWith(u8, entry.name, ".pdf")) {
+            found = true;
+            break;
+        }
+    }
+    try tst.expect(found);
 }
 
 test "report generation" {

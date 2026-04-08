@@ -17,6 +17,7 @@ const build_options = @import("build_options");
 const Config = @import("config").Config;
 const Reports = @import("reports");
 const Pandoc = @import("pandoc");
+const Typst = @import("typst");
 
 pub fn main() void {
     var gpa = std.heap.DebugAllocator(.{}){};
@@ -53,6 +54,7 @@ fn run(alloc: Allocator) !void {
         \\-c, --config <str>     Path to config file. (default: config.toml)
         \\-i, --input  <str>     Path to input content directory. (default: content)
         \\-o, --output <str>     Path to output directory. (default: <prefix>/pdfs)
+        \\--engine <str>         PDF engine: typst or pandoc. (default: typst)
         \\--draft                Add draft watermark to output (overrides config.toml).
         \\--no-draft             Do not add draft watermark to output (overrides config.toml).
         \\--redact               Redact content within redaction tags (overrides config.toml).
@@ -259,11 +261,13 @@ fn run(alloc: Allocator) !void {
     defer pool.deinit();
 
     var wg: std.Thread.WaitGroup = .{};
+    const engine = res.args.engine orelse "typst";
     for (file_paths.items) |input_path| {
         pool.spawnWg(&wg, compileOne, .{
             alloc,
             config,
             input_path,
+            engine,
             stamps_dir_path,
             compile_node,
             &error_mutex,
@@ -349,6 +353,8 @@ fn describeCompileError(err: anyerror) []const u8 {
         error.NoResourcePathDefined => "could not determine resource path from the file's location",
         error.PandocFailed => "pandoc exited with an error — check the output above for details",
         error.PandocNotFound => "pandoc was not found; make sure you are running inside the PolicyPress devshell (nix develop)",
+        error.TypstFailed => "typst exited with an error — check the output above for details",
+        error.TypstNotFound => "typst was not found; add it to your flake devShell or run: nix shell nixpkgs#typst",
         error.FileNotFound => "policy file was not found on disk (it may have been deleted mid-build)",
         error.OutOfMemory => "out of memory while processing this file",
         else => @errorName(err),
@@ -387,6 +393,7 @@ fn compileOne(
     alloc: Allocator,
     config: Config,
     input_path: []const u8,
+    engine: []const u8,
     stamps_dir: []const u8,
     progress_node: std.Progress.Node,
     error_mutex: *std.Thread.Mutex,
@@ -398,7 +405,12 @@ fn compileOne(
     const file_node = progress_node.start(std.fs.path.basename(input_path), 0);
     defer file_node.end();
 
-    Pandoc.compile(alloc, config, input_path) catch |err| {
+    const result = if (std.mem.eql(u8, engine, "pandoc"))
+        Pandoc.compile(alloc, config, input_path)
+    else
+        Typst.compile(alloc, config, input_path);
+
+    result catch |err| {
         error_mutex.lock();
         defer error_mutex.unlock();
         error_count.* += 1;

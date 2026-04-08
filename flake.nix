@@ -103,6 +103,7 @@
               with pkgs;
               [
                 pandoc
+                typst
                 zola
                 imagemagick
                 eisvogel-tex.packages.${system}.default

@@ -127,6 +127,15 @@ pub fn build(b: *std.Build) !void {
     reports_mod.addImport("config", config_mod);
     reports_mod.addImport("zigmark", zigmark_mod);
 
+    const typst_mod = b.addModule("typst_pdf", .{
+        .root_source_file = b.path("src/typst.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    typst_mod.addImport("config", config_mod);
+    typst_mod.addImport("utils", utils_mod);
+    typst_mod.addImport("zigmark", zigmark_mod);
+
     const policypress_mod = b.addModule("policypress", .{
         .target = target,
         .optimize = optimize,
@@ -138,6 +147,7 @@ pub fn build(b: *std.Build) !void {
     policypress_mod.addImport("clap", clap.module("clap"));
     policypress_mod.addImport("config", config_mod);
     policypress_mod.addImport("pandoc", pandoc_sh_mod);
+    policypress_mod.addImport("typst", typst_mod);
     policypress_mod.addImport("reports", reports_mod);
     const policypress_exe = b.addExecutable(.{
         .root_module = policypress_mod,
@@ -173,6 +183,7 @@ pub fn build(b: *std.Build) !void {
         test_module.addImport("zigmark", zigmark_mod);
         test_module.addImport("utils", utils_mod);
         test_module.addImport("pandoc", pandoc_sh_mod);
+        test_module.addImport("typst", typst_mod);
         test_module.addImport("config", config_mod);
         test_module.addImport("reports", reports_mod);
         test_module.addImport("datetime", pg.module("datetime"));

@@ -301,13 +301,21 @@
                   text = ''
                     export FONTCONFIG_FILE="${fontsConf}"
                     mkdir -p static/pdfs
-                    policypress -o static/pdfs || true
-                    policypress -o static/pdfs --draft || true
+
+                    # Run regular and draft compilations in parallel on startup.
+                    # The PID-prefixed temp filenames in policypress prevent the two
+                    # processes from colliding when writing preprocessed markdown to
+                    # static/pdfs before pandoc picks it up.
+                    policypress -o static/pdfs &
+                    policypress -o static/pdfs --draft &
+                    wait
+
                     zola serve &
                     ZOLA_PID=$!
                     trap 'kill "$ZOLA_PID" 2>/dev/null' EXIT INT TERM
+
                     watchexec -w content -e md -- sh -c \
-                      'policypress -o static/pdfs; policypress -o static/pdfs --draft'
+                      'policypress -o static/pdfs & policypress -o static/pdfs --draft & wait'
                     wait
                   '';
                 };

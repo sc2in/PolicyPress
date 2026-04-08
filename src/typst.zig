@@ -485,10 +485,10 @@ fn writeVersionHistory(writer: anytype, fm: *zigmark.Frontmatter) !void {
     try writer.writeAll("\n#pagebreak()\n= Version History\n\n");
     try writer.writeAll(
         "#table(\n" ++
-        "  columns: (auto, auto, 1fr, auto),\n" ++
-        "  align: (center, center, left, center),\n" ++
+        "  columns: (auto, auto, 1fr, auto, auto),\n" ++
+        "  align: (center, center, left, center, center),\n" ++
         "  table.header(\n" ++
-        "    [*Version*], [*Date*], [*Description*], [*Approved By*],\n" ++
+        "    [*Version*], [*Date*], [*Description*], [*Revised By*], [*Approved By*],\n" ++
         "  ),\n",
     );
 
@@ -519,6 +519,14 @@ fn writeVersionHistory(writer: anytype, fm: *zigmark.Frontmatter) !void {
         // Description
         try writer.writeAll("  [");
         if (obj.get("description")) |v| switch (v) {
+            .string => |s| try writeEscaped(writer, s),
+            else    => {},
+        };
+        try writer.writeAll("],\n");
+
+        // Revised by
+        try writer.writeAll("  [");
+        if (obj.get("revised_by")) |v| switch (v) {
             .string => |s| try writeEscaped(writer, s),
             else    => {},
         };

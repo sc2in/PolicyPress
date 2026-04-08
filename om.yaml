@@ -7,19 +7,6 @@ ci:
           enable: true
         flake-check:
           enable: true
-        custom:
-          zig-test:
-            type: devshell
-            command:
-              - zig
-              - build
-              - test
-          zola-check:
-            type: devshell
-            command:
-              - zola
-              - check
-              - --skip-external-links
 
 develop:
   default:

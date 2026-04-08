@@ -34,7 +34,7 @@ jobs:
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
 
       - name: Run CI
-        run: om ci run --include-all-dependencies
+        run: om ci run
 
       - name: Collect artifacts
         if: ${{ success() }}

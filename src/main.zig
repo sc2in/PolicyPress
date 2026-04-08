@@ -181,6 +181,17 @@ fn run(alloc: Allocator) !void {
         return error.OutputDirFailed;
     };
 
+    // Stamp directory: one file per policy, touched after successful compilation.
+    // Named per build variant so regular/draft/redact caches don't collide.
+    const stamps_subdir = try std.fmt.allocPrint(alloc, ".pp-stamps-d{d}-r{d}", .{
+        @intFromBool(config.is_draft),
+        @intFromBool(config.redact),
+    });
+    defer alloc.free(stamps_subdir);
+    const stamps_dir_path = try std.fs.path.join(alloc, &.{ output_path, stamps_subdir });
+    defer alloc.free(stamps_dir_path);
+    std.fs.cwd().makePath(stamps_dir_path) catch {}; // non-fatal if it fails
+
     // --- Collect policy files ---
 
     var file_paths = Array([]const u8){};
@@ -188,6 +199,7 @@ fn run(alloc: Allocator) !void {
         for (file_paths.items) |path| alloc.free(path);
         file_paths.deinit(alloc);
     }
+    var skipped: usize = 0;
     while (walker.next() catch |err| {
         std.debug.print(
             "policypress: error while scanning policy directory: {s}\n",
@@ -199,14 +211,26 @@ fn run(alloc: Allocator) !void {
             const base_name = std.fs.path.basename(entry.path);
             if (std.mem.eql(u8, base_name, "_index.md")) continue;
             const input_path = try std.fs.path.join(alloc, &.{ config.policy_dir, entry.path });
+            if (stampIsNewer(input_path, stamps_dir_path, alloc)) {
+                alloc.free(input_path);
+                skipped += 1;
+                continue;
+            }
             try file_paths.append(alloc, input_path);
         }
     }
 
     const total_files = file_paths.items.len;
     if (total_files == 0) {
-        std.debug.print("policypress: no .md files found in '{s}'\n", .{config.policy_dir});
+        if (skipped > 0) {
+            std.debug.print("policypress: all {d} policies are up to date.\n", .{skipped});
+        } else {
+            std.debug.print("policypress: no .md files found in '{s}'\n", .{config.policy_dir});
+        }
         return;
+    }
+    if (skipped > 0) {
+        std.debug.print("policypress: {d} up to date, rebuilding {d}.\n", .{ skipped, total_files });
     }
 
     // --- Parallel compilation ---
@@ -240,6 +264,7 @@ fn run(alloc: Allocator) !void {
             alloc,
             config,
             input_path,
+            stamps_dir_path,
             compile_node,
             &error_mutex,
             &error_count,
@@ -330,10 +355,39 @@ fn describeCompileError(err: anyerror) []const u8 {
     };
 }
 
+/// Returns true if the stamp for `input_path` is newer than the source file,
+/// meaning the PDF is already up to date and compilation can be skipped.
+fn stampIsNewer(input_path: []const u8, stamps_dir: []const u8, alloc: Allocator) bool {
+    const stem = std.fs.path.stem(std.fs.path.basename(input_path));
+    const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, stem }) catch return false;
+    defer alloc.free(stamp_path);
+
+    const src = std.fs.openFileAbsolute(input_path, .{}) catch return false;
+    defer src.close();
+    const src_stat = src.stat() catch return false;
+
+    const stamp = std.fs.cwd().openFile(stamp_path, .{}) catch return false;
+    defer stamp.close();
+    const stamp_stat = stamp.stat() catch return false;
+
+    return src_stat.mtime < stamp_stat.mtime;
+}
+
+/// Touches a stamp file for `input_path` inside `stamps_dir` to record that
+/// compilation succeeded. Called from compileOne after a successful build.
+fn writeStamp(alloc: Allocator, stamps_dir: []const u8, input_path: []const u8) void {
+    const stem = std.fs.path.stem(std.fs.path.basename(input_path));
+    const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, stem }) catch return;
+    defer alloc.free(stamp_path);
+    const f = std.fs.cwd().createFile(stamp_path, .{ .truncate = true }) catch return;
+    f.close();
+}
+
 fn compileOne(
     alloc: Allocator,
     config: Config,
     input_path: []const u8,
+    stamps_dir: []const u8,
     progress_node: std.Progress.Node,
     error_mutex: *std.Thread.Mutex,
     error_count: *usize,
@@ -354,4 +408,6 @@ fn compileOne(
         }) catch {};
         return;
     };
+
+    writeStamp(alloc, stamps_dir, input_path);
 }

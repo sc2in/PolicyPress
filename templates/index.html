@@ -161,7 +161,7 @@ description=description, is_home=true) }}
 </section>
 {% endif %}
 
-{% set news_section = get_section(path="news/_index.md") %}
+{% set news_section = get_section(path="news/_index.md", required=false) %}
 {% if news_section and news_section.pages %}
 <section class="recent-updates-section">
   <div class="container">
@@ -236,7 +236,7 @@ description=description, is_home=true) }}
       {% endif %}
 
       <!-- Recent activity strip -->
-      {% set news_section = get_section(path="news/_index.md") %}
+      {% set news_section = get_section(path="news/_index.md", required=false) %}
       {% if news_section and news_section.pages %}
       <div class="activity-strip">
         <h2>Recent Updates</h2>

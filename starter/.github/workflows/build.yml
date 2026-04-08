@@ -1,0 +1,60 @@
+name: Build Policies
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      draft:
+        description: "Stamp PDFs with DRAFT watermark"
+        required: false
+        default: "false"
+      redact:
+        description: "Redact content inside redaction tags"
+        required: false
+        default: "false"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build policies
+        uses: sc2in/policypress@v1
+        with:
+          config_path: config.toml
+          draft_mode: ${{ github.event.inputs.draft || 'false' }}
+          redact_mode: ${{ github.event.inputs.redact || 'false' }}
+
+      - name: Upload PDFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: policies
+          path: public/pdfs/
+          retention-days: 90
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: public/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

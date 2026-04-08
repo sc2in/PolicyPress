@@ -134,7 +134,10 @@ test "pdf rendering" {
 
     try pandoc.create_global_args(tst.allocator, &args, conf);
     defer pandoc.destroy_global_args(tst.allocator, &args);
-    const md = utils.MDFile{ .path = "src/test/test_policy.md" };
+    // Use a mermaid-free fixture so the test works in the Nix sandbox
+    // (Chrome/user-namespaces are unavailable there). Mermaid shortcode
+    // transformation is already covered by the "policy processing" test.
+    const md = utils.MDFile{ .path = "src/test/test_policy_render.md" };
     pandoc.process_md_file(tst.allocator, md, args, conf) catch |e| {
         std.debug.print("Test Policy Pandoc Call Failed! \nConfig:{f}\n", .{conf});
         return e;

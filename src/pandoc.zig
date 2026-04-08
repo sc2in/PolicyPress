@@ -203,42 +203,49 @@ pub fn process_md_file(
     var fm = try u.get_metadata(a, &contents, config);
     defer fm.deinit(a);
 
-    var build = std.fs.cwd().openDir(config.build_dir, .{
-        .access_sub_paths = true,
-    }) catch |e| {
-        panlog.err("Could not open directory for build: {s}\nError: {}\n", .{ config.build_dir, e });
-        return e;
-    };
-    defer build.close();
+    var env = try std.process.getEnvMap(a);
+    defer env.deinit();
 
-    const tmp_file = std.fs.path.basename(md.path);
-    const tmp = build.createFile(tmp_file, std.fs.File.CreateFlags{ .exclusive = true }) catch |e| blk: {
+    // Write the preprocessed markdown to a file in the system temp directory
+    // rather than the output directory. This keeps .md files out of paths that
+    // watchexec monitors, preventing false rebuild triggers.
+    const tmpdir = env.get("TMPDIR") orelse env.get("TMP") orelse "/tmp";
+    const pid = std.os.linux.getpid();
+    const tmp_name = try std.fmt.allocPrint(a, "pp_{d}_{s}", .{ pid, std.fs.path.basename(md.path) });
+    defer a.free(tmp_name);
+    const tmp_abs = try std.fs.path.join(a, &.{ tmpdir, tmp_name });
+    defer a.free(tmp_abs);
+    const tmp = std.fs.createFileAbsolute(tmp_abs, .{ .exclusive = true }) catch |e| blk: {
         if (e == error.PathAlreadyExists) {
-            build.deleteFile(tmp_file) catch unreachable;
-            break :blk try build.createFile(tmp_file, std.fs.File.CreateFlags{ .exclusive = true });
+            std.fs.deleteFileAbsolute(tmp_abs) catch {};
+            break :blk try std.fs.createFileAbsolute(tmp_abs, .{});
         }
         return e;
     };
-
     defer {
         tmp.close();
-        build.deleteFile(tmp_file) catch unreachable;
+        std.fs.deleteFileAbsolute(tmp_abs) catch {};
     }
     try tmp.writeAll(contents.items);
+
+    // Verify output directory is still accessible before invoking pandoc.
+    std.fs.cwd().access(config.build_dir, .{}) catch |e| {
+        panlog.err("Could not access build directory: {s}\nError: {}\n", .{ config.build_dir, e });
+        return e;
+    };
 
     try local.insertSlice(a, 0, &.{try a.dupe(u8, "pandoc")});
     const cwd = try std.fs.cwd().realpathAlloc(a, ".");
     defer a.free(cwd);
-
-    var env = try std.process.getEnvMap(a);
-    defer env.deinit();
 
     const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else return error.NoResourcePathDefined;
     defer a.free(basedir);
     const res_path = try std.fmt.allocPrint(a, "--resource-path={s}:{s}:{s}/templates", .{ env.get("PATH") orelse "", basedir, cwd });
     try local.append(a, res_path);
 
-    try local.append(a, try std.fs.path.join(a, &.{ config.build_dir, tmp_file }));
+    // Pass the absolute temp file path and tell pandoc to read it as markdown
+    // (since the .md extension is on the tmp file, format inference still works).
+    try local.append(a, try a.dupe(u8, tmp_abs));
 
     const out = try fm.filename(a);
     defer a.free(out);
@@ -291,32 +298,80 @@ pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
     child.stderr_behavior = .Pipe;
     var env_map = try std.process.getEnvMap(a);
     defer env_map.deinit();
+
+    // xelatex/fontconfig need a writable HOME to write their caches.  In the
+    // Nix build sandbox HOME is set to /homeless-shelter (read-only), which
+    // causes fontconfig to error and xelatex to exit non-zero.  Override HOME
+    // with a directory under TMPDIR when the current value is not writable.
+    const home_ok = if (env_map.get("HOME")) |h|
+        (std.fs.accessAbsolute(h, .{}) catch null) != null
+    else
+        false;
+    if (!home_ok) {
+        const tmpdir = env_map.get("TMPDIR") orelse env_map.get("TMP") orelse "/tmp";
+        const tmp_home = try std.fmt.allocPrint(a, "{s}/pp-home", .{tmpdir});
+        defer a.free(tmp_home);
+        std.fs.makeDirAbsolute(tmp_home) catch {};
+        try env_map.put("HOME", tmp_home);
+        panlog.debug("HOME not writable — overriding with {s}\n", .{tmp_home});
+    }
+
     child.env_map = &env_map;
-    // Optionally, print or check the PATH in env_map
     if (env_map.get("PATH")) |path| {
         panlog.debug("Child PATH: {s}\n", .{path});
     } else {
         panlog.debug("No PATH in env_map!\n", .{});
     }
     var out: std.ArrayListUnmanaged(u8) = .empty;
-    var err: std.ArrayListUnmanaged(u8) = .empty;
+    var err_buf: std.ArrayListUnmanaged(u8) = .empty;
     defer {
         out.deinit(a);
-        err.deinit(a);
+        err_buf.deinit(a);
     }
-    try child.spawn();
-    try child.collectOutput(a, &out, &err, 100_000);
 
-    const exit_code = child.wait() catch |e| {
-        panlog.err("Error in pandoc: {s}\nRan with: {any}\n", .{ err.items, args.items });
+    child.spawn() catch |e| {
+        if (e == error.FileNotFound) {
+            std.debug.print(
+                "policypress: pandoc not found in PATH.\n" ++
+                    "Make sure you are running inside the PolicyPress devshell:\n\n" ++
+                    "  nix develop github:sc2in/policypress\n\n",
+                .{},
+            );
+            return error.PandocNotFound;
+        }
+        std.debug.print("policypress: failed to spawn pandoc: {s}\n", .{@errorName(e)});
         return e;
     };
-    panlog.debug("{any} {s}\n", .{ exit_code, out.items });
-    if (err.items.len > 0) {
+
+    try child.collectOutput(a, &out, &err_buf, 100_000);
+
+    const term = child.wait() catch |e| {
+        std.debug.print(
+            "policypress: error waiting for pandoc: {s}\n",
+            .{@errorName(e)},
+        );
+        return e;
+    };
+
+    const exited_ok = switch (term) {
+        .Exited => |code| code == 0,
+        else => false,
+    };
+
+    if (!exited_ok) {
+        // Print pandoc's stderr so the user can see the LaTeX/filter error.
+        if (err_buf.items.len > 0) {
+            std.debug.print("policypress: pandoc error output:\n{s}\n", .{err_buf.items});
+        }
+        return error.PandocFailed;
+    }
+
+    panlog.debug("{any} {s}\n", .{ term, out.items });
+    if (err_buf.items.len > 0) {
         // Pandoc exited successfully but filters (e.g. mermaid-filter) wrote to
         // stderr. Log at warn rather than err so the test runner doesn't mark the
         // test as "logged errors" for expected sandbox noise.
-        panlog.warn("!!! {s}\n!!! Called with:\n", .{err.items});
+        panlog.warn("!!! {s}\n!!! Called with:\n", .{err_buf.items});
         for (args.items) |arg|
             panlog.warn("\t{s}\n", .{arg});
     }

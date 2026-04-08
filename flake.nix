@@ -65,6 +65,11 @@
                   ./build.zig.zon
                   ./src
                   ./templates
+                  # logo.png and draft.png are referenced at test time by xelatex
+                  # (via the eisvogel template). Including them here avoids a
+                  # "unable to load picture" error in the pdf rendering test.
+                  ./static/logo.png
+                  ./static/draft.png
                 ]
                 ++ lib.optional (builtins.pathExists ./build.zig.zon2json-lock) ./build.zig.zon2json-lock
               );

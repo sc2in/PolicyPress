@@ -1,16 +1,18 @@
 {% set page_tax = page.taxonomies %}
+{% if page_tax %}
 <div class="satisfies">
-  <h3>Satisfies</h3>
-  {% for key, tax in page_tax %}
-  <h4>{{key}}</h4>
-  <ul>
-
-    {% for line_item in tax %}
-    <li>
-      {{ line_item }}
-    </li>
+  <span class="satisfies-label">Framework Coverage</span>
+  <div class="satisfies-cards">
+    {% for key, terms in page_tax %}
+    <div class="satisfies-card">
+      <span class="satisfies-framework">{{ key }}</span>
+      <div class="satisfies-tags">
+        {% for term in terms %}
+        <span class="satisfies-tag">{{ term }}</span>
+        {% endfor %}
+      </div>
+    </div>
     {% endfor %}
-  </ul>
-  {% endfor %}
-
+  </div>
 </div>
+{% endif %}

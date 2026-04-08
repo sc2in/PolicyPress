@@ -94,7 +94,11 @@ pub fn main() !void {
     var walker = try policy_dir.walk(alloc);
     defer walker.deinit();
 
-    const default_output = try std.fmt.allocPrint(alloc, "{s}/pdfs", .{build_options.install_prefix});
+    const prefix = build_options.install_prefix;
+    const default_output = if (prefix.len > 0 and !std.fs.path.isAbsolute(prefix))
+        try std.fmt.allocPrint(alloc, "{s}/pdfs", .{prefix})
+    else
+        try alloc.dupe(u8, "public/pdfs");
     defer alloc.free(default_output);
     const output_path = if (res.args.output) |o| o else default_output;
     config.build_dir = output_path;

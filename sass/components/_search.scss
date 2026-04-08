@@ -1,5 +1,9 @@
 .navbar-form {
   position: relative;
+
+  @include media-breakpoint-up(md) {
+    width: 20rem;
+  }
 }
 
 #suggestions {

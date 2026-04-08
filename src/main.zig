@@ -18,12 +18,36 @@ const Config = @import("config").Config;
 const Reports = @import("reports");
 const Pandoc = @import("pandoc");
 
-pub fn main() !void {
+pub fn main() void {
     var gpa = std.heap.DebugAllocator(.{}){};
     defer _ = gpa.deinit();
 
     const alloc = gpa.allocator();
 
+    run(alloc) catch |err| {
+        // If run() returns an error we haven't already printed a message for,
+        // emit a generic fallback rather than letting Zig dump a raw error name.
+        switch (err) {
+            // Errors that run() already printed a message for — just exit.
+            error.ConfigNotFound,
+            error.ConfigReadFailed,
+            error.ConfigInvalid,
+            error.PolicyDirNotFound,
+            error.PolicyDirUnreadable,
+            error.OutputDirFailed,
+            error.CompilationFailed,
+            => {},
+            // Anything unexpected.
+            else => std.debug.print(
+                "policypress: unexpected error: {s}\n",
+                .{@errorName(err)},
+            ),
+        }
+        std.process.exit(1);
+    };
+}
+
+fn run(alloc: Allocator) !void {
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
         \\-c, --config <str>     Path to config file. (default: config.toml)
@@ -36,7 +60,6 @@ pub fn main() !void {
         \\-v, --verbose          Enable verbose logging.
     );
     var buf: [128]u8 = undefined;
-    // Report useful error and exit.
     var stderr = std.fs.File.stderr().writer(&buf).interface;
     defer stderr.flush() catch {};
     var diag = clap.Diagnostic{};
@@ -53,46 +76,92 @@ pub fn main() !void {
         std.debug.print("PolicyPress\n\n", .{});
         return clap.helpToFile(std.fs.File.stderr(), clap.Help, &params, .{});
     }
+
+    // --- Load config ---
+
     const config_path = if (res.args.config) |c| c else "config.toml";
     const config_file = std.fs.cwd().openFile(config_path, .{}) catch |err| {
-        std.debug.print("Error opening config file '{s}': {}\n", .{ config_path, err });
-        return err;
+        if (err == error.FileNotFound) {
+            std.debug.print(
+                \\policypress: config file '{s}' not found.
+                \\
+                \\Create a config.toml with at minimum:
+                \\
+                \\  base_url = "https://security.example.com"
+                \\  theme    = "policypress"
+                \\
+                \\  [extra]
+                \\  organization = "Example Co"
+                \\  logo         = "logo.png"
+                \\  pdf_color    = "#0e90f3"
+                \\  policy_dir   = "policies/"
+                \\
+                \\See the configuration guide for all options.
+                \\
+            , .{config_path});
+            return error.ConfigNotFound;
+        }
+        std.debug.print(
+            "policypress: cannot open config file '{s}': {s}\n",
+            .{ config_path, @errorName(err) },
+        );
+        return error.ConfigReadFailed;
     };
-    const contents = try config_file.readToEndAlloc(alloc, 1024 * 1024);
+    const contents = config_file.readToEndAlloc(alloc, 1024 * 1024) catch |err| {
+        std.debug.print(
+            "policypress: failed to read config file '{s}': {s}\n",
+            .{ config_path, @errorName(err) },
+        );
+        return error.ConfigReadFailed;
+    };
     defer alloc.free(contents);
 
-    var config = try Config.load(alloc, contents);
+    var config = Config.load(alloc, contents) catch |err| {
+        printConfigError(config_path, err);
+        return error.ConfigInvalid;
+    };
     defer config.deinit(alloc);
 
-    if (res.args.draft != 0) {
-        config.is_draft = true;
-    }
-    if (res.args.@"no-draft" != 0) {
-        config.is_draft = false;
-    }
-    if (res.args.redact != 0) {
-        config.redact = true;
-    }
-    if (res.args.@"no-redact" != 0) {
-        config.redact = false;
-    }
+    if (res.args.draft != 0) config.is_draft = true;
+    if (res.args.@"no-draft" != 0) config.is_draft = false;
+    if (res.args.redact != 0) config.redact = true;
+    if (res.args.@"no-redact" != 0) config.redact = false;
 
     //TODO: Verbosity
-    // if (res.args.verbose != 0) {
-    //     .log_level = .debug;
-    // }
     std.log.debug("Running PolicyPress with configuration:\n{f}\n", .{config});
+
+    // --- Open policy directory ---
 
     var policy_dir = std.fs.cwd().openDir(config.policy_dir, .{
         .iterate = true,
         .access_sub_paths = true,
     }) catch |err| {
-        std.debug.print("Error opening policy directory '{s}': {}\n", .{ config.policy_dir, err });
-        return err;
+        if (err == error.FileNotFound or err == error.NotDir) {
+            std.debug.print(
+                "policypress: policy directory '{s}' not found.\n" ++
+                    "Check that 'policy_dir' in config.toml [extra] points to an existing directory under content/.\n",
+                .{config.policy_dir},
+            );
+        } else {
+            std.debug.print(
+                "policypress: cannot open policy directory '{s}': {s}\n",
+                .{ config.policy_dir, @errorName(err) },
+            );
+        }
+        return error.PolicyDirNotFound;
     };
     defer policy_dir.close();
-    var walker = try policy_dir.walk(alloc);
+
+    var walker = policy_dir.walk(alloc) catch |err| {
+        std.debug.print(
+            "policypress: failed to read policy directory '{s}': {s}\n",
+            .{ config.policy_dir, @errorName(err) },
+        );
+        return error.PolicyDirUnreadable;
+    };
     defer walker.deinit();
+
+    // --- Resolve output directory ---
 
     const prefix = build_options.install_prefix;
     const default_output = if (prefix.len > 0 and !std.fs.path.isAbsolute(prefix))
@@ -100,51 +169,51 @@ pub fn main() !void {
     else
         try alloc.dupe(u8, "public/pdfs");
     defer alloc.free(default_output);
+
     const output_path = if (res.args.output) |o| o else default_output;
     config.build_dir = output_path;
-    var output_dir = std.fs.cwd().openDir(output_path, .{ .access_sub_paths = true }) catch |err| {
-        if (err == error.FileNotFound) {
-            std.debug.print("Output directory '{s}' does not exist. Attempting to create it.\n", .{output_path});
-            std.fs.cwd().makeDir(output_path) catch |mkdir_err| {
-                std.debug.print("Error creating output directory '{s}': {}\n", .{ output_path, mkdir_err });
-                return mkdir_err;
-            };
-            // Try opening the directory again after creating it
-            return main();
-        }
-        std.debug.print("Error opening output directory '{s}': {}\n", .{ output_path, err });
-        return err;
+
+    std.fs.cwd().makePath(output_path) catch |err| {
+        std.debug.print(
+            "policypress: cannot create output directory '{s}': {s}\n",
+            .{ output_path, @errorName(err) },
+        );
+        return error.OutputDirFailed;
     };
-    defer output_dir.close();
+
+    // --- Collect policy files ---
 
     var file_paths = Array([]const u8){};
     defer {
         for (file_paths.items) |path| alloc.free(path);
         file_paths.deinit(alloc);
     }
-    while (try walker.next()) |entry| {
+    while (walker.next() catch |err| {
+        std.debug.print(
+            "policypress: error while scanning policy directory: {s}\n",
+            .{@errorName(err)},
+        );
+        return error.PolicyDirUnreadable;
+    }) |entry| {
         if (entry.kind == .file and std.mem.endsWith(u8, entry.path, ".md")) {
             const base_name = std.fs.path.basename(entry.path);
             if (std.mem.eql(u8, base_name, "_index.md")) continue;
-
             const input_path = try std.fs.path.join(alloc, &.{ config.policy_dir, entry.path });
-
             try file_paths.append(alloc, input_path);
         }
     }
+
     const total_files = file_paths.items.len;
     if (total_files == 0) {
-        std.debug.print("No .md files found in '{s}'\n", .{config.policy_dir});
+        std.debug.print("policypress: no .md files found in '{s}'\n", .{config.policy_dir});
         return;
     }
 
-    // -- Parallel Compilation --
-    const root_progress = std.Progress.start(.{
-        .root_name = "PolicyPress",
-    });
+    // --- Parallel compilation ---
+
+    const root_progress = std.Progress.start(.{ .root_name = "PolicyPress" });
     const compile_node = root_progress.start("compiling policies", total_files);
 
-    // Thread-safe error tracking
     var error_mutex: std.Thread.Mutex = .{};
     var error_count: usize = 0;
     var error_list = std.ArrayList(ErrorInfo){};
@@ -153,14 +222,19 @@ pub fn main() !void {
         error_list.deinit(alloc);
     }
 
-    // Initialize thread pool
     var pool: std.Thread.Pool = undefined;
-    try pool.init(.{ .allocator = alloc });
+    pool.init(.{ .allocator = alloc }) catch |err| {
+        std.debug.print(
+            "policypress: failed to start thread pool: {s}\n",
+            .{@errorName(err)},
+        );
+        compile_node.end();
+        root_progress.end();
+        return err;
+    };
     defer pool.deinit();
 
     var wg: std.Thread.WaitGroup = .{};
-
-    // Spawn one task per file
     for (file_paths.items) |input_path| {
         pool.spawnWg(&wg, compileOne, .{
             alloc,
@@ -172,31 +246,89 @@ pub fn main() !void {
             &error_list,
         });
     }
-
-    // Main thread participates in work-stealing while waiting
     pool.waitAndWork(&wg);
 
-    // Close the progress node (removes it from terminal)
     compile_node.end();
     root_progress.end();
 
     if (error_count > 0) {
-        std.debug.print("\nPolicyPress completed with {d} error(s) out of {d} files:\n", .{
-            error_count, total_files,
-        });
+        std.debug.print("\npolicypress: {d} of {d} policies failed:\n", .{ error_count, total_files });
         for (error_list.items) |e| {
-            std.debug.print("  ✗ {s}: {}\n", .{ e.path, e.err });
+            std.debug.print("  ✗ {s}\n    {s}\n", .{ e.path, describeCompileError(e.err) });
         }
         return error.CompilationFailed;
     }
 
-    std.debug.print("\nPolicyPress: {d} policies compiled successfully.\n", .{total_files});
+    std.debug.print("\npolicypress: {d} policies compiled successfully.\n", .{total_files});
 }
 
 const ErrorInfo = struct {
     path: []const u8,
     err: anyerror,
 };
+
+fn printConfigError(config_path: []const u8, err: anyerror) void {
+    switch (err) {
+        error.InvalidTomlConfig => std.debug.print(
+            "policypress: '{s}' is not valid TOML — check for syntax errors.\n",
+            .{config_path},
+        ),
+        error.NoExtraInZolaConfig => std.debug.print(
+            "policypress: '{s}' is missing an [extra] section.\n\nAdd:\n\n" ++
+                "  [extra]\n  organization = \"…\"\n  logo         = \"logo.png\"\n" ++
+                "  pdf_color    = \"#0e90f3\"\n  policy_dir   = \"policies/\"\n\n",
+            .{config_path},
+        ),
+        error.NoBaseUrlInZolaConfig => std.debug.print(
+            "policypress: '{s}' is missing 'base_url'.\n" ++
+                "Add:  base_url = \"https://security.example.com\"\n\n",
+            .{config_path},
+        ),
+        error.NoLogoInExtra => std.debug.print(
+            "policypress: '{s}' [extra] is missing 'logo'.\n" ++
+                "Add:  logo = \"logo.png\"  (path relative to static/)\n\n",
+            .{config_path},
+        ),
+        error.NoOrganizationInExtra => std.debug.print(
+            "policypress: '{s}' [extra] is missing 'organization'.\n" ++
+                "Add:  organization = \"Your Org Name\"\n\n",
+            .{config_path},
+        ),
+        error.NoPDFColorInExtra => std.debug.print(
+            "policypress: '{s}' [extra] is missing 'pdf_color'.\n" ++
+                "Add:  pdf_color = \"#0e90f3\"  (any hex color)\n\n",
+            .{config_path},
+        ),
+        else => std.debug.print(
+            "policypress: failed to load '{s}': {s}\n",
+            .{ config_path, @errorName(err) },
+        ),
+    }
+}
+
+fn describeCompileError(err: anyerror) []const u8 {
+    return switch (err) {
+        error.NoTitleInFrontMatter => "front matter is missing a 'title' field",
+        error.InvalidTitleType => "front matter 'title' must be a string",
+        error.NoLastReviewInFrontMatter => "front matter is missing 'extra.last_reviewed' (format: YYYY-MM-DD)",
+        error.InvalidLastReviewedType => "front matter 'extra.last_reviewed' must be a string in YYYY-MM-DD format",
+        error.NoRevisionsInFrontMatter => "front matter is missing 'extra.major_revisions' or the list is empty",
+        error.InvalidRevisionsType => "front matter 'extra.major_revisions' must be a list",
+        error.NoVersionForRevision => "a revision entry in 'extra.major_revisions' is missing the 'version' field",
+        error.InvalidVersionType => "a revision 'version' value must be a string (e.g. \"1.0\")",
+        error.InvalidRevisionFormat => "a revision entry in 'extra.major_revisions' is not a valid mapping",
+        error.NoDateForRevision => "a revision entry is missing the 'date' field",
+        error.NoApprovalForRevision => "a revision entry is missing the 'approved_by' field",
+        error.NoDescriptionForRevision => "a revision entry is missing the 'description' field",
+        error.InvalidShortCode => "a shortcode block ({% ... %}) is malformed — check for missing {% end %}",
+        error.NoResourcePathDefined => "could not determine resource path from the file's location",
+        error.PandocFailed => "pandoc exited with an error — check the output above for details",
+        error.PandocNotFound => "pandoc was not found; make sure you are running inside the PolicyPress devshell (nix develop)",
+        error.FileNotFound => "policy file was not found on disk (it may have been deleted mid-build)",
+        error.OutOfMemory => "out of memory while processing this file",
+        else => @errorName(err),
+    };
+}
 
 fn compileOne(
     alloc: Allocator,
@@ -209,15 +341,10 @@ fn compileOne(
 ) void {
     defer progress_node.completeOne();
 
-    // Per-file sub-node for granular progress
     const file_node = progress_node.start(std.fs.path.basename(input_path), 0);
     defer file_node.end();
 
-    Pandoc.compile(
-        alloc,
-        config,
-        input_path,
-    ) catch |err| {
+    Pandoc.compile(alloc, config, input_path) catch |err| {
         error_mutex.lock();
         defer error_mutex.unlock();
         error_count.* += 1;

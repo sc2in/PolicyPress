@@ -171,8 +171,11 @@ test "pdf rendering (typst)" {
     };
 
     // Verify at least one PDF landed in the temp dir.
+    // tmp.dir is not opened with .iterate = true, so open a fresh handle.
+    var out_dir = try std.fs.openDirAbsolute(conf.build_dir, .{ .iterate = true });
+    defer out_dir.close();
+    var it = out_dir.iterate();
     var found = false;
-    var it = tmp.dir.iterate();
     while (try it.next()) |entry| {
         if (std.mem.endsWith(u8, entry.name, ".pdf")) {
             found = true;

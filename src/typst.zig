@@ -361,7 +361,7 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
     // ── Text / font settings ──────────────────────────────────────────────────
     try writer.writeAll(
         "#set text(\n" ++
-        "  font: (\"Source Sans Pro\", \"Helvetica\", \"Arial\"),\n" ++
+        "  font: (\"Lato\", \"Noto Sans\", \"DejaVu Sans\"),\n" ++
         "  size: 11pt,\n" ++
         "  lang: \"en\",\n" ++
         ")\n\n",
@@ -369,7 +369,7 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
 
     // Monospace font for code / raw.
     try writer.writeAll(
-        "#show raw: set text(font: (\"Source Code Pro\", \"Courier New\", \"monospace\"))\n\n",
+        "#show raw: set text(font: (\"Source Code Pro\", \"Iosevka\", \"DejaVu Sans Mono\"))\n\n",
     );
 
     // Code-block styling — light grey background, matches eisvogel's listings style.

@@ -18,6 +18,16 @@ const Config = @import("config").Config;
 const Reports = @import("reports");
 const Pandoc = @import("pandoc");
 const Typst = @import("typst");
+const u = @import("utils");
+
+pub const std_options: std.Options = .{
+    .log_level = .info,
+    .log_scope_levels = &[_]std.log.ScopeLevel{
+        .{ .scope = .parser, .level = .warn },
+        .{ .scope = .yaml,   .level = .err  },
+    },
+    .logFn = u.logFn,
+};
 
 pub fn main() void {
     var gpa = std.heap.DebugAllocator(.{}){};

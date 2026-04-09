@@ -443,6 +443,39 @@ test "Redaction" {
     try tst.expectEqualStrings(std.mem.trim(u8, expected2, "\n "), std.mem.trim(u8, t2.items, "\n "));
 }
 
+// ============================================================
+// Stamp-file caching helpers
+// ============================================================
+
+/// Returns true if the per-policy stamp file is newer than the source file,
+/// meaning the PDF is already up to date and compilation can be skipped.
+/// Returns false on any IO error so the policy is always rebuilt on doubt.
+pub fn stampIsNewer(input_path: []const u8, stamps_dir: []const u8, alloc: Allocator) bool {
+    const stem = std.fs.path.stem(std.fs.path.basename(input_path));
+    const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, stem }) catch return false;
+    defer alloc.free(stamp_path);
+
+    const src = std.fs.openFileAbsolute(input_path, .{}) catch return false;
+    defer src.close();
+    const src_stat = src.stat() catch return false;
+
+    const stamp = std.fs.cwd().openFile(stamp_path, .{}) catch return false;
+    defer stamp.close();
+    const stamp_stat = stamp.stat() catch return false;
+
+    return src_stat.mtime < stamp_stat.mtime;
+}
+
+/// Touches a stamp file for `input_path` inside `stamps_dir` to record that
+/// compilation succeeded. Failures are non-fatal (worst case: needless rebuild).
+pub fn writeStamp(alloc: Allocator, stamps_dir: []const u8, input_path: []const u8) void {
+    const stem = std.fs.path.stem(std.fs.path.basename(input_path));
+    const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, stem }) catch return;
+    defer alloc.free(stamp_path);
+    const f = std.fs.cwd().createFile(stamp_path, .{ .truncate = true }) catch return;
+    f.close();
+}
+
 /// Converts {% admonition(type="...", title="...") %}...{% end %} shortcodes
 /// to pandoc blockquotes before the markdown reaches pandoc.
 /// Each type maps to a Unicode prefix so the callout is visually distinct in

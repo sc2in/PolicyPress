@@ -92,6 +92,20 @@ pub fn build(b: *std.Build) !void {
         _ = b.step("preview", "Serve the zola output (Not available on Windows. run `zola preview` instead.)");
     }
 
+    // Inject the eisvogel template into the pandoc module via an anonymous
+    // module.  build.zig can @embedFile at the project root level, bypassing
+    // Zig's module package-path restriction that applies inside src/pandoc.zig.
+    // A WriteFile step generates a tiny Zig wrapper that @embedFile the real
+    // template; the wrapper lives in the Zig cache, not src/, so paths resolve.
+    const write_eisvogel = b.addWriteFiles();
+    _ = write_eisvogel.addCopyFile(b.path("templates/eisvogel.latex"), "eisvogel.latex");
+    const eisvogel_wrapper = write_eisvogel.add("eisvogel_wrapper.zig",
+        \\pub const eisvogel_latex: []const u8 = @embedFile("eisvogel.latex");
+    );
+    const pandoc_opts_mod = b.addModule("pandoc_options", .{
+        .root_source_file = eisvogel_wrapper,
+    });
+
     const pandoc_sh_mod = b.addModule("pandocsh", .{
         .root_source_file = b.path("src/pandoc.zig"),
         .target = target,
@@ -103,6 +117,7 @@ pub fn build(b: *std.Build) !void {
     pandoc_sh_mod.addImport("datetime", pg.module("datetime"));
     pandoc_sh_mod.addImport("config", config_mod);
     pandoc_sh_mod.addImport("utils", utils_mod);
+    pandoc_sh_mod.addImport("pandoc_options", pandoc_opts_mod);
     pandoc_sh = b.addExecutable(.{
         .root_module = pandoc_sh_mod,
         .name = "pandoc_sh",
@@ -139,6 +154,7 @@ pub fn build(b: *std.Build) !void {
     policypress_mod.addImport("config", config_mod);
     policypress_mod.addImport("pandoc", pandoc_sh_mod);
     policypress_mod.addImport("reports", reports_mod);
+    policypress_mod.addImport("utils", utils_mod);
     const policypress_exe = b.addExecutable(.{
         .root_module = policypress_mod,
         .name = "policypress",
@@ -173,6 +189,7 @@ pub fn build(b: *std.Build) !void {
         test_module.addImport("zigmark", zigmark_mod);
         test_module.addImport("utils", utils_mod);
         test_module.addImport("pandoc", pandoc_sh_mod);
+        test_module.addImport("pandoc_options", pandoc_opts_mod);
         test_module.addImport("config", config_mod);
         test_module.addImport("reports", reports_mod);
         test_module.addImport("datetime", pg.module("datetime"));
@@ -181,8 +198,37 @@ pub fn build(b: *std.Build) !void {
             .root_module = test_module,
         });
         const run_unit_tests = b.addRunArtifact(unit_tests);
+        run_unit_tests.setCwd(b.path("."));
         const test_step = b.step("test", "Run unit tests");
         test_step.dependOn(&run_unit_tests.step);
+    }
+    {
+        // E2E test: run policypress against the starter/ template, mirroring
+        // what action.yml does for real consumers.  Requires pandoc + XeLaTeX
+        // in PATH (provided by the devshell / Nix flake check environment).
+        const e2e_step = b.step("e2e", "Run end-to-end test against starter/");
+
+        // Step 1: copy eisvogel.latex into starter/templates/ (the action does
+        // this via "Copy pandoc templates"; consumers don't vendor it).
+        // Also ensure starter/static/logo.png exists (required by config.toml).
+        const copy_template = b.addSystemCommand(&.{
+            "bash", "-c",
+            "mkdir -p starter/templates starter/static && " ++
+                "cp -f templates/eisvogel.latex starter/templates/ && " ++
+                "{ cp -f static/logo.png starter/static/logo.png 2>/dev/null || " ++
+                "touch starter/static/logo.png; }",
+        });
+        copy_template.setCwd(b.path("."));
+
+        // Step 2: run policypress from starter/ — same working dir as a real consumer.
+        const e2e_run = b.addRunArtifact(policypress_exe);
+        e2e_run.addArgs(&.{
+            "--config", "config.toml",
+            "--output", "public/pdfs",
+        });
+        e2e_run.setCwd(b.path("starter"));
+        e2e_run.step.dependOn(&copy_template.step);
+        e2e_step.dependOn(&e2e_run.step);
     }
 }
 

@@ -22,3 +22,7 @@ resources
 tmp.*
 zig-out
 .claude
+starter/templates/
+starter/static/
+starter/public/
+starter/starter/

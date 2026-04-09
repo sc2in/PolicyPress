@@ -23,7 +23,7 @@ jobs:
       - uses: "DeterminateSystems/determinate-nix-action@v3"
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
-          visibility: "private"
+          visibility: "public"
           name: "sc2in/PolicyPress"
           tag: "${{ inputs.tag }}"
           include-output-paths: false

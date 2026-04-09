@@ -120,9 +120,26 @@ pub fn destroy_global_args(a: Allocator, args: *Array([]u8)) void {
     args.deinit(a);
 }
 
+/// Writes the embedded eisvogel.latex into `<dir>/templates/eisvogel.latex`
+/// and returns the allocated path to `<dir>` for use as `--data-dir`.
+/// The template is injected at build time via the `pandoc_options` module.
+/// Caller owns the returned slice.
+pub fn writeEisvogel(a: Allocator, dir: []const u8) ![]const u8 {
+    const tmpl_dir = try std.fs.path.join(a, &.{ dir, "templates" });
+    defer a.free(tmpl_dir);
+    try std.fs.makeDirAbsolute(tmpl_dir);
+    const tmpl_path = try std.fs.path.join(a, &.{ tmpl_dir, "eisvogel.latex" });
+    defer a.free(tmpl_path);
+    const f = try std.fs.createFileAbsolute(tmpl_path, .{ .truncate = true });
+    defer f.close();
+    try f.writeAll(@import("pandoc_options").eisvogel_latex);
+    return try a.dupe(u8, dir);
+}
+
 ///Populates the global_args array with command-line arguments for Pandoc, based on the current global configuration
 pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !void {
-    try add_arg(a, args, "", "--data-dir={s}", .{config.root});
+    const data_dir = if (config.data_dir.len > 0) config.data_dir else config.root;
+    try add_arg(a, args, "", "--data-dir={s}", .{data_dir});
     try add_arg(a, args, "", "--resource-path={s}", .{config.root});
     try add_arg(a, args, "-V", "footer-left={s} \\textcopyright {d}", .{ config.org, config.current_year });
 

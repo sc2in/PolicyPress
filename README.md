@@ -236,6 +236,6 @@ PolicyPress is developed and maintained by [Star City Security Consulting, LLC (
 
 [PolyForm Noncommercial License 1.0.0](LICENSE)
 
-Copyright © 2025 Star City Security Consulting, LLC (SC2) — [sc2.in](https://sc2.in)
+Copyright © 2026 Star City Security Consulting, LLC (SC2) — [sc2.in](https://sc2.in)
 
 Free for noncommercial use including personal projects, research, education, nonprofits, and government. For commercial licensing, contact [sc2.in](https://sc2.in).

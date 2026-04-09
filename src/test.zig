@@ -188,6 +188,67 @@ test "report generation" {
 }
 
 // ============================================================
+// Stamp-file caching (incremental builds)
+// ============================================================
+
+test "stamp: no stamp → always rebuild" {
+    const alloc = tst.allocator;
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    defer alloc.free(tmp_path);
+
+    try tmp.dir.writeFile(.{ .sub_path = "policy.md", .data = "content" });
+    const src_path = try std.fs.path.join(alloc, &.{ tmp_path, "policy.md" });
+    defer alloc.free(src_path);
+
+    try tst.expect(!utils.stampIsNewer(src_path, tmp_path, alloc));
+}
+
+test "stamp: writeStamp → stampIsNewer returns true" {
+    const alloc = tst.allocator;
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    defer alloc.free(tmp_path);
+
+    try tmp.dir.writeFile(.{ .sub_path = "policy.md", .data = "content" });
+    const src_path = try std.fs.path.join(alloc, &.{ tmp_path, "policy.md" });
+    defer alloc.free(src_path);
+
+    utils.writeStamp(alloc, tmp_path, src_path);
+
+    // Set stamp mtime to 2 s in the future so it is definitely newer.
+    const stamp_path = try std.fs.path.join(alloc, &.{ tmp_path, "policy" });
+    defer alloc.free(stamp_path);
+    const stamp_file = try std.fs.cwd().openFile(stamp_path, .{ .mode = .read_write });
+    defer stamp_file.close();
+    const now = std.time.nanoTimestamp();
+    try stamp_file.updateTimes(now, now + 2_000_000_000);
+
+    try tst.expect(utils.stampIsNewer(src_path, tmp_path, alloc));
+}
+
+test "stamp: writeStamp creates file with correct stem" {
+    const alloc = tst.allocator;
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    defer alloc.free(tmp_path);
+
+    try tmp.dir.writeFile(.{ .sub_path = "access-control.md", .data = "body" });
+    const src_path = try std.fs.path.join(alloc, &.{ tmp_path, "access-control.md" });
+    defer alloc.free(src_path);
+
+    try tst.expect(!utils.stampIsNewer(src_path, tmp_path, alloc));
+    utils.writeStamp(alloc, tmp_path, src_path);
+
+    const stem_path = try std.fs.path.join(alloc, &.{ tmp_path, "access-control" });
+    defer alloc.free(stem_path);
+    try std.fs.accessAbsolute(stem_path, .{});
+}
+
+// ============================================================
 // Issue #67: Full Pipeline Tests
 // ============================================================
 

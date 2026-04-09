@@ -12,11 +12,14 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const clap = @import("clap");
 const build_options = @import("build_options");
+
+const clap = @import("clap");
 const Config = @import("config").Config;
-const Reports = @import("reports");
 const Pandoc = @import("pandoc");
+const Reports = @import("reports");
+const stampIsNewer = @import("utils").stampIsNewer;
+const writeStamp = @import("utils").writeStamp;
 
 pub fn main() void {
     var gpa = std.heap.DebugAllocator(.{}){};
@@ -28,7 +31,7 @@ pub fn main() void {
         // If run() returns an error we haven't already printed a message for,
         // emit a generic fallback rather than letting Zig dump a raw error name.
         switch (err) {
-            // Errors that run() already printed a message for — just exit.
+            // Errors that run() already printed a message for - just exit.
             error.ConfigNotFound,
             error.ConfigReadFailed,
             error.ConfigInvalid,
@@ -313,7 +316,7 @@ const ErrorInfo = struct {
 fn printConfigError(config_path: []const u8, err: anyerror) void {
     switch (err) {
         error.InvalidTomlConfig => std.debug.print(
-            "policypress: '{s}' is not valid TOML — check for syntax errors.\n",
+            "policypress: '{s}' is not valid TOML - check for syntax errors.\n",
             .{config_path},
         ),
         error.NoExtraInZolaConfig => std.debug.print(
@@ -363,9 +366,9 @@ fn describeCompileError(err: anyerror) []const u8 {
         error.NoDateForRevision => "a revision entry is missing the 'date' field",
         error.NoApprovalForRevision => "a revision entry is missing the 'approved_by' field",
         error.NoDescriptionForRevision => "a revision entry is missing the 'description' field",
-        error.InvalidShortCode => "a shortcode block ({% ... %}) is malformed — check for missing {% end %}",
+        error.InvalidShortCode => "a shortcode block ({% ... %}) is malformed - check for missing {% end %}",
         error.NoResourcePathDefined => "could not determine resource path from the file's location",
-        error.PandocFailed => "pandoc exited with an error — check the output above for details",
+        error.PandocFailed => "pandoc exited with an error - check the output above for details",
         error.PandocNotFound => "pandoc was not found; make sure you are running inside the PolicyPress devshell (nix develop)",
         error.FileNotFound => "policy file was not found on disk (it may have been deleted mid-build)",
         error.OutOfMemory => "out of memory while processing this file",
@@ -374,9 +377,6 @@ fn describeCompileError(err: anyerror) []const u8 {
 }
 
 // stampIsNewer and writeStamp live in utils so they can be unit-tested.
-const stampIsNewer = @import("utils").stampIsNewer;
-const writeStamp = @import("utils").writeStamp;
-
 fn compileOne(
     alloc: Allocator,
     config: Config,

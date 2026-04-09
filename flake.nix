@@ -45,7 +45,7 @@
             ...
           }:
           let
-            # Version from build.zig.zon — single source of truth
+            # Version from build.zig.zon - single source of truth
             version =
               let
                 zon = builtins.readFile ./build.zig.zon;
@@ -75,7 +75,7 @@
               );
             };
 
-            # Only git-tracked files — excludes generated PDFs, zig-cache, etc.
+            # Only git-tracked files - excludes generated PDFs, zig-cache, etc.
             zolaCheckSrc = lib.fileset.toSource {
               root = ./.;
               fileset = lib.fileset.intersection (lib.fileset.gitTracked ./.) (
@@ -231,7 +231,7 @@
             # --- Packages --------------------------------------------------------
 
             packages = {
-              default = withDesc (mkPolicypress null) "PolicyPress — compliance policy management toolchain";
+              default = withDesc (mkPolicypress null) "PolicyPress - compliance policy management toolchain";
               policypress-safe = withDesc policypress "PolicyPress (ReleaseSafe)";
               policypress-small = withDesc (mkPolicypress "ReleaseSmall") "PolicyPress (ReleaseSmall)";
               policypress-fast = withDesc (mkPolicypress "ReleaseFast") "PolicyPress (ReleaseFast)";
@@ -454,15 +454,15 @@
 
                 echo "PolicyPress development environment"
                 echo ""
-                echo "  nix fmt                — format all files"
-                echo "  nix build .#           — build policypress (default)"
-                echo "  nix run .#serve        — live dev server (PDFs + hot reload)"
-                echo "  nix run .#preview      — full build + local preview"
-                echo "  nix run .#clean        — remove build artifacts"
-                echo "  nix run .#docs         — build and serve API docs"
-                echo "  nix run .#release      — cross-compile release builds"
-                echo "  nix flake check        — run formatting check + tests"
-                echo "  om ci                  — run full CI locally"
+                echo "  nix fmt                - format all files"
+                echo "  nix build .#           - build policypress (default)"
+                echo "  nix run .#serve        - live dev server (PDFs + hot reload)"
+                echo "  nix run .#preview      - full build + local preview"
+                echo "  nix run .#clean        - remove build artifacts"
+                echo "  nix run .#docs         - build and serve API docs"
+                echo "  nix run .#release      - cross-compile release builds"
+                echo "  nix flake check        - run formatting check + tests"
+                echo "  om ci                  - run full CI locally"
               '';
             };
           };

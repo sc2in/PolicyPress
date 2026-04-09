@@ -203,6 +203,13 @@ pub fn build(b: *std.Build) !void {
         test_step.dependOn(&run_unit_tests.step);
     }
     {
+        // `zig build check` - semantic analysis without emitting a binary.
+        // Used by ZLS for IDE diagnostics and as a fast CI sanity check.
+        const check_step = b.step("check", "Semantic analysis (no binary emitted, used by ZLS)");
+        check_step.dependOn(&policypress_exe.step);
+        check_step.dependOn(&pandoc_sh.step);
+    }
+    {
         // E2E test: run policypress against the starter/ template, mirroring
         // what action.yml does for real consumers.  Requires pandoc + XeLaTeX
         // in PATH (provided by the devshell / Nix flake check environment).
@@ -220,7 +227,7 @@ pub fn build(b: *std.Build) !void {
         });
         copy_template.setCwd(b.path("."));
 
-        // Step 2: run policypress from starter/ — same working dir as a real consumer.
+        // Step 2: run policypress from starter/ - same working dir as a real consumer.
         const e2e_run = b.addRunArtifact(policypress_exe);
         e2e_run.addArgs(&.{
             "--config", "config.toml",

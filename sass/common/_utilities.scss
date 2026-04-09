@@ -1,4 +1,4 @@
-// Shared accessibility utilities — defined once, used site-wide.
+// Shared accessibility utilities - defined once, used site-wide.
 // Components should not redeclare these.
 
 // Skip link for keyboard navigation (WCAG 2.4.1)
@@ -34,7 +34,7 @@
   border: 0;
 }
 
-// High contrast mode — applied to any interactive element
+// High contrast mode - applied to any interactive element
 @media (forced-colors: active) {
   a:focus,
   button:focus,
@@ -56,7 +56,7 @@
   }
 }
 
-// Sidebar + TOC scrollbar — styled once, applies everywhere these classes appear
+// Sidebar + TOC scrollbar - styled once, applies everywhere these classes appear
 .docs-links,
 .docs-toc,
 .sidebar-col-content {

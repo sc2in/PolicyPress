@@ -7,8 +7,8 @@ Write policies in Markdown. Push to GitHub. Get a PDF library and a policy websi
 ## Quick Start
 
 1. **Click "Use this template"** → "Create a new repository"
-2. Edit `config.toml` — set `organization`, `base_url`, and drop your `logo.png` in `static/`
-3. Push to `main` — the action builds your PDFs and deploys your site
+2. Edit `config.toml` - set `organization`, `base_url`, and drop your `logo.png` in `static/`
+3. Push to `main` - the action builds your PDFs and deploys your site
 
 That's it.
 

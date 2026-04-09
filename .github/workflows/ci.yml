@@ -50,14 +50,23 @@ jobs:
           path: artifacts/
           retention-days: 7
 
-      - name: Create release archive
+      - name: Build release binaries
         if: ${{ success() && github.ref_type == 'tag' }}
         run: |
-          tar czf policypress-${{ github.ref_name }}.tar.gz -C artifacts .
+          nix develop --command bash -c '
+            set -euo pipefail
+            for target in x86_64-linux aarch64-linux x86_64-macos aarch64-macos x86_64-windows; do
+              echo "▸ Building $target..."
+              zig build -Doptimize=ReleaseSafe -Dtarget="$target"
+              ext=""
+              [[ "$target" == *windows* ]] && ext=".exe"
+              cp "zig-out/bin/policypress${ext}" "policypress-${target}${ext}"
+            done
+          '
 
       - name: Create GitHub Release
         if: ${{ success() && github.ref_type == 'tag' }}
         uses: softprops/action-gh-release@v2
         with:
-          files: policypress-${{ github.ref_name }}.tar.gz
+          files: policypress-*
           generate_release_notes: true

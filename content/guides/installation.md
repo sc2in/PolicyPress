@@ -5,7 +5,7 @@ description: Setting up PolicyPress for your organization
 summary: Setting up PolicyPress for your organization
 ---
 
-PolicyPress is used as a GitHub Action — there is nothing to install. Your policies live in your own repository and PolicyPress is pulled in at build time.
+PolicyPress is used as a GitHub Action - there is nothing to install. Your policies live in your own repository and PolicyPress is pulled in at build time.
 
 ## Prerequisites
 

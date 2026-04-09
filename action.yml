@@ -74,7 +74,7 @@ runs:
         # Build the Zola static site
         zola build
 
-        # Build flags — explicitly set draft/redact so action inputs always
+        # Build flags - explicitly set draft/redact so action inputs always
         # override whatever is in the consumer's config.toml.
         ARGS=(-c "${{ inputs.config_path }}" -o "${{ inputs.output_dir }}")
         if [ "${{ inputs.draft_mode }}" = "true" ]; then
@@ -88,7 +88,7 @@ runs:
           ARGS+=(--no-redact)
         fi
 
-        # Generate PDFs — policypress and all runtime deps are in the devshell
+        # Generate PDFs - policypress and all runtime deps are in the devshell
         policypress "${ARGS[@]}"
 
         echo "pdf_path=${{ inputs.output_dir }}/pdf"     >> "$GITHUB_OUTPUT"

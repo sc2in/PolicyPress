@@ -30,7 +30,7 @@ extra:
 
 ## Purpose and Scope
 
-This policy defines the acceptable use of {{ org() }}'s information systems, networks, devices, and data. It exists to protect the company, its employees, and its customers from risk — not to restrict people from doing their jobs.
+This policy defines the acceptable use of {{ org() }}'s information systems, networks, devices, and data. It exists to protect the company, its employees, and its customers from risk - not to restrict people from doing their jobs.
 
 This policy applies to all employees, contractors, and third parties who access {{ org() }} systems or data, whether on company-owned or personal devices.
 
@@ -38,9 +38,9 @@ This policy applies to all employees, contractors, and third parties who access 
 
 Use company systems and data:
 
-- **For work purposes** — personal use is tolerated when incidental and does not interfere with your work or company resources
-- **With care** — treat company systems and data as you would any professional asset
-- **Honestly** — do not misrepresent yourself, falsify records, or circumvent controls
+- **For work purposes** - personal use is tolerated when incidental and does not interfere with your work or company resources
+- **With care** - treat company systems and data as you would any professional asset
+- **Honestly** - do not misrepresent yourself, falsify records, or circumvent controls
 
 When in doubt about whether a use is appropriate, ask your manager or IT.
 

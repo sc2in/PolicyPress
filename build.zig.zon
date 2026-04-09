@@ -36,7 +36,7 @@
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
     .dependencies = .{
-        // Breakout projects — co-located siblings, referenced as path deps.
+        // Breakout projects - co-located siblings, referenced as path deps.
         // Switch to git+https URLs with hashes before publishing to FlakeHub.
         // .zetta = .{ .path = "../zetta" },
         .zigmark = .{

@@ -15,7 +15,7 @@ See the [installation guide](@/guides/installation.md) for the full workflow def
 
 The static site is output to `public/` (or the path set by `output_dir`). Deploy it to any static host:
 
-**GitHub Pages** — add a deploy step after the policypress step:
+**GitHub Pages** - add a deploy step after the policypress step:
 
 ```yaml
 - uses: actions/deploy-pages@v4
@@ -23,9 +23,9 @@ The static site is output to `public/` (or the path set by `output_dir`). Deploy
     artifact_name: site
 ```
 
-**Cloudflare Pages / Netlify / Vercel** — point the build output at the `site` artifact path (`public/`).
+**Cloudflare Pages / Netlify / Vercel** - point the build output at the `site` artifact path (`public/`).
 
-**Self-hosted** — copy `public/` to any web server capable of serving static files (nginx, Caddy, S3, etc.).
+**Self-hosted** - copy `public/` to any web server capable of serving static files (nginx, Caddy, S3, etc.).
 
 ### Distributing PDFs
 

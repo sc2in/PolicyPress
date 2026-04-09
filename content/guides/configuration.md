@@ -14,7 +14,7 @@ These fields must be present or PolicyPress will exit with an error before build
 | Field | Location | Description |
 |---|---|---|
 | `base_url` | top-level | Canonical URL of the published site (e.g. `"https://security.example.com"`) |
-| `organization` | `[extra]` | Organization name — injected into PDFs and via `{{ org() }}` shortcode |
+| `organization` | `[extra]` | Organization name - injected into PDFs and via `{{ org() }}` shortcode |
 | `logo` | `[extra]` | Filename of the logo image relative to `static/` (e.g. `"logo.png"`) |
 | `pdf_color` | `[extra]` | Hex accent color used on PDF cover pages (e.g. `"#0e90f3"`) |
 | `policy_dir` | `[extra]` | Path to the policy directory **relative to `content/`** (e.g. `"policies/"`) |
@@ -56,10 +56,10 @@ policy_dir = "policies/"
 
 | Field | Location | Type | Default | Description |
 |---|---|---|---|---|
-| `lead` | `[extra]` | string | — | Subtitle shown below the site title on the homepage |
-| `policy_root` | `[extra]` | string | — | Zola internal link to the policies section index (e.g. `"@/reports/scf.md"`) |
-| `scf_report_page` | `[extra]` | string | — | Internal link to the SCF compliance report page |
-| `soc2_report_page` | `[extra]` | string | — | Internal link to the SOC 2 report page |
+| `lead` | `[extra]` | string | - | Subtitle shown below the site title on the homepage |
+| `policy_root` | `[extra]` | string | - | Zola internal link to the policies section index (e.g. `"@/reports/scf.md"`) |
+| `scf_report_page` | `[extra]` | string | - | Internal link to the SCF compliance report page |
+| `soc2_report_page` | `[extra]` | string | - | Internal link to the SOC 2 report page |
 
 ## Navigation
 
@@ -70,7 +70,7 @@ The main navigation bar is controlled by `[[extra.menu.main]]` entries. Each ent
 | `title` | string | Display label |
 | `url` | string | Target URL |
 | `icon` | string | Font Awesome class (e.g. `"fas fa-file-alt"`) |
-| `weight` | integer | Sort order — lower numbers appear first |
+| `weight` | integer | Sort order - lower numbers appear first |
 
 ```toml
 [[extra.menu.main]]
@@ -95,7 +95,7 @@ The team page is populated from `[[extra.policyteam.members]]` entries:
 
 ## Homepage
 
-The dashboard homepage layout is controlled by `[extra.frontpage]`. All sub-keys are optional — omit any section to hide it.
+The dashboard homepage layout is controlled by `[extra.frontpage]`. All sub-keys are optional - omit any section to hide it.
 
 | Section | Description |
 |---|---|
@@ -104,7 +104,7 @@ The dashboard homepage layout is controlled by `[extra.frontpage]`. All sub-keys
 | `[extra.frontpage.secondary_cta]` | Secondary call-to-action button |
 | `[extra.frontpage.features]` | Feature cards grid (`title`, `subtitle`, `[[cards]]`) |
 | `[extra.frontpage.quick_actions]` | Quick-action tiles (`title`, `subtitle`, `[[actions]]`) |
-| `[[extra.frontpage.statistics]]` | Statistics strip — each entry has `number` and `label` |
+| `[[extra.frontpage.statistics]]` | Statistics strip - each entry has `number` and `label` |
 
 ## Taxonomies
 
@@ -159,7 +159,7 @@ These standard Zola settings are relevant to PolicyPress deployments:
 
 | Field | Recommended value | Notes |
 |---|---|---|
-| `compile_sass` | `true` | Required — PolicyPress ships SCSS |
+| `compile_sass` | `true` | Required - PolicyPress ships SCSS |
 | `theme` | `"policypress"` | Required |
 | `build_search_index` | `true` | Powers the site search widget |
 | `generate_feeds` | `true` or `false` | Optional Atom feed |

@@ -1,4 +1,4 @@
-// Dark mode toggle — keeps body.dark (legacy) and data-bs-theme (Bootstrap 5)
+// Dark mode toggle - keeps body.dark (legacy) and data-bs-theme (Bootstrap 5)
 // in sync so both the old class-based styles and the new CSS-var styles work.
 function applyTheme(dark) {
   if (dark) {
@@ -39,7 +39,7 @@ window
     }
   });
 
-// Bootstrap collapse polyfill — handles data-bs-toggle="collapse" without
+// Bootstrap collapse polyfill - handles data-bs-toggle="collapse" without
 // requiring Bootstrap JS (sidebar group toggles + mobile nav toggle).
 document.addEventListener("click", function (e) {
   var trigger = e.target.closest('[data-bs-toggle="collapse"]');

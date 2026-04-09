@@ -5,6 +5,7 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
+
 const mvzr = @import("mvzr");
 const zigmark = @import("zigmark");
 
@@ -512,13 +513,9 @@ pub fn replace_admonitions(alloc: Allocator, txt: *Array(u8)) !void {
             break :blk params[start..end];
         } else null;
 
-        // Plain ASCII labels — font-agnostic, works with any LaTeX setup.
+        // Plain ASCII labels - font-agnostic, works with any LaTeX setup.
         const prefix: []const u8 =
-            if (std.mem.eql(u8, adm_type, "warning")) "WARNING"
-            else if (std.mem.eql(u8, adm_type, "danger")) "DANGER"
-            else if (std.mem.eql(u8, adm_type, "tip")) "TIP"
-            else if (std.mem.eql(u8, adm_type, "important")) "IMPORTANT"
-            else "NOTE";
+            if (std.mem.eql(u8, adm_type, "warning")) "WARNING" else if (std.mem.eql(u8, adm_type, "danger")) "DANGER" else if (std.mem.eql(u8, adm_type, "tip")) "TIP" else if (std.mem.eql(u8, adm_type, "important")) "IMPORTANT" else "NOTE";
 
         const heading = if (custom_title) |ct|
             try std.fmt.allocPrint(alloc, "{s}: {s}", .{ prefix, ct })

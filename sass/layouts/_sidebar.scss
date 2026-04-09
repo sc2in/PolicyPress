@@ -48,7 +48,7 @@
   min-width: 0;
 }
 
-// TOC column: sticky at the column level. align-self: flex-start is required —
+// TOC column: sticky at the column level. align-self: flex-start is required -
 // without it the column stretches to the full row height and sticky has nowhere
 // to travel within its containing block.
 .policy-toc-col {
@@ -64,7 +64,7 @@
   }
 }
 
-// TOC nav styles — sticky positioning is handled by the parent column above.
+// TOC nav styles - sticky positioning is handled by the parent column above.
 .policy-toc {
   @include media-breakpoint-up(xl) {
     padding-left: 1rem;

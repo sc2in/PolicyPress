@@ -46,14 +46,14 @@ macros_policies_latest_revision -%}
             {% if current_version %}
               <span class="badge bg-secondary">v{{ current_version.version }}</span>
             {% else %}
-              <span class="text-muted">—</span>
+              <span class="text-muted">-</span>
             {% endif %}
           </td>
           <td>
             {% if page.extra.last_reviewed %}
               {{ page.extra.last_reviewed | date(format="%b %d, %Y") }}
             {% else %}
-              <span class="text-muted">—</span>
+              <span class="text-muted">-</span>
             {% endif %}
           </td>
           <td class="text-muted small">
@@ -102,14 +102,14 @@ macros_policies_latest_revision -%}
             {% if current_version %}
               <span class="badge bg-secondary">v{{ current_version.version }}</span>
             {% else %}
-              <span class="text-muted">—</span>
+              <span class="text-muted">-</span>
             {% endif %}
           </td>
           <td>
             {% if page.extra.last_reviewed %}
               {{ page.extra.last_reviewed | date(format="%b %d, %Y") }}
             {% else %}
-              <span class="text-muted">—</span>
+              <span class="text-muted">-</span>
             {% endif %}
           </td>
           <td class="text-muted small">

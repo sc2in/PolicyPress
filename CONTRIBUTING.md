@@ -45,7 +45,7 @@ zola build   # verify template/theme changes render correctly
 
 ## SC2 ideals
 
-- Security: PolicyPress processes user-supplied Markdown that may end up in PDFs or HTML — avoid introducing injection or path traversal vectors.
+- Security: PolicyPress processes user-supplied Markdown that may end up in PDFs or HTML - avoid introducing injection or path traversal vectors.
 - Reliability: prefer stable, well-tested APIs.
 - Simplicity: avoid overengineering; keep the action interface and config surface lean.
 

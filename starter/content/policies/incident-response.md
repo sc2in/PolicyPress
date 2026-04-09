@@ -42,7 +42,7 @@ extra:
 
 ## Purpose and Scope
 
-This policy defines {{ org() }}'s approach to managing security incidents — from initial detection through containment, eradication, recovery, and post-incident review. The goal is to minimize harm, preserve evidence, and prevent recurrence.
+This policy defines {{ org() }}'s approach to managing security incidents - from initial detection through containment, eradication, recovery, and post-incident review. The goal is to minimize harm, preserve evidence, and prevent recurrence.
 
 This policy applies to all {{ org() }} employees, contractors, and systems.
 

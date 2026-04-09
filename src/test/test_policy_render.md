@@ -1,6 +1,6 @@
 ---
 title: "Render Test Policy"
-description: "Minimal policy for PDF rendering tests (no mermaid — sandbox-safe)"
+description: "Minimal policy for PDF rendering tests (no mermaid - sandbox-safe)"
 date: 2024-11-13
 weight: 10
 taxonomies:

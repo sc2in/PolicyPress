@@ -1,6 +1,6 @@
 # PolicyPress
 
-A compliance policy management platform for small and mid-size businesses. Write policies in Markdown, version them in Git, publish a branded static site, and generate audit-ready PDFs — all from a single GitHub Action.
+A compliance policy management platform for small and mid-size businesses. Write policies in Markdown, version them in Git, publish a branded static site, and generate audit-ready PDFs - all from a single GitHub Action.
 
 PolicyPress is built on [Zola](https://www.getzola.org/) and [Pandoc](https://pandoc.org/). It is designed to be hosted by your customers in their own repositories; PolicyPress itself is the theme and toolchain, not the content.
 
@@ -8,7 +8,7 @@ PolicyPress is built on [Zola](https://www.getzola.org/) and [Pandoc](https://pa
 
 1. Your policies live in a Git repository as Markdown files with YAML front matter
 2. On push, the `sc2in/policypress` GitHub Action builds the static site and generates PDFs
-3. Artifacts are uploaded — PDFs for distribution, static site for hosting
+3. Artifacts are uploaded - PDFs for distribution, static site for hosting
 
 Policies support:
 
@@ -126,7 +126,7 @@ extra:
 Policy content goes here.
 
 {% redact() %}
-Internal notes — stripped from redacted PDFs.
+Internal notes - stripped from redacted PDFs.
 {% end %}
 ```
 
@@ -165,7 +165,7 @@ scf_report_page  = "@/reports/scf.md"
 soc2_report_page = "@/reports/soc2.md"
 ```
 
-Control data files are customer-supplied — PolicyPress does not ship them. The format matches the [OpenControl](https://open-control.org/) standard. Example files for SCF and SOC 2 are available in the policypress repository under `templates/opencontrols/standards/` for reference.
+Control data files are customer-supplied - PolicyPress does not ship them. The format matches the [OpenControl](https://open-control.org/) standard. Example files for SCF and SOC 2 are available in the policypress repository under `templates/opencontrols/standards/` for reference.
 
 ## Local development
 
@@ -217,25 +217,25 @@ PolicyPress is developed and maintained by [Star City Security Consulting, LLC (
 
 **Primary contributors:**
 
-- [Ben Craton](https://github.com/TsunamiNoAi) — architecture, implementation, security design
+- [Ben Craton](https://github.com/TsunamiNoAi) - architecture, implementation, security design
 
 **With assistance from:**
 
-- [Perplexity.ai](https://www.perplexity.ai) — research assistance
-- [Github Copilot](https://copilot.github.com/) — pair programming and code review
-- [Claude](https://claude.ai) (Anthropic) — pair programming and code review
+- [Perplexity.ai](https://www.perplexity.ai) - research assistance
+- [Github Copilot](https://copilot.github.com/) - pair programming and code review
+- [Claude](https://claude.ai) (Anthropic) - pair programming and code review
 
 **Built on:**
 
-- [Zola](https://www.getzola.org/) — static site generator
-- [Eisvogel](https://github.com/Wandmalfarbe/pandoc-latex-template) — PDF template by Pascal Wagler
-- [Secure Controls Framework (SCF)](https://securecontrolsframework.com/) — control taxonomy
-- [AICPA Trust Services Criteria (TSC)](https://www.aicpa-cima.com/resources/landing/2017-trust-services-criteria) — SOC 2 control framework
+- [Zola](https://www.getzola.org/) - static site generator
+- [Eisvogel](https://github.com/Wandmalfarbe/pandoc-latex-template) - PDF template by Pascal Wagler
+- [Secure Controls Framework (SCF)](https://securecontrolsframework.com/) - control taxonomy
+- [AICPA Trust Services Criteria (TSC)](https://www.aicpa-cima.com/resources/landing/2017-trust-services-criteria) - SOC 2 control framework
 
 ## License
 
 [PolyForm Noncommercial License 1.0.0](LICENSE)
 
-Copyright © 2026 Star City Security Consulting, LLC (SC2) — [sc2.in](https://sc2.in)
+Copyright © 2026 Star City Security Consulting, LLC (SC2) - [sc2.in](https://sc2.in)
 
 Free for noncommercial use including personal projects, research, education, nonprofits, and government. For commercial licensing, contact [sc2.in](https://sc2.in).

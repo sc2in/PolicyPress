@@ -33,7 +33,7 @@ extra:
 
 ## Purpose and Scope
 
-This policy establishes requirements for controlling access to {{ org() }}'s information systems, applications, and data. Access shall be granted based on the principle of least privilege — users receive only the access required to perform their job duties.
+This policy establishes requirements for controlling access to {{ org() }}'s information systems, applications, and data. Access shall be granted based on the principle of least privilege - users receive only the access required to perform their job duties.
 
 This policy applies to all employees, contractors, and third parties with access to {{ org() }} systems.
 
@@ -107,5 +107,5 @@ Remote access to {{ org() }} systems requires:
 Violations of this policy may result in disciplinary action up to and including termination. Access violations are logged and reviewed by the Security team.
 
 {% admonition(type="note") %}
-Access requests, approvals, and reviews must be retained as evidence for audit purposes. Store records in the approved GRC or ticketing system — email approvals alone are not sufficient.
+Access requests, approvals, and reviews must be retained as evidence for audit purposes. Store records in the approved GRC or ticketing system - email approvals alone are not sufficient.
 {% end %}

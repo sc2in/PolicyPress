@@ -149,7 +149,7 @@ const Control = struct {
     domain: []const u8,
     control_id: []const u8,
     control: []const u8,
-    description: []const u8,
+    description: ?[]const u8 = null,
     found: bool = false,
 };
 

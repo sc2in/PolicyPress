@@ -79,7 +79,7 @@ Sensitive business information that could cause meaningful harm to {{ org() }} o
 
 ### Restricted
 
-The most sensitive information, where unauthorized disclosure could cause severe harm — legal, regulatory, financial, or reputational.
+The most sensitive information, where unauthorized disclosure could cause severe harm - legal, regulatory, financial, or reputational.
 
 **Examples:**
 
@@ -143,6 +143,6 @@ Confidential and Restricted documents must be labelled:
 
 ## Compliance and Enforcement
 
-Mishandling of classified data — including storing Restricted data in unapproved locations, sharing Confidential data without authorization, or failure to apply required controls — may result in disciplinary action.
+Mishandling of classified data - including storing Restricted data in unapproved locations, sharing Confidential data without authorization, or failure to apply required controls - may result in disciplinary action.
 
 Report suspected data mishandling to the Security team immediately.

@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: ["**"]
+    tags: ["v?[0-9]+.[0-9]+.[0-9]+*"]
   pull_request:
     branches: ["main"]
 concurrency:
@@ -64,9 +65,21 @@ jobs:
             done
           '
 
+      - name: Generate SBOM
+        if: ${{ success() && github.ref_type == 'tag' }}
+        run: |
+          store_path=$(nix build --no-link --print-out-paths .#)
+          nix run nixpkgs#sbomnix -- \
+            --cdx sbom.cdx.json \
+            --spdx sbom.spdx.json \
+            "$store_path"
+
       - name: Create GitHub Release
         if: ${{ success() && github.ref_type == 'tag' }}
         uses: softprops/action-gh-release@v2
         with:
-          files: policypress-*
+          files: |
+            policypress-*
+            sbom.cdx.json
+            sbom.spdx.json
           generate_release_notes: true

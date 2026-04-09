@@ -160,7 +160,7 @@ Annual compliance attestation is required from all staff with access to confiden
 {% end %}
 
 {% admonition(type="tip") %}
-Use the self-service compliance portal to complete your annual attestation — it takes less than five minutes and sends your manager an automatic confirmation.
+Use the self-service compliance portal to complete your annual attestation - it takes less than five minutes and sends your manager an automatic confirmation.
 {% end %}
 
 {% admonition(type="warning") %}

@@ -28,7 +28,7 @@ The action accepts two inputs that override `config.toml` at build time:
 | `draft_mode: 'true'` | Adds a DRAFT watermark to every page |
 | `redact_mode: 'true'` | Strips content inside `{% redact() %} ... {% end %}` shortcode blocks |
 
-To produce a redacted build for auditors alongside the full internal build, trigger the workflow twice via `workflow_dispatch` — once with `redact_mode: false` and once with `redact_mode: true`.
+To produce a redacted build for auditors alongside the full internal build, trigger the workflow twice via `workflow_dispatch` - once with `redact_mode: false` and once with `redact_mode: true`.
 
 ## Output filenames
 

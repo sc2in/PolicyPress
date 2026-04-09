@@ -26,3 +26,7 @@ starter/templates/
 starter/static/
 starter/public/
 starter/starter/
+sbom.cdx.json
+sbom.spdx.json
+sbom.csv
+http_cache.sqlite

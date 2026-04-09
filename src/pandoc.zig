@@ -5,13 +5,13 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const ctime = @cImport(@cInclude("time.h"));
-const mvzr = @import("mvzr");
+
 const clap = @import("clap");
+const Config = @import("config").Config;
+const mvzr = @import("mvzr");
 const u = @import("utils");
 
-const Config = @import("config").Config;
-
+const ctime = @cImport(@cInclude("time.h"));
 // TODO: Add more robust error propegation from pandoc/mermaid-filter
 // TODO?: Link against pandoc directly at somepoint
 
@@ -330,7 +330,7 @@ pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
         defer a.free(tmp_home);
         std.fs.makeDirAbsolute(tmp_home) catch {};
         try env_map.put("HOME", tmp_home);
-        panlog.debug("HOME not writable — overriding with {s}\n", .{tmp_home});
+        panlog.debug("HOME not writable - overriding with {s}\n", .{tmp_home});
     }
 
     child.env_map = &env_map;

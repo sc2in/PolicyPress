@@ -1,0 +1,95 @@
+# The URL your policy site will be published at.
+# Used for internal links and the site's canonical URL.
+base_url = "https://policies.example.com"
+
+# The policypress theme is fetched automatically by the GitHub Action.
+# Do not change this value.
+theme = "policypress"
+
+title = "Policies"
+description = "Information security and compliance policies."
+default_language = "en"
+compile_sass = true
+minify_html = false
+generate_feeds = false
+build_search_index = true
+generate_sitemap = true
+generate_robots_txt = true
+
+[[taxonomies]]
+name = "SCF"
+feed = false
+render = false
+
+[[taxonomies]]
+name = "ISO27001"
+feed = false
+render = false
+
+[[taxonomies]]
+name = "TSC2017"
+feed = true
+render = true
+
+[markdown]
+render_emoji = false
+smart_punctuation = false
+external_links_target_blank = true
+external_links_no_follow = true
+external_links_no_referrer = true
+
+[search]
+index_format = "elasticlunr_json"
+
+[extra]
+# Your organization's name. Used in PDF headers, footers, and policy text
+# wherever the {{ org() }} shortcode appears.
+organization = "Example Corp"
+
+# Logo file under static/. Used on the PDF title page and running header.
+logo = "logo.png"
+
+# Brand color for PDF title page rules and accents. Any hex color.
+pdf_color = "#0e90f3"
+
+# Path to your policies directory, relative to content/.
+policy_dir = "policies/"
+
+# Set to true to redact content inside {% redact() %}...{% end %} blocks
+# by default. Can be overridden per-run with --redact / --no-redact.
+redact = false
+
+# Set to true to stamp all PDFs with a DRAFT watermark by default.
+# Can be overridden per-run with --draft / --no-draft.
+draft = false
+
+# Landing page and navigation
+landing_page = true
+blog = false
+policypress_version = "1"
+
+[extra.author]
+name = "Security Team"
+email = "security@example.com"
+
+[extra.menu]
+logo = "/logo.png"
+
+[[extra.menu.main]]
+title = "Policies"
+section = "policies"
+url = "/policies/"
+weight = 10
+
+[[extra.social]]
+name = "github"
+url = "https://github.com/example"
+
+[extra.frontpage]
+[extra.frontpage.hero]
+title = "Security Policies"
+subtitle = "Information security and compliance policies for our organization."
+
+[extra.frontpage.cta]
+text = "View Policies"
+url = "/policies/"

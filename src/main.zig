@@ -107,6 +107,7 @@ fn run(alloc: Allocator) !void {
         );
         return error.ConfigReadFailed;
     };
+    defer config_file.close();
     const contents = config_file.readToEndAlloc(alloc, 1024 * 1024) catch |err| {
         std.debug.print(
             "policypress: failed to read config file '{s}': {s}\n",
@@ -172,6 +173,23 @@ fn run(alloc: Allocator) !void {
 
     const output_path = if (res.args.output) |o| o else default_output;
     config.build_dir = output_path;
+
+    // Write the embedded eisvogel.latex to a tmpdir so pandoc can find it
+    // without the consumer needing to vendor the template in their repository.
+    const data_dir_path = blk: {
+        var env_tmp = try std.process.getEnvMap(alloc);
+        defer env_tmp.deinit();
+        const base = env_tmp.get("TMPDIR") orelse env_tmp.get("TMP") orelse "/tmp";
+        break :blk try std.fmt.allocPrint(alloc, "{s}/pp-data-{d}", .{ base, std.os.linux.getpid() });
+    };
+    defer alloc.free(data_dir_path);
+    std.fs.makeDirAbsolute(data_dir_path) catch {};
+    defer std.fs.deleteTreeAbsolute(data_dir_path) catch {};
+    config.data_dir = Pandoc.writeEisvogel(alloc, data_dir_path) catch |err| blk: {
+        std.debug.print("policypress: warning: could not write embedded template ({s}), falling back to --data-dir=.\n", .{@errorName(err)});
+        break :blk config.root;
+    };
+    defer if (!std.mem.eql(u8, config.data_dir, config.root)) alloc.free(config.data_dir);
 
     std.fs.cwd().makePath(output_path) catch |err| {
         std.debug.print(
@@ -355,33 +373,9 @@ fn describeCompileError(err: anyerror) []const u8 {
     };
 }
 
-/// Returns true if the stamp for `input_path` is newer than the source file,
-/// meaning the PDF is already up to date and compilation can be skipped.
-fn stampIsNewer(input_path: []const u8, stamps_dir: []const u8, alloc: Allocator) bool {
-    const stem = std.fs.path.stem(std.fs.path.basename(input_path));
-    const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, stem }) catch return false;
-    defer alloc.free(stamp_path);
-
-    const src = std.fs.openFileAbsolute(input_path, .{}) catch return false;
-    defer src.close();
-    const src_stat = src.stat() catch return false;
-
-    const stamp = std.fs.cwd().openFile(stamp_path, .{}) catch return false;
-    defer stamp.close();
-    const stamp_stat = stamp.stat() catch return false;
-
-    return src_stat.mtime < stamp_stat.mtime;
-}
-
-/// Touches a stamp file for `input_path` inside `stamps_dir` to record that
-/// compilation succeeded. Called from compileOne after a successful build.
-fn writeStamp(alloc: Allocator, stamps_dir: []const u8, input_path: []const u8) void {
-    const stem = std.fs.path.stem(std.fs.path.basename(input_path));
-    const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, stem }) catch return;
-    defer alloc.free(stamp_path);
-    const f = std.fs.cwd().createFile(stamp_path, .{ .truncate = true }) catch return;
-    f.close();
-}
+// stampIsNewer and writeStamp live in utils so they can be unit-tested.
+const stampIsNewer = @import("utils").stampIsNewer;
+const writeStamp = @import("utils").writeStamp;
 
 fn compileOne(
     alloc: Allocator,

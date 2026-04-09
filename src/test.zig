@@ -127,11 +127,6 @@ test "pdf rendering" {
     conf.build_dir = try tmp.dir.realpathAlloc(alloc, ".");
     defer alloc.free(conf.build_dir);
 
-    // try conf.validatePolicyFiles(alloc);
-
-    // global_config.is_draft = true;
-    // global_config.redact = true;
-
     try pandoc.create_global_args(tst.allocator, &args, conf);
     defer pandoc.destroy_global_args(tst.allocator, &args);
     // Use a mermaid-free fixture so the test works in the Nix sandbox
@@ -142,6 +137,20 @@ test "pdf rendering" {
         std.debug.print("Test Policy Pandoc Call Failed! \nConfig:{f}\n", .{conf});
         return e;
     };
+
+    // Verify the PDF was actually written to the output directory.
+    // Re-open with iterate permission; the tmpDir handle lacks it by default.
+    var out_dir = try std.fs.openDirAbsolute(conf.build_dir, .{ .iterate = true });
+    defer out_dir.close();
+    var pdf_found = false;
+    var dir_iter = out_dir.iterate();
+    while (try dir_iter.next()) |entry| {
+        if (std.mem.endsWith(u8, entry.name, ".pdf")) {
+            pdf_found = true;
+            break;
+        }
+    }
+    try tst.expect(pdf_found);
 
     tmp.cleanup();
 }
@@ -176,4 +185,265 @@ test "report generation" {
     // try tst.expect(j.value.object.get("HRS-05.3").?.bool);
     // try tst.expect(j.value.object.get("HRS-05.4").?.bool);
     // try tst.expect(j.value.object.get("HRS-05.5").?.bool);
+}
+
+// ============================================================
+// Issue #67: Full Pipeline Tests
+// ============================================================
+
+// --- Bad Config → Clear Error ---
+
+test "bad config: missing extra section" {
+    try tst.expectError(
+        error.NoExtraInZolaConfig,
+        config.load(tst.allocator, "base_url = \"http://localhost\""),
+    );
+}
+
+test "bad config: missing logo" {
+    const bad =
+        \\base_url = "http://localhost"
+        \\[extra]
+        \\organization = "ACME"
+        \\pdf_color = "#000"
+        \\policy_dir = "."
+    ;
+    try tst.expectError(error.NoLogoInExtra, config.load(tst.allocator, bad));
+}
+
+test "bad config: missing organization" {
+    const bad =
+        \\base_url = "http://localhost"
+        \\[extra]
+        \\logo = "logo.png"
+        \\pdf_color = "#000"
+        \\policy_dir = "."
+    ;
+    try tst.expectError(error.NoOrganizationInExtra, config.load(tst.allocator, bad));
+}
+
+test "bad config: missing pdf_color" {
+    const bad =
+        \\base_url = "http://localhost"
+        \\[extra]
+        \\logo = "logo.png"
+        \\organization = "ACME"
+        \\policy_dir = "."
+    ;
+    try tst.expectError(error.NoPDFColorInExtra, config.load(tst.allocator, bad));
+}
+
+test "bad config: missing base_url" {
+    const bad =
+        \\[extra]
+        \\logo = "logo.png"
+        \\organization = "ACME"
+        \\pdf_color = "#000"
+        \\policy_dir = "."
+    ;
+    try tst.expectError(error.NoBaseUrlInZolaConfig, config.load(tst.allocator, bad));
+}
+
+// --- Missing Frontmatter → Helpful Error ---
+// These exercise get_metadata (runtime pipeline path) and validateFrontMatter
+// (pre-flight validation path) independently.
+
+const full_revision =
+    \\  - date: "2024-01-01"
+    \\    description: "Initial"
+    \\    revised_by: "Author"
+    \\    approved_by: "Approver"
+    \\    version: "1.0"
+;
+
+fn makePolicyMd(comptime frontmatter: []const u8) []const u8 {
+    return "---\n" ++ frontmatter ++ "\n---\nBody.\n";
+}
+
+test "missing frontmatter: no title → NoTitleInFrontMatter" {
+    const alloc = tst.allocator;
+    const md = makePolicyMd(
+        \\description: "Test"
+        \\extra:
+        \\  last_reviewed: "2024-01-01"
+        \\  major_revisions:
+    ++ "\n" ++ full_revision,
+    );
+    var arr = Array(u8){};
+    defer arr.deinit(alloc);
+    try arr.appendSlice(alloc, md);
+    try tst.expectError(
+        error.NoTitleInFrontMatter,
+        utils.get_metadata(alloc, &arr, .{ .redact = false, .is_draft = false }),
+    );
+}
+
+test "missing frontmatter: no last_reviewed → NoLastReviewInFrontMatter" {
+    const alloc = tst.allocator;
+    const md = makePolicyMd(
+        \\title: "Test Policy"
+        \\description: "Test"
+        \\extra:
+        \\  major_revisions:
+    ++ "\n" ++ full_revision,
+    );
+    var arr = Array(u8){};
+    defer arr.deinit(alloc);
+    try arr.appendSlice(alloc, md);
+    try tst.expectError(
+        error.NoLastReviewInFrontMatter,
+        utils.get_metadata(alloc, &arr, .{ .redact = false, .is_draft = false }),
+    );
+}
+
+test "missing frontmatter: no revisions → NoRevisionsInFrontMatter" {
+    const alloc = tst.allocator;
+    const md = makePolicyMd(
+        \\title: "Test Policy"
+        \\description: "Test"
+        \\extra:
+        \\  last_reviewed: "2024-01-01"
+    ,
+    );
+    var arr = Array(u8){};
+    defer arr.deinit(alloc);
+    try arr.appendSlice(alloc, md);
+    try tst.expectError(
+        error.NoRevisionsInFrontMatter,
+        utils.get_metadata(alloc, &arr, .{ .redact = false, .is_draft = false }),
+    );
+}
+
+test "missing frontmatter: description → NoDescriptionInFrontMatter" {
+    const alloc = tst.allocator;
+    const md = makePolicyMd(
+        \\title: "Test Policy"
+        \\extra:
+        \\  last_reviewed: "2024-01-01"
+        \\  major_revisions:
+    ++ "\n" ++ full_revision,
+    );
+    var fm = try zigmark.Frontmatter.initFromMarkdown(alloc, md);
+    defer fm.deinit();
+    // validateFrontMatter ignores its Config receiver
+    var conf = try config.load(alloc, TestConfig);
+    defer conf.deinit(alloc);
+    try tst.expectError(error.NoDescriptionInFrontMatter, conf.validateFrontMatter(fm));
+}
+
+test "missing frontmatter: revision missing date → NoDateForRevision" {
+    const alloc = tst.allocator;
+    const md = makePolicyMd(
+        \\title: "Test Policy"
+        \\description: "Test"
+        \\extra:
+        \\  last_reviewed: "2024-01-01"
+        \\  major_revisions:
+        \\  - description: "Initial"
+        \\    approved_by: "Approver"
+        \\    version: "1.0"
+    ,
+    );
+    var fm = try zigmark.Frontmatter.initFromMarkdown(alloc, md);
+    defer fm.deinit();
+    var conf = try config.load(alloc, TestConfig);
+    defer conf.deinit(alloc);
+    try tst.expectError(error.NoDateForRevision, conf.validateFrontMatter(fm));
+}
+
+test "missing frontmatter: revision missing approved_by → NoApprovalForRevision" {
+    const alloc = tst.allocator;
+    const md = makePolicyMd(
+        \\title: "Test Policy"
+        \\description: "Test"
+        \\extra:
+        \\  last_reviewed: "2024-01-01"
+        \\  major_revisions:
+        \\  - date: "2024-01-01"
+        \\    description: "Initial"
+        \\    version: "1.0"
+    ,
+    );
+    var fm = try zigmark.Frontmatter.initFromMarkdown(alloc, md);
+    defer fm.deinit();
+    var conf = try config.load(alloc, TestConfig);
+    defer conf.deinit(alloc);
+    try tst.expectError(error.NoApprovalForRevision, conf.validateFrontMatter(fm));
+}
+
+// --- Draft Mode Adds Watermark ---
+
+test "draft mode: pandoc args include page-background flags" {
+    const alloc = tst.allocator;
+    var args = Array([]u8){};
+    var conf = try config.load(alloc, TestConfig);
+    defer conf.deinit(alloc);
+    alloc.free(conf.content_dir);
+    conf.content_dir = try std.fs.path.join(alloc, &.{ conf.root, "src", "test" });
+    alloc.free(conf.policy_dir);
+    conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
+
+    conf.is_draft = true;
+    try pandoc.create_global_args(alloc, &args, conf);
+    defer pandoc.destroy_global_args(alloc, &args);
+
+    var found_bg = false;
+    var found_opacity = false;
+    for (args.items) |arg| {
+        if (std.mem.indexOf(u8, arg, "page-background=") != null) found_bg = true;
+        if (std.mem.indexOf(u8, arg, "page-background-opacity=") != null) found_opacity = true;
+    }
+    try tst.expect(found_bg);
+    try tst.expect(found_opacity);
+}
+
+test "non-draft mode: pandoc args exclude page-background flags" {
+    const alloc = tst.allocator;
+    var args = Array([]u8){};
+    var conf = try config.load(alloc, TestConfig);
+    defer conf.deinit(alloc);
+    alloc.free(conf.content_dir);
+    conf.content_dir = try std.fs.path.join(alloc, &.{ conf.root, "src", "test" });
+    alloc.free(conf.policy_dir);
+    conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
+
+    conf.is_draft = false;
+    try pandoc.create_global_args(alloc, &args, conf);
+    defer pandoc.destroy_global_args(alloc, &args);
+
+    for (args.items) |arg| {
+        try tst.expect(std.mem.indexOf(u8, arg, "page-background=") == null);
+    }
+}
+
+// --- Redact Mode Removes Sensitive Content ---
+// Core redaction behaviour is covered by the "Redaction" test in utils.zig.
+// This test confirms the pipeline wires it correctly: get_metadata returns a
+// "(Redacted)" title and the content buffer has no raw redact shortcodes left.
+
+test "redact mode: title suffix and content scrubbed" {
+    const alloc = tst.allocator;
+    const test_policy_file = try std.fs.cwd().openFile("src/test/test_policy.md", .{});
+    defer test_policy_file.close();
+    const raw = try test_policy_file.readToEndAlloc(alloc, std.math.maxInt(usize));
+    defer alloc.free(raw);
+
+    var contents = Array(u8){};
+    defer contents.deinit(alloc);
+    try contents.appendSlice(alloc, raw);
+
+    try utils.replace_org(alloc, &contents, "TestOrg");
+    try utils.replace_zola_at(alloc, &contents, "https://example.com");
+    try utils.replace_mermaid(alloc, &contents);
+    try utils.redact(alloc, &contents, true);
+
+    var fm = try utils.get_metadata(alloc, &contents, .{ .redact = true, .is_draft = false });
+    defer fm.deinit(alloc);
+
+    // Title must carry the (Redacted) suffix.
+    try tst.expect(std.mem.indexOf(u8, fm.title, "(Redacted)") != null);
+    // No unprocessed shortcode tags should remain.
+    try tst.expect(std.mem.indexOf(u8, contents.items, "{% end %}") == null);
+    // Redacted blocks become underscores, not visible text.
+    try tst.expect(std.mem.indexOf(u8, contents.items, &[_]u8{'_'} ** 10) != null);
 }

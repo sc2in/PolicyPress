@@ -17,11 +17,6 @@ First public release.
 - **GitHub Action** (`action.yml`) — composite action for building PDFs and deploying a
   Zola policy site from any repository with a single `uses: sc2in/policypress@v1` step.
   Inputs: `config_path`, `output_dir`, `draft_mode`, `redact_mode`.
-- **Typst PDF engine** — fast, dependency-light alternative to the pandoc/xelatex pipeline.
-  Matches eisvogel layout: title page with logo, version, coloured rule; running header;
-  footer with org name, "Confidential", and page number; alternating table row colours;
-  Version History table from `extra.major_revisions` frontmatter.
-  Enable with `--engine typst` (pandoc remains default until Mermaid support lands).
 - **Parallel PDF compilation** — policies compiled concurrently via a thread pool with
   stamp-file caching to skip unchanged policies on incremental builds.
 - **Redaction mode** — `{% redact() %}...{% end %}` shortcode blocks are replaced with

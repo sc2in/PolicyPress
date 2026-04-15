@@ -4,6 +4,11 @@ on:
   push:
     branches: ["**"]
     tags: ["v?[0-9]+.[0-9]+.[0-9]+*"]
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "starter/README.md"
   pull_request:
     branches: ["main"]
 concurrency:
@@ -15,7 +20,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # Run both OSes on PRs to main and on release tags; ubuntu-only otherwise.
+        os: >-
+          ${{
+            (github.ref_type == 'tag' || github.event_name == 'pull_request')
+            && fromJson('["ubuntu-latest", "macos-latest"]')
+            || fromJson('["ubuntu-latest"]')
+          }}
     runs-on: ${{ matrix.os }}
     permissions:
       id-token: "write"
@@ -51,13 +62,13 @@ jobs:
           fi
 
       - name: Collect artifacts
-        if: ${{ success() && matrix.os == 'ubuntu-latest' }}
+        if: ${{ success() && matrix.os == 'ubuntu-latest' && (github.ref_type == 'tag' || github.ref_name == 'main') }}
         run: |
           mkdir -p artifacts
           nix build --no-link --print-out-paths .# | xargs -I{} cp -rL {}/ artifacts/
 
       - name: Upload artifacts
-        if: ${{ success() && matrix.os == 'ubuntu-latest' }}
+        if: ${{ success() && matrix.os == 'ubuntu-latest' && (github.ref_type == 'tag' || github.ref_name == 'main') }}
         uses: actions/upload-artifact@v4
         with:
           name: policypress

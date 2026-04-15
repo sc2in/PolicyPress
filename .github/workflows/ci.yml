@@ -41,7 +41,14 @@ jobs:
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
 
       - name: Run CI
-        run: om ci run
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            # mermaid-filter/Chromium not available on macOS; run semantic
+            # analysis only until a macOS-compatible renderer is available.
+            nix develop --command zig build check
+          else
+            om ci run
+          fi
 
       - name: Collect artifacts
         if: ${{ success() && matrix.os == 'ubuntu-latest' }}

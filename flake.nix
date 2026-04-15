@@ -141,36 +141,49 @@
             #  2. Writes a fresh puppeteer JSON config pointing there
             #  3. Strips any existing -p flag forwarded from mermaid-filter and
             #     replaces it with our own so Chrome gets --no-sandbox + a valid dir
+            # mmdcWrapper is only usable on Linux — chromium is not packaged for macOS.
+            # On macOS the wrapper is a no-op stub so derivations that reference it
+            # still evaluate without errors; the pdf-rendering tests are skipped via
+            # the CI workflow instead of running `om ci run` on macOS.
             mmdcWrapper =
-              let
-                realMmdc = "${pkgs.mermaid-filter}/lib/node_modules/mermaid-filter/node_modules/.bin/mmdc";
-              in
-              pkgs.writeShellApplication {
-                name = "mmdc";
-                runtimeInputs = [ pkgs.chromium ];
-                text = ''
-                  chrome_userdata=$(mktemp -d)
-                  puppeteer_cfg=$(mktemp --suffix=.json)
-                  trap 'rm -rf "$chrome_userdata" "$puppeteer_cfg"' EXIT
+              if pkgs.stdenv.isLinux then
+                let
+                  realMmdc = "${pkgs.mermaid-filter}/lib/node_modules/mermaid-filter/node_modules/.bin/mmdc";
+                in
+                pkgs.writeShellApplication {
+                  name = "mmdc";
+                  runtimeInputs = [ pkgs.chromium ];
+                  text = ''
+                    chrome_userdata=$(mktemp -d)
+                    puppeteer_cfg=$(mktemp --suffix=.json)
+                    trap 'rm -rf "$chrome_userdata" "$puppeteer_cfg"' EXIT
 
-                  printf '{"executablePath":"%s/bin/chromium","userDataDir":"%s","args":["--no-sandbox","--disable-setuid-sandbox","--disable-dev-shm-usage","--disable-gpu","--no-zygote"]}' \
-                    "${pkgs.chromium}" "$chrome_userdata" > "$puppeteer_cfg"
+                    printf '{"executablePath":"%s/bin/chromium","userDataDir":"%s","args":["--no-sandbox","--disable-setuid-sandbox","--disable-dev-shm-usage","--disable-gpu","--no-zygote"]}' \
+                      "${pkgs.chromium}" "$chrome_userdata" > "$puppeteer_cfg"
 
-                  # Strip any existing -p / --puppeteerConfigFile arg forwarded by
-                  # mermaid-filter (it comes in as: -p /nix/store/...-puppeteer-config.json)
-                  args=()
-                  skip=false
-                  for arg in "$@"; do
-                    if $skip; then skip=false; continue; fi
-                    if [[ "$arg" == "-p" || "$arg" == "--puppeteerConfigFile" ]]; then
-                      skip=true; continue
-                    fi
-                    args+=("$arg")
-                  done
+                    # Strip any existing -p / --puppeteerConfigFile arg forwarded by
+                    # mermaid-filter (it comes in as: -p /nix/store/...-puppeteer-config.json)
+                    args=()
+                    skip=false
+                    for arg in "$@"; do
+                      if $skip; then skip=false; continue; fi
+                      if [[ "$arg" == "-p" || "$arg" == "--puppeteerConfigFile" ]]; then
+                        skip=true; continue
+                      fi
+                      args+=("$arg")
+                    done
 
-                  exec ${realMmdc} -p "$puppeteer_cfg" "''${args[@]}"
-                '';
-              };
+                    exec ${realMmdc} -p "$puppeteer_cfg" "''${args[@]}"
+                  '';
+                }
+              else
+                pkgs.writeShellApplication {
+                  name = "mmdc";
+                  runtimeInputs = [ ];
+                  text = ''
+                    echo "mermaid diagrams are not supported on this platform, skipping" >&2
+                  '';
+                };
           in
           {
             # --- Formatting (nix fmt) -------------------------------------------
@@ -252,10 +265,8 @@
                 nativeBuildInputs =
                   (old.nativeBuildInputs or [ ])
                   ++ runtimeDeps
-                  ++ [
-                    pkgs.chromium
-                    mmdcWrapper
-                  ];
+                  ++ lib.optionals pkgs.stdenv.isLinux [ pkgs.chromium ]
+                  ++ [ mmdcWrapper ];
                 FONTCONFIG_FILE = fontsConf;
                 MERMAID_FILTER_CMD_MMDC = "${mmdcWrapper}/bin/mmdc";
                 meta = (old.meta or { }) // {

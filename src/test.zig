@@ -18,8 +18,8 @@ const zigmark = @import("zigmark");
 
 const TestConfig =
     \\base_url = "http://localhost:1111"
-    \\[extra]
-    \\redact = true
+    \\[extra.policypress]
+    \\redact_web = true
     \\policy_dir = "src/test"
     \\policy_root = "policies/_index.md"
     \\organization = "Star City Security Consulting"
@@ -264,7 +264,7 @@ test "bad config: missing extra section" {
 test "bad config: missing logo" {
     const bad =
         \\base_url = "http://localhost"
-        \\[extra]
+        \\[extra.policypress]
         \\organization = "ACME"
         \\pdf_color = "#000"
         \\policy_dir = "."
@@ -275,7 +275,7 @@ test "bad config: missing logo" {
 test "bad config: missing organization" {
     const bad =
         \\base_url = "http://localhost"
-        \\[extra]
+        \\[extra.policypress]
         \\logo = "logo.png"
         \\pdf_color = "#000"
         \\policy_dir = "."
@@ -286,7 +286,7 @@ test "bad config: missing organization" {
 test "bad config: missing pdf_color" {
     const bad =
         \\base_url = "http://localhost"
-        \\[extra]
+        \\[extra.policypress]
         \\logo = "logo.png"
         \\organization = "ACME"
         \\policy_dir = "."
@@ -296,7 +296,7 @@ test "bad config: missing pdf_color" {
 
 test "bad config: missing base_url" {
     const bad =
-        \\[extra]
+        \\[extra.policypress]
         \\logo = "logo.png"
         \\organization = "ACME"
         \\pdf_color = "#000"

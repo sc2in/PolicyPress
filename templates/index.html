@@ -62,7 +62,7 @@ description=description, is_home=true) }}
           <div class="hero-meta">
             <span class="meta-item">
               <i class="fas fa-shield-alt" aria-hidden="true"></i>
-              {{ config.extra.organization | default(value="PolicyPress") }}
+              {{ config.extra.policypress.organization | default(value="PolicyPress") }}
             </span>
             <span class="meta-item">
               <i class="fas fa-code-branch" aria-hidden="true"></i>
@@ -211,7 +211,7 @@ description=description, is_home=true) }}
 
       <!-- Dashboard header -->
       <div class="dashboard-header">
-        <h1>{{ config.extra.organization | default(value=config.title) }}</h1>
+        <h1>{{ config.extra.policypress.organization | default(value=config.title) }}</h1>
         <p class="dashboard-desc">
           {{ config.description | default(value="Internal security policy documentation") }}
         </p>

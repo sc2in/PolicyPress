@@ -159,16 +159,6 @@ include_description = true
 include_content = true
 
 [extra]
-redact = true
-show_draft_pdfs = true
-policy_dir = "policies/"
-policy_root = "policies/_index.md"
-scf_report_page = "@/reports/scf.md"
-soc2_report_page = "@/reports/soc2.md"
-organization = "Star City Security Consulting"
-logo = "logo.png"
-pdf_color = "#0e90f3"
-lead = "Security Policy Center for Our Business"
 # release = "https://api.github.com/repos/getzola/zola/releases/latest"
 favicon = "https://www.getzola.org/favicon.ico"
 easydocs_logo_always_clickable = true
@@ -199,6 +189,23 @@ repo_branch = "main"
 # default: false. You can always enable math on a per page.
 math = false
 library = "katex" # options: "katex", "mathjax". default is "katex".
+
+# PolicyPress configuration
+[extra.policypress]
+# Set to true to render a black redaction bar over {% redact() %}...{% end %} blocks on the website.
+# Does not affect PDF generation — use --redact flag on the CLI for PDF redaction.
+redact_web = true
+show_draft_pdfs = true
+policy_dir = "policies/"
+policy_root = "policies/_index.md"
+scf_report_page = "@/reports/scf.md"
+soc2_report_page = "@/reports/soc2.md"
+organization = "Star City Security Consulting"
+logo = "logo.png"
+pdf_color = "#0e90f3"
+lead = "Security Policy Center for Our Business"
+# scf_controls = "data/scf.yml"         # optional: override default SCF control data path
+# tsc2017_controls = "data/tsc2017.yml" # optional: override default TSC2017 control data path
 
 
 [extra.menu]

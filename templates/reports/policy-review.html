@@ -1,7 +1,7 @@
 {% extends "reports/base.html" %}
 
 {% block report_content %}
-{% set section = get_section(path=config.extra.policy_root) %}
+{% set section = get_section(path=config.extra.policypress.policy_root) %}
 {% set policies = section.pages %}
 {% for sub in section.subsections %}
 {% set subsection = get_section(path=sub) %}

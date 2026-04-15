@@ -97,7 +97,8 @@ pub const Config = struct {
             return error.InvalidTomlConfig;
         };
         errdefer t.deinit(alloc);
-        const e = t.getTable("extra") orelse return error.NoExtraInZolaConfig;
+        const extra = t.getTable("extra") orelse return error.NoExtraInZolaConfig;
+        const e = extra.getTable("policypress") orelse return error.NoPolicypressBlockInConfig;
         //BUG: This doesnt work in zig 0.14.1, but should in 0.14.0.
         // const b = try tomlz.decode(BuildConfig, allocator, content);
         // if (b.root.len == 0) return error.NoRootInConfig;
@@ -132,7 +133,7 @@ pub const Config = struct {
         config.org = e.getString("organization").?;
         config.build_dir = "public";
         config.zola_config = t;
-        config.redact = e.getBool("redact") orelse false;
+        config.redact = e.getBool("redact_web") orelse false;
         return config;
     }
     pub fn deinit(self: *Config, alloc: Allocator) void {
@@ -144,11 +145,11 @@ pub const Config = struct {
     }
 
     pub fn validate(_: Config, zolaConfig: toml.Table) !void {
-        if (zolaConfig.getTable("extra")) |ex| {
-            if (ex.getString("logo") == null) return error.NoLogoInExtra;
-            if (ex.getString("organization") == null) return error.NoOrganizationInExtra;
-            if (ex.getString("pdf_color") == null) return error.NoPDFColorInExtra;
-        } else return error.NoExtraInZolaConfig;
+        const extra = zolaConfig.getTable("extra") orelse return error.NoExtraInZolaConfig;
+        const pp = extra.getTable("policypress") orelse return error.NoPolicypressBlockInConfig;
+        if (pp.getString("logo") == null) return error.NoLogoInExtra;
+        if (pp.getString("organization") == null) return error.NoOrganizationInExtra;
+        if (pp.getString("pdf_color") == null) return error.NoPDFColorInExtra;
         if (zolaConfig.getString("base_url") == null) return error.NoBaseUrlInZolaConfig;
     }
 

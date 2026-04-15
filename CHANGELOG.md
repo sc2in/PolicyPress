@@ -17,11 +17,24 @@ keys) is considered stable.
   covers branch protection, CODEOWNERS, policy revision gitflow for ISO/SOC audits, and
   step-by-step deployment guides for GitHub Pages, Azure Static Web Apps + Azure AD SSO,
   and Cloudflare Pages + Zero Trust.
+- **Platform-specific tabbed guide content** — guide pages with platform-specific
+  instructions (GitHub Actions vs Azure DevOps, Azure SWA vs GitHub Pages vs Cloudflare)
+  now use a tab component so readers see only the steps relevant to their stack. Tab
+  selection persists across pages via `localStorage`.
 - **Print / Export PDF button** on compliance report pages — expands all collapsed sections
   and triggers the browser print dialog. Paired with a print media query that hides
   navigation chrome and renders a clean, paginated document.
 - **macOS CI** — CI matrix now runs on both `ubuntu-latest` and `macos-latest`.
   `mermaid-filter` is skipped on `aarch64-darwin` (already handled in the Nix flake).
+
+### Fixed
+
+- **Release version stamp committed back to repo** — previously the `sed` patch to
+  `build.zig.zon` on tag builds was ephemeral (applied in CI, never persisted). The
+  release workflow now commits the stamped file and re-points the tag to that commit, so
+  `build.zig.zon` in the repo always matches the release version.
+- **Floating major version tag (`v1`) automated** — the `v1` tag is now force-updated to
+  the latest `v1.x.x` release commit automatically in CI. No manual re-pointing needed.
 
 ### Changed
 

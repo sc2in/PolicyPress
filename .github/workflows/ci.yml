@@ -64,12 +64,19 @@ jobs:
           path: artifacts/
           retention-days: 7
 
-      - name: Stamp version in build.zig.zon
+      - name: Stamp and commit version in build.zig.zon
         if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         run: |
           version="${{ github.ref_name }}"
           version="${version#v}"
           sed -i "s/\.version = \"[^\"]*\"/.version = \"$version\"/" build.zig.zon
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add build.zig.zon
+          git commit -m "chore: release ${version} [skip ci]"
+          git push origin HEAD:main
+          git tag -f "${{ github.ref_name }}"
+          git push --force origin "${{ github.ref_name }}"
 
       - name: Build release binaries
         if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
@@ -85,23 +92,12 @@ jobs:
             done
           '
 
-      - name: Generate SBOM
-        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
-        run: |
-          store_path=$(nix build --no-link --print-out-paths .#)
-          nix run nixpkgs#sbomnix -- \
-            --cdx sbom.cdx.json \
-            --spdx sbom.spdx.json \
-            "$store_path"
-
       - name: Create GitHub Release
         if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         uses: softprops/action-gh-release@v2
         with:
           files: |
             policypress-*
-            sbom.cdx.json
-            sbom.spdx.json
           generate_release_notes: true
 
       - name: Update floating major version tag

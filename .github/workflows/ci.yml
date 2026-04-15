@@ -57,6 +57,13 @@ jobs:
           path: artifacts/
           retention-days: 7
 
+      - name: Stamp version in build.zig.zon
+        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
+        run: |
+          version="${{ github.ref_name }}"
+          version="${version#v}"
+          sed -i "s/\.version = \"[^\"]*\"/.version = \"$version\"/" build.zig.zon
+
       - name: Build release binaries
         if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         run: |
@@ -89,3 +96,10 @@ jobs:
             sbom.cdx.json
             sbom.spdx.json
           generate_release_notes: true
+
+      - name: Update floating major version tag
+        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
+        run: |
+          major=$(echo "${{ github.ref_name }}" | grep -oP '^v?\d+')
+          git tag -f "$major"
+          git push --force origin "$major"

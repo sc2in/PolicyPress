@@ -14,7 +14,7 @@ These fields must be present or PolicyPress will exit with an error before build
 | Field | Location | Description |
 |---|---|---|
 | `base_url` | top-level | Canonical URL of the published site (e.g. `"https://security.example.com"`) |
-| `organization` | `[extra.policypress]` | Organization name — injected into PDFs and via `{{ org() }}` shortcode |
+| `organization` | `[extra.policypress]` | Organization name — injected into PDFs and via `{{/* org() */}}` shortcode |
 | `logo` | `[extra.policypress]` | Filename of the logo image relative to `static/` (e.g. `"logo.png"`) |
 | `pdf_color` | `[extra.policypress]` | Hex accent color used on PDF cover pages (e.g. `"#0e90f3"`) |
 | `policy_dir` | `[extra.policypress]` | Path to the policy directory **relative to `content/`** (e.g. `"policies/"`) |
@@ -46,7 +46,7 @@ policy_dir = "policies/"
 
 | Field | Location | Type | Default | Description |
 |---|---|---|---|---|
-| `redact_web` | `[extra.policypress]` | bool | `false` | When `true`, renders a redaction bar over `{% redact() %} … {% end %}` blocks on the website. Does **not** affect PDF generation — use `--redact` on the CLI. |
+| `redact_web` | `[extra.policypress]` | bool | `false` | When `true`, renders a redaction bar over `{%/* redact() */%} … {%/* end */%}` blocks on the website. Does **not** affect PDF generation — use `--redact` on the CLI. |
 | `show_draft_pdfs` | `[extra.policypress]` | bool | `false` | When `true`, links to draft PDFs appear on the policy index page |
 
 > [!NOTE]

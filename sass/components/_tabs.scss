@@ -1,0 +1,73 @@
+.tab-group {
+  margin-bottom: 1.5rem;
+
+  .tab-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.125rem;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0;
+    border-bottom: 1px solid var(--bs-border-color);
+
+    .tab-nav-item {
+      padding: 0.4rem 0.9rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 0.375rem 0.375rem 0 0;
+      color: var(--bs-secondary-color);
+      user-select: none;
+      margin-bottom: -1px;
+      line-height: 1.5;
+
+      &:hover:not(.active) {
+        color: var(--bs-body-color);
+        border-color: var(--bs-border-color) var(--bs-border-color) transparent;
+        background-color: var(--bs-tertiary-bg);
+      }
+
+      &.active {
+        color: var(--bs-body-color);
+        font-weight: 500;
+        background-color: var(--bs-body-bg);
+        border-color: var(--bs-border-color) var(--bs-border-color)
+          var(--bs-body-bg);
+      }
+    }
+  }
+
+  .tab-pane {
+    padding-top: 1.25rem;
+
+    > *:first-child {
+      margin-top: 0;
+    }
+    > *:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Print: show all panes stacked, hide the nav.
+@media print {
+  .tab-group {
+    .tab-nav {
+      display: none;
+    }
+
+    .tab-pane {
+      display: block !important;
+
+      &::before {
+        content: attr(data-tab);
+        display: block;
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        color: #666;
+      }
+    }
+  }
+}

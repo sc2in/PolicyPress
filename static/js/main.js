@@ -85,3 +85,68 @@ if (sidebarToggle) {
 // Restore saved sidebar state (default: open).
 var savedSidebar = localStorage.getItem(SIDEBAR_KEY);
 if (savedSidebar === "0") setSidebar(false);
+
+// Tab groups — find .tab-group > .tab-pane[data-tab] containers in guide pages,
+// build a nav bar from the tab names, show/hide panes on click.
+// Selection is persisted in localStorage keyed by the set of tab names so the
+// same platform choice carries over to every page that has matching tabs.
+(function initTabGroups() {
+  var groups = document.querySelectorAll(".tab-group");
+  groups.forEach(function (group) {
+    var panes = Array.from(
+      group.querySelectorAll(":scope > .tab-pane[data-tab]"),
+    );
+    if (!panes.length) return;
+
+    // Stable key: sorted tab names joined, so GitHub/ADO tabs on every page share state.
+    var tabNames = panes.map(function (p) {
+      return p.getAttribute("data-tab");
+    });
+    var storageKey = "pp-tab:" + tabNames.slice().sort().join("|");
+
+    var preferred =
+      localStorage.getItem(storageKey) ||
+      group.getAttribute("data-default") ||
+      tabNames[0];
+    // Fall back to first tab if saved value no longer exists in this group.
+    if (!tabNames.includes(preferred)) preferred = tabNames[0];
+
+    // Build nav.
+    var nav = document.createElement("ul");
+    nav.className = "tab-nav";
+    nav.setAttribute("role", "tablist");
+
+    panes.forEach(function (pane, i) {
+      var name = pane.getAttribute("data-tab");
+      var active = name === preferred;
+
+      var btn = document.createElement("li");
+      btn.className = "tab-nav-item" + (active ? " active" : "");
+      btn.setAttribute("role", "tab");
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+      btn.setAttribute("tabindex", active ? "0" : "-1");
+      btn.textContent = name;
+      pane.hidden = !active;
+
+      btn.addEventListener("click", function () {
+        nav.querySelectorAll(".tab-nav-item").forEach(function (b) {
+          b.classList.remove("active");
+          b.setAttribute("aria-selected", "false");
+          b.setAttribute("tabindex", "-1");
+        });
+        panes.forEach(function (p) {
+          p.hidden = true;
+        });
+        btn.classList.add("active");
+        btn.setAttribute("aria-selected", "true");
+        btn.setAttribute("tabindex", "0");
+        pane.hidden = false;
+        localStorage.setItem(storageKey, name);
+      });
+
+      nav.appendChild(btn);
+    });
+
+    group.insertBefore(nav, group.firstChild);
+  });
+})();

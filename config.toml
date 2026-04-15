@@ -138,16 +138,11 @@ github_alerts = true
 # See "Internal links & deep linking" in the documentation for more information.
 insert_anchor_links = "right"
 
-# # Syntax highlighting configuration (optional)
-# [markdown.highlighting]
-# # When set to "true", missing highlight languages are treated as errors. Defaults to false but recommended to set to true.
-# error_on_missing_language = false
-
-# # Whether to use inline hex colours (`inline`) or CSS classes (`class`)
-# style = "inline"
-# # The syntax highlighting theme to use.
-# # See https://highlightjs.org/demo/
-# highlight_theme = "base16-ocean-dark"
+# Syntax highlighting — uses Zola's built-in Giallo engine (Zola 0.22+).
+# Inline styles baked into HTML; no extra CSS file needed.
+# Available themes: github-light, github-dark, dracula, nord, catppuccin-mocha, etc.
+[markdown.highlighting]
+theme = "github-light"
 
 
 [search]
@@ -159,16 +154,6 @@ include_description = true
 include_content = true
 
 [extra]
-redact = true
-show_draft_pdfs = true
-policy_dir = "policies/"
-policy_root = "policies/_index.md"
-scf_report_page = "@/reports/scf.md"
-soc2_report_page = "@/reports/soc2.md"
-organization = "Star City Security Consulting"
-logo = "logo.png"
-pdf_color = "#0e90f3"
-lead = "Security Policy Center for Our Business"
 # release = "https://api.github.com/repos/getzola/zola/releases/latest"
 favicon = "https://www.getzola.org/favicon.ico"
 easydocs_logo_always_clickable = true
@@ -199,6 +184,23 @@ repo_branch = "main"
 # default: false. You can always enable math on a per page.
 math = false
 library = "katex" # options: "katex", "mathjax". default is "katex".
+
+# PolicyPress configuration
+[extra.policypress]
+# Set to true to render a black redaction bar over {% redact() %}...{% end %} blocks on the website.
+# Does not affect PDF generation — use --redact flag on the CLI for PDF redaction.
+redact_web = true
+show_draft_pdfs = true
+policy_dir = "policies/"
+policy_root = "policies/_index.md"
+scf_report_page = "@/reports/scf.md"
+soc2_report_page = "@/reports/soc2.md"
+organization = "Star City Security Consulting"
+logo = "logo.png"
+pdf_color = "#0e90f3"
+lead = "Security Policy Center for Our Business"
+# scf_controls = "data/scf.yml"         # optional: override default SCF control data path
+# tsc2017_controls = "data/tsc2017.yml" # optional: override default TSC2017 control data path
 
 
 [extra.menu]

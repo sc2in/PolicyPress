@@ -14,6 +14,15 @@
       {{ section.content | safe }}
     </div>
     {% endif %}
+    <div class="report-actions no-print">
+      <button class="btn btn-sm btn-outline-secondary" onclick="expandAllSections(); window.print();" title="Print or save as PDF">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" style="vertical-align: -1px; margin-right: 4px;">
+          <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+          <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
+        </svg>
+        Print / Export PDF
+      </button>
+    </div>
   </div>
 
   <div class="report-content">
@@ -22,45 +31,47 @@
 </div>
 
 <script>
-// Optimized collapsible functionality with performance improvements
-document.addEventListener('DOMContentLoaded', function() {
-  const toggles = document.querySelectorAll('.section-title');
-
-  // Use event delegation for better performance
-  document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('section-title')) {
-      e.target.classList.toggle('active');
-      const content = e.target.nextElementSibling;
-
-      if (content.classList.contains('active')) {
-        content.classList.remove('active');
-        content.style.maxHeight = '0';
-      } else {
-        content.classList.add('active');
-        content.style.maxHeight = content.scrollHeight + 'px';
-      }
+function expandAllSections() {
+  document.querySelectorAll('.section-title').forEach(function(title) {
+    title.classList.add('active');
+    const content = title.nextElementSibling;
+    if (content) {
+      content.classList.add('active');
+      content.style.maxHeight = 'none';
     }
   });
+}
 
-  // Lazy loading for large sections
-  const observerOptions = {
-    root: null,
-    rootMargin: '50px',
-    threshold: 0.1
-  };
-
-  const observer = new IntersectionObserver(function(entries) {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('loaded');
-      }
-    });
-  }, observerOptions);
-
-  // Observe all report sections
-  document.querySelectorAll('.report-section').forEach(section => {
-    observer.observe(section);
+// Inject control counts into section headers so collapsed state isn't blank
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.report-section').forEach(function(section) {
+    const title = section.querySelector('.section-title');
+    const count = section.querySelectorAll('.control-item').length;
+    if (count > 0 && title && !title.querySelector('.section-control-count')) {
+      const hint = document.createElement('small');
+      hint.className = 'section-control-count';
+      hint.textContent = count + ' control' + (count === 1 ? '' : 's');
+      title.insertBefore(hint, title.querySelector('.badge, .float-end') || null);
+    }
   });
+});
+
+// Collapsible sections via event delegation
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.section-title') && !e.target.closest('button')) {
+    const title = e.target.closest('.section-title');
+    title.classList.toggle('active');
+    const content = title.nextElementSibling;
+    if (!content) return;
+
+    if (content.classList.contains('active')) {
+      content.classList.remove('active');
+      content.style.maxHeight = '0';
+    } else {
+      content.classList.add('active');
+      content.style.maxHeight = content.scrollHeight + 'px';
+    }
+  }
 });
 </script>
 {% endblock content %}

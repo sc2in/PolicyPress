@@ -42,6 +42,13 @@ external_links_no_referrer = true
 index_format = "elasticlunr_json"
 
 [extra]
+# Landing page and navigation
+landing_page = true
+blog = false
+policypress_version = "1"
+
+# PolicyPress configuration
+[extra.policypress]
 # Your organization's name. Used in PDF headers, footers, and policy text
 # wherever the {{ org() }} shortcode appears.
 organization = "Example Corp"
@@ -55,18 +62,13 @@ pdf_color = "#0e90f3"
 # Path to your policies directory, relative to content/.
 policy_dir = "policies/"
 
-# Set to true to redact content inside {% redact() %}...{% end %} blocks
-# by default. Can be overridden per-run with --redact / --no-redact.
-redact = false
+# Set to true to render a redaction bar over {% redact() %}...{% end %} blocks
+# on the website. Does not affect PDF generation — use --redact on the CLI for PDFs.
+redact_web = false
 
 # Set to true to stamp all PDFs with a DRAFT watermark by default.
 # Can be overridden per-run with --draft / --no-draft.
-draft = false
-
-# Landing page and navigation
-landing_page = true
-blog = false
-policypress_version = "1"
+show_draft_pdfs = false
 
 [extra.author]
 name = "Security Team"

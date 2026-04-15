@@ -1,17 +1,14 @@
 {% extends "reports/base.html" %}
 
 {% block report_content %}
-{% set section = get_section(path=config.extra.policy_root) %}
+{% set section = get_section(path=config.extra.policypress.policy_root) %}
 {% set policies = section.pages %}
 {% for sub in section.subsections %}
 {% set subsection = get_section(path=sub) %}
 {% set_global policies = policies | concat(with=subsection.pages) %}
 {% endfor %}
 
-<div class="report-section">
-  <h2 class="section-title">Policy Review Status</h2>
-  <div class="section-content">
-    <div class="policy-review-date-table">
+<div class="policy-review-date-table">
       <div class="row">
         <div class="header">Policy</div>
         <div class="header">Version</div>
@@ -42,6 +39,4 @@
       </div>
       {% endfor %}
     </div>
-  </div>
-</div>
 {% endblock report_content %}

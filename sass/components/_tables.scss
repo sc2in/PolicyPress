@@ -3,3 +3,48 @@ table {
 
   margin: 3rem 0;
 }
+
+// Split-color framework badges — label|count pill
+// Visually distinguishes the framework name from the coverage count
+// so "SCF | 6" reads as "6 SCF controls", not "version 6".
+.badge-split {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 1em;
+  font-size: 0.7em;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  vertical-align: middle;
+
+  .badge-split-label {
+    padding: 0.3em 0.55em;
+  }
+
+  .badge-split-count {
+    padding: 0.3em 0.55em;
+  }
+
+  &.badge-split-scf {
+    .badge-split-label {
+      background-color: var(--bs-primary);
+      color: #fff;
+    }
+    .badge-split-count {
+      background-color: var(--bs-primary-bg-subtle);
+      color: var(--bs-primary-text-emphasis);
+    }
+  }
+
+  &.badge-split-soc2 {
+    .badge-split-label {
+      background-color: var(--bs-success);
+      color: #fff;
+    }
+    .badge-split-count {
+      background-color: var(--bs-success-bg-subtle);
+      color: var(--bs-success-text-emphasis);
+    }
+  }
+}

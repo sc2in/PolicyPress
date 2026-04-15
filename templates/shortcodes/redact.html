@@ -1,7 +1,6 @@
-{% set redact = config.extra.redact or false %}
-
-{% if redact %}
-<span class="redaction" aria-label="[redacted]" role="img">{{ body | safe }}</span>
+{% set redact_web = config.extra.policypress.redact_web or false %}
+{% if redact_web %}
+<span class="redaction" role="img" aria-label="[redacted]" aria-hidden="true">{{ body | safe }}</span>
 {% else %}
 {{ body | safe }}
 {% endif %}

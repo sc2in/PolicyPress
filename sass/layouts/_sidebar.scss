@@ -225,7 +225,8 @@ a.docs-link {
 }
 
 // Improved hover states with sufficient contrast
-.docs-link:hover,
+// :not(.active) prevents hover from overriding the active selection style
+.docs-link:not(.active):hover,
 .page-links a:hover {
   text-decoration: none;
   color: var(--bs-link-color);

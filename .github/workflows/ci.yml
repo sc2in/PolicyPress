@@ -12,7 +12,11 @@ concurrency:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     permissions:
       id-token: "write"
       contents: "write"
@@ -32,27 +36,43 @@ jobs:
         run: nix --accept-flake-config profile add nixpkgs#omnix
 
       - name: Configure permissions
+        # Enable unprivileged user namespaces required by Chromium/mermaid-filter
+        # on Linux. The sysctl does not exist on macOS so || true makes it safe.
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
 
       - name: Run CI
-        run: om ci run
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            # mermaid-filter/Chromium not available on macOS; run semantic
+            # analysis only until a macOS-compatible renderer is available.
+            nix develop --command zig build check
+          else
+            om ci run
+          fi
 
       - name: Collect artifacts
-        if: ${{ success() }}
+        if: ${{ success() && matrix.os == 'ubuntu-latest' }}
         run: |
           mkdir -p artifacts
           nix build --no-link --print-out-paths .# | xargs -I{} cp -rL {}/ artifacts/
 
       - name: Upload artifacts
-        if: ${{ success() }}
+        if: ${{ success() && matrix.os == 'ubuntu-latest' }}
         uses: actions/upload-artifact@v4
         with:
           name: policypress
           path: artifacts/
           retention-days: 7
 
+      - name: Stamp version in build.zig.zon
+        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
+        run: |
+          version="${{ github.ref_name }}"
+          version="${version#v}"
+          sed -i "s/\.version = \"[^\"]*\"/.version = \"$version\"/" build.zig.zon
+
       - name: Build release binaries
-        if: ${{ success() && github.ref_type == 'tag' }}
+        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         run: |
           nix develop --command bash -c '
             set -euo pipefail
@@ -66,7 +86,7 @@ jobs:
           '
 
       - name: Generate SBOM
-        if: ${{ success() && github.ref_type == 'tag' }}
+        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         run: |
           store_path=$(nix build --no-link --print-out-paths .#)
           nix run nixpkgs#sbomnix -- \
@@ -75,7 +95,7 @@ jobs:
             "$store_path"
 
       - name: Create GitHub Release
-        if: ${{ success() && github.ref_type == 'tag' }}
+        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         uses: softprops/action-gh-release@v2
         with:
           files: |
@@ -83,3 +103,10 @@ jobs:
             sbom.cdx.json
             sbom.spdx.json
           generate_release_notes: true
+
+      - name: Update floating major version tag
+        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
+        run: |
+          major=$(echo "${{ github.ref_name }}" | grep -oP '^v?\d+')
+          git tag -f "$major"
+          git push --force origin "$major"

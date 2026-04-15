@@ -11,7 +11,7 @@
 {% set versions = page.extra.major_revisions | sort(attribute="date") | reverse %}
 {% set current_version = versions | first %}
 {%- set title_slug = page.title | replace(from=" ", to="_") -%}
-{%- if config.extra.redact -%}
+{%- if config.extra.policypress.redact_web -%}
   {%- set pdf_official = title_slug ~ "__Redacted__-_v" ~ current_version.version ~ ".pdf" -%}
 {%- else -%}
   {%- set pdf_official = title_slug ~ "_-_v" ~ current_version.version ~ ".pdf" -%}
@@ -46,7 +46,7 @@ reverse %}
 
 {%- set title_slug = page.title | replace(from=" ", to="_") -%}
 {# policypress sanitizes '(' and ')' to '_', so (Redacted) becomes __Redacted__ #}
-{%- if config.extra.redact -%}
+{%- if config.extra.policypress.redact_web -%}
   {%- set pdf_official = title_slug ~ "__Redacted__-_v" ~ current_version.version ~ ".pdf" -%}
   {%- set pdf_draft = title_slug ~ "__Redacted___Draft__-_v" ~ current_version.version ~ ".pdf" -%}
 {%- else -%}
@@ -61,26 +61,34 @@ reverse %}
         A print-ready PDF of this policy is available at:
         <strong>/pdfs/{{ pdf_official }}</strong>
       </p>
-      <h2 class="title">{{page.title}} - v{{current_version.version}}</h2>
-      <div class="last-reviewed">Last reviewed and
-        approved on {{page.extra.last_reviewed | date(format="%B %d, %Y")}}</div>
-      {% if review_overdue %}
-      <div class="alert alert-warning d-flex align-items-center mt-2" role="alert">
-        <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>
-        <span>This policy has not been reviewed in over a year and is due for review.</span>
-      </div>
-      {% endif %}
-      <div class="summary">{{ page.summary | safe }}</div>
-      <div class="description">{{ page.description | safe }}</div>
-      <div class="pdf-links">
-        <a href="/pdfs/{{ pdf_official }}">
-          <i class="fas fa-file-pdf" aria-hidden="true"></i> PDF Version
-        </a>
-        {%- if config.extra.show_draft_pdfs | default(value=false) %}
-        <a href="/pdfs/{{ pdf_draft }}">
-          <i class="fas fa-file-pdf" aria-hidden="true"></i> Draft Version
-        </a>
-        {%- endif %}
+
+      <div class="policy-header">
+        <h2 class="policy-title">
+          {{ page.title }}
+          <span class="policy-version">v{{ current_version.version }}</span>
+        </h2>
+        <div class="policy-meta">
+          <i class="fas fa-calendar-check" aria-hidden="true"></i>
+          Last reviewed and approved on {{ page.extra.last_reviewed | date(format="%B %d, %Y") }}
+          {% if review_overdue %}
+          <span class="badge bg-warning text-dark ms-2">
+            <i class="fas fa-clock" aria-hidden="true"></i> Review overdue
+          </span>
+          {% endif %}
+        </div>
+        {% if page.description %}
+        <p class="policy-description">{{ page.description | safe }}</p>
+        {% endif %}
+        <div class="policy-actions">
+          <a href="/pdfs/{{ pdf_official }}" class="btn btn-sm btn-primary">
+            <i class="fas fa-file-pdf" aria-hidden="true"></i> PDF Version
+          </a>
+          {%- if config.extra.policypress.show_draft_pdfs | default(value=false) %}
+          <a href="/pdfs/{{ pdf_draft }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-file-pdf" aria-hidden="true"></i> Draft Version
+          </a>
+          {%- endif %}
+        </div>
       </div>
       <div class="content">
         {{ page.content | safe }}

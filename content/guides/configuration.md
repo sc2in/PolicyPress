@@ -5,7 +5,7 @@ description: All config.toml fields for PolicyPress
 summary: Complete reference for every config.toml setting recognized by PolicyPress
 ---
 
-PolicyPress is configured through a single `config.toml` file at the repository root. It is a [Zola](https://www.getzola.org/documentation/getting-started/configuration/) configuration file extended with PolicyPress-specific keys under `[extra]`.
+PolicyPress is configured through a single `config.toml` file at the repository root. It is a [Zola](https://www.getzola.org/documentation/getting-started/configuration/) configuration file. PolicyPress-specific settings live under `[extra.policypress]`, keeping them cleanly separated from theme-level settings in `[extra]`.
 
 ## Required fields
 
@@ -14,10 +14,10 @@ These fields must be present or PolicyPress will exit with an error before build
 | Field | Location | Description |
 |---|---|---|
 | `base_url` | top-level | Canonical URL of the published site (e.g. `"https://security.example.com"`) |
-| `organization` | `[extra]` | Organization name - injected into PDFs and via `{{ org() }}` shortcode |
-| `logo` | `[extra]` | Filename of the logo image relative to `static/` (e.g. `"logo.png"`) |
-| `pdf_color` | `[extra]` | Hex accent color used on PDF cover pages (e.g. `"#0e90f3"`) |
-| `policy_dir` | `[extra]` | Path to the policy directory **relative to `content/`** (e.g. `"policies/"`) |
+| `organization` | `[extra.policypress]` | Organization name — injected into PDFs and via `{{/* org() */}}` shortcode |
+| `logo` | `[extra.policypress]` | Filename of the logo image relative to `static/` (e.g. `"logo.png"`) |
+| `pdf_color` | `[extra.policypress]` | Hex accent color used on PDF cover pages (e.g. `"#0e90f3"`) |
+| `policy_dir` | `[extra.policypress]` | Path to the policy directory **relative to `content/`** (e.g. `"policies/"`) |
 
 Example minimal configuration:
 
@@ -35,7 +35,7 @@ render = false
 name = "TSC2017"
 render = true
 
-[extra]
+[extra.policypress]
 organization = "Example Co"
 logo = "logo.png"
 pdf_color = "#0e90f3"
@@ -46,20 +46,20 @@ policy_dir = "policies/"
 
 | Field | Location | Type | Default | Description |
 |---|---|---|---|---|
-| `redact` | `[extra]` | bool | `false` | When `true`, content inside `{% redact() %} … {% end %}` is hidden in the site and PDFs |
-| `show_draft_pdfs` | `[extra]` | bool | `false` | When `true`, links to draft PDFs appear on the policy index page |
+| `redact_web` | `[extra.policypress]` | bool | `false` | When `true`, renders a redaction bar over `{%/* redact() */%} … {%/* end */%}` blocks on the website. Does **not** affect PDF generation — use `--redact` on the CLI. |
+| `show_draft_pdfs` | `[extra.policypress]` | bool | `false` | When `true`, links to draft PDFs appear on the policy index page |
 
 > [!NOTE]
-> `draft_mode` and `redact_mode` can also be set at build time via the GitHub Action inputs or CLI flags (`--draft` / `--redact`). Action inputs always override `config.toml`.
+> Draft and redact modes can also be set at build time via GitHub Action inputs or CLI flags (`--draft` / `--redact`). Action inputs always override `config.toml`.
 
 ## Site content fields
 
 | Field | Location | Type | Default | Description |
 |---|---|---|---|---|
-| `lead` | `[extra]` | string | - | Subtitle shown below the site title on the homepage |
-| `policy_root` | `[extra]` | string | - | Zola internal link to the policies section index (e.g. `"@/reports/scf.md"`) |
-| `scf_report_page` | `[extra]` | string | - | Internal link to the SCF compliance report page |
-| `soc2_report_page` | `[extra]` | string | - | Internal link to the SOC 2 report page |
+| `lead` | `[extra.policypress]` | string | - | Subtitle shown below the site title on the homepage |
+| `policy_root` | `[extra.policypress]` | string | - | Zola internal link to the policies section index (e.g. `"@/reports/scf.md"`) |
+| `scf_report_page` | `[extra.policypress]` | string | - | Internal link to the SCF compliance report page |
+| `soc2_report_page` | `[extra.policypress]` | string | - | Internal link to the SOC 2 report page |
 
 ## Navigation
 

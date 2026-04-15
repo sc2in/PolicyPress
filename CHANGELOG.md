@@ -8,6 +8,70 @@ keys) is considered stable.
 
 ## [Unreleased]
 
+### Added
+
+- **`policypress new <name>`** CLI subcommand — scaffolds a new policy Markdown file with
+  complete YAML front matter (title, date, draft flag, revision history) in `policy_dir`.
+  Accepts `--config <path>` to use a non-default config file.
+- **Security and governance guide** (`content/guides/securing-your-repository.md`) —
+  covers branch protection, CODEOWNERS, policy revision gitflow for ISO/SOC audits, and
+  step-by-step deployment guides for GitHub Pages, Azure Static Web Apps + Azure AD SSO,
+  and Cloudflare Pages + Zero Trust.
+- **Print / Export PDF button** on compliance report pages — expands all collapsed sections
+  and triggers the browser print dialog. Paired with a print media query that hides
+  navigation chrome and renders a clean, paginated document.
+- **macOS CI** — CI matrix now runs on both `ubuntu-latest` and `macos-latest`.
+  `mermaid-filter` is skipped on `aarch64-darwin` (already handled in the Nix flake).
+
+### Changed
+
+- **Breaking: PolicyPress config keys moved to `[extra.policypress]`** — all
+  PolicyPress-specific settings are now namespaced under `[extra.policypress]` in
+  `config.toml`. Keys that previously lived directly under `[extra]` must be moved.
+
+  **Migration — update your `config.toml`:**
+
+  ```toml
+  # Before (1.0.x)
+  [extra]
+  organization = "Acme Corp"
+  logo = "logo.png"
+  pdf_color = "#0e90f3"
+  policy_dir = "policies/"
+  policy_root = "@/policies/_index.md"
+  scf_report_page = "@/reports/scf.md"
+  soc2_report_page = "@/reports/soc2.md"
+  lead = "Security Policy Center"
+  redact = false
+  show_draft_pdfs = false
+
+  # After (this release)
+  [extra.policypress]
+  organization = "Acme Corp"
+  logo = "logo.png"
+  pdf_color = "#0e90f3"
+  policy_dir = "policies/"
+  policy_root = "@/policies/_index.md"
+  scf_report_page = "@/reports/scf.md"
+  soc2_report_page = "@/reports/soc2.md"
+  lead = "Security Policy Center"
+  redact_web = false
+  show_draft_pdfs = false
+  ```
+
+  Theme-level keys (`menu`, `policyteam`, `frontpage`, `open`, `footer`, etc.) remain
+  under `[extra]` and are not affected.
+
+- **Breaking: `redact` config key renamed to `redact_web`** — the old `redact` key
+  controlled website rendering only and was easily confused with the `--redact` CLI flag
+  for PDF generation. The new name `redact_web` makes the scope explicit. Update your
+  `config.toml` as shown in the migration snippet above.
+
+- **Control data moved from `templates/opencontrols/` to `data/`** — `SCF.yml`,
+  `TSC-2017 (SOC2).yml`, and `SCF.json` now live at `data/scf.yml`, `data/tsc2017.yml`,
+  and `data/scf.json`. If you overrode `scf_controls` or `tsc2017_controls` in your
+  config, update the paths accordingly. Default paths are updated automatically.
+
 ## [1.0.0] - 2026-04-09
 
 First public release.

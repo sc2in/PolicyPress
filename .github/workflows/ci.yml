@@ -12,7 +12,11 @@ concurrency:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     permissions:
       id-token: "write"
       contents: "write"
@@ -32,19 +36,21 @@ jobs:
         run: nix --accept-flake-config profile add nixpkgs#omnix
 
       - name: Configure permissions
+        # Enable unprivileged user namespaces required by Chromium/mermaid-filter
+        # on Linux. The sysctl does not exist on macOS so || true makes it safe.
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
 
       - name: Run CI
         run: om ci run
 
       - name: Collect artifacts
-        if: ${{ success() }}
+        if: ${{ success() && matrix.os == 'ubuntu-latest' }}
         run: |
           mkdir -p artifacts
           nix build --no-link --print-out-paths .# | xargs -I{} cp -rL {}/ artifacts/
 
       - name: Upload artifacts
-        if: ${{ success() }}
+        if: ${{ success() && matrix.os == 'ubuntu-latest' }}
         uses: actions/upload-artifact@v4
         with:
           name: policypress
@@ -52,7 +58,7 @@ jobs:
           retention-days: 7
 
       - name: Build release binaries
-        if: ${{ success() && github.ref_type == 'tag' }}
+        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         run: |
           nix develop --command bash -c '
             set -euo pipefail
@@ -66,7 +72,7 @@ jobs:
           '
 
       - name: Generate SBOM
-        if: ${{ success() && github.ref_type == 'tag' }}
+        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         run: |
           store_path=$(nix build --no-link --print-out-paths .#)
           nix run nixpkgs#sbomnix -- \
@@ -75,7 +81,7 @@ jobs:
             "$store_path"
 
       - name: Create GitHub Release
-        if: ${{ success() && github.ref_type == 'tag' }}
+        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         uses: softprops/action-gh-release@v2
         with:
           files: |

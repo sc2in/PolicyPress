@@ -217,6 +217,16 @@
   }
 }
 
+// Control count hint shown in collapsed section headers
+.section-control-count {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--bs-secondary-color);
+  vertical-align: middle;
+}
+
 // Print/export button row beneath the report header
 .report-actions {
   margin-top: 1.25rem;

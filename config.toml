@@ -138,16 +138,11 @@ github_alerts = true
 # See "Internal links & deep linking" in the documentation for more information.
 insert_anchor_links = "right"
 
-# # Syntax highlighting configuration (optional)
-# [markdown.highlighting]
-# # When set to "true", missing highlight languages are treated as errors. Defaults to false but recommended to set to true.
-# error_on_missing_language = false
-
-# # Whether to use inline hex colours (`inline`) or CSS classes (`class`)
-# style = "inline"
-# # The syntax highlighting theme to use.
-# # See https://highlightjs.org/demo/
-# highlight_theme = "base16-ocean-dark"
+# Syntax highlighting — uses Zola's built-in Giallo engine (Zola 0.22+).
+# Inline styles baked into HTML; no extra CSS file needed.
+# Available themes: github-light, github-dark, dracula, nord, catppuccin-mocha, etc.
+[markdown.highlighting]
+theme = "github-light"
 
 
 [search]

@@ -1,7 +1,7 @@
 {% extends "reports/base.html" %}
 
 {% block report_content %}
-{% set data = load_data(path=config.extra.tsc2017_controls | default(value="templates/opencontrols/standards/TSC-2017 (SOC2).yml")) %}
+{% set data = load_data(path=config.extra.policypress.tsc2017_controls | default(value="data/tsc2017.yml")) %}
 {% set control_data = data[term.name] | default(value=false) %}
 
 <div class="report-section">
@@ -17,7 +17,7 @@
           <span class="badge bg-secondary">{{ control_data.family }}</span>
           SOC 2 Trust Services Criteria
         </div>
-        <div class="control-description">{{ control_data.description }}</div>
+        {% if control_data.description %}<div class="control-description">{{ control_data.description }}</div>{% endif %}
       </div>
       {% endif %}
 
@@ -40,7 +40,7 @@
       {% endif %}
 
       <div class="mt-3">
-        {% set _tsc_back = config.extra.soc2_report_page | default(value="") %}
+        {% set _tsc_back = config.extra.policypress.soc2_report_page | default(value="") %}
         {% if _tsc_back %}
         <a href="{{ get_url(path=_tsc_back) | safe }}" class="btn btn-sm btn-outline-secondary">
           &larr; Back to SOC 2 TSC Overview

@@ -164,7 +164,7 @@ test "report generation" {
     // const builddir = try tmp.dir.realpathAlloc(tst.allocator, ".");
     // defer tst.allocator.free(builddir);
 
-    // const c_file = try std.fs.cwd().realpathAlloc(tst.allocator, "templates/opencontrols/standards/SCF.json");
+    // const c_file = try std.fs.cwd().realpathAlloc(tst.allocator, "data/scf.json");
     // defer tst.allocator.free(c_file);
 
     // const c_path = try std.fs.cwd().realpathAlloc(tst.allocator, ".");

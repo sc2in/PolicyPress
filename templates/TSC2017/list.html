@@ -3,7 +3,7 @@
 
 {% block report_content %}
 {% set tax = get_taxonomy(kind="TSC2017") %}
-{% set data = load_data(path=config.extra.tsc2017_controls | default(value="templates/opencontrols/standards/TSC-2017 (SOC2).yml")) %}
+{% set data = load_data(path=config.extra.policypress.tsc2017_controls | default(value="data/tsc2017.yml")) %}
 {% set line_items = tax.items | group_by(attribute="name") %}
 
 {% set covered_count = tax.items | length %}
@@ -48,7 +48,7 @@
           </span>
           {% endif %}
         </h3>
-        <div class="control-description">{{ item.description }}</div>
+        {% if item.description %}<div class="control-description">{{ item.description }}</div>{% endif %}
       </div>
 
       {% if control_policies | length > 0 %}

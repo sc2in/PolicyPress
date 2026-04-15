@@ -134,7 +134,7 @@ pub fn report(self: *Self, policy_root: []const u8) ![]u8 {
 test {
     var r = try Self.init(
         tst.allocator,
-        "templates/opencontrols/standards/SCF.json",
+        "data/scf.json",
     );
     defer r.deinit();
 

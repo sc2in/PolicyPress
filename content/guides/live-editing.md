@@ -30,7 +30,7 @@ When editing, you will need to update the front matter to reflect the changes ma
 The version number used for the document is the version number listed in the most recent `major_revisions` entry.
 {% end %}
 
-You can refer to [Adding a Policy](@/guides/adding-a-policy.md#adding-front-matter) for more information on the front matter.
+You can refer to [Adding a Policy](@/guides/adding-a-policy.md#front-matter) for more information on the front matter.
 
 ### Saving Changes
 

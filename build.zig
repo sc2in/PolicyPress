@@ -155,6 +155,7 @@ pub fn build(b: *std.Build) !void {
     policypress_mod.addImport("pandoc", pandoc_sh_mod);
     policypress_mod.addImport("reports", reports_mod);
     policypress_mod.addImport("utils", utils_mod);
+    policypress_mod.addImport("datetime", pg.module("datetime"));
     const policypress_exe = b.addExecutable(.{
         .root_module = policypress_mod,
         .name = "policypress",

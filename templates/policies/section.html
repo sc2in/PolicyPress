@@ -63,10 +63,14 @@ macros_policies_latest_revision -%}
           </td>
           <td class="text-nowrap">
             {% if page.taxonomies.SCF %}
-              <span class="badge bg-primary-subtle text-primary-emphasis" title="{{ page.taxonomies.SCF | length }} SCF controls">SCF {{ page.taxonomies.SCF | length }}</span>
+              <span class="badge-split badge-split-scf" title="{{ page.taxonomies.SCF | length }} SCF controls mapped">
+                <span class="badge-split-label">SCF</span><span class="badge-split-count">{{ page.taxonomies.SCF | length }}</span>
+              </span>
             {% endif %}
             {% if page.taxonomies.TSC2017 %}
-              <span class="badge bg-success-subtle text-success-emphasis" title="{{ page.taxonomies.TSC2017 | length }} SOC 2 controls">SOC 2 {{ page.taxonomies.TSC2017 | length }}</span>
+              <span class="badge-split badge-split-soc2" title="{{ page.taxonomies.TSC2017 | length }} SOC 2 controls mapped">
+                <span class="badge-split-label">SOC 2</span><span class="badge-split-count">{{ page.taxonomies.TSC2017 | length }}</span>
+              </span>
             {% endif %}
           </td>
         </tr>
@@ -119,10 +123,14 @@ macros_policies_latest_revision -%}
           </td>
           <td class="text-nowrap">
             {% if page.taxonomies.SCF %}
-              <span class="badge bg-primary-subtle text-primary-emphasis" title="{{ page.taxonomies.SCF | length }} SCF controls">SCF {{ page.taxonomies.SCF | length }}</span>
+              <span class="badge-split badge-split-scf" title="{{ page.taxonomies.SCF | length }} SCF controls mapped">
+                <span class="badge-split-label">SCF</span><span class="badge-split-count">{{ page.taxonomies.SCF | length }}</span>
+              </span>
             {% endif %}
             {% if page.taxonomies.TSC2017 %}
-              <span class="badge bg-success-subtle text-success-emphasis" title="{{ page.taxonomies.TSC2017 | length }} SOC 2 controls">SOC 2 {{ page.taxonomies.TSC2017 | length }}</span>
+              <span class="badge-split badge-split-soc2" title="{{ page.taxonomies.TSC2017 | length }} SOC 2 controls mapped">
+                <span class="badge-split-label">SOC 2</span><span class="badge-split-count">{{ page.taxonomies.TSC2017 | length }}</span>
+              </span>
             {% endif %}
           </td>
         </tr>

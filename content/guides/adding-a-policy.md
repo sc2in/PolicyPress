@@ -1,90 +1,153 @@
 ---
 title: Creating a New Policy
 weight: 1
-description: How to add a policy to the SC2 Policy Center
-summary: How to add a policy to the SC2 Policy Center
+description: How to scaffold and publish a policy in PolicyPress
+summary: Use the CLI to scaffold a policy file, fill in the front matter, and open a PR for review.
 ---
 
-Policies are the core content type of the SC2 Policy Center. This guide will help you create a policy and get it published.
+Policies are Markdown files with YAML front matter. Here's how to create one.
 
-## Creating a new policy file
+## Scaffold the file
 
-Navigate to the `content/policies` directory and create a new file with the following naming convention:
+Run `policypress new` from your repository root (the directory with `config.toml`):
 
 ```bash
-$> nano <policy-slug>.md
+policypress new "Acceptable Use Policy"
 ```
 
-## Adding front matter
+This creates `content/policies/acceptable-use-policy.md` with the front matter and stub sections already in place. Open it and keep going from there.
 
-The front matter is a set of key-value pairs that provide metadata about the policy. This information is used to generate the policy's page, produce the pdfs, and create reports. The front matter format is [YAML](https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started), which is a human-readable data serialization format. Here is an example of the front matter for a policy:
+To point at a different config file:
+
+```bash
+policypress new "Acceptable Use Policy" --config path/to/config.toml
+```
+
+## Front matter
+
+Every policy file starts with a YAML block between `---` delimiters. Full example:
 
 ```yaml
 ---
-# These fields are required
-title: Privacy Policy
-description: The SC2 Privacy Policy
-weight: 1
+title: "Acceptable Use Policy"
+date: 2026-04-15
+description: "Rules governing use of company IT systems, networks, and data"
+draft: true
 
-# Optional fields
-summary: We take your privacy seriously.
-date: 2023-09-07 16:13:18+02:00
-lastmod: 2023-09-07 16:13:18+02:00
-
-# Taxonomies are used to group policies by the frameworks they address
+# SCF and TSC2017 are the two report-backed taxonomies.
+# Any other taxonomy you declare in config.toml will still show up
+# in the Framework Coverage section on the policy page.
 taxonomies:
-  # Each unique standard that the policy supports should have its own entry
-  TSC2017: ["CC1.1","P1.1"]
-  # Specific control IDs that the policy supports or implements should be listed
-  ISO27001:
-  - '2.1'
-  - '2.2'
-  - '5.3'
+  SCF:
+    - IAC-01
+    - IAC-06
+  TSC2017:
+    - CC6.1
+    - CC6.3
 
 extra:
-  # Owner is the individual ultimately responsible for the policy. 
-  # This should not be a team or group
-  owner: Ben Craton
-  # Last reviewed date is the last time the policy was reviewed 
-  # for accuracy and completeness. 
-  # This is separate from the date the policy was last updated. 
-  # The date should be in the format YYYY-MM-DD
-  last_reviewed: 2024-02-20
-  # Major revisions are significant changes to the policy that 
-  # materially affect its content or implementation
+  owner: "Alice Bueler"
+  last_reviewed: 2026-04-15
   major_revisions:
-  - date: 2023-09-07 # Date of the revision
-    description: Initial version. # Description of what was changed
-    revised_by: Ben Craton # Individual who made the changes
-    approved_by: Ben Craton # Individual who approved the changes
-    version: '1.0' # Version of the policy after the changes were made
+    - date: 2026-04-15
+      description: "Initial draft."
+      revised_by: "Alice Bueler"
+      approved_by: ""
+      version: "0.1"
 ---
 ```
 
-### Important notes on front matter
+### Field reference
 
-- Taxonomies are used to group policies by the frameworks they address. Each unique standard that the policy supports should have its own entry. Specific control IDs that the policy supports or implements should then be listed under the appropriate standard. If a policy does not support a specific control ID, it should not be listed.
-  - Using YAML, these can be listed as a string (e.g. `TSC2017: "CC1.1"`) or as a list (e.g. `TSC2017: ["CC1.1", "CC1.2"]`).
-  - The list may also be expressed with one item per line for easier readability (as shown in the ISO example above).
-- The `extra` section is used to capture additional information about the policy.
-  - The `owner` field should be an individual, not a team or group.
-  - The `last_reviewed` field should be a date in the format YYYY-MM-DD.
-  - The `major_revisions` field should capture significant changes to the policy, including the date of the revision, a description of what was changed, the individual who made the changes, the individual who approved the changes, and the version of the policy after the changes were made.
+| Field | Required | Notes |
+|---|---|---|
+| `title` | yes | Shown on the policy page, in PDFs, and in the compliance reports |
+| `description` | yes | Short summary, shown in the policy index table |
+| `date` | no | Used by Zola for ordering. Defaults to file creation date |
+| `draft` | no | Set to `true` to skip PDF generation. The PDF link is hidden unless `show_draft_pdfs = true` |
+| `extra.owner` | no | The individual responsible for the policy. Shown in the revision table |
+| `extra.last_reviewed` | yes | ISO date (`YYYY-MM-DD`) of the last formal review. A warning shows if this is more than a year ago |
+| `extra.major_revisions` | yes | At least one entry is required. See below |
 
-## Adding content
+### Revision entries
 
-After the front matter, you can add the content of the policy. You can use [Markdown](https://www.markdownguide.org/) to format the text. For example:
+Each entry in `major_revisions` is a row in the revision history table on the policy page.
+
+| Field | Required | Notes |
+|---|---|---|
+| `date` | yes | ISO date of the revision |
+| `description` | yes | What changed and why |
+| `revised_by` | yes | Who authored the change |
+| `approved_by` | yes | Who approved it. Required for the audit trail |
+| `version` | yes | Version string, e.g. `"1.0"` or `"2.3"` |
+
+## Compliance framework taxonomies
+
+Tagging controls links this policy to the SCF and SOC 2 coverage reports. Values must match control IDs in the framework data exactly. They're case-sensitive.
+
+**SCF** uses control IDs from the Secure Controls Framework (e.g. `IAC-01`, `DCH-01`). See the SCF report page for the full list.
+
+**TSC2017** uses SOC 2 Trust Services Criteria identifiers (e.g. `CC6.1`, `A1.2`). See the SOC 2 report page.
+
+Any taxonomy declared in `config.toml` will show up in the Framework Coverage section on the policy page, even without a dedicated report.
+
+## Writing the policy content
+
+After the front matter, write the policy body in Markdown. The `policypress new` scaffold includes stubs to fill in:
 
 ```markdown
-# Introduction
-This policy outlines our commitment to protecting the privacy of our users.
-# Scope
-This policy applies to all users of our services.
+## Purpose
+
+State what this policy is for and why it exists.
+
+## Scope
+
+Who and what systems this applies to.
+
+## Policy
+
+The substantive requirements. What is allowed, required, and prohibited.
+
+## Exceptions
+
+How to request an exception and who approves it.
 ```
-## Saving and committing the file
-After you have added the front matter and content, save the file and commit it to the repository:
+
+Use `{{/* org() */}}` to inject the organization name from `config.toml`. Handy if the org name ever changes.
+
+For content that should be redacted on the website but visible in internal PDFs, use the `redact` shortcode:
+
+```markdown
+{%/* redact() */%}
+This text is hidden on the web but appears in the unredacted PDF.
+{%/* end */%}
+```
+
+## Remove the draft flag when ready
+
+Once the policy is reviewed and approved, set `draft: false` (or remove it). The next build generates the PDF and the policy goes live.
+
+Update the front matter to reflect the approved revision:
+
+```yaml
+draft: false
+extra:
+  last_reviewed: 2026-04-15
+  major_revisions:
+    - date: 2026-04-15
+      description: "Initial policy approved."
+      revised_by: "Alice Bueler"
+      approved_by: "CISO"
+      version: "1.0"
+```
+
+## Open a pull request
+
+Commit the new file on a branch and open a pull request. See [Securing Your Repository](../securing-your-repository/) for the branch protection settings and review workflow.
 
 ```bash
-$> git add <policy-slug>.md
-$> git commit -m "Add <policy-slug> policy"
+git checkout -b policy/acceptable-use-policy
+git add content/policies/acceptable-use-policy.md
+git commit -m "feat(policy): add acceptable use policy draft"
+git push -u origin policy/acceptable-use-policy
 ```

@@ -42,6 +42,20 @@ function expandAllSections() {
   });
 }
 
+// Inject control counts into section headers so collapsed state isn't blank
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.report-section').forEach(function(section) {
+    const title = section.querySelector('.section-title');
+    const count = section.querySelectorAll('.control-item').length;
+    if (count > 0 && title && !title.querySelector('.section-control-count')) {
+      const hint = document.createElement('small');
+      hint.className = 'section-control-count';
+      hint.textContent = count + ' control' + (count === 1 ? '' : 's');
+      title.insertBefore(hint, title.querySelector('.badge, .float-end') || null);
+    }
+  });
+});
+
 // Collapsible sections via event delegation
 document.addEventListener('click', function(e) {
   if (e.target.closest('.section-title') && !e.target.closest('button')) {

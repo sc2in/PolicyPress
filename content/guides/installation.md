@@ -5,17 +5,25 @@ description: Setting up PolicyPress for your organization
 summary: Setting up PolicyPress for your organization
 ---
 
-PolicyPress builds your policy site and PDFs on every push to `main`. Your policies live in your own repository; PolicyPress is pulled in at build time. It runs as a GitHub Action or as a standalone binary in Azure DevOps pipelines.
+PolicyPress builds your policy site and PDFs on every push to `main`. Your policies live in your own repository; PolicyPress is pulled in at build time.
 
-## Prerequisites
+## GitHub: use the template (recommended)
 
-- A Git repository (GitHub or Azure DevOps)
-- A `config.toml` configured for PolicyPress (see below)
-- Your policy files as Markdown in `content/policies/`
+The fastest way to get started on GitHub is the [policypress-template](https://github.com/sc2in/policypress-template) repository. It includes a working pipeline, example policies, and a `config.toml` ready to customize.
 
-## Quickstart
+1. Click **Use this template → Create a new repository** on the template page.
+2. Edit `config.toml` — set `base_url`, `organization`, and `pdf_color` at minimum.
+3. Replace `static/logo.png` with your organization's logo.
+4. Enable GitHub Pages: **Settings → Pages → Source: GitHub Actions**.
+5. Push to `main` — the pipeline builds your PDFs and deploys the site automatically.
 
-### 1. Create your repository structure
+The template's workflow builds PDFs on every push and pull request, and deploys the policy site to GitHub Pages on pushes to `main`.
+
+## Manual setup
+
+Use this path if you need Azure DevOps, a custom pipeline structure, or if you started from scratch.
+
+### Repository structure
 
 ```text
 config.toml
@@ -28,9 +36,9 @@ content/
     access-control.md
 ```
 
-### 2. Add the pipeline
+### Pipeline
 
-<div class="tab-group" data-default="Azure DevOps">
+<div class="tab-group" data-default="GitHub Actions">
 <div class="tab-pane" data-tab="GitHub Actions">
 
 Create `.github/workflows/publish.yml`:
@@ -40,38 +48,56 @@ name: Publish Policies
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
-      draft_mode:
-        type: boolean
-        default: false
-      redact_mode:
-        type: boolean
-        default: false
+      draft:
+        description: "Stamp PDFs with DRAFT watermark"
+        default: "false"
+      redact:
+        description: "Redact content inside redaction tags"
+        default: "false"
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
       - name: Build site and PDFs
-        id: policypress
         uses: sc2in/policypress@v1
         with:
-          draft_mode: ${{ inputs.draft_mode || 'false' }}
-          redact_mode: ${{ inputs.redact_mode || 'false' }}
+          draft_mode: ${{ github.event.inputs.draft || 'false' }}
+          redact_mode: ${{ github.event.inputs.redact || 'false' }}
 
       - uses: actions/upload-artifact@v4
         with:
           name: pdfs
-          path: ${{ steps.policypress.outputs.pdf_path }}
+          path: public/pdfs/
+          retention-days: 90
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
         with:
-          name: site
-          path: ${{ steps.policypress.outputs.site_path }}
+          path: public/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/deploy-pages@v4
 ```
+
+Enable GitHub Pages under **Settings → Pages → Source: GitHub Actions** before the first run.
 
 </div>
 <div class="tab-pane" data-tab="Azure DevOps">
@@ -124,7 +150,7 @@ steps:
     artifact: site
 ```
 
-Then link it to a pipeline in **Azure DevOps → Pipelines → New pipeline**, point it at this file, and set the pipeline to trigger on changes to `main`.
+Link it to a pipeline in **Azure DevOps → Pipelines → New pipeline**, point it at this file, and set it to trigger on changes to `main`.
 
 > [!NOTE]
 > The first run downloads the Nix environment (~1–2 GB). Subsequent runs are faster if you configure a Nix binary cache. See the [Determinate Systems docs](https://docs.determinate.systems/flakehub-cache/) for caching options compatible with ADO agents.
@@ -132,7 +158,7 @@ Then link it to a pipeline in **Azure DevOps → Pipelines → New pipeline**, p
 </div>
 </div>
 
-### 3. Configure `config.toml`
+### `config.toml`
 
 ```toml
 base_url = "https://security.example.com"
@@ -155,17 +181,15 @@ pdf_color = "#0e90f3"
 policy_dir = "policies/"
 ```
 
-### 4. Push to main
+See the [Configuration Reference](@/guides/configuration.md) for all available fields.
 
-The pipeline runs automatically on every push to `main`. PDFs and the static site are uploaded as artifacts. See [Deploying to Production](@/guides/deployments.md) for how to publish the site and ship PDFs to auditors.
+## Local editing environment
 
-## Optional: local editing environment
-
-For live preview while writing policies, you can run the site locally using the PolicyPress devshell:
+For live preview while writing policies, run the site locally using the PolicyPress devshell:
 
 ```sh
 nix develop github:sc2in/policypress
 zola serve
 ```
 
-This requires [Nix](https://nixos.org/download/). A markdown editor with Git integration ([VSCode](https://code.visualstudio.com/download) or [Zed](https://zed.dev/download)) works well alongside it.
+This requires [Nix](https://nixos.org/download/). A markdown editor with Git integration ([VSCode](https://code.visualstudio.com/download) or [Zed](https://zed.dev/download)) works well alongside it. See [Live Editing](@/guides/live-editing.md) for details.

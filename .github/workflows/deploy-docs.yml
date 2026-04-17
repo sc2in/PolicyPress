@@ -1,0 +1,33 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-docs
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure unprivileged user namespaces
+        # Required by Chromium/mermaid-filter inside the Nix sandbox.
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
+      - name: Build site and PDFs
+        uses: ./
+        with:
+          config_path: config.toml
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=policypress --commit-dirty=true

@@ -1,114 +1,52 @@
 # PolicyPress
 
-A compliance policy management platform for small and mid-size businesses. Write policies in Markdown, version them in Git, publish a branded static site, and generate audit-ready PDFs - all from a single GitHub Action.
+[![CI](https://github.com/sc2in/policypress/actions/workflows/ci.yml/badge.svg)](https://github.com/sc2in/policypress/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/sc2in/policypress)](https://github.com/sc2in/policypress/releases/latest)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE)
+
+A compliance policy management platform for small and mid-size businesses. Write policies in Markdown, version them in Git, publish a branded static site, and generate audit-ready PDFs — all from a single GitHub Action.
 
 PolicyPress is built on [Zola](https://www.getzola.org/) and [Pandoc](https://pandoc.org/). It is designed to be hosted by your customers in their own repositories; PolicyPress itself is the theme and toolchain, not the content.
 
+## Who this is for
+
+> *"I run a small business. My employees need an acceptable use policy, a data handling policy, maybe an employee handbook - right now it's a Word doc someone emailed around and nobody knows which version is current. I want something that looks professional, is always current, and doesn't require SharePoint."*
+
+PolicyPress is for that person. If you are comfortable enough with GitHub to click a button and edit a text file, you can have a professional policy library with version-controlled PDFs in an afternoon. You do not need to know anything about web development, LaTeX, or compliance frameworks.
+
+What you get:
+
+- A policy website your employees can bookmark
+- A PDF for every policy, named by title and version, ready to hand to an auditor or attach to a vendor questionnaire
+- A full revision history:  who approved what, and when
+- Draft watermarks for policies under review
+- Redaction tags for internal notes that should not appear in distributed copies
+
 ## How it works
 
-1. Your policies live in a Git repository as Markdown files with YAML front matter
-2. On push, the `sc2in/policypress` GitHub Action builds the static site and generates PDFs
-3. Artifacts are uploaded - PDFs for distribution, static site for hosting
-
-Policies support:
-
-- Version tracking with per-revision approval records
-- Redaction tags for internal notes that should not appear in distributed PDFs
-- Draft watermarks for review copies
-- Compliance framework mapping (SCF, SOC 2 TSC, ISO 27001, and any custom taxonomy)
+1. Your policies live in a Git repository as Markdown files
+2. On every push, the `sc2in/policypress` GitHub Action builds the policy site and generates PDFs
+3. The site deploys to GitHub Pages; PDFs are uploaded as artifacts for download
 
 ## Quick start
 
-Create a repository with this structure:
+**The fastest path:** use the [policypress-template](https://github.com/sc2in/policypress-template) repository. Click **Use this template → Create a new repository**, edit `config.toml` with your organization name and brand color, replace the logo, enable GitHub Pages, and push.
 
-```text
-config.toml
-static/
-  logo.png
-content/
-  policies/
-    _index.md
-    acceptable-use.md
-```
+If you need Azure DevOps or a custom setup, see the [Installation guide](https://sc2in.github.io/policypress/guides/installation/).
 
-Add a workflow:
+## Policy front matter
 
-```yaml
-# .github/workflows/publish.yml
-name: Publish Policies
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-    inputs:
-      draft_mode:
-        type: boolean
-        default: false
-      redact_mode:
-        type: boolean
-        default: false
-
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build site and PDFs
-        id: policypress
-        uses: sc2in/policypress@main
-        with:
-          draft_mode: ${{ inputs.draft_mode || 'false' }}
-          redact_mode: ${{ inputs.redact_mode || 'false' }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: pdfs
-          path: ${{ steps.policypress.outputs.pdf_path }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: site
-          path: ${{ steps.policypress.outputs.site_path }}
-```
-
-Add a minimal `config.toml`:
-
-```toml
-base_url = "https://security.example.com"
-title = "Example Co Security Center"
-compile_sass = true
-theme = "policypress"
-
-[[taxonomies]]
-name = "SCF"
-render = false
-
-[[taxonomies]]
-name = "TSC2017"
-render = true
-
-[extra]
-organization = "Example Co"
-logo = "logo.png"
-pdf_color = "#0e90f3"
-policy_dir = "policies/"
-redact = false
-```
-
-### Policy front matter
+Every policy file starts with a YAML metadata block:
 
 ```yaml
 ---
 title: "Acceptable Use Policy"
 description: "Policy governing acceptable use of company resources"
-date: 2024-01-15
 weight: 10
 
 taxonomies:
   SCF:
     - HRS-05
-    - HRS-05.1
   TSC2017:
     - CC2.1
 
@@ -135,7 +73,7 @@ Internal notes - stripped from redacted PDFs.
 | Input | Default | Description |
 | --- | --- | --- |
 | `config_path` | `config.toml` | Path to Zola config file |
-| `output_dir` | `public` | Output directory for PDFs |
+| `output_dir` | `public` | Output directory for the build |
 | `draft_mode` | `false` | Stamp PDFs with a DRAFT watermark |
 | `redact_mode` | `false` | Strip content inside redaction tags |
 
@@ -158,14 +96,14 @@ PDFs are generated using the [Eisvogel](https://github.com/Wandmalfarbe/pandoc-l
 The site includes optional compliance coverage views. To enable them, add your control data files and configure the paths:
 
 ```toml
-[extra]
+[extra.policypress]
 scf_controls     = "templates/opencontrols/standards/SCF.yml"
 tsc2017_controls = "templates/opencontrols/standards/TSC-2017 (SOC2).yml"
 scf_report_page  = "@/reports/scf.md"
 soc2_report_page = "@/reports/soc2.md"
 ```
 
-Control data files are customer-supplied - PolicyPress does not ship them. The format matches the [OpenControl](https://open-control.org/) standard. Example files for SCF and SOC 2 are available in the policypress repository under `templates/opencontrols/standards/` for reference.
+Control data files are customer-supplied - PolicyPress does not ship them. The format matches the [OpenControl](https://open-control.org/) standard.
 
 ## Local development
 
@@ -182,6 +120,12 @@ policypress -c config.toml -o public
 
 # Generate redacted PDFs
 policypress -c config.toml -o public/redacted --redact
+
+# Verbose output (shows pandoc args)
+policypress -v -c config.toml -o public
+
+# CI-friendly JSON log output
+policypress --json -c config.toml -o public
 
 # Preview with live reload
 zola serve
@@ -206,7 +150,6 @@ zig build test
 | [Eisvogel](https://github.com/Wandmalfarbe/pandoc-latex-template) | PDF template |
 | [zigmark](https://github.com/sc2in/zigmark) | YAML/TOML frontmatter parsing |
 | [tomlz](https://github.com/tsunaminoai/tomlz) | TOML config parsing |
-| [zap](https://github.com/zigzap/zap) | Local preview server |
 | [clap](https://github.com/Hejsil/zig-clap) | CLI argument parsing |
 | [mvzr](https://github.com/mnemnion/mvzr) | Regex for markdown transforms |
 | [zig-datetime](https://github.com/frmdstryr/zig-datetime) | Date handling |

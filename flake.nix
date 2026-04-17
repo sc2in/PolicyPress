@@ -435,6 +435,7 @@
               buildInputs = runtimeDeps;
               shellHook = ''
                 export FONTCONFIG_FILE="${fontsConf}"
+                mkdir -p "$HOME/.cache/fontconfig"
               '';
             };
 

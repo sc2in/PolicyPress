@@ -100,6 +100,15 @@ runs:
         cp -n themes/policypress/templates/eisvogel.latex templates/
         cp -n themes/policypress/templates/eisvogel.pdf templates/ 2>/dev/null || true
 
+    - name: Copy theme shortcodes
+      shell: bash
+      run: |
+        # Zola does not reliably load shortcodes from theme directories when
+        # the site also has a templates/ dir. Copy them to the site root so
+        # they are always found. -n preserves any site-level overrides.
+        mkdir -p templates/shortcodes
+        cp -n themes/policypress/templates/shortcodes/*.html templates/shortcodes/
+
     - name: Copy theme data files
       shell: bash
       run: |

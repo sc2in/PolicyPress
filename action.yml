@@ -49,11 +49,16 @@ runs:
       continue-on-error: true
       uses: DeterminateSystems/flakehub-cache-action@main
 
+    - name: Get action ref
+      id: get-ref
+      shell: bash
+      run: echo "ref=${{ github.action_ref }}" >> $GITHUB_OUTPUT
+
     - name: Fetch policypress theme
       uses: actions/checkout@v4
       with:
         repository: sc2in/policypress
-        ref: ${{ github.action_ref }}
+        ref: ${{ steps.get-ref.outputs.ref }}
         path: themes/policypress
 
     - name: Copy pandoc templates

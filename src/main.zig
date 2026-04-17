@@ -22,6 +22,61 @@ const stampIsNewer = @import("utils").stampIsNewer;
 const writeStamp = @import("utils").writeStamp;
 const dt = @import("datetime");
 
+// ---------------------------------------------------------------------------
+// Logging
+// ---------------------------------------------------------------------------
+
+pub var pp_log_level: std.log.Level = .info;
+pub var pp_json_log: bool = false;
+
+pub const std_options: std.Options = .{
+    .log_level = .debug, // runtime-filtered in ppLog
+    .logFn = ppLog,
+};
+
+fn ppLog(
+    comptime level: std.log.Level,
+    comptime scope: @TypeOf(.enum_literal),
+    comptime format: []const u8,
+    args: anytype,
+) void {
+    if (@intFromEnum(level) > @intFromEnum(pp_log_level)) return;
+    switch (scope) {
+        .parser, .yaml => return,
+        else => {},
+    }
+    var msg_buf: [4096]u8 = undefined;
+    const msg = std.fmt.bufPrint(&msg_buf, format, args) catch "(message too long)";
+    const trimmed = std.mem.trimRight(u8, msg, "\n");
+    if (pp_json_log) {
+        // Encode message as a JSON string using a fixed output buffer.
+        // Uses std.debug.print for thread safety (it holds the stderr mutex).
+        var out: [8192]u8 = undefined;
+        var i: usize = 0;
+        const prefix = std.fmt.bufPrint(out[i..], "{{\"level\":\"{s}\",\"message\":\"", .{@tagName(level)}) catch return;
+        i += prefix.len;
+        for (trimmed) |c| {
+            if (i + 6 > out.len) break;
+            switch (c) {
+                '"' => { out[i] = '\\'; out[i + 1] = '"'; i += 2; },
+                '\\' => { out[i] = '\\'; out[i + 1] = '\\'; i += 2; },
+                '\n' => { out[i] = '\\'; out[i + 1] = 'n'; i += 2; },
+                '\r' => { out[i] = '\\'; out[i + 1] = 'r'; i += 2; },
+                '\t' => { out[i] = '\\'; out[i + 1] = 't'; i += 2; },
+                else => { out[i] = c; i += 1; },
+            }
+        }
+        const suffix = "\"}\n";
+        if (i + suffix.len <= out.len) {
+            @memcpy(out[i..][0..suffix.len], suffix);
+            i += suffix.len;
+        }
+        std.debug.print("{s}", .{out[0..i]});
+    } else {
+        std.debug.print("{s}\n", .{trimmed});
+    }
+}
+
 const top_level_usage =
     \\Usage: policypress [SUBCOMMAND] [OPTIONS]
     \\
@@ -106,7 +161,9 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
         \\--no-draft             Do not add draft watermark to output (overrides config.toml).
         \\--redact               Redact content within redaction tags (overrides config.toml).
         \\--no-redact            Do not redact text within redaction tags (overrides config.toml).
-        \\-v, --verbose          Enable verbose logging.
+        \\-v, --verbose          Show debug output (pandoc args, file paths).
+        \\-q, --quiet            Suppress progress output; show errors only.
+        \\    --json             Emit log output as JSON lines (for CI).
     );
     var buf: [128]u8 = undefined;
     var stderr = std.fs.File.stderr().writer(&buf).interface;
@@ -184,7 +241,13 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
     if (res.args.redact != 0) config.redact = true;
     if (res.args.@"no-redact" != 0) config.redact = false;
 
-    //TODO: Verbosity
+    if (res.args.quiet != 0) {
+        pp_log_level = .err;
+    } else if (res.args.verbose != 0) {
+        pp_log_level = .debug;
+    }
+    if (res.args.json != 0) pp_json_log = true;
+
     std.log.debug("Running PolicyPress with configuration:\n{f}\n", .{config});
 
     // --- Open policy directory ---
@@ -297,14 +360,14 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
     const total_files = file_paths.items.len;
     if (total_files == 0) {
         if (skipped > 0) {
-            std.debug.print("policypress: all {d} policies are up to date.\n", .{skipped});
+            std.log.info("policypress: all {d} policies are up to date.", .{skipped});
         } else {
-            std.debug.print("policypress: no .md files found in '{s}'\n", .{config.policy_dir});
+            std.log.info("policypress: no .md files found in '{s}'", .{config.policy_dir});
         }
         return;
     }
     if (skipped > 0) {
-        std.debug.print("policypress: {d} up to date, rebuilding {d}.\n", .{ skipped, total_files });
+        std.log.info("policypress: {d} up to date, rebuilding {d}.", .{ skipped, total_files });
     }
 
     // --- Parallel compilation ---
@@ -351,14 +414,14 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
     root_progress.end();
 
     if (error_count > 0) {
-        std.debug.print("\npolicypress: {d} of {d} policies failed:\n", .{ error_count, total_files });
+        std.log.err("policypress: {d} of {d} policies failed:", .{ error_count, total_files });
         for (error_list.items) |e| {
-            std.debug.print("  ✗ {s}\n    {s}\n", .{ e.path, describeCompileError(e.err) });
+            std.log.err("  ✗ {s}\n    {s}", .{ e.path, describeCompileError(e.err) });
         }
         return error.CompilationFailed;
     }
 
-    std.debug.print("\npolicypress: {d} policies compiled successfully.\n", .{total_files});
+    std.log.info("policypress: {d} policies compiled successfully.", .{total_files});
 }
 
 const ErrorInfo = struct {

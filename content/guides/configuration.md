@@ -153,6 +153,18 @@ url    = "/policies/privacy/"
 weight = 10
 ```
 
+## Favicon
+
+PolicyPress ships a default favicon. To use your own, place a `favicon.ico` in your repository's `static/` directory — Zola serves files from `static/` before falling back to the theme, so your file takes precedence automatically.
+
+```text
+static/
+  favicon.ico   ← drop your icon here; replaces the theme default
+  logo.png
+```
+
+Modern browsers also pick up PNG icons. If you want to supply multiple sizes or a web manifest, add them to `static/` and they will be served alongside your site without any config changes.
+
 ## Standard Zola fields
 
 These standard Zola settings are relevant to PolicyPress deployments:

@@ -18,7 +18,7 @@
 {%- endif -%}
 <link rel="alternate" type="application/pdf"
   title="{{ page.title }} (PDF)"
-  href="/pdfs/{{ pdf_official }}">
+  href="{{ get_url(path='pdfs/' ~ pdf_official) | safe }}">
 {% endblock seo %}
 {% block header %}
 {# This value is matched by the config.extra.menu.main~url #}
@@ -80,11 +80,11 @@ reverse %}
         <p class="policy-description">{{ page.description | safe }}</p>
         {% endif %}
         <div class="policy-actions">
-          <a href="/pdfs/{{ pdf_official }}" class="btn btn-sm btn-primary">
+          <a href="{{ get_url(path='pdfs/' ~ pdf_official) | safe }}" class="btn btn-sm btn-primary">
             <i class="fas fa-file-pdf" aria-hidden="true"></i> PDF Version
           </a>
           {%- if config.extra.policypress.show_draft_pdfs | default(value=false) %}
-          <a href="/pdfs/{{ pdf_draft }}" class="btn btn-sm btn-outline-secondary">
+          <a href="{{ get_url(path='pdfs/' ~ pdf_draft) | safe }}" class="btn btn-sm btn-outline-secondary">
             <i class="fas fa-file-pdf" aria-hidden="true"></i> Draft Version
           </a>
           {%- endif %}

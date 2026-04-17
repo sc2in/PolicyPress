@@ -44,6 +44,9 @@ runs:
   steps:
     - name: Install Nix
       uses: DeterminateSystems/determinate-nix-action@v3
+      with:
+        extra-conf: |
+          sandbox = false
 
     - name: Setup Nix cache
       continue-on-error: true
@@ -61,6 +64,40 @@ runs:
         ref: ${{ steps.get-ref.outputs.ref }}
         path: themes/policypress
 
+    - name: Install policypress binary
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        # Resolve the nearest semver release tag from the checked-out theme so
+        # we download the binary that matches the action version in use.
+        RELEASE_TAG=$(git -C themes/policypress describe --tags \
+          --match 'v[0-9]*.[0-9]*.[0-9]*' --abbrev=0 2>/dev/null || echo "latest")
+
+        case "$(uname -s)-$(uname -m)" in
+          Linux-x86_64)   BINARY="policypress-x86_64-linux" ;;
+          Linux-aarch64)  BINARY="policypress-aarch64-linux" ;;
+          Darwin-arm64)   BINARY="policypress-aarch64-macos" ;;
+          Darwin-x86_64)  BINARY="policypress-x86_64-macos" ;;
+          *)
+            echo "Unsupported platform: $(uname -s)-$(uname -m)"
+            exit 1
+            ;;
+        esac
+
+        if [ "${RELEASE_TAG}" = "latest" ]; then
+          gh release download --latest \
+            --repo sc2in/policypress \
+            --pattern "${BINARY}" \
+            --output /usr/local/bin/policypress
+        else
+          gh release download "${RELEASE_TAG}" \
+            --repo sc2in/policypress \
+            --pattern "${BINARY}" \
+            --output /usr/local/bin/policypress
+        fi
+        chmod +x /usr/local/bin/policypress
+
     - name: Copy pandoc templates
       shell: bash
       run: |
@@ -73,7 +110,7 @@ runs:
 
     - name: Build site and PDFs
       id: build
-      shell: nix develop "github:sc2in/policypress" --option sandbox false --command bash -e {0}
+      shell: nix develop "github:sc2in/policypress#ci" --command bash -e {0}
       run: |
         set -euo pipefail
 
@@ -94,7 +131,7 @@ runs:
           ARGS+=(--no-redact)
         fi
 
-        # Generate PDFs - policypress and all runtime deps are in the devshell
+        # policypress binary is pre-installed from the release; deps are in the ci shell
         policypress "${ARGS[@]}"
 
         echo "pdf_path=${{ inputs.output_dir }}/pdf"     >> "$GITHUB_OUTPUT"

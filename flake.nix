@@ -427,7 +427,16 @@
                 meta.description = "Cross-compile for all supported targets";
               };
 
-            # --- Dev shell -------------------------------------------------------
+            # --- Dev shells ------------------------------------------------------
+
+            # Minimal shell used by the GitHub Action: runtime build tools only.
+            # The policypress binary is installed separately from the release.
+            devShells.ci = pkgs.mkShell {
+              buildInputs = runtimeDeps;
+              shellHook = ''
+                export FONTCONFIG_FILE="${fontsConf}"
+              '';
+            };
 
             devShells.default = pkgs.mkShell {
               buildInputs =

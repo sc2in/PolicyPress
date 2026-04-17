@@ -100,6 +100,17 @@ runs:
         cp -n themes/policypress/templates/eisvogel.latex templates/
         cp -n themes/policypress/templates/eisvogel.pdf templates/ 2>/dev/null || true
 
+    - name: Copy theme data files
+      shell: bash
+      run: |
+        # Zola's load_data resolves paths from the site root, not the theme.
+        # Copy the theme's data files so report templates (SCF, TSC2017, etc.)
+        # can find them. -n preserves any site-local overrides.
+        if [ -d themes/policypress/data ]; then
+          mkdir -p data
+          cp -n themes/policypress/data/* data/
+        fi
+
     - name: Build site and PDFs
       id: build
       shell: nix develop "github:sc2in/policypress#ci" --command bash -e {0}

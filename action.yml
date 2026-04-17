@@ -73,7 +73,7 @@ runs:
 
     - name: Build site and PDFs
       id: build
-      shell: nix develop "github:sc2in/policypress" --command bash -e {0}
+      shell: nix develop "github:sc2in/policypress" --option sandbox false --command bash -e {0}
       run: |
         set -euo pipefail
 

@@ -126,6 +126,6 @@ runs:
         # policypress binary is pre-installed from the release; deps are in the ci shell
         policypress "${ARGS[@]}"
 
-        echo "pdf_path=${{ inputs.output_dir }}/pdf"     >> "$GITHUB_OUTPUT"
+        echo "pdf_path=${{ inputs.output_dir }}/pdfs"    >> "$GITHUB_OUTPUT"
         echo "site_path=public"                          >> "$GITHUB_OUTPUT"
         echo "report_path=${{ inputs.output_dir }}/reports" >> "$GITHUB_OUTPUT"

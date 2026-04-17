@@ -117,7 +117,7 @@ description=description) }}
 
   <!-- Navigation back to team list -->
   <div class="member-navigation">
-    <a href="/team/" class="btn btn-outline-primary">
+    <a href="{{ get_url(path='team/') | safe }}" class="btn btn-outline-primary">
       <i class="fas fa-arrow-left"></i> Back to Team
     </a>
   </div>

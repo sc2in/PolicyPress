@@ -192,7 +192,7 @@ description=description, is_home=true) }}
           {% endfor %}
         </div>
         <div class="text-center">
-          <a href="/news/" class="btn btn-outline-primary">
+          <a href="{{ get_url(path='news/') | safe }}" class="btn btn-outline-primary">
             View All Updates <i class="fas fa-arrow-right" aria-hidden="true"></i>
           </a>
         </div>
@@ -251,7 +251,7 @@ description=description, is_home=true) }}
           {% endfor %}
         </ul>
         <div class="mt-2">
-          <a href="/news/" class="btn btn-sm btn-outline-secondary">
+          <a href="{{ get_url(path='news/') | safe }}" class="btn btn-sm btn-outline-secondary">
             All updates <i class="fas fa-arrow-right" aria-hidden="true"></i>
           </a>
         </div>

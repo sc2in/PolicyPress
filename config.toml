@@ -1,5 +1,5 @@
 # The URL the site will be built for
-base_url = "https://security.sc2.in"
+base_url = "https://policypress.sc2.in"
 title = "PolicyPress"
 description = "PolicyPress is a Zola and Doks based theme helping you build modern policy websites."
 

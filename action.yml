@@ -111,7 +111,7 @@ runs:
 
         # Build flags - explicitly set draft/redact so action inputs always
         # override whatever is in the consumer's config.toml.
-        ARGS=(-c "${{ inputs.config_path }}" -o "${{ inputs.output_dir }}")
+        ARGS=(-c "${{ inputs.config_path }}" -o "${{ inputs.output_dir }}/pdfs")
         if [ "${{ inputs.draft_mode }}" = "true" ]; then
           ARGS+=(--draft)
         else

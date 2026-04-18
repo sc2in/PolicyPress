@@ -53,23 +53,38 @@ description=description) }}
     {% endif %}
 
     <div class="article-meta">
-      {{ macros_publish::page_publish_metadata(page=page) }}
-      {% if page.extra.reading_time %}
-      <span class="reading-time" aria-label="Estimated reading time">
-        <i class="fas fa-clock" aria-hidden="true"></i> {{
-        page.extra.reading_time }} min read
+      <span class="article-date">
+        <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+        {{ page.date | date(format=config.extra.timeformat | default(value="%B %e, %Y"), timezone=config.extra.timezone | default(value="UTC")) }}
+      </span>
+      {% if page.authors %}
+      <span class="article-authors">
+        <i class="fas fa-user" aria-hidden="true"></i>
+        {% for author in page.authors %}
+        {% if loop.index > 1 %} &amp; {% endif %}
+        {% set team_match = config.extra.policyteam.members | filter(attribute="name", value=author) %}
+        {% if team_match %}
+        {% set member = team_match | first %}
+        {% set member_page = get_page(path=member.page) %}
+        <a href="{{ member_page.permalink | safe }}">{{ author }}</a>
+        {% else %}
+        {{ author }}
+        {% endif %}
+        {% endfor %}
       </span>
       {% endif %}
+      {% if page.extra.category %}
+      <span class="article-category-meta">
+        <i class="fas fa-folder" aria-hidden="true"></i>
+        {{ page.extra.category }}
+      </span>
+      {% endif %}
+      <span class="reading-time" aria-label="Estimated reading time">
+        <i class="fas fa-clock" aria-hidden="true"></i>
+        {% if page.extra.reading_time %}{{ page.extra.reading_time }}{% else %}{{ page.reading_time }}{% endif %} min read
+      </span>
     </div>
 
-    {% if page.extra.tags %}
-    <div class="article-tags">
-      <span class="tags-label">Tags:</span>
-      {% for tag in page.extra.tags %}
-      <span class="tag">{{ tag }}</span>
-      {% endfor %}
-    </div>
-    {% endif %}
   </div>
 
   {% if page.extra.image %}
@@ -98,6 +113,15 @@ description=description) }}
   {% endif %}
 
   <div class="article-footer">
+    {% if page.extra.tags %}
+    <div class="article-tags">
+      <span class="tags-label">Tags:</span>
+      {% for tag in page.extra.tags %}
+      <span class="tag">{{ tag }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     {% if page.extra.share_buttons %}
     <div class="share-buttons">
       <h3>Share this article</h3>
@@ -139,11 +163,11 @@ description=description) }}
       {% endif %}
       {% endfor %}
 
-      {% if current_index %}
+      {% if current_index != false %}
       <div class="nav-links">
         {% if current_index > 0 %}
-        {% set prev_page = news_section.pages |
-        slice(start=current_index,end=-1) %}
+        {% set prev_idx = current_index - 1 %}
+        {% set prev_page = news_section.pages | slice(start=prev_idx, end=current_index) | first %}
         <a href="{{ prev_page.permalink | safe }}" class="nav-link prev"
           aria-label="Previous article">
           <i class="fas fa-arrow-left" aria-hidden="true"></i>
@@ -154,9 +178,10 @@ description=description) }}
         </a>
         {% endif %}
 
-        {% if current_index < news_section.pages | length - 1 %}
-        {% set next_page = news_section.pages|
-        slice(start=current_index,end=current_index+1) %}
+        {% set total_pages = news_section.pages | length %}
+        {% if current_index < total_pages - 1 %}
+        {% set next_idx = current_index + 1 %}
+        {% set next_page = news_section.pages | slice(start=next_idx) | first %}
         <a href="{{ next_page.permalink | safe }}" class="nav-link next"
           aria-label="Next article">
           <span class="nav-text">

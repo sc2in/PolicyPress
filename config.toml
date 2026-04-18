@@ -138,11 +138,11 @@ github_alerts = true
 # See "Internal links & deep linking" in the documentation for more information.
 insert_anchor_links = "right"
 
-# Syntax highlighting — uses Zola's built-in Giallo engine (Zola 0.22+).
+# Syntax highlighting - uses Zola's built-in Giallo engine (Zola 0.22+).
 # Inline styles baked into HTML; no extra CSS file needed.
 # Available themes: github-light, github-dark, dracula, nord, catppuccin-mocha, etc.
 [markdown.highlighting]
-theme = "github-light"
+theme = "github-dark"
 
 
 [search]
@@ -154,6 +154,8 @@ include_description = true
 include_content = true
 
 [extra]
+homepage_style = "marketing"
+version = "1.2.0"
 # release = "https://api.github.com/repos/getzola/zola/releases/latest"
 favicon = "https://www.getzola.org/favicon.ico"
 easydocs_logo_always_clickable = true
@@ -165,12 +167,12 @@ language_code = "en-US"
 theme_color = "#fff"
 
 # More about site's title
-title_separator = "|"                         # set as |, -, _, etc
-title_addition = "Modern Documentation Theme"
+title_separator = "|"          # set as |, -, _, etc
+title_addition = "PolicyPress"
 
 
 # Set date format in blog publish metadata
-timeformat = "%Y-%m-%d %H:%M:%S" # e.g. 2021-05-01 09:19:42
+timeformat = "%B %e, %Y" # e.g. April 18, 2026
 timezone = "UTC"
 
 # Edit page on reposity or not
@@ -188,14 +190,14 @@ library = "katex" # options: "katex", "mathjax". default is "katex".
 # PolicyPress configuration
 [extra.policypress]
 # Set to true to render a black redaction bar over {% redact() %}...{% end %} blocks on the website.
-# Does not affect PDF generation — use --redact flag on the CLI for PDF redaction.
+# Does not affect PDF generation - use --redact flag on the CLI for PDF redaction.
 redact_web = true
 show_draft_pdfs = true
 policy_dir = "policies/"
 policy_root = "policies/_index.md"
 scf_report_page = "@/reports/scf.md"
 soc2_report_page = "@/reports/soc2.md"
-organization = "Star City Security Consulting"
+organization = "PolicyPress"
 logo = "logo.png"
 pdf_color = "#0e90f3"
 lead = "Security Policy Center for Our Business"
@@ -242,79 +244,79 @@ page = "team/abeuler.md"
 # Homepage configuration
 [extra.frontpage]
 [extra.frontpage.hero]
-title = "PolicyPress Security Center"
-subtitle = "Comprehensive security policy management for modern organizations"
+title = "Policies in Git. Audit-ready PDFs on every push."
+subtitle = "PolicyPress turns Markdown policies into a branded site and versioned PDFs - built for small and mid-size orgs that need auditor-friendly compliance without heavyweight GRC tooling."
 
 [extra.frontpage.cta]
 text = "Explore Policies"
 url = "/policies/"
 
 [extra.frontpage.secondary_cta]
-text = "View Reports"
-url = "/reports/"
+text = "Get the Template"
+url = "https://github.com/sc2in/policypress-template"
 
 [extra.frontpage.features]
-title = "Comprehensive Security Management"
-subtitle = "Everything you need to maintain robust security policies and compliance"
+title = "Everything your auditor needs. Nothing you don't."
+subtitle = "PolicyPress is a static site generator for security policies - Git-native, PDF-first, and built for compliance without the overhead."
 
 [[extra.frontpage.features.cards]]
-icon = "fas fa-shield-alt"
-title = "Policy Management"
-description = "Centralized repository for all security policies with version control and review tracking."
-link = { url = "/policies/", text = "View Policies" }
+icon = "fas fa-code-branch"
+title = "Markdown in Git"
+description = "Write policies as Markdown files. Version history, PR reviews, and branch protection come free from your existing GitHub workflow."
+link = { url = "/guides/writing-policies/", text = "Authoring Guide" }
 
 [[extra.frontpage.features.cards]]
-icon = "fas fa-users"
-title = "Team Directory"
-description = "Meet the security professionals responsible for maintaining our organization's security posture."
-link = { url = "/team/", text = "Meet the Team" }
+icon = "fas fa-file-pdf"
+title = "Versioned PDFs"
+description = "Every policy gets a PDF named by title and version, auto-generated on every build - ready to hand to auditors without manual export steps."
+link = { url = "/guides/building-pdfs/", text = "PDF Guide" }
 
 [[extra.frontpage.features.cards]]
-icon = "fas fa-chart-line"
-title = "Compliance Reports"
-description = "Generate detailed compliance reports for SOC 2, ISO 27001, and other security frameworks."
+icon = "fas fa-eye-slash"
+title = "Draft & Redaction"
+description = "Mark content as draft to watermark it, or wrap sensitive notes in redact blocks so internal text never appears in published output."
+link = { url = "/policies/policypress-feature-showcase/", text = "See it in action" }
+
+[[extra.frontpage.features.cards]]
+icon = "fas fa-clipboard-check"
+title = "Compliance Mapping"
+description = "Tag policies with compliance framework controls. PolicyPress generates coverage reports automatically - no spreadsheet maintenance required."
 link = { url = "/reports/", text = "View Reports" }
 
-[[extra.frontpage.features.cards]]
-icon = "fas fa-newspaper"
-title = "Latest Updates"
-description = "Stay informed about policy changes, security updates, and important announcements."
-link = { url = "/news/", text = "Latest News" }
-
 [extra.frontpage.quick_actions]
-title = "Quick Actions"
-subtitle = "Common tasks and resources"
+title = "Get Started"
+subtitle = "Deploy your own policy site or explore what PolicyPress can do"
+
+[[extra.frontpage.quick_actions.actions]]
+icon = "fas fa-rocket"
+title = "Try PolicyPress"
+description = "Deploy your own policy site in minutes using the template repo."
+button = { text = "Use the Template", url = "https://github.com/sc2in/policypress-template" }
+
+[[extra.frontpage.quick_actions.actions]]
+icon = "fas fa-book-open"
+title = "Read the Guides"
+description = "Learn how to author policies, generate PDFs, and configure compliance mappings."
+button = { text = "Open Guides", url = "/guides/" }
 
 [[extra.frontpage.quick_actions.actions]]
 icon = "fas fa-exclamation-triangle"
-title = "Report Security Incident"
+title = "Report an Incident"
 description = "Report security incidents or policy violations immediately."
 button = { text = "Report Incident", url = "mailto:security@sc2.in" }
 
-[[extra.frontpage.quick_actions.actions]]
-icon = "fas fa-question-circle"
-title = "Get Help"
-description = "Need assistance with security policies or procedures?"
-button = { text = "Contact Support", url = "mailto:help@sc2.in" }
-
-[[extra.frontpage.quick_actions.actions]]
-icon = "fas fa-download"
-title = "Download Policies"
-description = "Download policy documents in PDF format for offline access."
-button = { text = "Download PDFs", url = "/reports/" }
-
 # Optional statistics
 [[extra.frontpage.statistics]]
-number = "25+"
-label = "Security Policies"
+number = "Git-native"
+label = "No SaaS lock-in"
 
 [[extra.frontpage.statistics]]
-number = "5"
-label = "Compliance Frameworks"
+number = "PDF + web"
+label = "Single source"
 
 [[extra.frontpage.statistics]]
-number = "100%"
-label = "Coverage"
+number = "Framework-ready"
+label = "Control mapping"
 
 
 ## Open Graph + Twitter Cards
@@ -341,9 +343,9 @@ site_links_search_box = true
 
 
 [[extra.menu.social]]
-name = "Twitter"
-pre = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>'
-url = "https://twitter.com/sc2in"
+name = "Facebook"
+pre = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>'
+url = "https://www.facebook.com/sc2in"
 weight = 10
 
 [[extra.menu.social]]

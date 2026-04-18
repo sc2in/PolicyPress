@@ -75,7 +75,7 @@ pub fn main() !void {
     // std.debug.print("{any}", .{res});
     defer res.deinit();
     if (res.args.help != 0) {
-        std.debug.print("SC2 Policy Center PDF Generator\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
+        std.debug.print("PolicyPress PDF Generator\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
         return clap.helpToFile(std.fs.File.stderr(), clap.Help, &params, .{});
     }
 

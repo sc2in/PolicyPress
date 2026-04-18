@@ -6,11 +6,12 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const zigmark = @import("zigmark");
-const clap = @import("clap");
-const Self = @This();
-const BuildConfig = @import("config").Config;
 
+const BuildConfig = @import("config").Config;
+const clap = @import("clap");
+const zigmark = @import("zigmark");
+
+const Self = @This();
 contents: []u8,
 arena: std.heap.ArenaAllocator,
 json: std.json.Parsed([]Control),
@@ -202,7 +203,7 @@ pub fn main() !void {
     defer res.deinit();
     if (res.args.help != 0) {
         std.debug.print(
-            \\SC2 Policy Report
+            \\Policy Report
             \\Returns a json of controls' presence in the policies
         , .{});
         return clap.help(stderr, clap.Help, &params, .{});

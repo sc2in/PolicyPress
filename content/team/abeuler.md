@@ -1,36 +1,35 @@
 +++
 title = "Alice Beuler"
-description = "Chief Security Officer with expertise in enterprise security and compliance frameworks"
+description = "Chief Security Officer responsible for security policy and compliance oversight"
 weight = 1
 template = "team/single.html"
 
 [extra]
 position = "Chief Security Officer"
-department = "Executive Leadership"
+department = "Leadership"
 email = "abeuler@sc2.in"
 phone = "+1 (555) 123-4567"
-linkedin = "https://linkedin.com/in/alice-beuler"
+linkedin = "https://linkedin.com/"
 photo = "/team/ab.jpg"
 certifications = [
     "CISSP - Certified Information Systems Security Professional",
     "CISM - Certified Information Security Manager",
-    "PMP - Project Management Professional"
 ]
 skills = [
-    "Enterprise Security Architecture",
+    "Security Architecture",
     "Risk Management",
     "Compliance Frameworks",
-    "Team Leadership",
-    "Security Policy Development"
+    "Policy Development",
+    "Team Leadership"
 ]
 +++
 
-Alice Beuler brings over 15 years of experience in cybersecurity leadership to PolicyPress. As our Chief Security Officer, she oversees all security initiatives and ensures our organization maintains the highest standards of information security.
+Alice Beuler is the Chief Security Officer at PolicyPress, responsible for security policy development, compliance oversight, and ensuring the organization meets its information security obligations.
 
 ## Background
 
-Alice has worked with Fortune 500 companies to develop comprehensive security programs and has extensive experience with regulatory compliance including SOX, HIPAA, and GDPR. She holds a Master's degree in Information Security from Johns Hopkins University.
+Alice has a background in enterprise security and regulatory compliance, with experience across frameworks including SOC 2, HIPAA, and GDPR.
 
 ## Expertise
 
-Her expertise spans enterprise security architecture, risk assessment, incident response, and security awareness training. Alice is passionate about making security accessible and practical for organizations of all sizes.
+Alice leads security architecture, risk assessment, and incident response. She oversees the policy review cycle and works with department heads to ensure policies remain current and practical.

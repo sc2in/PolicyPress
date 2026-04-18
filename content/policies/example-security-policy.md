@@ -1,5 +1,5 @@
 ---
-title: "Information Security Policy"
+title: "Example Security Policy"
 description: "Comprehensive security policy demonstrating all PolicyPress features"
 summary: "This policy establishes the framework for protecting organizational information assets and demonstrates the full capability of the PolicyPress system."
 date: 2024-01-15

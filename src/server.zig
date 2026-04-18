@@ -1,8 +1,9 @@
 //! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
 //! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 const std = @import("std");
-const zap = @import("zap");
+
 const clap = @import("clap");
+const zap = @import("zap");
 
 fn on_request(r: zap.Request) !void {
     r.setStatus(.not_found);
@@ -32,7 +33,7 @@ pub fn main() !void {
     defer res.deinit();
 
     if (res.args.help != 0) {
-        std.debug.print("SC2 Policy Center Dev Server\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
+        std.debug.print("PolicyPress Dev Server\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
         return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
     }
     const serve_dir = if (res.args.dir.len >= 1) res.args.dir[0] else "public";

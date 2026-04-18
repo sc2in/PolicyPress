@@ -284,28 +284,28 @@
         gap: 0.5rem;
       }
     }
+  }
 
-    .article-tags {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
+  .article-tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
 
-      .tags-label {
-        font-weight: 600;
-        color: var(--bs-secondary-color);
-        margin-right: 0.5rem;
-      }
+    .tags-label {
+      font-weight: 600;
+      color: var(--bs-secondary-color);
+      margin-right: 0.5rem;
+    }
 
-      .tag {
-        background: $primary;
-        color: $white;
-        padding: 0.25rem 0.75rem;
-        border-radius: var(--pp-radius-pill);
-        font-size: 0.8rem;
-        font-weight: 500;
-      }
+    .tag {
+      background: $primary;
+      color: $white;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--pp-radius-pill);
+      font-size: 0.8rem;
+      font-weight: 500;
     }
   }
 

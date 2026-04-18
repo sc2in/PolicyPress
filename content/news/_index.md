@@ -11,7 +11,8 @@ generate_feeds = true
 
 [extra]
 class = "news-section"
-featured_post = "news/2026-04-18.md"+++
+featured_post = "news/2026-04-18.md"
++++
 
 Welcome to PolicyPress Updates, your trusted source for the latest developments in cybersecurity policy, compliance frameworks, and industry best practices. Our team of security professionals regularly shares insights, analysis, and important updates to help you stay ahead of evolving security requirements.
 

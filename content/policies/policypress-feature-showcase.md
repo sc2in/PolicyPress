@@ -16,7 +16,7 @@ taxonomies:
     - HRS-05.4
     - HRS-05.5
 extra:
-  owner: SC2
+  owner: Security Team
   last_reviewed: 2025-02-24
   major_revisions:
     - date: 2025-06-24

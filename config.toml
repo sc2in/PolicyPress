@@ -142,7 +142,7 @@ insert_anchor_links = "right"
 # Inline styles baked into HTML; no extra CSS file needed.
 # Available themes: github-light, github-dark, dracula, nord, catppuccin-mocha, etc.
 [markdown.highlighting]
-theme = "github-light"
+theme = "github-dark"
 
 
 [search]

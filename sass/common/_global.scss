@@ -24,13 +24,12 @@ h6,
   margin: 2rem 0 1rem;
 }
 
-// Slightly smaller base to keep the 3-column layout comfortable at ~1400px.
 html {
-  font-size: 14px; // 1rem = 14px
+  font-size: 16px;
 }
 
 body {
-  font-size: 1.25rem; // ≈17.5px
+  font-size: 1rem;
 }
 
 @include media-breakpoint-up(md) {
@@ -260,9 +259,8 @@ article {
   user-select: none;
   cursor: default;
 
-  // Keep the block solid in dark mode too
   [data-bs-theme="dark"] & {
-    background-color: $gray-900;
+    background-color: $gray-600;
   }
 }
 

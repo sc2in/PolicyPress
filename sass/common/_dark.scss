@@ -278,6 +278,95 @@ $link-color-dark: $blue-300;
     display: inline-block !important;
   }
 
+  // Mermaid diagrams — SVGs render with hardcoded light colors
+  .mermaid svg {
+    background: transparent !important;
+
+    // Node shapes
+    .node rect,
+    .node circle,
+    .node ellipse,
+    .node polygon,
+    .node path {
+      fill: #{$gray-800} !important;
+      stroke: #{$gray-600} !important;
+    }
+
+    // Labels and text
+    .label,
+    .nodeLabel,
+    text {
+      color: #{$gray-200} !important;
+      fill: #{$gray-200} !important;
+    }
+
+    // Edge lines and arrowheads
+    .edgePath .path,
+    .flowchart-link {
+      stroke: #{$gray-500} !important;
+    }
+
+    .arrowheadPath {
+      fill: #{$gray-500} !important;
+      stroke: #{$gray-500} !important;
+    }
+
+    // Edge labels — mermaid renders these as foreignObject > div, not rect
+    .edgeLabel {
+      background-color: transparent !important;
+
+      p,
+      div,
+      span {
+        background-color: #{$gray-800} !important;
+        color: #{$gray-200} !important;
+      }
+
+      rect {
+        fill: #{$gray-800} !important;
+        stroke: none !important;
+      }
+    }
+  }
+
+  // Outline buttons — Bootstrap 5.2 compiles these with hardcoded light colors
+  .btn-outline-primary {
+    color: #{lighten($primary, 40%)};
+    border-color: #{lighten($primary, 15%)};
+    background-color: rgba($primary, 0.3);
+
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: #{lighten($primary, 20%)};
+      border-color: #{lighten($primary, 20%)};
+      color: $white;
+    }
+  }
+
+  .btn-outline-secondary {
+    color: $gray-100;
+    border-color: $gray-400;
+    background-color: rgba($white, 0.12);
+
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: $gray-500;
+      border-color: $gray-500;
+      color: $white;
+    }
+  }
+
+  // Quick action icon backgrounds — transparent tints are invisible on dark cards
+  .quick-actions-section .action-icon {
+    background: #{lighten($primary, 10%)};
+
+    i {
+      color: $white;
+    }
+  }
+
   // Code copy button
   .copy-status::after {
     color: $body-color-dark;

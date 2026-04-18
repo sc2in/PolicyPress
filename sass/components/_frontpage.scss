@@ -200,22 +200,31 @@
 
   // Quick Actions Section
   .quick-actions-section {
-    padding: 4rem 0;
+    padding: 3rem 0;
     background: var(--pp-quick-action-bg);
+
+    .section-header {
+      margin-bottom: 2rem;
+    }
 
     .quick-actions-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 1.5rem;
+
+      @media (max-width: 900px) {
+        grid-template-columns: repeat(2, 1fr);
+      }
 
       .quick-action-card {
         background: var(--pp-card-bg);
-        padding: 1.5rem;
-        border-radius: var(--pp-radius-sm);
+        padding: 1.75rem;
+        border-radius: var(--pp-radius-md);
         box-shadow: var(--pp-shadow-sm);
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 1rem;
+        text-align: center;
         transition: var(--pp-transition);
         border: 1px solid var(--bs-border-color);
 
@@ -225,23 +234,27 @@
         }
 
         .action-icon {
-          width: 48px;
-          height: 48px;
-          background: rgba(var(--bs-primary-rgb), 0.1);
-          border-radius: var(--pp-radius-sm);
+          width: 56px;
+          height: 56px;
+          background: rgba($primary, 0.12);
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          margin-bottom: 1rem;
 
           i {
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             color: var(--bs-link-color);
           }
         }
 
         .action-content {
           flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
 
           h3 {
             font-size: 1rem;
@@ -268,17 +281,19 @@
     color: $white;
 
     .statistics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 4rem;
 
       .stat-item {
         text-align: center;
+        width: 33%;
 
         .stat-number {
           font-size: 2.5rem;
           font-weight: 700;
           margin-bottom: 0.5rem;
+          white-space: nowrap;
         }
 
         .stat-label {
@@ -286,6 +301,7 @@
           opacity: 0.9;
           text-transform: uppercase;
           letter-spacing: 0.5px;
+          white-space: nowrap;
         }
       }
     }
@@ -306,7 +322,8 @@
         background: var(--pp-card-bg);
         border: 1px solid var(--pp-update-card-border);
         border-radius: var(--pp-radius-sm);
-        padding: 1.5rem;
+        padding: 1.25rem;
+        position: relative;
         transition: var(--pp-transition);
 
         &:hover {
@@ -339,7 +356,8 @@
         .update-title {
           font-size: 1.1rem;
           font-weight: 600;
-          margin-bottom: 0.75rem;
+          margin-top: 0;
+          margin-bottom: 0.5rem;
 
           a {
             color: var(--bs-heading-color);

@@ -204,7 +204,7 @@ pub fn main() !void {
     if (res.args.help != 0) {
         std.debug.print(
             \\Policy Report
-            \\Returns a json of controls' presence in the policies
+            \\Returns JSON to stdout describing controls' presence in the policies
         , .{});
         return clap.help(stderr, clap.Help, &params, .{});
     }

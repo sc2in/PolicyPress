@@ -81,7 +81,7 @@ description=description) }}
       {% endif %}
       <span class="reading-time" aria-label="Estimated reading time">
         <i class="fas fa-clock" aria-hidden="true"></i>
-        {{ page.reading_time }} min read
+        {% if page.extra.reading_time %}{{ page.extra.reading_time }}{% else %}{{ page.reading_time }}{% endif %} min read
       </span>
     </div>
 

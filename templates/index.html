@@ -47,13 +47,13 @@ description=description, is_home=true) }}
             }}</p>
           <div class="hero-actions">
             <a class="btn btn-primary btn-lg"
-              href="{{ get_url(path=fp.cta.url | default(value='/policies/')) | safe }}"
+              href="{% set _u = fp.cta.url | default(value='/policies/') %}{% if _u is starting_with('http') %}{{ _u | safe }}{% else %}{{ get_url(path=_u) | safe }}{% endif %}"
               role="button">
               {{ fp.cta.text | default(value="Explore Policies") }}
             </a>
             {% if fp.secondary_cta %}
             <a class="btn btn-outline-primary btn-lg"
-              href="{{ get_url(path=fp.secondary_cta.url) | safe }}"
+              href="{% if fp.secondary_cta.url is starting_with('http') %}{{ fp.secondary_cta.url | safe }}{% else %}{{ get_url(path=fp.secondary_cta.url) | safe }}{% endif %}"
               role="button">
               {{ fp.secondary_cta.text }}
             </a>

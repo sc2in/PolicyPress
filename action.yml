@@ -27,6 +27,21 @@ inputs:
       Set to 'false' (default) to include all content.
     required: false
     default: "false"
+  generate_draft_pdfs:
+    description: >
+      Set to 'true' to also generate a second set of PDFs stamped with a DRAFT
+      watermark (same redact_mode as the official run). Use this when your site
+      config has show_draft_pdfs = true so that draft buttons have valid files
+      to link to.
+    required: false
+    default: "false"
+  base_url:
+    description: >
+      Override the base_url from config.toml (e.g. a Cloudflare Pages preview
+      URL). When set, passed to 'zola build --base-url' so that all get_url()
+      calls resolve against this origin instead of the production domain.
+    required: false
+    default: ""
 
 outputs:
   pdf_path:
@@ -127,7 +142,11 @@ runs:
         set -euo pipefail
 
         # Build the Zola static site
-        zola build
+        ZOLA_ARGS=()
+        if [ -n "${{ inputs.base_url }}" ]; then
+          ZOLA_ARGS+=(--base-url "${{ inputs.base_url }}")
+        fi
+        zola build "${ZOLA_ARGS[@]}"
 
         # Build flags - explicitly set draft/redact so action inputs always
         # override whatever is in the consumer's config.toml.
@@ -145,6 +164,18 @@ runs:
 
         # policypress binary is pre-installed from the release; deps are in the ci shell
         policypress "${ARGS[@]}"
+
+        # Optionally generate a second draft-watermarked set of PDFs so that
+        # sites with show_draft_pdfs = true have valid files to link to.
+        if [ "${{ inputs.generate_draft_pdfs }}" = "true" ]; then
+          DRAFT_ARGS=(-c "${{ inputs.config_path }}" -o "${{ inputs.output_dir }}/pdfs" --draft)
+          if [ "${{ inputs.redact_mode }}" = "true" ]; then
+            DRAFT_ARGS+=(--redact)
+          else
+            DRAFT_ARGS+=(--no-redact)
+          fi
+          policypress "${DRAFT_ARGS[@]}"
+        fi
 
         echo "pdf_path=${{ inputs.output_dir }}/pdfs"    >> "$GITHUB_OUTPUT"
         echo "site_path=public"                          >> "$GITHUB_OUTPUT"

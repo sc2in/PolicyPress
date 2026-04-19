@@ -23,6 +23,8 @@ jobs:
         uses: ./
         with:
           config_path: config.toml
+          redact_mode: "true"
+          generate_draft_pdfs: "true"
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v4

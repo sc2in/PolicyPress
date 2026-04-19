@@ -1,0 +1,76 @@
+name: PR Preview
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure unprivileged user namespaces
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
+      - name: Compute preview URL
+        id: preview_url
+        run: |
+          # CF Pages preview URLs are deterministic: https://<branch>.<project>.pages.dev
+          # Branch names are lowercased and non-alphanumeric chars become hyphens.
+          BRANCH="pr-${{ github.event.pull_request.number }}"
+          echo "url=https://${BRANCH}.policypress.pages.dev" >> "$GITHUB_OUTPUT"
+
+      - name: Build site and PDFs
+        uses: ./
+        with:
+          config_path: config.toml
+          redact_mode: "true"
+          generate_draft_pdfs: "true"
+          base_url: ${{ steps.preview_url.outputs.url }}
+
+      - name: Deploy preview to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=policypress --branch=pr-${{ github.event.pull_request.number }} --commit-dirty=true
+
+      - name: Post preview URL to PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- policypress-preview -->';
+            const url = '${{ steps.deploy.outputs.deployment-url }}';
+            const body = `${marker}\n## Preview deployment\n\n🔗 ${url}\n\n_Last updated: ${new Date().toUTCString()}_`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

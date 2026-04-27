@@ -143,15 +143,27 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
     try add_arg(a, args, "", "--resource-path={s}", .{config.root});
     try add_arg(a, args, "-V", "footer-left={s} \\textcopyright {d}", .{ config.org, config.current_year });
 
-    try add_arg(a, args, "-V", "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{config.logo_path});
+    // LaTeX treats '%' as a comment character in file paths fed to \includegraphics.
+    // Copy the logo to a temp path without special characters when the path contains '%'.
+    const logo_for_latex = if (std.mem.indexOfScalar(u8, config.logo_path, '%') != null) blk: {
+        const ext = std.fs.path.extension(config.logo_path);
+        const tmp_path = try std.fmt.allocPrint(a, "/tmp/pp-logo{s}", .{ext});
+        std.fs.copyFileAbsolute(config.logo_path, tmp_path, .{}) catch |err| {
+            std.log.warn("could not copy logo to tmp: {}", .{err});
+        };
+        break :blk tmp_path;
+    } else try a.dupe(u8, config.logo_path);
+    defer a.free(logo_for_latex);
+    try add_arg(a, args, "-V", "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{logo_for_latex});
 
-    try add_arg(a, args, "-V", "titlepage-logo={s}", .{config.logo_path});
+    try add_arg(a, args, "-V", "titlepage-logo={s}", .{logo_for_latex});
 
     try add_arg(a, args, "-V", "institution=\"{s}\"", .{config.org});
 
     try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{if (config.color[0] == '#') config.color[1..] else config.color});
 
-    try add_arg(a, args, "-F", "mermaid-filter", .{});
+    if (executableInPath(a, "mermaid-filter"))
+        try add_arg(a, args, "-F", "mermaid-filter", .{});
     try add_arg(a, args, "-V", "footer-center=Confidental", .{});
     try add_arg(a, args, "-V", "papersize=letter", .{});
     try add_arg(a, args, "-V", "titlepage=true", .{});
@@ -169,6 +181,16 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
         try add_arg(a, args, "-V", "page-background=static/draft.png", .{});
         try add_arg(a, args, "-V", "page-background-opacity=0.8", .{});
     }
+}
+
+fn executableInPath(a: Allocator, name: []const u8) bool {
+    const result = std.process.Child.run(.{
+        .allocator = a,
+        .argv = &[_][]const u8{ "which", name },
+    }) catch return false;
+    defer a.free(result.stdout);
+    defer a.free(result.stderr);
+    return result.term == .Exited and result.term.Exited == 0;
 }
 
 inline fn add_arg(

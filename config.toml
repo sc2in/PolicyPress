@@ -155,7 +155,7 @@ include_content = true
 
 [extra]
 homepage_style = "marketing"
-version = "1.2.2"
+version = "1.2.3"
 # release = "https://api.github.com/repos/getzola/zola/releases/latest"
 favicon = "https://www.getzola.org/favicon.ico"
 easydocs_logo_always_clickable = true

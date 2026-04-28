@@ -1,6 +1,7 @@
 //! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
 //! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 const std = @import("std");
+const builtin = @import("builtin");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
@@ -200,6 +201,7 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
 }
 
 pub fn executableInPath(name: []const u8) bool {
+    if (comptime builtin.os.tag == .windows) return false;
     const path_env = std.posix.getenv("PATH") orelse return false;
     var it = std.mem.tokenizeScalar(u8, path_env, ':');
     var buf: [std.fs.max_path_bytes]u8 = undefined;

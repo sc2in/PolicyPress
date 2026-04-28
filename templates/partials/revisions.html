@@ -19,13 +19,13 @@
         {{version.date | date(format="%b %d, %Y")}}
       </td>
       <td>
-        {{version.description}}
+        {{version.description | default(value="")}}
       </td>
       <td>
-        {{version.revised_by}}
+        {{version.revised_by | default(value="")}}
       </td>
       <td>
-        {{version.approved_by}}
+        {{version.approved_by | default(value="")}}
       </td>
   </tr>
     {% endfor %}

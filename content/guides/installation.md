@@ -185,11 +185,10 @@ See the [Configuration Reference](@/guides/configuration.md) for all available f
 
 ## Local editing environment
 
-For live preview while writing policies, run the site locally using the PolicyPress devshell:
+For live preview while writing policies, run the `serve` app directly — no devshell setup required:
 
 ```sh
-nix develop github:sc2in/policypress
-zola serve
+nix run github:sc2in/policypress#serve
 ```
 
 This requires [Nix](https://nixos.org/download/). A markdown editor with Git integration ([VSCode](https://code.visualstudio.com/download) or [Zed](https://zed.dev/download)) works well alongside it. See [Live Editing](@/guides/live-editing.md) for details.

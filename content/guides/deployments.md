@@ -120,12 +120,18 @@ To generate a redacted build for external distribution while keeping the full bu
 
 ## Manual / local build
 
-If you need to build outside of CI:
+If you need to build outside of CI, use the Nix app (no devshell required):
 
 ```sh
-nix develop github:sc2in/policypress
+# Live preview with hot reload
+nix run github:sc2in/policypress#serve
 
-zola build                                     # static site → public/
-policypress -c config.toml -o public           # PDFs → public/pdfs/
-policypress -c config.toml -o dist --redact    # redacted PDFs → dist/pdfs/
+# One-shot build: static site + PDFs
+nix run github:sc2in/policypress#preview
+
+# PDFs only
+nix run github:sc2in/policypress -- -c config.toml -o public
+
+# Redacted PDFs only
+nix run github:sc2in/policypress -- -c config.toml -o dist --redact
 ```

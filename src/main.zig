@@ -511,9 +511,6 @@ fn compileOne(
 ) void {
     defer progress_node.completeOne();
 
-    const file_node = progress_node.start(std.fs.path.basename(input_path), 0);
-    defer file_node.end();
-
     Pandoc.compile(alloc, config, input_path) catch |err| {
         error_mutex.lock();
         defer error_mutex.unlock();

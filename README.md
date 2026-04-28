@@ -107,28 +107,23 @@ Control data files are customer-supplied - PolicyPress does not ship them. The f
 
 ## Local development
 
-Requires [Nix](https://nixos.org/download/). The devshell provides Zola, Pandoc, XeLaTeX, ImageMagick, mermaid-filter, and Zig.
+Requires [Nix](https://nixos.org/download/).
 
 ```sh
-nix develop github:sc2in/policypress
+# Live preview with hot reload (recommended)
+nix run github:sc2in/policypress#serve
 
-# Build the static site
-zola build
-
-# Generate PDFs
-policypress -c config.toml -o public
+# Generate PDFs only
+nix run github:sc2in/policypress -- -c config.toml -o public
 
 # Generate redacted PDFs
-policypress -c config.toml -o public/redacted --redact
+nix run github:sc2in/policypress -- -c config.toml -o public/redacted --redact
 
 # Verbose output (shows pandoc args)
-policypress -v -c config.toml -o public
+nix run github:sc2in/policypress -- -v -c config.toml -o public
 
 # CI-friendly JSON log output
-policypress --json -c config.toml -o public
-
-# Preview with live reload
-zola serve
+nix run github:sc2in/policypress -- --json -c config.toml -o public
 ```
 
 ### Building from source

@@ -292,11 +292,22 @@
 
             formatter = config.treefmt.build.wrapper;
 
-            apps.default = {
-              type = "app";
-              program = "${policypress}/bin/policypress";
-              meta.description = "Run policypress (ReleaseSafe)";
-            };
+            apps.default =
+              let
+                app = pkgs.writeShellApplication {
+                  name = "policypress";
+                  runtimeInputs = [ policypress ] ++ runtimeDeps;
+                  text = ''
+                    export FONTCONFIG_FILE="${fontsConf}"
+                    exec policypress "$@"
+                  '';
+                };
+              in
+              {
+                type = "app";
+                program = "${app}/bin/policypress";
+                meta.description = "Run policypress with all runtime dependencies in PATH";
+              };
 
             apps.serve =
               let

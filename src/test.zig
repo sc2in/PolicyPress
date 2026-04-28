@@ -105,6 +105,7 @@ test "policy processing" {
     try tst.expectEqual(0, std.mem.count(u8, t1.items, "{% end %}"));
 }
 test "pdf rendering" {
+    if (!pandoc.executableInPath("xelatex")) return error.SkipZigTest;
     var args = Array([]u8){};
     var env = try std.process.getEnvMap(tst.allocator);
     defer env.deinit();

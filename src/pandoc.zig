@@ -144,14 +144,30 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
     try add_arg(a, args, "-V", "footer-left={s} \\textcopyright {d}", .{ config.org, config.current_year });
 
     // LaTeX treats '%' as a comment character in file paths fed to \includegraphics.
-    // Copy the logo to a temp path without special characters when the path contains '%'.
+    // Copy the logo to a unique temp path without special characters when the path contains '%'.
     const logo_for_latex = if (std.mem.indexOfScalar(u8, config.logo_path, '%') != null) blk: {
         const ext = std.fs.path.extension(config.logo_path);
-        const tmp_path = try std.fmt.allocPrint(a, "/tmp/pp-logo{s}", .{ext});
-        std.fs.copyFileAbsolute(config.logo_path, tmp_path, .{}) catch |err| {
-            std.log.warn("could not copy logo to tmp: {}", .{err});
-        };
-        break :blk tmp_path;
+        var attempt: usize = 0;
+        while (attempt < 16) : (attempt += 1) {
+            const tmp_path = try std.fmt.allocPrint(a, "/tmp/pp-logo-{x}{s}", .{ std.crypto.random.int(u64), ext });
+            // Claim the path exclusively to avoid races, then overwrite with the real content.
+            const tmp_file = std.fs.createFileAbsolute(tmp_path, .{ .exclusive = true }) catch |err| {
+                a.free(tmp_path);
+                if (err == error.PathAlreadyExists) continue;
+                std.log.warn("could not create temp logo file: {}", .{err});
+                break :blk try a.dupe(u8, config.logo_path);
+            };
+            tmp_file.close();
+            std.fs.copyFileAbsolute(config.logo_path, tmp_path, .{}) catch |err| {
+                std.fs.deleteFileAbsolute(tmp_path) catch {};
+                a.free(tmp_path);
+                std.log.warn("could not copy logo to temp path: {}", .{err});
+                break :blk try a.dupe(u8, config.logo_path);
+            };
+            break :blk tmp_path;
+        }
+        std.log.warn("could not allocate a unique temp logo file name", .{});
+        break :blk try a.dupe(u8, config.logo_path);
     } else try a.dupe(u8, config.logo_path);
     defer a.free(logo_for_latex);
     try add_arg(a, args, "-V", "header-right=\\includegraphics[width=2cm,height=2cm]{{{s}}}", .{logo_for_latex});
@@ -162,9 +178,9 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
 
     try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{if (config.color[0] == '#') config.color[1..] else config.color});
 
-    if (executableInPath(a, "mermaid-filter"))
+    if (executableInPath("mermaid-filter"))
         try add_arg(a, args, "-F", "mermaid-filter", .{});
-    try add_arg(a, args, "-V", "footer-center=Confidental", .{});
+    try add_arg(a, args, "-V", "footer-center=Confidential", .{});
     try add_arg(a, args, "-V", "papersize=letter", .{});
     try add_arg(a, args, "-V", "titlepage=true", .{});
     try add_arg(a, args, "-V", "toc-own-page=true ", .{});
@@ -183,14 +199,16 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
     }
 }
 
-fn executableInPath(a: Allocator, name: []const u8) bool {
-    const result = std.process.Child.run(.{
-        .allocator = a,
-        .argv = &[_][]const u8{ "which", name },
-    }) catch return false;
-    defer a.free(result.stdout);
-    defer a.free(result.stderr);
-    return result.term == .Exited and result.term.Exited == 0;
+pub fn executableInPath(name: []const u8) bool {
+    const path_env = std.posix.getenv("PATH") orelse return false;
+    var it = std.mem.tokenizeScalar(u8, path_env, ':');
+    var buf: [std.fs.max_path_bytes]u8 = undefined;
+    while (it.next()) |dir| {
+        const full = std.fmt.bufPrint(&buf, "{s}/{s}", .{ dir, name }) catch continue;
+        std.fs.accessAbsolute(full, .{}) catch continue;
+        return true;
+    }
+    return false;
 }
 
 inline fn add_arg(
@@ -248,7 +266,15 @@ pub fn process_md_file(
     // Write the preprocessed markdown to a file in the system temp directory
     // rather than the output directory. This keeps .md files out of paths that
     // watchexec monitors, preventing false rebuild triggers.
-    const tmpdir = env.get("TMPDIR") orelse env.get("TMP") orelse "/tmp";
+    const tmpdir = blk: {
+        const candidates = [_]?[]const u8{ env.get("TMPDIR"), env.get("TMP"), "/tmp" };
+        for (candidates) |maybe| {
+            const d = maybe orelse continue;
+            std.fs.accessAbsolute(d, .{}) catch continue;
+            break :blk d;
+        }
+        break :blk "/tmp";
+    };
     const pid = std.os.linux.getpid();
     const tmp_name = try std.fmt.allocPrint(a, "pp_{d}_{s}", .{ pid, std.fs.path.basename(md.path) });
     defer a.free(tmp_name);

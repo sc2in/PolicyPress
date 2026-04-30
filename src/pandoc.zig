@@ -1,11 +1,11 @@
 //! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
 //! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 const std = @import("std");
-const builtin = @import("builtin");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
+const builtin = @import("builtin");
 
 const clap = @import("clap");
 const Config = @import("config").Config;
@@ -195,18 +195,12 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
     try add_arg(a, args, "", "--pdf-engine=xelatex", .{});
 
     if (config.is_draft) {
-        const draft_path = blk: {
+        const draft_path: ?[]const u8 = blk: {
             const primary = try std.fs.path.join(a, &.{ config.root, "static", "draft.png" });
-            std.fs.accessAbsolute(primary, .{}) catch |err| switch (err) {
-                error.FileNotFound => {
-                    a.free(primary);
-                },
-                else => return err,
-            };
             if (std.fs.accessAbsolute(primary, .{})) |_| {
                 break :blk primary;
             } else |err| switch (err) {
-                error.FileNotFound => unreachable,
+                error.FileNotFound => a.free(primary),
                 else => return err,
             }
 

@@ -542,8 +542,8 @@ test "draft mode: uses site-root static/draft.png when present" {
 
     const path = findPageBackground(args) orelse return error.NoBgArg;
     // Must point at the site-root copy, not the theme fallback.
-    try tst.expect(std.mem.indexOf(u8, path, "static/draft.png") != null);
-    try tst.expect(std.mem.indexOf(u8, path, "themes/policypress") == null);
+    try tst.expect(std.mem.indexOf(u8, path, "static" ++ std.fs.path.sep_str ++ "draft.png") != null);
+    try tst.expect(std.mem.indexOf(u8, path, "themes" ++ std.fs.path.sep_str ++ "policypress") == null);
 }
 
 test "draft mode: falls back to themes/policypress/static/draft.png when site-root copy absent" {
@@ -566,7 +566,7 @@ test "draft mode: falls back to themes/policypress/static/draft.png when site-ro
     defer pandoc.destroy_global_args(alloc, &args);
 
     const path = findPageBackground(args) orelse return error.NoBgArg;
-    try tst.expect(std.mem.indexOf(u8, path, "themes/policypress/static/draft.png") != null);
+    try tst.expect(std.mem.indexOf(u8, path, "themes" ++ std.fs.path.sep_str ++ "policypress" ++ std.fs.path.sep_str ++ "static" ++ std.fs.path.sep_str ++ "draft.png") != null);
 }
 
 test "draft mode: site-root static/draft.png wins over theme fallback when both exist" {
@@ -591,7 +591,7 @@ test "draft mode: site-root static/draft.png wins over theme fallback when both 
     defer pandoc.destroy_global_args(alloc, &args);
 
     const path = findPageBackground(args) orelse return error.NoBgArg;
-    try tst.expect(std.mem.indexOf(u8, path, "themes/policypress") == null);
+    try tst.expect(std.mem.indexOf(u8, path, "themes" ++ std.fs.path.sep_str ++ "policypress") == null);
 }
 
 // --- executableInPath ---

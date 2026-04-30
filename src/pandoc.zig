@@ -197,22 +197,38 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
     if (config.is_draft) {
         const draft_path = blk: {
             const primary = try std.fs.path.join(a, &.{ config.root, "static", "draft.png" });
+            std.fs.accessAbsolute(primary, .{}) catch |err| switch (err) {
+                error.FileNotFound => {
+                    a.free(primary);
+                },
+                else => return err,
+            };
             if (std.fs.accessAbsolute(primary, .{})) |_| {
                 break :blk primary;
-            } else |_| {
-                a.free(primary);
+            } else |err| switch (err) {
+                error.FileNotFound => unreachable,
+                else => return err,
             }
+
             // When policypress is used as a Zola theme (submodule), the watermark
             // lives under themes/policypress/static/ rather than at the site root.
             const fallback = try std.fs.path.join(a, &.{ config.root, "themes", "policypress", "static", "draft.png" });
-            if (std.fs.accessAbsolute(fallback, .{})) |_| {} else |_| {
-                std.log.warn("draft.png not found at site root or in themes/policypress/static/; draft watermark will be missing", .{});
+            if (std.fs.accessAbsolute(fallback, .{})) |_| {
+                break :blk fallback;
+            } else |err| switch (err) {
+                error.FileNotFound => {
+                    a.free(fallback);
+                    std.log.warn("draft.png not found at site root or in themes/policypress/static/; draft watermark will be skipped", .{});
+                    break :blk null;
+                },
+                else => return err,
             }
-            break :blk fallback;
         };
-        defer a.free(draft_path);
-        try add_arg(a, args, "-V", "page-background={s}", .{draft_path});
-        try add_arg(a, args, "-V", "page-background-opacity=0.8", .{});
+        if (draft_path) |path| {
+            defer a.free(path);
+            try add_arg(a, args, "-V", "page-background={s}", .{path});
+            try add_arg(a, args, "-V", "page-background-opacity=0.8", .{});
+        }
     }
 }
 

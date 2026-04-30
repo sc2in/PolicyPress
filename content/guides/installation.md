@@ -109,51 +109,70 @@ trigger:
   branches:
     include:
       - main
+  paths:
+    include:
+      - content
+      - config.toml
+
+variables:
+  # Automatically publish production PDFs on main; all other branches get draft watermarks.
+  - name: publish
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: true
+    ${{ else }}:
+      value: false
 
 pool:
   vmImage: ubuntu-latest
 
-parameters:
-  - name: draft_mode
-    type: boolean
-    default: false
-  - name: redact_mode
-    type: boolean
-    default: false
-
 steps:
   - checkout: self
+    submodules: true
 
   - bash: |
       set -euo pipefail
-      # Install Nix — required for Pandoc, mermaid-filter, and Chromium
-      curl --proto '=https' --tlsv1.2 -sSfL https://install.determinate.systems/nix \
-        | sh -s -- install linux --no-confirm
-      echo '/nix/var/nix/profiles/default/bin' >> "$BASH_ENV"
+      # Ubuntu 22.04+ requires this before Nix can create user namespaces.
+      sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
+        | sh -s -- install linux --no-confirm \
+            --extra-conf "sandbox = false" \
+            --extra-conf "trusted-users = root vsts"
+      . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+      nix --version
     displayName: Install Nix
 
   - bash: |
       set -euo pipefail
-      FLAGS=()
-      [[ "${{ parameters.draft_mode }}" == "True" ]] && FLAGS+=(--draft)
-      [[ "${{ parameters.redact_mode }}" == "True" ]] && FLAGS+=(--redact)
-      nix develop github:sc2in/policypress --command bash -c "
-        zola build
-        policypress ${FLAGS[*]:-} -c config.toml -o public
-      "
+      . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+      nix develop github:sc2in/policypress#ci --command zola build
+      if [ "$(publish)" = "true" ]; then
+        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs
+        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs --redact
+      else
+        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs --draft
+        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs --draft --redact
+      fi
     displayName: Build site and PDFs
 
-  - publish: $(Build.SourcesDirectory)/public/pdfs
-    artifact: pdfs
-
   - publish: $(Build.SourcesDirectory)/public
-    artifact: site
+    artifact: WebApp
 ```
 
-Link it to a pipeline in **Azure DevOps → Pipelines → New pipeline**, point it at this file, and set it to trigger on changes to `main`.
+Link it to a pipeline in **Azure DevOps → Pipelines → New pipeline** and point it at this file.
+
+To deploy to Azure Static Web Apps, add this step after the publish task and store the deployment token as a pipeline variable named `deployment_token`:
+
+```yaml
+  - task: AzureStaticWebApp@0
+    condition: and(succeeded(), eq(variables.publish, 'true'))
+    inputs:
+      app_location: public
+      skip_app_build: true
+      azure_static_web_apps_api_token: $(deployment_token)
+```
 
 > [!NOTE]
-> The first run downloads the Nix environment (~1–2 GB). Subsequent runs are faster if you configure a Nix binary cache. See the [Determinate Systems docs](https://docs.determinate.systems/flakehub-cache/) for caching options compatible with ADO agents.
+> The first run downloads the Nix environment (~1–2 GB) and compiles the policypress binary, which takes 15–20 minutes. Subsequent runs are faster with a Nix binary cache — see [Determinate Systems FlakeHub Cache](https://docs.determinate.systems/flakehub-cache/) for ADO-compatible options. For the fastest cold starts, replace `nix run github:sc2in/policypress` with a pre-compiled binary downloaded from the [latest release](https://github.com/sc2in/policypress/releases/latest).
 
 </div>
 </div>

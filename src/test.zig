@@ -509,3 +509,98 @@ test "redact mode: title suffix and content scrubbed" {
     // Redacted blocks become underscores, not visible text.
     try tst.expect(std.mem.indexOf(u8, contents.items, &[_]u8{'_'} ** 10) != null);
 }
+
+// --- draft.png path resolution ---
+
+// Helper: find the page-background= value among pandoc args.
+fn findPageBackground(args: Array([]u8)) ?[]const u8 {
+    for (args.items) |arg| {
+        if (std.mem.startsWith(u8, arg, "page-background="))
+            return arg["page-background=".len..];
+    }
+    return null;
+}
+
+test "draft mode: uses site-root static/draft.png when present" {
+    const alloc = tst.allocator;
+    var args = Array([]u8){};
+    var conf = try config.load(alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    defer alloc.free(tmp_path);
+    try tmp.dir.makePath("static");
+    try tmp.dir.writeFile(.{ .sub_path = "static/draft.png", .data = "" });
+
+    alloc.free(conf.root);
+    conf.root = try alloc.dupe(u8, tmp_path);
+    conf.is_draft = true;
+    try pandoc.create_global_args(alloc, &args, conf);
+    defer pandoc.destroy_global_args(alloc, &args);
+
+    const path = findPageBackground(args) orelse return error.NoBgArg;
+    // Must point at the site-root copy, not the theme fallback.
+    try tst.expect(std.mem.indexOf(u8, path, "static/draft.png") != null);
+    try tst.expect(std.mem.indexOf(u8, path, "themes/policypress") == null);
+}
+
+test "draft mode: falls back to themes/policypress/static/draft.png when site-root copy absent" {
+    const alloc = tst.allocator;
+    var args = Array([]u8){};
+    var conf = try config.load(alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    defer alloc.free(tmp_path);
+    try tmp.dir.makePath("themes/policypress/static");
+    try tmp.dir.writeFile(.{ .sub_path = "themes/policypress/static/draft.png", .data = "" });
+
+    alloc.free(conf.root);
+    conf.root = try alloc.dupe(u8, tmp_path);
+    conf.is_draft = true;
+    try pandoc.create_global_args(alloc, &args, conf);
+    defer pandoc.destroy_global_args(alloc, &args);
+
+    const path = findPageBackground(args) orelse return error.NoBgArg;
+    try tst.expect(std.mem.indexOf(u8, path, "themes/policypress/static/draft.png") != null);
+}
+
+test "draft mode: site-root static/draft.png wins over theme fallback when both exist" {
+    const alloc = tst.allocator;
+    var args = Array([]u8){};
+    var conf = try config.load(alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    defer alloc.free(tmp_path);
+    try tmp.dir.makePath("static");
+    try tmp.dir.writeFile(.{ .sub_path = "static/draft.png", .data = "" });
+    try tmp.dir.makePath("themes/policypress/static");
+    try tmp.dir.writeFile(.{ .sub_path = "themes/policypress/static/draft.png", .data = "" });
+
+    alloc.free(conf.root);
+    conf.root = try alloc.dupe(u8, tmp_path);
+    conf.is_draft = true;
+    try pandoc.create_global_args(alloc, &args, conf);
+    defer pandoc.destroy_global_args(alloc, &args);
+
+    const path = findPageBackground(args) orelse return error.NoBgArg;
+    try tst.expect(std.mem.indexOf(u8, path, "themes/policypress") == null);
+}
+
+// --- executableInPath ---
+
+test "executableInPath: sh is present on unix" {
+    if (comptime b.os.tag == .windows) return error.SkipZigTest;
+    try tst.expect(pandoc.executableInPath("sh"));
+}
+
+test "executableInPath: nonexistent binary returns false" {
+    try tst.expect(!pandoc.executableInPath("pp-test-nonexistent-xyzzy-12345"));
+}

@@ -109,6 +109,16 @@ trigger:
   branches:
     include:
       - main
+      - feature/*
+  paths:
+    include:
+      - content
+      - config.toml
+
+pr:
+  branches:
+    include:
+      - main
   paths:
     include:
       - content
@@ -118,9 +128,9 @@ variables:
   # Automatically publish production PDFs on main; all other branches get draft watermarks.
   - name: publish
     ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
-      value: true
+      value: 'true'
     ${{ else }}:
-      value: false
+      value: 'false'
 
 pool:
   vmImage: ubuntu-latest

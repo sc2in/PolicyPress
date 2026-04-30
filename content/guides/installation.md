@@ -125,12 +125,9 @@ pr:
       - config.toml
 
 variables:
-  # Automatically publish production PDFs on main; all other branches get draft watermarks.
+  # Default to draft; overridden to 'true' at runtime on main (see step below).
   - name: publish
-    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
-      value: 'true'
-    ${{ else }}:
-      value: 'false'
+    value: 'false'
 
 pool:
   vmImage: ubuntu-latest
@@ -138,6 +135,11 @@ pool:
 steps:
   - checkout: self
     submodules: true
+
+  # Automatically publish production PDFs on main; all other branches get draft watermarks.
+  - bash: echo "##vso[task.setvariable variable=publish]true"
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    displayName: Enable publish on main
 
   - bash: |
       set -euo pipefail

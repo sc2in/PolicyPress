@@ -135,6 +135,15 @@ runs:
           cp -n themes/policypress/data/* data/
         fi
 
+    - name: Copy draft watermark
+      shell: bash
+      run: |
+        # The policypress binary looks for static/draft.png at the site root.
+        # Copy it from the theme so draft-mode builds work without the consumer
+        # having to vendor the asset. -n preserves any site-local override.
+        mkdir -p static
+        cp -n themes/policypress/static/draft.png static/ 2>/dev/null || true
+
     - name: Build site and PDFs
       id: build
       shell: nix develop "github:sc2in/policypress#ci" --command bash -e {0}

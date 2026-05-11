@@ -36,6 +36,32 @@ content/
     access-control.md
 ```
 
+### Theme submodule
+
+The GitHub Action (`sc2in/policypress@v1`) handles theme checkout automatically. For Azure DevOps and any custom pipeline that doesn't use the Action, add policypress as a git submodule:
+
+```bash
+git submodule add https://github.com/sc2in/policypress themes/policypress
+git submodule update --init
+```
+
+Zola does not automatically propagate certain files from a theme into the build. After adding the submodule, copy these assets once into your repository and commit them:
+
+```bash
+cp themes/policypress/templates/eisvogel.latex templates/
+cp -r themes/policypress/templates/shortcodes/ templates/shortcodes/
+cp -r themes/policypress/data/ data/
+cp themes/policypress/static/draft.png static/
+```
+
+Your pipeline's checkout step must initialize the submodule. The ADO example below already includes `submodules: true`. For a manual GitHub Actions workflow, add the `with` block to the checkout step:
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    submodules: recursive
+```
+
 ### Pipeline
 
 <div class="tab-group" data-default="GitHub Actions">
@@ -125,9 +151,12 @@ pr:
       - config.toml
 
 variables:
-  # Default to draft; overridden to 'true' at runtime on main (see step below).
+  # Automatically true on main; all other branches produce draft PDFs.
   - name: publish
-    value: 'false'
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: 'true'
+    ${{ else }}:
+      value: 'false'
   # Pin to a specific release. Update this when you want to upgrade policypress.
   - name: POLICYPRESS_VERSION
     value: 'v1.2.3'
@@ -138,11 +167,6 @@ pool:
 steps:
   - checkout: self
     submodules: true
-
-  # Automatically publish production PDFs on main; all other branches get draft watermarks.
-  - bash: echo "##vso[task.setvariable variable=publish]true"
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-    displayName: Enable publish on main
 
   - bash: |
       set -euo pipefail

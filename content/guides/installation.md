@@ -128,6 +128,9 @@ variables:
   # Default to draft; overridden to 'true' at runtime on main (see step below).
   - name: publish
     value: 'false'
+  # Pin to a specific release. Update this when you want to upgrade policypress.
+  - name: POLICYPRESS_VERSION
+    value: 'v1.2.3'
 
 pool:
   vmImage: ubuntu-latest
@@ -155,14 +158,23 @@ steps:
 
   - bash: |
       set -euo pipefail
+      curl -fsSL \
+        "https://github.com/sc2in/policypress/releases/download/$(POLICYPRESS_VERSION)/policypress-x86_64-linux" \
+        -o /tmp/policypress
+      chmod +x /tmp/policypress
+      echo "##vso[task.prependpath]/tmp"
+    displayName: Download policypress binary
+
+  - bash: |
+      set -euo pipefail
       . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-      nix develop github:sc2in/policypress#ci --command zola build
+      nix develop "github:sc2in/policypress/$(POLICYPRESS_VERSION)#ci" --command zola build
       if [ "$(publish)" = "true" ]; then
-        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs
-        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs --redact
+        policypress -c config.toml -o public/pdfs
+        policypress -c config.toml -o public/pdfs --redact
       else
-        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs --draft
-        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs --draft --redact
+        policypress -c config.toml -o public/pdfs --draft
+        policypress -c config.toml -o public/pdfs --draft --redact
       fi
     displayName: Build site and PDFs
 
@@ -184,7 +196,7 @@ To deploy to Azure Static Web Apps, add this step after the publish task and sto
 ```
 
 > [!NOTE]
-> The first run downloads the Nix environment (~1–2 GB) and compiles the policypress binary, which takes 15–20 minutes. Subsequent runs are faster with a Nix binary cache — see [Determinate Systems FlakeHub Cache](https://docs.determinate.systems/flakehub-cache/) for ADO-compatible options. For the fastest cold starts, replace `nix run github:sc2in/policypress` with a pre-compiled binary downloaded from the [latest release](https://github.com/sc2in/policypress/releases/latest).
+> The first run downloads the Nix CI environment (~1–2 GB for Zola, Pandoc, and fonts), which takes a few minutes. The policypress binary itself is fetched as a pre-compiled release artifact, so no Zig compilation is needed. To upgrade policypress, update the `POLICYPRESS_VERSION` variable. For additional Nix store caching between runs, see [Determinate Systems FlakeHub Cache](https://docs.determinate.systems/flakehub-cache/).
 
 </div>
 </div>

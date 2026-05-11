@@ -171,7 +171,7 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
         break :blk try a.dupe(u8, config.logo_path);
     } else try a.dupe(u8, config.logo_path);
     defer a.free(logo_for_latex);
-    try add_arg(a, args, "-V", "header-right=\\includegraphics[height=2cm]{{{s}}}", .{logo_for_latex});
+    try add_arg(a, args, "-V", "header-right=\\includegraphics[width=3cm,height=2cm,keepaspectratio]{{{s}}}", .{logo_for_latex});
 
     try add_arg(a, args, "-V", "titlepage-logo={s}", .{logo_for_latex});
 

@@ -164,7 +164,7 @@ variables:
   ${{ else }}:
     publish: 'false'
   # Pin to a specific release. Update this when you want to upgrade policypress.
-  POLICYPRESS_VERSION: 'v1.2.3'
+  POLICYPRESS_VERSION: 'v1.2.6'
 
 pool:
   vmImage: ubuntu-latest
@@ -177,7 +177,7 @@ stages:
         displayName: Build with PolicyPress
         steps:
           - checkout: self
-            submodules: "true"
+            submodules: true
 
           - bash: |
               set -euo pipefail
@@ -221,7 +221,7 @@ stages:
           - task: AzureStaticWebApp@0
             condition: and(succeeded(), eq(variables.publish, 'true'))
             inputs:
-              app_location: /public
+              app_location: public
               output_location: public
               skip_app_build: true
               azure_static_web_apps_api_token: $(deployment_token)

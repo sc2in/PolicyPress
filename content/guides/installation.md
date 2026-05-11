@@ -36,6 +36,39 @@ content/
     access-control.md
 ```
 
+### Theme submodule
+
+The GitHub Action (`sc2in/policypress@v1`) handles theme checkout automatically. For Azure DevOps and any custom pipeline that doesn't use the Action, add policypress as a git submodule:
+
+```bash
+git submodule add https://github.com/sc2in/policypress themes/policypress
+git submodule update --init
+```
+
+Zola does not automatically propagate certain files from a theme into the build. After adding the submodule, copy these assets once into your repository and commit them:
+
+```bash
+mkdir -p templates
+cp -n themes/policypress/templates/eisvogel.latex templates/
+
+mkdir -p templates/shortcodes
+cp -n themes/policypress/templates/shortcodes/*.html templates/shortcodes/
+
+mkdir -p data
+cp -n themes/policypress/data/* data/
+
+mkdir -p static
+cp -n themes/policypress/static/draft.png static/ 2>/dev/null || true
+```
+
+Your pipeline's checkout step must initialize the submodule. The ADO example below already includes `submodules: true`. For a manual GitHub Actions workflow, add the `with` block to the checkout step:
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    submodules: recursive
+```
+
 ### Pipeline
 
 <div class="tab-group" data-default="GitHub Actions">
@@ -125,66 +158,79 @@ pr:
       - config.toml
 
 variables:
-  # Default to draft; overridden to 'true' at runtime on main (see step below).
-  - name: publish
-    value: 'false'
+  # Automatically true on main; all other branches produce draft PDFs.
+  ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+    publish: 'true'
+  ${{ else }}:
+    publish: 'false'
+  # Pin to a specific release. Update this when you want to upgrade policypress.
+  POLICYPRESS_VERSION: 'v1.2.6'
 
 pool:
   vmImage: ubuntu-latest
 
-steps:
-  - checkout: self
-    submodules: true
+stages:
+  - stage: Build
+    displayName: Build
+    jobs:
+      - job: BuildSite
+        displayName: Build with PolicyPress
+        steps:
+          - checkout: self
+            submodules: true
 
-  # Automatically publish production PDFs on main; all other branches get draft watermarks.
-  - bash: echo "##vso[task.setvariable variable=publish]true"
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-    displayName: Enable publish on main
+          - bash: |
+              set -euo pipefail
+              # Ubuntu 22.04+ requires this before Nix can create user namespaces.
+              sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+              curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
+                | sh -s -- install linux --no-confirm \
+                    --extra-conf "sandbox = false" \
+                    --extra-conf "trusted-users = root vsts"
+              . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+              nix --version
+            displayName: Install Nix
 
-  - bash: |
-      set -euo pipefail
-      # Ubuntu 22.04+ requires this before Nix can create user namespaces.
-      sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-      curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
-        | sh -s -- install linux --no-confirm \
-            --extra-conf "sandbox = false" \
-            --extra-conf "trusted-users = root vsts"
-      . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-      nix --version
-    displayName: Install Nix
+          - bash: |
+              set -euo pipefail
+              curl --retry 3 -fsSL \
+                "https://github.com/sc2in/policypress/releases/download/$(POLICYPRESS_VERSION)/policypress-x86_64-linux" \
+                -o /tmp/policypress
+              chmod +x /tmp/policypress
+            displayName: Download policypress binary
 
-  - bash: |
-      set -euo pipefail
-      . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-      nix develop github:sc2in/policypress#ci --command zola build
-      if [ "$(publish)" = "true" ]; then
-        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs
-        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs --redact
-      else
-        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs --draft
-        nix run github:sc2in/policypress -- -c config.toml -o public/pdfs --draft --redact
-      fi
-    displayName: Build site and PDFs
+          - bash: |
+              set -euo pipefail
+              . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+              nix develop "github:sc2in/policypress/$(POLICYPRESS_VERSION)#ci" --command bash -c "
+                set -euo pipefail
+                zola build
+                if [ '$(publish)' = 'true' ]; then
+                  /tmp/policypress -c config.toml -o public/pdfs
+                  /tmp/policypress -c config.toml -o public/pdfs --redact
+                else
+                  /tmp/policypress -c config.toml -o public/pdfs --draft
+                  /tmp/policypress -c config.toml -o public/pdfs --draft --redact
+                fi
+              "
+            displayName: Build site and PDFs
 
-  - publish: $(Build.SourcesDirectory)/public
-    artifact: WebApp
+          - publish: $(Build.SourcesDirectory)/public
+            artifact: WebApp
+
+          - task: AzureStaticWebApp@0
+            condition: and(succeeded(), eq(variables.publish, 'true'))
+            inputs:
+              app_location: public
+              output_location: public
+              skip_app_build: true
+              azure_static_web_apps_api_token: $(deployment_token)
 ```
 
-Link it to a pipeline in **Azure DevOps → Pipelines → New pipeline** and point it at this file.
-
-To deploy to Azure Static Web Apps, add this step after the publish task and store the deployment token as a pipeline variable named `deployment_token`:
-
-```yaml
-  - task: AzureStaticWebApp@0
-    condition: and(succeeded(), eq(variables.publish, 'true'))
-    inputs:
-      app_location: public
-      skip_app_build: true
-      azure_static_web_apps_api_token: $(deployment_token)
-```
+Link it to a pipeline in **Azure DevOps → Pipelines → New pipeline** and point it at this file. Store the Azure Static Web Apps deployment token as a pipeline secret variable named `deployment_token`.
 
 > [!NOTE]
-> The first run downloads the Nix environment (~1–2 GB) and compiles the policypress binary, which takes 15–20 minutes. Subsequent runs are faster with a Nix binary cache — see [Determinate Systems FlakeHub Cache](https://docs.determinate.systems/flakehub-cache/) for ADO-compatible options. For the fastest cold starts, replace `nix run github:sc2in/policypress` with a pre-compiled binary downloaded from the [latest release](https://github.com/sc2in/policypress/releases/latest).
+> The first run downloads the Nix CI environment (~1–2 GB for Zola, Pandoc, and fonts), which takes a few minutes. The policypress binary itself is fetched as a pre-compiled release artifact, so no Zig compilation is needed. To upgrade policypress, update the `POLICYPRESS_VERSION` variable. For additional Nix store caching between runs, see [Determinate Systems FlakeHub Cache](https://docs.determinate.systems/flakehub-cache/).
 
 </div>
 </div>

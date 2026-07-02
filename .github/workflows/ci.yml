@@ -77,7 +77,10 @@ jobs:
           if [[ "$RUNNER_OS" == "macOS" ]]; then
             # mermaid-filter/Chromium not available on macOS; run semantic
             # analysis only until a macOS-compatible renderer is available.
-            nix develop --command zig build check
+            # Use just the pinned Zig (prebuilt) rather than the full devShell:
+            # zig2nix's source-built inputs currently pull glibc into the
+            # aarch64-darwin closure, which nix refuses to evaluate.
+            nix shell .#zig --command zig build check
           else
             om ci run
           fi

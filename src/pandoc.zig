@@ -395,24 +395,31 @@ pub fn run_pandoc(io: std.Io, env: *EnvMap, a: Allocator, args: Array([]const u8
     for (args.items) |arg|
         panlog.debug("\t{s}\n", .{arg});
 
+    // Work on a private copy of the environment: the build pipeline runs policies
+    // concurrently and shares one env map across tasks, so mutating it here (the
+    // HOME override below) would be a data race and leak across tasks. Clone,
+    // override on the copy, and leave the caller's map untouched.
+    var child_env = try env.clone(a);
+    defer child_env.deinit();
+
     // xelatex/fontconfig need a writable HOME to write their caches.  In the
     // Nix build sandbox HOME is set to /homeless-shelter (read-only), which
     // causes fontconfig to error and xelatex to exit non-zero.  Override HOME
     // with a directory under TMPDIR when the current value is not writable.
-    const home_ok = if (env.get("HOME")) |h|
+    const home_ok = if (child_env.get("HOME")) |h|
         (std.Io.Dir.accessAbsolute(io, h, .{}) catch null) != null
     else
         false;
     if (!home_ok) {
-        const tmpdir = env.get("TMPDIR") orelse env.get("TMP") orelse "/tmp";
+        const tmpdir = child_env.get("TMPDIR") orelse child_env.get("TMP") orelse "/tmp";
         const tmp_home = try std.fmt.allocPrint(a, "{s}/pp-home", .{tmpdir});
         defer a.free(tmp_home);
         std.Io.Dir.cwd().createDirPath(io, tmp_home) catch {};
-        try env.put("HOME", tmp_home);
+        try child_env.put("HOME", tmp_home);
         panlog.debug("HOME not writable - overriding with {s}\n", .{tmp_home});
     }
 
-    if (env.get("PATH")) |path| {
+    if (child_env.get("PATH")) |path| {
         panlog.debug("Child PATH: {s}\n", .{path});
     } else {
         panlog.debug("No PATH in env_map!\n", .{});
@@ -420,7 +427,7 @@ pub fn run_pandoc(io: std.Io, env: *EnvMap, a: Allocator, args: Array([]const u8
 
     const result = std.process.run(a, io, .{
         .argv = args.items,
-        .environ_map = env,
+        .environ_map = &child_env,
         .stdout_limit = .unlimited,
         .stderr_limit = .unlimited,
     }) catch |e| {

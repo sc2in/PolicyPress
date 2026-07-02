@@ -251,6 +251,11 @@
               policypress-safe = withDesc policypress "PolicyPress (ReleaseSafe)";
               policypress-small = withDesc (mkPolicypress "ReleaseSmall") "PolicyPress (ReleaseSmall)";
               policypress-fast = withDesc (mkPolicypress "ReleaseFast") "PolicyPress (ReleaseFast)";
+              # The pinned Zig 0.16 toolchain (prebuilt). Exposed so lightweight
+              # consumers (e.g. the macOS CI `zig build check`) can get just the
+              # compiler without the full devShell, whose zig2nix source-built
+              # inputs currently drag glibc into the aarch64-darwin closure.
+              zig = withDesc zig "Zig 0.16 toolchain (pinned via zig2nix)";
             };
 
             # --- Checks (nix flake check) ----------------------------------------

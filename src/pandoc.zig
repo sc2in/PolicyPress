@@ -309,8 +309,12 @@ pub fn process_md_file(
         }
         break :blk "/tmp";
     };
-    const pid = std.os.linux.getpid();
-    const tmp_name = try std.fmt.allocPrint(a, "pp_{d}_{s}", .{ pid, std.fs.path.basename(md.path) });
+    // Random suffix instead of pid: portable across OSes (getpid was a raw
+    // Linux syscall), and unique per task even within one process, so
+    // concurrent compiles of same-named files cannot collide.
+    var tmp_id: u64 = undefined;
+    io.random(std.mem.asBytes(&tmp_id));
+    const tmp_name = try std.fmt.allocPrint(a, "pp_{x}_{s}", .{ tmp_id, std.fs.path.basename(md.path) });
     defer a.free(tmp_name);
     const tmp_abs = try std.fs.path.join(a, &.{ tmpdir, tmp_name });
     defer a.free(tmp_abs);
@@ -425,11 +429,15 @@ pub fn run_pandoc(io: std.Io, env: *EnvMap, a: Allocator, args: Array([]const u8
         panlog.debug("No PATH in env_map!\n", .{});
     }
 
+    // Cap collected output so a runaway pandoc/filter cannot exhaust memory.
+    // Generous vs. the pre-0.16 100 KB cap since LaTeX errors are verbose;
+    // exceeding it returns error.StreamTooLong, matching the old behavior.
+    const max_output_bytes = 1024 * 1024;
     const result = std.process.run(a, io, .{
         .argv = args.items,
         .environ_map = &child_env,
-        .stdout_limit = .unlimited,
-        .stderr_limit = .unlimited,
+        .stdout_limit = .limited(max_output_bytes),
+        .stderr_limit = .limited(max_output_bytes),
     }) catch |e| {
         if (e == error.FileNotFound) {
             std.debug.print(
@@ -439,6 +447,13 @@ pub fn run_pandoc(io: std.Io, env: *EnvMap, a: Allocator, args: Array([]const u8
                 .{},
             );
             return error.PandocNotFound;
+        }
+        if (e == error.StreamTooLong) {
+            std.debug.print(
+                "policypress: pandoc produced more than {d} bytes of output; aborting this policy.\n",
+                .{max_output_bytes},
+            );
+            return error.PandocFailed;
         }
         std.debug.print("policypress: failed to spawn pandoc: {s}\n", .{@errorName(e)});
         return e;

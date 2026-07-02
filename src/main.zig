@@ -320,7 +320,11 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     // without the consumer needing to vendor the template in their repository.
     const data_dir_path = blk: {
         const base = env.get("TMPDIR") orelse env.get("TMP") orelse "/tmp";
-        break :blk try std.fmt.allocPrint(alloc, "{s}/pp-data-{d}", .{ base, std.os.linux.getpid() });
+        // Random suffix instead of pid: getpid was a raw Linux syscall and
+        // not portable to the macOS/Windows builds.
+        var run_id: u64 = undefined;
+        io.random(std.mem.asBytes(&run_id));
+        break :blk try std.fmt.allocPrint(alloc, "{s}/pp-data-{x}", .{ base, run_id });
     };
     defer alloc.free(data_dir_path);
     std.Io.Dir.cwd().createDirPath(io, data_dir_path) catch {};

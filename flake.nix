@@ -53,7 +53,10 @@
               in
               if match != null then builtins.head match else "0.0.0";
 
-            env = zig2nix.outputs.zig-env.${system} { zig = pkgs.zig; };
+            # Pin Zig 0.16.0 from zig2nix rather than nixpkgs' `pkgs.zig`, which
+            # tracks an older release than this project's minimum_zig_version.
+            zig = zig2nix.outputs.packages.${system}."zig-0_16_0";
+            env = zig2nix.outputs.zig-env.${system} { inherit zig; };
 
             # Only include files that affect the build so that content, docs, and
             # theme changes don't bust the Nix build cache.
@@ -456,12 +459,12 @@
                 ++ config.pre-commit.settings.enabledPackages
                 ++ [
                   policypress
-                  pkgs.zig
+                  zig
                   pkgs.act
                   pkgs.omnix
                   pkgs.watchexec
                   pkgs.typst
-                  pkgs.zls
+                  zig2nix.outputs.packages.${system}."zls-0_16_0"
                   (pkgs.writeShellScriptBin "update-zon" ''
                     set -euo pipefail
                     echo "Updating build.zig.zon dependencies..."

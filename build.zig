@@ -9,8 +9,12 @@ const math = std.math;
 const ReportType = @import("src/control_report.zig").Report;
 
 pub fn build(b: *std.Build) !void {
+    var threaded: std.Io.Threaded = .init(b.allocator, .{});
+    defer threaded.deinit();
+    const io = threaded.io();
+
     const target = b.standardTargetOptions(.{
-        .default_target = defaultTarget(),
+        .default_target = defaultTarget(io),
     });
     const optimize = b.standardOptimizeOption(.{});
 
@@ -24,10 +28,6 @@ pub fn build(b: *std.Build) !void {
         .optimize = .ReleaseSafe,
     });
     const clap = b.dependency("clap", .{
-        .target = target,
-        .optimize = .ReleaseSafe,
-    });
-    const pg = b.dependency("datetime", .{
         .target = target,
         .optimize = .ReleaseSafe,
     });
@@ -48,7 +48,6 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-    config_mod.addImport("datetime", pg.module("datetime"));
     config_mod.addImport("tomlz", tomlz.module("tomlz"));
     config_mod.addImport("zigmark", zigmark_mod);
 
@@ -59,6 +58,9 @@ pub fn build(b: *std.Build) !void {
     });
     utils_mod.addImport("mvzr", mvzr.module("mvzr"));
     utils_mod.addImport("zigmark", zigmark_mod);
+
+    // config uses utils for Date/today and readAllAlloc helpers.
+    config_mod.addImport("utils", utils_mod);
 
     var pandoc_sh: *std.Build.Step.Compile = undefined;
 
@@ -114,7 +116,6 @@ pub fn build(b: *std.Build) !void {
     // pandoc_sh_mod.addImport("zetta", zetta_mod);
     pandoc_sh_mod.addImport("clap", clap.module("clap"));
     pandoc_sh_mod.addImport("mvzr", mvzr.module("mvzr"));
-    pandoc_sh_mod.addImport("datetime", pg.module("datetime"));
     pandoc_sh_mod.addImport("config", config_mod);
     pandoc_sh_mod.addImport("utils", utils_mod);
     pandoc_sh_mod.addImport("pandoc_options", pandoc_opts_mod);
@@ -138,7 +139,6 @@ pub fn build(b: *std.Build) !void {
     });
     reports_mod.addImport("clap", clap.module("clap"));
     reports_mod.addImport("tomlz", tomlz.module("tomlz"));
-    reports_mod.addImport("datetime", pg.module("datetime"));
     reports_mod.addImport("config", config_mod);
     reports_mod.addImport("zigmark", zigmark_mod);
 
@@ -155,7 +155,6 @@ pub fn build(b: *std.Build) !void {
     policypress_mod.addImport("pandoc", pandoc_sh_mod);
     policypress_mod.addImport("reports", reports_mod);
     policypress_mod.addImport("utils", utils_mod);
-    policypress_mod.addImport("datetime", pg.module("datetime"));
     const policypress_exe = b.addExecutable(.{
         .root_module = policypress_mod,
         .name = "policypress",
@@ -193,7 +192,6 @@ pub fn build(b: *std.Build) !void {
         test_module.addImport("pandoc_options", pandoc_opts_mod);
         test_module.addImport("config", config_mod);
         test_module.addImport("reports", reports_mod);
-        test_module.addImport("datetime", pg.module("datetime"));
         test_module.addImport("mvzr", mvzr.module("mvzr"));
         const unit_tests = b.addTest(.{
             .root_module = test_module,
@@ -243,8 +241,8 @@ pub fn build(b: *std.Build) !void {
 /// On NixOS there is no standard FHS layout, so Zig's native target detection
 /// probes many non-existent paths which is slow. Detect NixOS and return an
 /// explicit target query to skip the probing.
-fn defaultTarget() std.Target.Query {
-    if (std.fs.accessAbsolute("/etc/NIXOS", .{})) |_| {
+fn defaultTarget(io: std.Io) std.Target.Query {
+    if (std.Io.Dir.accessAbsolute(io, "/etc/NIXOS", .{})) |_| {
         return .{
             .os_tag = .linux,
             .abi = .gnu,

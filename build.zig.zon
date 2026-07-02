@@ -30,7 +30,7 @@
 
     // Tracks the earliest Zig version that the package considers to be a
     // supported use case.
-    .minimum_zig_version = "0.15.2",
+    .minimum_zig_version = "0.16.0",
 
     // This field is optional.
     // Each dependency must either provide a `url` and `hash`, or a `path`.
@@ -42,32 +42,24 @@
         // Switch to git+https URLs with hashes before publishing to FlakeHub.
         // .zetta = .{ .path = "../zetta" },
         .zigmark = .{
-            .url = "git+https://github.com/sc2in/zigmark#ff67b4b9a9ea43de60b8be52d7592c519026fe6e",
-            .hash = "zigmark-0.5.0-cwOiyHzQCQBz8SXqL4pV4shRF5KG4kZxvbps1fpHygGg",
+            .url = "git+https://github.com/sc2in/zigmark#e590c0a1d707744811d936b038d4a7e0780b32e9",
+            .hash = "zigmark-0.7.0-cwOiyN4KCgAHRBp6kiQE2fbckRQiOUfPQNq9rYPtOrqG",
         },
         .tomlz = .{
-            .url = "git+https://github.com/tsunaminoai/tomlz.git#b6362cb00e89d8f4996a9198a6ef33ac0523f52a",
-            .hash = "tomlz-0.3.0-H2E6wzxKAgD6D_3w6raXVf-FpUmFduKFWXQOCg6dQSGb",
+            .url = "git+https://github.com/sc2in/tomlz.git#ecd64e239768b573ec58286d0db1842991433e99",
+            .hash = "tomlz-0.3.0-H2E6w3VKAgCSZQFKG-VugLEn3cjOWshGqwGzAVABNm--",
         },
         .mvzr = .{
-            .url = "git+https://github.com/mnemnion/mvzr#17a44b46cfe48ef46818d51bdf1161783dfe66e1",
-            .hash = "mvzr-0.3.7-ZSOky5FtAQB2VrFQPNbXHQCFJxWTMAYEK7ljYEaMR6jt",
+            .url = "git+https://github.com/mnemnion/mvzr#3efcfe339bd32e122c36b8f1db25b237f93a7ec2",
+            .hash = "mvzr-0.3.9-ZSOky6t2AQCA7efmm5EYbPb5sOdbXa4EFsUgYbQ6hZv9",
         },
         .zap = .{
-            .url = "git+https://github.com/zigzap/zap#76679f308c702cd8880201e6e93914e1d836a54b",
-            .hash = "zap-0.10.6-GoeB8w-EJABTkxyoGH_Z8oMBYMxTBvn7YWk-DrJOHuDO",
+            .url = "git+https://github.com/zigzap/zap#f6099ecec496c7ec623c5913baa5b6b5da2e883d",
+            .hash = "zap-0.10.6-GoeB8y-IJAD3m9zkAkeTQalzU1NuvO072u8hA78Irdp8",
         },
         .clap = .{
-            .url = "https://github.com/Hejsil/zig-clap/archive/refs/tags/0.11.0.tar.gz",
-            .hash = "clap-0.11.0-oBajB-HnAQDPCKYzwF7rO3qDFwRcD39Q0DALlTSz5H7e",
-        },
-        .datetime = .{
-            .url = "git+https://github.com/frmdstryr/zig-datetime#3a39a21e6e34dcb0ade0ff828d0914d40ba535f3",
-            .hash = "datetime-0.8.0-cJNXzP_YAQBxQ5hkNNP6ScnG5XsqciJmeP5RVV4xwCBA",
-        },
-        .yaml = .{
-            .url = "https://github.com/kubkon/zig-yaml/archive/refs/tags/0.2.0.tar.gz",
-            .hash = "zig_yaml-0.2.0-C1161pmrAgC_rL9WzjvgNg7HnmyAMwHsG3Sre0F4haPI",
+            .url = "git+https://github.com/Hejsil/zig-clap#1d3d273524e3c180f015ff1e93c83075e4634e2c",
+            .hash = "clap-0.11.0-oBajB-jlAQA8x4XSScN1d48Q83iYl-LDU63htNyXbXBe",
         },
     },
     .paths = .{

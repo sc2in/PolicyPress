@@ -20,7 +20,8 @@ const Pandoc = @import("pandoc");
 const Reports = @import("reports");
 const stampIsNewer = @import("utils").stampIsNewer;
 const writeStamp = @import("utils").writeStamp;
-const dt = @import("datetime");
+const Date = @import("utils").Date;
+const EnvMap = std.process.Environ.Map;
 
 // ---------------------------------------------------------------------------
 // Logging
@@ -47,7 +48,7 @@ fn ppLog(
     }
     var msg_buf: [4096]u8 = undefined;
     const msg = std.fmt.bufPrint(&msg_buf, format, args) catch "(message too long)";
-    const trimmed = std.mem.trimRight(u8, msg, "\n");
+    const trimmed = std.mem.trimEnd(u8, msg, "\n");
     if (pp_json_log) {
         // Encode message as a JSON string using a fixed output buffer.
         // Uses std.debug.print for thread safety (it holds the stderr mutex).
@@ -58,12 +59,35 @@ fn ppLog(
         for (trimmed) |c| {
             if (i + 6 > out.len) break;
             switch (c) {
-                '"' => { out[i] = '\\'; out[i + 1] = '"'; i += 2; },
-                '\\' => { out[i] = '\\'; out[i + 1] = '\\'; i += 2; },
-                '\n' => { out[i] = '\\'; out[i + 1] = 'n'; i += 2; },
-                '\r' => { out[i] = '\\'; out[i + 1] = 'r'; i += 2; },
-                '\t' => { out[i] = '\\'; out[i + 1] = 't'; i += 2; },
-                else => { out[i] = c; i += 1; },
+                '"' => {
+                    out[i] = '\\';
+                    out[i + 1] = '"';
+                    i += 2;
+                },
+                '\\' => {
+                    out[i] = '\\';
+                    out[i + 1] = '\\';
+                    i += 2;
+                },
+                '\n' => {
+                    out[i] = '\\';
+                    out[i + 1] = 'n';
+                    i += 2;
+                },
+                '\r' => {
+                    out[i] = '\\';
+                    out[i + 1] = 'r';
+                    i += 2;
+                },
+                '\t' => {
+                    out[i] = '\\';
+                    out[i + 1] = 't';
+                    i += 2;
+                },
+                else => {
+                    out[i] = c;
+                    i += 1;
+                },
             }
         }
         const suffix = "\"}\n";
@@ -89,34 +113,33 @@ const top_level_usage =
     \\
 ;
 
-pub fn main() void {
-    var gpa = std.heap.DebugAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const alloc = gpa.allocator();
+pub fn main(init: std.process.Init) void {
+    const io = init.io;
+    const alloc = init.gpa;
+    const env = init.environ_map;
 
     // Read argv upfront so we can route subcommands before clap sees the args.
-    const argv = std.process.argsAlloc(alloc) catch {
+    const argv = init.minimal.args.toSlice(init.arena.allocator()) catch {
         std.debug.print("policypress: out of memory\n", .{});
         std.process.exit(1);
     };
-    defer std.process.argsFree(alloc, argv);
 
     // argv[0] is the binary name; user arguments start at argv[1].
-    const user_args: []const [:0]u8 = if (argv.len > 1) argv[1..] else &.{};
+    const user_args: []const [:0]const u8 = if (argv.len > 1) argv[1..] else &.{};
 
     // If the first user argument looks like a subcommand (no leading '-'), dispatch.
     if (user_args.len > 0 and !std.mem.startsWith(u8, user_args[0], "-")) {
         const subcmd = user_args[0];
-        const rest: []const [:0]u8 = if (user_args.len > 1) user_args[1..] else &.{};
+        const rest: []const [:0]const u8 = if (user_args.len > 1) user_args[1..] else &.{};
 
         if (std.mem.eql(u8, subcmd, "new")) {
-            runNew(alloc, rest) catch |err| {
+            runNew(io, alloc, rest) catch |err| {
                 std.debug.print("policypress new: unexpected error: {s}\n", .{@errorName(err)});
                 std.process.exit(1);
             };
             return;
         } else if (std.mem.eql(u8, subcmd, "build")) {
-            runBuild(alloc, rest) catch |err| handleBuildError(err);
+            runBuild(io, env, alloc, rest) catch |err| handleBuildError(err);
             return;
         } else if (std.mem.eql(u8, subcmd, "help")) {
             std.debug.print("{s}", .{top_level_usage});
@@ -128,7 +151,7 @@ pub fn main() void {
     }
 
     // Default: build (passing all user args as flags).
-    runBuild(alloc, user_args) catch |err| handleBuildError(err);
+    runBuild(io, env, alloc, user_args) catch |err| handleBuildError(err);
 }
 
 fn handleBuildError(err: anyerror) void {
@@ -151,7 +174,7 @@ fn handleBuildError(err: anyerror) void {
     std.process.exit(1);
 }
 
-fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
+fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const u8) !void {
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
         \\-c, --config <str>     Path to config file. (default: config.toml)
@@ -166,7 +189,7 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
         \\    --json             Emit log output as JSON lines (for CI).
     );
     var buf: [128]u8 = undefined;
-    var stderr = std.fs.File.stderr().writer(&buf).interface;
+    var stderr = std.Io.File.stderr().writer(io, &buf).interface;
     defer stderr.flush() catch {};
     var diag = clap.Diagnostic{};
 
@@ -187,13 +210,13 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
 
     if (res.args.help != 0) {
         std.debug.print("PolicyPress\n\n", .{});
-        return clap.helpToFile(std.fs.File.stderr(), clap.Help, &params, .{});
+        return clap.help(&stderr, clap.Help, &params, .{});
     }
 
     // --- Load config ---
 
     const config_path = if (res.args.config) |c| c else "config.toml";
-    const config_file = std.fs.cwd().openFile(config_path, .{}) catch |err| {
+    const config_file = std.Io.Dir.cwd().openFile(io, config_path, .{}) catch |err| {
         if (err == error.FileNotFound) {
             std.debug.print(
                 \\policypress: config file '{s}' not found.
@@ -220,8 +243,8 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
         );
         return error.ConfigReadFailed;
     };
-    defer config_file.close();
-    const contents = config_file.readToEndAlloc(alloc, 1024 * 1024) catch |err| {
+    defer config_file.close(io);
+    const contents = @import("utils").readAllAlloc(io, config_file, alloc, 1024 * 1024) catch |err| {
         std.debug.print(
             "policypress: failed to read config file '{s}': {s}\n",
             .{ config_path, @errorName(err) },
@@ -230,7 +253,7 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
     };
     defer alloc.free(contents);
 
-    var config = Config.load(alloc, contents) catch |err| {
+    var config = Config.load(io, alloc, contents) catch |err| {
         printConfigError(config_path, err);
         return error.ConfigInvalid;
     };
@@ -252,7 +275,7 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
 
     // --- Open policy directory ---
 
-    var policy_dir = std.fs.cwd().openDir(config.policy_dir, .{
+    var policy_dir = std.Io.Dir.cwd().openDir(io, config.policy_dir, .{
         .iterate = true,
         .access_sub_paths = true,
     }) catch |err| {
@@ -270,7 +293,7 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
         }
         return error.PolicyDirNotFound;
     };
-    defer policy_dir.close();
+    defer policy_dir.close(io);
 
     var walker = policy_dir.walk(alloc) catch |err| {
         std.debug.print(
@@ -296,21 +319,19 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
     // Write the embedded eisvogel.latex to a tmpdir so pandoc can find it
     // without the consumer needing to vendor the template in their repository.
     const data_dir_path = blk: {
-        var env_tmp = try std.process.getEnvMap(alloc);
-        defer env_tmp.deinit();
-        const base = env_tmp.get("TMPDIR") orelse env_tmp.get("TMP") orelse "/tmp";
+        const base = env.get("TMPDIR") orelse env.get("TMP") orelse "/tmp";
         break :blk try std.fmt.allocPrint(alloc, "{s}/pp-data-{d}", .{ base, std.os.linux.getpid() });
     };
     defer alloc.free(data_dir_path);
-    std.fs.makeDirAbsolute(data_dir_path) catch {};
-    defer std.fs.deleteTreeAbsolute(data_dir_path) catch {};
-    config.data_dir = Pandoc.writeEisvogel(alloc, data_dir_path) catch |err| blk: {
+    std.Io.Dir.cwd().createDirPath(io, data_dir_path) catch {};
+    defer std.Io.Dir.cwd().deleteTree(io, data_dir_path) catch {};
+    config.data_dir = Pandoc.writeEisvogel(io, alloc, data_dir_path) catch |err| blk: {
         std.debug.print("policypress: warning: could not write embedded template ({s}), falling back to --data-dir=.\n", .{@errorName(err)});
         break :blk config.root;
     };
     defer if (!std.mem.eql(u8, config.data_dir, config.root)) alloc.free(config.data_dir);
 
-    std.fs.cwd().makePath(output_path) catch |err| {
+    std.Io.Dir.cwd().createDirPath(io, output_path) catch |err| {
         std.debug.print(
             "policypress: cannot create output directory '{s}': {s}\n",
             .{ output_path, @errorName(err) },
@@ -327,17 +348,17 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
     defer alloc.free(stamps_subdir);
     const stamps_dir_path = try std.fs.path.join(alloc, &.{ output_path, stamps_subdir });
     defer alloc.free(stamps_dir_path);
-    std.fs.cwd().makePath(stamps_dir_path) catch {}; // non-fatal if it fails
+    std.Io.Dir.cwd().createDirPath(io, stamps_dir_path) catch {}; // non-fatal if it fails
 
     // --- Collect policy files ---
 
-    var file_paths = Array([]const u8){};
+    var file_paths = Array([]const u8).empty;
     defer {
         for (file_paths.items) |path| alloc.free(path);
         file_paths.deinit(alloc);
     }
     var skipped: usize = 0;
-    while (walker.next() catch |err| {
+    while (walker.next(io) catch |err| {
         std.debug.print(
             "policypress: error while scanning policy directory: {s}\n",
             .{@errorName(err)},
@@ -348,7 +369,7 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
             const base_name = std.fs.path.basename(entry.path);
             if (std.mem.eql(u8, base_name, "_index.md")) continue;
             const input_path = try std.fs.path.join(alloc, &.{ config.policy_dir, entry.path });
-            if (stampIsNewer(input_path, stamps_dir_path, alloc)) {
+            if (stampIsNewer(io, input_path, stamps_dir_path, alloc)) {
                 alloc.free(input_path);
                 skipped += 1;
                 continue;
@@ -372,32 +393,25 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
 
     // --- Parallel compilation ---
 
-    const root_progress = std.Progress.start(.{ .root_name = "PolicyPress" });
+    const root_progress = std.Progress.start(io, .{ .root_name = "PolicyPress" });
     const compile_node = root_progress.start("compiling policies", total_files);
 
-    var error_mutex: std.Thread.Mutex = .{};
+    var error_mutex: std.Io.Mutex = .init;
     var error_count: usize = 0;
-    var error_list = std.ArrayList(ErrorInfo){};
+    var error_list = std.ArrayList(ErrorInfo).empty;
     defer {
         for (error_list.items) |e| alloc.free(e.path);
         error_list.deinit(alloc);
     }
 
-    var pool: std.Thread.Pool = undefined;
-    pool.init(.{ .allocator = alloc }) catch |err| {
-        std.debug.print(
-            "policypress: failed to start thread pool: {s}\n",
-            .{@errorName(err)},
-        );
-        compile_node.end();
-        root_progress.end();
-        return err;
-    };
-    defer pool.deinit();
-
-    var wg: std.Thread.WaitGroup = .{};
+    // Compile each policy concurrently via the std.Io task group (replaces the
+    // removed std.Thread.Pool / WaitGroup). io.async runs tasks on the io's
+    // thread pool up to its async limit; group.await joins them all.
+    var group: std.Io.Group = .init;
     for (file_paths.items) |input_path| {
-        pool.spawnWg(&wg, compileOne, .{
+        group.async(io, compileOne, .{
+            io,
+            env,
             alloc,
             config,
             input_path,
@@ -408,7 +422,7 @@ fn runBuild(alloc: Allocator, args: []const [:0]u8) !void {
             &error_list,
         });
     }
-    pool.waitAndWork(&wg);
+    group.await(io) catch {};
 
     compile_node.end();
     root_progress.end();
@@ -500,20 +514,22 @@ fn describeCompileError(err: anyerror) []const u8 {
 
 // stampIsNewer and writeStamp live in utils so they can be unit-tested.
 fn compileOne(
+    io: std.Io,
+    env: *EnvMap,
     alloc: Allocator,
     config: Config,
     input_path: []const u8,
     stamps_dir: []const u8,
     progress_node: std.Progress.Node,
-    error_mutex: *std.Thread.Mutex,
+    error_mutex: *std.Io.Mutex,
     error_count: *usize,
     error_list: *std.ArrayList(ErrorInfo),
 ) void {
     defer progress_node.completeOne();
 
-    Pandoc.compile(alloc, config, input_path) catch |err| {
-        error_mutex.lock();
-        defer error_mutex.unlock();
+    Pandoc.compile(io, env, alloc, config, input_path) catch |err| {
+        error_mutex.lockUncancelable(io);
+        defer error_mutex.unlock(io);
         error_count.* += 1;
         error_list.append(alloc, .{
             .path = alloc.dupe(u8, input_path) catch input_path,
@@ -522,7 +538,7 @@ fn compileOne(
         return;
     };
 
-    writeStamp(alloc, stamps_dir, input_path);
+    writeStamp(io, alloc, stamps_dir, input_path);
 }
 
 // ---------------------------------------------------------------------------
@@ -544,7 +560,7 @@ const new_usage =
     \\
 ;
 
-fn runNew(alloc: Allocator, args: []const [:0]u8) !void {
+fn runNew(io: std.Io, alloc: Allocator, args: []const [:0]const u8) !void {
     var config_path: []const u8 = "config.toml";
     var policy_name: ?[]const u8 = null;
 
@@ -578,7 +594,7 @@ fn runNew(alloc: Allocator, args: []const [:0]u8) !void {
         std.process.exit(1);
     };
 
-    const config_file = std.fs.cwd().openFile(config_path, .{}) catch |err| {
+    const config_file = std.Io.Dir.cwd().openFile(io, config_path, .{}) catch |err| {
         if (err == error.FileNotFound) {
             std.debug.print("policypress new: config file '{s}' not found\n", .{config_path});
         } else {
@@ -586,15 +602,15 @@ fn runNew(alloc: Allocator, args: []const [:0]u8) !void {
         }
         std.process.exit(1);
     };
-    defer config_file.close();
+    defer config_file.close(io);
 
-    const contents = config_file.readToEndAlloc(alloc, 1024 * 1024) catch {
+    const contents = @import("utils").readAllAlloc(io, config_file, alloc, 1024 * 1024) catch {
         std.debug.print("policypress new: failed to read '{s}'\n", .{config_path});
         std.process.exit(1);
     };
     defer alloc.free(contents);
 
-    var config = Config.load(alloc, contents) catch |err| {
+    var config = Config.load(io, alloc, contents) catch |err| {
         printConfigError(config_path, err);
         std.process.exit(1);
     };
@@ -614,11 +630,11 @@ fn runNew(alloc: Allocator, args: []const [:0]u8) !void {
     const output_path = try std.fs.path.join(alloc, &.{ config.policy_dir, filename });
     defer alloc.free(output_path);
 
-    // Format today's date using the datetime library already wired into the binary.
-    const now = dt.datetime.Datetime.now();
-    const year = now.date.year;
-    const month: u8 = now.date.month;
-    const day: u8 = now.date.day;
+    // Format today's date from the wall clock via the std.Io context.
+    const today = Date.today(io);
+    const year = today.year;
+    const month: u8 = today.month;
+    const day: u8 = today.day;
     const date_str = try std.fmt.allocPrint(alloc, "{d:0>4}-{d:0>2}-{d:0>2}", .{ year, month, day });
     defer alloc.free(date_str);
 
@@ -649,7 +665,7 @@ fn runNew(alloc: Allocator, args: []const [:0]u8) !void {
     defer alloc.free(content);
 
     // .exclusive = true fails atomically if the file already exists.
-    const file = std.fs.cwd().createFile(output_path, .{ .exclusive = true }) catch |err| {
+    const file = std.Io.Dir.cwd().createFile(io, output_path, .{ .exclusive = true }) catch |err| {
         if (err == error.PathAlreadyExists) {
             std.debug.print("policypress new: '{s}' already exists\n", .{output_path});
         } else {
@@ -657,9 +673,9 @@ fn runNew(alloc: Allocator, args: []const [:0]u8) !void {
         }
         std.process.exit(1);
     };
-    defer file.close();
+    defer file.close(io);
 
-    try file.writeAll(content);
+    try file.writeStreamingAll(io, content);
     std.debug.print("policypress: created {s}\n", .{output_path});
 }
 
@@ -667,7 +683,7 @@ fn runNew(alloc: Allocator, args: []const [:0]u8) !void {
 /// Runs of non-alphanumeric characters become a single hyphen.
 /// Result is lowercased, with leading/trailing hyphens removed.
 fn newSlugify(alloc: Allocator, name: []const u8) ![]u8 {
-    var result = std.ArrayList(u8){};
+    var result = std.ArrayList(u8).empty;
     defer result.deinit(alloc);
 
     var at_separator = true;

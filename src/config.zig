@@ -8,7 +8,6 @@ const tst = std.testing;
 const math = std.math;
 const zigmark = @import("zigmark");
 const toml = @import("tomlz");
-const dt = @import("datetime");
 const u = @import("utils");
 
 pub const std_options: std.Options = .{
@@ -36,7 +35,7 @@ pub const Config = struct {
     /// Temporary directory containing the embedded eisvogel.latex template,
     /// passed to pandoc as --data-dir.  Owned and freed by the caller.
     data_dir: []const u8 = "",
-    date: dt.datetime.Date,
+    date: u.Date,
 
     zola_config: ?toml.Table,
 
@@ -48,7 +47,7 @@ pub const Config = struct {
             conflog.err("Formatting Error: {}\n", .{e});
             return error.WriteFailed;
         };
-        defer stringy.object.deinit();
+        defer stringy.object.deinit(alloc);
 
         // std.debug.print("{}\n", .{config});
         const output = std.json.Stringify.valueAlloc(
@@ -62,36 +61,32 @@ pub const Config = struct {
         defer alloc.free(output);
         try writer.print("{s}", .{output});
     }
-    pub fn load_config_toml(alloc: Allocator) !Config {
+    pub fn load_config_toml(io: std.Io, alloc: Allocator) !Config {
         conflog.debug("Loading config.toml", .{});
-        const file = try std.fs.cwd().openFile("config.toml", .{});
-        defer file.close();
-
-        const content = try file.readToEndAlloc(alloc, 1024 * 1024 * 1024);
+        const content = try std.Io.Dir.cwd().readFileAlloc(io, "config.toml", alloc, .limited(1024 * 1024 * 1024));
         defer alloc.free(content);
 
-        return try Config.load(alloc, content);
+        return try Config.load(io, alloc, content);
     }
     pub fn toValue(self: Config, alloc: Allocator) !std.json.Value {
-        var obj = std.json.ObjectMap.init(alloc);
-        try obj.put("base_url", .{ .string = self.base_url });
-        try obj.put("organization", .{ .string = self.org });
-        try obj.put("logo_path", .{ .string = self.logo_path });
-        try obj.put("pdf_color", .{ .string = self.color });
-        try obj.put("policy_dir", .{ .string = self.policy_dir });
-        try obj.put("content_dir", .{ .string = self.content_dir });
-        try obj.put("current_year", .{ .integer = @intCast(self.current_year) });
-        try obj.put("root", .{ .string = self.root });
-        try obj.put("is_draft", .{ .bool = self.is_draft });
-        try obj.put("redact", .{ .bool = self.redact });
-        try obj.put("build_dir", .{ .string = self.build_dir });
-
-        errdefer obj.deinit();
+        var obj: std.json.ObjectMap = .empty;
+        errdefer obj.deinit(alloc);
+        try obj.put(alloc, "base_url", .{ .string = self.base_url });
+        try obj.put(alloc, "organization", .{ .string = self.org });
+        try obj.put(alloc, "logo_path", .{ .string = self.logo_path });
+        try obj.put(alloc, "pdf_color", .{ .string = self.color });
+        try obj.put(alloc, "policy_dir", .{ .string = self.policy_dir });
+        try obj.put(alloc, "content_dir", .{ .string = self.content_dir });
+        try obj.put(alloc, "current_year", .{ .integer = @intCast(self.current_year) });
+        try obj.put(alloc, "root", .{ .string = self.root });
+        try obj.put(alloc, "is_draft", .{ .bool = self.is_draft });
+        try obj.put(alloc, "redact", .{ .bool = self.redact });
+        try obj.put(alloc, "build_dir", .{ .string = self.build_dir });
 
         return .{ .object = obj };
     }
 
-    pub fn load(alloc: Allocator, content: []const u8) !Config {
+    pub fn load(io: std.Io, alloc: Allocator, content: []const u8) !Config {
         var t = toml.parse(alloc, content) catch |e| {
             conflog.err("TOML Parse Error: {}\n", .{e});
             return error.InvalidTomlConfig;
@@ -109,10 +104,12 @@ pub const Config = struct {
         var config: Config = undefined;
         config.data_dir = "";
         config.is_draft = false;
-        config.date = dt.datetime.Datetime.now().date;
+        config.date = u.Date.today(io);
 
         try config.validate(t);
-        config.root = try std.fs.cwd().realpathAlloc(alloc, ".");
+        var root_buf: [std.fs.max_path_bytes]u8 = undefined;
+        const root_len = try std.process.currentPath(io, &root_buf);
+        config.root = try alloc.dupe(u8, root_buf[0..root_len]);
         config.current_year = config.date.year;
 
         config.base_url = t.getString("base_url").?;
@@ -153,39 +150,35 @@ pub const Config = struct {
         if (zolaConfig.getString("base_url") == null) return error.NoBaseUrlInZolaConfig;
     }
 
-    pub fn validatePolicyFiles(self: Config, alloc: Allocator) !void {
+    pub fn validatePolicyFiles(self: Config, io: std.Io, alloc: Allocator) !void {
         conflog.debug("\n\nValidating policies from {s}\n", .{self.policy_dir});
-        var policy_dir = try std.fs.cwd().openDir(
+        var policy_dir = try std.Io.Dir.cwd().openDir(
+            io,
             self.policy_dir,
             .{
                 .access_sub_paths = true,
                 .iterate = true,
             },
         );
-        defer policy_dir.close();
+        defer policy_dir.close(io);
 
         var it = try policy_dir.walk(alloc);
         defer it.deinit();
 
-        while (try it.next()) |entry| {
+        while (try it.next(io)) |entry| {
             if (entry.kind != .file) continue;
             if (!std.mem.endsWith(u8, entry.basename, ".md")) continue;
             if (std.mem.eql(u8, entry.basename, "_index.md")) continue;
             conflog.debug("Validating Policy File: {s}\n", .{entry.path});
-            const file_path = try std.fs.path.join(alloc, &.{ self.policy_dir, entry.path });
-            defer alloc.free(file_path);
 
-            const file = try std.fs.openFileAbsolute(file_path, .{ .mode = .read_only });
-            defer file.close();
-
-            const content = try file.readToEndAlloc(alloc, 10 * 1024 * 1024);
+            const content = try policy_dir.readFileAlloc(io, entry.path, alloc, .limited(10 * 1024 * 1024));
             defer alloc.free(content);
 
             var frontMatter = try zigmark.Frontmatter.initFromMarkdown(alloc, content);
             defer frontMatter.deinit();
 
             self.validateFrontMatter(frontMatter) catch |e| {
-                conflog.err("Error processing {s}\n{}\n", .{ file_path, e });
+                conflog.err("Error processing {s}\n{}\n", .{ entry.path, e });
                 return e;
             };
         }
@@ -208,21 +201,17 @@ pub const Config = struct {
     }
 };
 
-pub fn main() !void {
-    var gpa = std.heap.DebugAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
-
-    const args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, args);
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+    const allocator = init.gpa;
 
     var buffer: [128]u8 = undefined;
-    var output_writer: std.fs.File.Writer = std.fs.File.stdout().writer(&buffer);
+    var output_writer = std.Io.File.stdout().writer(io, &buffer);
     const stdout: *std.Io.Writer = &output_writer.interface;
 
-    var config = try Config.load_config_toml(allocator);
+    var config = try Config.load_config_toml(io, allocator);
     defer config.deinit(allocator);
-    try config.validatePolicyFiles(allocator);
+    try config.validatePolicyFiles(io, allocator);
 
     try stdout.print("{f}\n", .{config});
     try stdout.flush();

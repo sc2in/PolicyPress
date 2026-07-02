@@ -31,7 +31,7 @@ pub const FrontMatter = struct {
     most_recent_version: []u8,
     last_reviewed: []u8,
     /// Formats the front matter information and writes it to the provided writer.
-    pub fn format(self: FrontMatter, comptime _: []const u8, _: anytype, writer: anytype) !void {
+    pub fn format(self: FrontMatter, writer: *std.Io.Writer) !void {
         try writer.print(
             "{s}\n\tVersion: {s}\tLast Reviewed: {s}\n",
             .{
@@ -194,7 +194,7 @@ pub fn replace_zola_at(alloc: Allocator, txt: *Array(u8), base_url: []const u8) 
 test "replace_zola_at" {
     const allocator = tst.allocator;
 
-    var arr = Array(u8){};
+    var arr = Array(u8).empty;
     defer arr.deinit(allocator);
     try arr.appendSlice(allocator,
         \\[some section](@/policies/privacy/_index.md)
@@ -243,80 +243,33 @@ pub const MDFile = struct {
     }
 };
 
-/// Recursively finds and opens all markdown files in the specified policy directory, returning them as an array of files.
-pub fn find_md_files(a: Allocator, root: std.fs.Dir, policy_dir: []const u8) ![]MDFile {
-    panlog.debug("Reading in policies from: {s}\n", .{policy_dir});
-    var files = Array(MDFile).init(a);
-    defer files.deinit();
+/// A calendar date. Replaces the previously-used zig-datetime dependency, which
+/// has no Zig 0.16 release; policypress only needs today's year/month/day.
+pub const Date = struct {
+    year: u16,
+    month: u8,
+    day: u8,
 
-    const dir = std.fs.path.dirname(policy_dir) orelse return error.InvalidPolicyRoot;
-    var policy_root = try (try root.openDir("content", .{
-        .access_sub_paths = true,
-        .iterate = true,
-    })).openDir(dir, .{
-        .access_sub_paths = true,
-        .iterate = true,
-    });
-    defer policy_root.close();
-
-    try find_inner(&files, policy_root);
-    return try files.toOwnedSlice();
-}
-/// Helper function to recursively traverse directories and append markdown files to the provided array.
-pub fn find_inner(files: *Array(MDFile), start: std.fs.Dir) !void {
-    var num: usize = 0;
-    var iter = start.iterate();
-    while (try iter.next()) |_| {
-        num += 1;
+    /// Today's date from the wall clock, via the std.Io context.
+    pub fn today(io: std.Io) Date {
+        const secs = std.Io.Timestamp.now(io, .real).toSeconds();
+        const es: std.time.epoch.EpochSeconds = .{ .secs = @intCast(secs) };
+        const yd = es.getEpochDay().calculateYearDay();
+        const md = yd.calculateMonthDay();
+        return .{
+            .year = yd.year,
+            .month = md.month.numeric(),
+            .day = @as(u8, md.day_index) + 1,
+        };
     }
+};
 
-    iter.reset();
-    while (try iter.next()) |entry| {
-        switch (entry.kind) {
-            .file => {
-                if (!std.mem.startsWith(u8, entry.name, "_") and
-                    std.mem.endsWith(u8, entry.name, ".md"))
-                    try files.append(.{
-                        .path = try start.realpathAlloc(files.allocator, entry.name),
-                    });
-            },
-            .directory => {
-                var sub = try start.openDir(entry.name, .{ .access_sub_paths = true, .iterate = true });
-                defer sub.close();
-                try find_inner(files, sub);
-            },
-            else => {},
-        }
-    }
-}
-
-/// Runs an external command to extract the dominant color from the logo image and returns it as a string.
-pub fn get_logo_color(a: Allocator, path: []const u8) ![]u8 {
-    const argv = [_][]const u8{
-        "magick",
-        path,
-        "-scale",
-        "1x1\\!",
-        "-format",
-        "'%[hex:u]'",
-        "info:",
-    };
-    var child = std.process.Child.init(&argv, a);
-    child.stdout_behavior = .Pipe;
-    child.stderr_behavior = .Pipe;
-    var out: std.ArrayListUnmanaged(u8) = .empty;
-    var err: std.ArrayListUnmanaged(u8) = .empty;
-    defer {
-        out.deinit(a);
-        err.deinit(a);
-    }
-    try child.spawn();
-    try child.collectOutput(a, &out, &err, 100_000);
-
-    const exit_code = try child.wait();
-    panlog.debug("{any} {s}\n", .{ exit_code, out.items });
-    panlog.debug("{any} {s}\n", .{ exit_code, err.items });
-    return try out.toOwnedSlice(a);
+/// Reads all remaining bytes from an already-open file into a fresh allocation.
+/// Replaces 0.15's `File.readToEndAlloc`, which was removed in 0.16.
+pub fn readAllAlloc(io: std.Io, file: std.Io.File, alloc: Allocator, limit: usize) ![]u8 {
+    var buf: [4096]u8 = undefined;
+    var fr = file.reader(io, &buf);
+    return fr.interface.allocRemaining(alloc, .limited(limit));
 }
 
 test "version ordering: later semver string sorts higher" {
@@ -327,7 +280,7 @@ test "version ordering: later semver string sorts higher" {
 test "replace_org replaces organization shortcode" {
     const allocator = tst.allocator;
 
-    var arr = Array(u8){};
+    var arr = Array(u8).empty;
     defer arr.deinit(allocator);
     try arr.appendSlice(allocator, "Welcome to {{ org() }}!");
 
@@ -339,7 +292,7 @@ test "replace_org replaces organization shortcode" {
 test "replace_mermaid replaces mermaid shortcode with code block" {
     const allocator = tst.allocator;
 
-    var arr = Array(u8){};
+    var arr = Array(u8).empty;
     defer arr.deinit(allocator);
     try arr.appendSlice(allocator,
         \\Some text
@@ -424,7 +377,7 @@ test "Redaction" {
         \\This is a test policy for demonstration purposes. It contains sensitive information that should not be disclosed.
         \\{% end %}
     ;
-    var ts = Array(u8){};
+    var ts = Array(u8).empty;
     defer ts.deinit(tst.allocator);
 
     const expected = [_]u8{'_'} ** t.len;
@@ -434,7 +387,7 @@ test "Redaction" {
     // std.debug.print("{s}\n", .{ts.items});
     try tst.expectEqualStrings(&expected, ts.items);
 
-    var t2 = Array(u8){};
+    var t2 = Array(u8).empty;
     defer t2.deinit(tst.allocator);
 
     const expected2 = "This is a test policy for demonstration purposes. It contains sensitive information that should not be disclosed.";
@@ -451,30 +404,30 @@ test "Redaction" {
 /// Returns true if the per-policy stamp file is newer than the source file,
 /// meaning the PDF is already up to date and compilation can be skipped.
 /// Returns false on any IO error so the policy is always rebuilt on doubt.
-pub fn stampIsNewer(input_path: []const u8, stamps_dir: []const u8, alloc: Allocator) bool {
+pub fn stampIsNewer(io: std.Io, input_path: []const u8, stamps_dir: []const u8, alloc: Allocator) bool {
     const stem = std.fs.path.stem(std.fs.path.basename(input_path));
     const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, stem }) catch return false;
     defer alloc.free(stamp_path);
 
-    const src = std.fs.openFileAbsolute(input_path, .{}) catch return false;
-    defer src.close();
-    const src_stat = src.stat() catch return false;
+    const src = std.Io.Dir.openFileAbsolute(io, input_path, .{}) catch return false;
+    defer src.close(io);
+    const src_stat = src.stat(io) catch return false;
 
-    const stamp = std.fs.cwd().openFile(stamp_path, .{}) catch return false;
-    defer stamp.close();
-    const stamp_stat = stamp.stat() catch return false;
+    const stamp = std.Io.Dir.cwd().openFile(io, stamp_path, .{}) catch return false;
+    defer stamp.close(io);
+    const stamp_stat = stamp.stat(io) catch return false;
 
-    return src_stat.mtime < stamp_stat.mtime;
+    return src_stat.mtime.nanoseconds < stamp_stat.mtime.nanoseconds;
 }
 
 /// Touches a stamp file for `input_path` inside `stamps_dir` to record that
 /// compilation succeeded. Failures are non-fatal (worst case: needless rebuild).
-pub fn writeStamp(alloc: Allocator, stamps_dir: []const u8, input_path: []const u8) void {
+pub fn writeStamp(io: std.Io, alloc: Allocator, stamps_dir: []const u8, input_path: []const u8) void {
     const stem = std.fs.path.stem(std.fs.path.basename(input_path));
     const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, stem }) catch return;
     defer alloc.free(stamp_path);
-    const f = std.fs.cwd().createFile(stamp_path, .{ .truncate = true }) catch return;
-    f.close();
+    const f = std.Io.Dir.cwd().createFile(io, stamp_path, .{ .truncate = true }) catch return;
+    f.close(io);
 }
 
 /// Converts {% admonition(type="...", title="...") %}...{% end %} shortcodes
@@ -527,7 +480,7 @@ pub fn replace_admonitions(alloc: Allocator, txt: *Array(u8)) !void {
         const body_raw = std.mem.trim(u8, m.slice[tag_end + 2 .. close_start], " \n\r");
 
         // Build a pandoc blockquote: "> **heading**\n>\n> line\n> ..."
-        var blockquote = Array(u8){};
+        var blockquote = Array(u8).empty;
         defer blockquote.deinit(alloc);
 
         try blockquote.appendSlice(alloc, "> **");
@@ -537,7 +490,7 @@ pub fn replace_admonitions(alloc: Allocator, txt: *Array(u8)) !void {
         var lines = std.mem.splitScalar(u8, body_raw, '\n');
         while (lines.next()) |line| {
             try blockquote.appendSlice(alloc, "> ");
-            try blockquote.appendSlice(alloc, std.mem.trimRight(u8, line, " \r"));
+            try blockquote.appendSlice(alloc, std.mem.trimEnd(u8, line, " \r"));
             try blockquote.append(alloc, '\n');
         }
 
@@ -554,7 +507,7 @@ test "Admonition replacement" {
         \\Access will be suspended after 30 days.
         \\{% end %}
     ;
-    var buf = Array(u8){};
+    var buf = Array(u8).empty;
     defer buf.deinit(tst.allocator);
     try buf.appendSlice(tst.allocator, input);
     try replace_admonitions(tst.allocator, &buf);
@@ -571,7 +524,7 @@ test "Admonition replacement" {
         \\Do not delete any records.
         \\{% end %}
     ;
-    var buf2 = Array(u8){};
+    var buf2 = Array(u8).empty;
     defer buf2.deinit(tst.allocator);
     try buf2.appendSlice(tst.allocator, input2);
     try replace_admonitions(tst.allocator, &buf2);

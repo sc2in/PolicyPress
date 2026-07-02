@@ -8,6 +8,8 @@ keys) is considered stable.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-02
+
 ### Changed
 
 - **Zig 0.16.0 migration** — the codebase and Nix toolchain now target Zig 0.16.0. The new

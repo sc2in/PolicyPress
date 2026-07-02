@@ -441,6 +441,129 @@
                 meta.description = "Cross-compile for all supported targets";
               };
 
+            # `nix run .#bump -- <version|patch|minor|major>` performs the manual
+            # pre-release steps in one shot: bumps the version in build.zig.zon
+            # AND config.toml (kept in sync), rolls the CHANGELOG `[Unreleased]`
+            # section into a dated release section, and commits. Pushing the tag
+            # is left to you; CI then builds binaries, cuts the GitHub release
+            # (auto-generated notes), and publishes to FlakeHub.
+            apps.bump =
+              let
+                app = pkgs.writeShellApplication {
+                  name = "policypress-bump";
+                  runtimeInputs = with pkgs; [
+                    coreutils
+                    gnused
+                    gawk
+                    git
+                  ];
+                  meta.description = "Bump version (build.zig.zon + config.toml) and roll the CHANGELOG";
+                  text = ''
+                    dry=0
+                    commit=1
+                    arg=""
+                    for a in "$@"; do
+                      case "$a" in
+                        --dry-run) dry=1 ;;
+                        --no-commit) commit=0 ;;
+                        -h | --help)
+                          echo "usage: nix run .#bump -- <version|patch|minor|major> [--dry-run] [--no-commit]"
+                          exit 0
+                          ;;
+                        *) arg="$a" ;;
+                      esac
+                    done
+
+                    if [ -z "$arg" ]; then
+                      echo "usage: nix run .#bump -- <version|patch|minor|major> [--dry-run] [--no-commit]" >&2
+                      exit 1
+                    fi
+
+                    cur=$(sed -nE 's/^[[:space:]]*\.version = "([^"]+)",/\1/p' build.zig.zon | head -n1)
+                    if [ -z "$cur" ]; then
+                      echo "error: could not read current version from build.zig.zon" >&2
+                      exit 1
+                    fi
+
+                    cfg=$(sed -nE 's/^version = "([^"]+)"/\1/p' config.toml | head -n1)
+                    if [ "$cfg" != "$cur" ]; then
+                      echo "note: config.toml version ($cfg) differed from build.zig.zon ($cur); both set to the new version"
+                    fi
+
+                    case "$arg" in
+                      major | minor | patch)
+                        IFS=. read -r ma mi pa <<< "$cur"
+                        case "$arg" in
+                          major)
+                            ma=$((ma + 1))
+                            mi=0
+                            pa=0
+                            ;;
+                          minor)
+                            mi=$((mi + 1))
+                            pa=0
+                            ;;
+                          patch) pa=$((pa + 1)) ;;
+                        esac
+                        new="$ma.$mi.$pa"
+                        ;;
+                      *) new="$arg" ;;
+                    esac
+
+                    if ! [[ "$new" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                      echo "error: invalid version '$new' (expected X.Y.Z or patch|minor|major)" >&2
+                      exit 1
+                    fi
+
+                    today=$(date +%F)
+                    echo "Release: $cur -> $new ($today)"
+
+                    if [ "$dry" = 1 ]; then
+                      echo "[dry-run] would update:"
+                      echo "  build.zig.zon  .version = \"$new\""
+                      echo "  config.toml    version = \"$new\""
+                      echo "  CHANGELOG.md   roll [Unreleased] into [$new] - $today"
+                      exit 0
+                    fi
+
+                    sed -i -E "s/^([[:space:]]*\.version = )\"[^\"]+\",/\1\"$new\",/" build.zig.zon
+                    sed -i -E "s/^version = \"[^\"]+\"/version = \"$new\"/" config.toml
+                    awk -v ver="$new" -v dt="$today" '
+                      !done && /^## \[Unreleased\]/ {
+                        print "## [Unreleased]";
+                        print "";
+                        print "## [" ver "] - " dt;
+                        done = 1;
+                        next
+                      }
+                      { print }
+                    ' CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
+
+                    echo "Updated build.zig.zon, config.toml, CHANGELOG.md"
+
+                    if [ "$commit" = 1 ]; then
+                      git add build.zig.zon config.toml CHANGELOG.md
+                      git commit -m "chore: release $new"
+                      echo ""
+                      echo "Committed 'chore: release $new'. Publish with:"
+                      echo "  git tag v$new && git push origin HEAD v$new"
+                    else
+                      echo ""
+                      echo "Files edited (not committed). Then:"
+                      echo "  git add build.zig.zon config.toml CHANGELOG.md && git commit -m 'chore: release $new'"
+                      echo "  git tag v$new && git push origin HEAD v$new"
+                    fi
+                    echo ""
+                    echo "On tag push, CI builds binaries, cuts the GitHub release, and publishes to FlakeHub."
+                  '';
+                };
+              in
+              {
+                type = "app";
+                program = "${app}/bin/policypress-bump";
+                meta.description = "Bump version and roll the CHANGELOG for a release";
+              };
+
             # --- Dev shells ------------------------------------------------------
 
             # Minimal shell used by the GitHub Action: runtime build tools only.
@@ -478,6 +601,16 @@
               shellHook = config.pre-commit.installationScript + ''
                 export FONTCONFIG_FILE="${fontsConf}"
                 export ZIG_GLOBAL_CACHE_DIR=.zig-cache
+
+                # Install the release-tag CHANGELOG guard. The pre-commit
+                # framework manages only the pre-commit hook, so pre-push is
+                # free for us. Kept in .githooks/ so it is version-controlled.
+                hooks_dir="$(git rev-parse --git-path hooks 2>/dev/null || true)"
+                if [ -n "$hooks_dir" ] && [ -f .githooks/pre-push ]; then
+                  mkdir -p "$hooks_dir"
+                  cp -f .githooks/pre-push "$hooks_dir/pre-push"
+                  chmod +x "$hooks_dir/pre-push"
+                fi
 
                 # Keep zon2json-lock in sync with build.zig.zon
                 if [ -f build.zig.zon ]; then

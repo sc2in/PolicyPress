@@ -10,11 +10,12 @@ fn on_request(r: zap.Request) !void {
     r.sendBody("<html><body><h1>404 - File not found</h1></body></html>") catch return;
 }
 
-pub fn main() !void {
-    var gpa = std.heap.DebugAllocator(.{}){};
-    defer _ = gpa.deinit();
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+    const alloc = init.gpa;
 
-    const alloc = gpa.allocator();
+    var ebuf: [256]u8 = undefined;
+    var stderr = std.Io.File.stderr().writer(io, &ebuf).interface;
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
@@ -22,19 +23,19 @@ pub fn main() !void {
         \\
     );
     var diag = clap.Diagnostic{};
-    var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
+    var res = clap.parse(clap.Help, &params, clap.parsers.default, init.minimal.args, .{
         .diagnostic = &diag,
         .allocator = alloc,
     }) catch |err| {
         // Report useful error and exit.
-        diag.report(std.io.getStdErr().writer(), err) catch {};
+        diag.report(&stderr, err) catch {};
         return err;
     };
     defer res.deinit();
 
     if (res.args.help != 0) {
         std.debug.print("PolicyPress Dev Server\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
-        return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
+        return clap.help(&stderr, clap.Help, &params, .{});
     }
     const serve_dir = if (res.args.dir.len >= 1) res.args.dir[0] else "public";
     zap.mimetypeRegister("wasm", "application/wasm");

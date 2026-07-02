@@ -12,7 +12,8 @@ const Config = @import("config").Config;
 const mvzr = @import("mvzr");
 const u = @import("utils");
 
-const ctime = @cImport(@cInclude("time.h"));
+const EnvMap = std.process.Environ.Map;
+
 // TODO: Add more robust error propegation from pandoc/mermaid-filter
 // TODO?: Link against pandoc directly at somepoint
 
@@ -29,23 +30,25 @@ pub const std_options: std.Options = .{
 const panlog = std.log.scoped(.pandoc);
 
 pub fn compile(
+    io: std.Io,
+    env: *EnvMap,
     alloc: Allocator,
     config: Config,
     input_file: []const u8,
 ) !void {
-    var global_args = Array([]u8){};
+    var global_args = Array([]u8).empty;
 
-    try create_global_args(alloc, &global_args, config);
+    try create_global_args(io, env, alloc, &global_args, config);
     defer destroy_global_args(alloc, &global_args);
 
-    try process_md_file(alloc, .{ .path = input_file }, global_args, config);
+    try process_md_file(io, env, alloc, .{ .path = input_file }, global_args, config);
 }
-pub fn main() !void {
-    var gpa = std.heap.DebugAllocator(.{}){};
-    defer _ = gpa.deinit();
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+    const alloc = init.gpa;
+    const env = init.environ_map;
 
-    const alloc = gpa.allocator();
-    var config = try Config.load_config_toml(alloc);
+    var config = try Config.load_config_toml(io, alloc);
     defer config.deinit(alloc);
 
     var workfile: ?[]u8 = null;
@@ -64,9 +67,9 @@ pub fn main() !void {
     var buf: [128]u8 = undefined;
 
     // Report useful error and exit.
-    var stderr = std.fs.File.stderr().writer(&buf).interface;
+    var stderr = std.Io.File.stderr().writer(io, &buf).interface;
     var diag = clap.Diagnostic{};
-    var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
+    var res = clap.parse(clap.Help, &params, clap.parsers.default, init.minimal.args, .{
         .diagnostic = &diag,
         .allocator = alloc,
     }) catch |err| {
@@ -77,7 +80,7 @@ pub fn main() !void {
     defer res.deinit();
     if (res.args.help != 0) {
         std.debug.print("PolicyPress PDF Generator\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
-        return clap.helpToFile(std.fs.File.stderr(), clap.Help, &params, .{});
+        return clap.help(&stderr, clap.Help, &params, .{});
     }
 
     if (res.args.output) |c| {
@@ -100,12 +103,14 @@ pub fn main() !void {
 
     panlog.debug("Running with Configuration:\n{f}\n", .{config});
 
-    var global_args = Array([]u8){};
+    var global_args = Array([]u8).empty;
 
-    try create_global_args(alloc, &global_args, config);
+    try create_global_args(io, env, alloc, &global_args, config);
     defer destroy_global_args(alloc, &global_args);
     if (workfile) |w|
         try process_md_file(
+            io,
+            env,
             alloc,
             .{ .path = w },
             global_args,
@@ -125,20 +130,20 @@ pub fn destroy_global_args(a: Allocator, args: *Array([]u8)) void {
 /// and returns the allocated path to `<dir>` for use as `--data-dir`.
 /// The template is injected at build time via the `pandoc_options` module.
 /// Caller owns the returned slice.
-pub fn writeEisvogel(a: Allocator, dir: []const u8) ![]const u8 {
+pub fn writeEisvogel(io: std.Io, a: Allocator, dir: []const u8) ![]const u8 {
     const tmpl_dir = try std.fs.path.join(a, &.{ dir, "templates" });
     defer a.free(tmpl_dir);
-    try std.fs.makeDirAbsolute(tmpl_dir);
+    try std.Io.Dir.cwd().createDirPath(io, tmpl_dir);
     const tmpl_path = try std.fs.path.join(a, &.{ tmpl_dir, "eisvogel.latex" });
     defer a.free(tmpl_path);
-    const f = try std.fs.createFileAbsolute(tmpl_path, .{ .truncate = true });
-    defer f.close();
-    try f.writeAll(@import("pandoc_options").eisvogel_latex);
+    const f = try std.Io.Dir.createFileAbsolute(io, tmpl_path, .{ .truncate = true });
+    defer f.close(io);
+    try f.writeStreamingAll(io, @import("pandoc_options").eisvogel_latex);
     return try a.dupe(u8, dir);
 }
 
 ///Populates the global_args array with command-line arguments for Pandoc, based on the current global configuration
-pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !void {
+pub fn create_global_args(io: std.Io, env: *EnvMap, a: Allocator, args: *Array([]u8), config: Config) !void {
     const data_dir = if (config.data_dir.len > 0) config.data_dir else config.root;
     try add_arg(a, args, "", "--data-dir={s}", .{data_dir});
     try add_arg(a, args, "", "--resource-path={s}", .{config.root});
@@ -150,17 +155,19 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
         const ext = std.fs.path.extension(config.logo_path);
         var attempt: usize = 0;
         while (attempt < 16) : (attempt += 1) {
-            const tmp_path = try std.fmt.allocPrint(a, "/tmp/pp-logo-{x}{s}", .{ std.crypto.random.int(u64), ext });
+            var rnd: u64 = undefined;
+            io.random(std.mem.asBytes(&rnd));
+            const tmp_path = try std.fmt.allocPrint(a, "/tmp/pp-logo-{x}{s}", .{ rnd, ext });
             // Claim the path exclusively to avoid races, then overwrite with the real content.
-            const tmp_file = std.fs.createFileAbsolute(tmp_path, .{ .exclusive = true }) catch |err| {
+            const tmp_file = std.Io.Dir.createFileAbsolute(io, tmp_path, .{ .exclusive = true }) catch |err| {
                 a.free(tmp_path);
                 if (err == error.PathAlreadyExists) continue;
                 std.log.warn("could not create temp logo file: {}", .{err});
                 break :blk try a.dupe(u8, config.logo_path);
             };
-            tmp_file.close();
-            std.fs.copyFileAbsolute(config.logo_path, tmp_path, .{}) catch |err| {
-                std.fs.deleteFileAbsolute(tmp_path) catch {};
+            tmp_file.close(io);
+            std.Io.Dir.copyFileAbsolute(config.logo_path, tmp_path, io, .{}) catch |err| {
+                std.Io.Dir.deleteFileAbsolute(io, tmp_path) catch {};
                 a.free(tmp_path);
                 std.log.warn("could not copy logo to temp path: {}", .{err});
                 break :blk try a.dupe(u8, config.logo_path);
@@ -179,7 +186,7 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
 
     try add_arg(a, args, "-V", "titlepage-rule-color={s}", .{if (config.color[0] == '#') config.color[1..] else config.color});
 
-    if (executableInPath("mermaid-filter"))
+    if (executableInPath(io, env, "mermaid-filter"))
         try add_arg(a, args, "-F", "mermaid-filter", .{});
     try add_arg(a, args, "-V", "footer-center=Confidential", .{});
     try add_arg(a, args, "-V", "papersize=letter", .{});
@@ -197,7 +204,7 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
     if (config.is_draft) {
         const draft_path: ?[]const u8 = blk: {
             const primary = try std.fs.path.join(a, &.{ config.root, "static", "draft.png" });
-            if (std.fs.accessAbsolute(primary, .{})) |_| {
+            if (std.Io.Dir.accessAbsolute(io, primary, .{})) |_| {
                 break :blk primary;
             } else |err| switch (err) {
                 error.FileNotFound => a.free(primary),
@@ -207,7 +214,7 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
             // When policypress is used as a Zola theme (submodule), the watermark
             // lives under themes/policypress/static/ rather than at the site root.
             const fallback = try std.fs.path.join(a, &.{ config.root, "themes", "policypress", "static", "draft.png" });
-            if (std.fs.accessAbsolute(fallback, .{})) |_| {
+            if (std.Io.Dir.accessAbsolute(io, fallback, .{})) |_| {
                 break :blk fallback;
             } else |err| switch (err) {
                 error.FileNotFound => {
@@ -226,14 +233,14 @@ pub fn create_global_args(a: Allocator, args: *Array([]u8), config: Config) !voi
     }
 }
 
-pub fn executableInPath(name: []const u8) bool {
+pub fn executableInPath(io: std.Io, env: *EnvMap, name: []const u8) bool {
     if (comptime builtin.os.tag == .windows) return false;
-    const path_env = std.posix.getenv("PATH") orelse return false;
+    const path_env = env.get("PATH") orelse return false;
     var it = std.mem.tokenizeScalar(u8, path_env, ':');
     var buf: [std.fs.max_path_bytes]u8 = undefined;
     while (it.next()) |dir| {
         const full = std.fmt.bufPrint(&buf, "{s}/{s}", .{ dir, name }) catch continue;
-        std.fs.accessAbsolute(full, .{}) catch continue;
+        std.Io.Dir.accessAbsolute(io, full, .{}) catch continue;
         return true;
     }
     return false;
@@ -254,29 +261,31 @@ inline fn add_arg(
 
 /// Processes a single markdown file: loads contents, applies replacements, extracts metadata, writes a temporary file, and invokes Pandoc to generate the PDF.
 pub fn process_md_file(
+    io: std.Io,
+    env: *EnvMap,
     a: Allocator,
     md: u.MDFile,
     global_args: Array([]u8),
     config: Config,
 ) !void {
     panlog.debug("Processing markdown file: {s}\n", .{md.path});
-    var dir = try std.fs.cwd().openDir(config.root, .{});
-    defer dir.close();
-    var file = dir.openFile(md.path, .{ .mode = .read_only }) catch |e| {
+    var dir = try std.Io.Dir.cwd().openDir(io, config.root, .{});
+    defer dir.close(io);
+    var file = dir.openFile(io, md.path, .{ .mode = .read_only }) catch |e| {
         if (e == error.FileNotFound) {
             panlog.err("File: {s}/{s} not found\n", .{ config.root, md.path });
         }
         return e;
     };
-    defer file.close();
+    defer file.close(io);
 
-    const raw = try file.readToEndAlloc(a, 100_000_000);
+    const raw = try u.readAllAlloc(io, file, a, 100_000_000);
     var contents = Array(u8){
         .items = raw,
         .capacity = raw.len,
     };
     defer contents.deinit(a);
-    var local = Array([]u8){};
+    var local = Array([]u8).empty;
     defer destroy_global_args(a, &local);
 
     try u.replace_org(a, &contents, config.org);
@@ -288,9 +297,6 @@ pub fn process_md_file(
     var fm = try u.get_metadata(a, &contents, config);
     defer fm.deinit(a);
 
-    var env = try std.process.getEnvMap(a);
-    defer env.deinit();
-
     // Write the preprocessed markdown to a file in the system temp directory
     // rather than the output directory. This keeps .md files out of paths that
     // watchexec monitors, preventing false rebuild triggers.
@@ -298,37 +304,43 @@ pub fn process_md_file(
         const candidates = [_]?[]const u8{ env.get("TMPDIR"), env.get("TMP"), "/tmp" };
         for (candidates) |maybe| {
             const d = maybe orelse continue;
-            std.fs.accessAbsolute(d, .{}) catch continue;
+            std.Io.Dir.accessAbsolute(io, d, .{}) catch continue;
             break :blk d;
         }
         break :blk "/tmp";
     };
-    const pid = std.os.linux.getpid();
-    const tmp_name = try std.fmt.allocPrint(a, "pp_{d}_{s}", .{ pid, std.fs.path.basename(md.path) });
+    // Random suffix instead of pid: portable across OSes (getpid was a raw
+    // Linux syscall), and unique per task even within one process, so
+    // concurrent compiles of same-named files cannot collide.
+    var tmp_id: u64 = undefined;
+    io.random(std.mem.asBytes(&tmp_id));
+    const tmp_name = try std.fmt.allocPrint(a, "pp_{x}_{s}", .{ tmp_id, std.fs.path.basename(md.path) });
     defer a.free(tmp_name);
     const tmp_abs = try std.fs.path.join(a, &.{ tmpdir, tmp_name });
     defer a.free(tmp_abs);
-    const tmp = std.fs.createFileAbsolute(tmp_abs, .{ .exclusive = true }) catch |e| blk: {
+    const tmp = std.Io.Dir.createFileAbsolute(io, tmp_abs, .{ .exclusive = true }) catch |e| blk: {
         if (e == error.PathAlreadyExists) {
-            std.fs.deleteFileAbsolute(tmp_abs) catch {};
-            break :blk try std.fs.createFileAbsolute(tmp_abs, .{});
+            std.Io.Dir.deleteFileAbsolute(io, tmp_abs) catch {};
+            break :blk try std.Io.Dir.createFileAbsolute(io, tmp_abs, .{});
         }
         return e;
     };
     defer {
-        tmp.close();
-        std.fs.deleteFileAbsolute(tmp_abs) catch {};
+        tmp.close(io);
+        std.Io.Dir.deleteFileAbsolute(io, tmp_abs) catch {};
     }
-    try tmp.writeAll(contents.items);
+    try tmp.writeStreamingAll(io, contents.items);
 
     // Verify output directory is still accessible before invoking pandoc.
-    std.fs.cwd().access(config.build_dir, .{}) catch |e| {
+    std.Io.Dir.cwd().access(io, config.build_dir, .{}) catch |e| {
         panlog.err("Could not access build directory: {s}\nError: {}\n", .{ config.build_dir, e });
         return e;
     };
 
     try local.insertSlice(a, 0, &.{try a.dupe(u8, "pandoc")});
-    const cwd = try std.fs.cwd().realpathAlloc(a, ".");
+    var cwd_buf: [std.fs.max_path_bytes]u8 = undefined;
+    const cwd_len = try std.process.currentPath(io, &cwd_buf);
+    const cwd = try a.dupe(u8, cwd_buf[0..cwd_len]);
     defer a.free(cwd);
 
     const basedir = if (std.fs.path.dirname(md.path)) |d| try a.dupe(u8, d) else return error.NoResourcePathDefined;
@@ -372,57 +384,61 @@ pub fn process_md_file(
 
     try add_arg(a, &local, "-o", "{s}{s}{s}", .{ config.build_dir, "/", out });
 
-    var combined = Array([]const u8){};
+    var combined = Array([]const u8).empty;
     defer combined.deinit(a);
 
     try combined.appendSlice(a, local.items);
     try combined.appendSlice(a, global_args.items);
 
-    try run_pandoc(a, combined);
+    try run_pandoc(io, env, a, combined);
 }
 
 /// Spawns a Pandoc process with the provided arguments, collects output, and logs errors or results as needed.
-pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
+pub fn run_pandoc(io: std.Io, env: *EnvMap, a: Allocator, args: Array([]const u8)) !void {
     panlog.debug("Running pandoc with args:\n", .{});
     for (args.items) |arg|
         panlog.debug("\t{s}\n", .{arg});
-    var child = std.process.Child.init(args.items, a);
-    child.stdout_behavior = .Pipe;
-    child.stderr_behavior = .Pipe;
-    var env_map = try std.process.getEnvMap(a);
-    defer env_map.deinit();
+
+    // Work on a private copy of the environment: the build pipeline runs policies
+    // concurrently and shares one env map across tasks, so mutating it here (the
+    // HOME override below) would be a data race and leak across tasks. Clone,
+    // override on the copy, and leave the caller's map untouched.
+    var child_env = try env.clone(a);
+    defer child_env.deinit();
 
     // xelatex/fontconfig need a writable HOME to write their caches.  In the
     // Nix build sandbox HOME is set to /homeless-shelter (read-only), which
     // causes fontconfig to error and xelatex to exit non-zero.  Override HOME
     // with a directory under TMPDIR when the current value is not writable.
-    const home_ok = if (env_map.get("HOME")) |h|
-        (std.fs.accessAbsolute(h, .{}) catch null) != null
+    const home_ok = if (child_env.get("HOME")) |h|
+        (std.Io.Dir.accessAbsolute(io, h, .{}) catch null) != null
     else
         false;
     if (!home_ok) {
-        const tmpdir = env_map.get("TMPDIR") orelse env_map.get("TMP") orelse "/tmp";
+        const tmpdir = child_env.get("TMPDIR") orelse child_env.get("TMP") orelse "/tmp";
         const tmp_home = try std.fmt.allocPrint(a, "{s}/pp-home", .{tmpdir});
         defer a.free(tmp_home);
-        std.fs.makeDirAbsolute(tmp_home) catch {};
-        try env_map.put("HOME", tmp_home);
+        std.Io.Dir.cwd().createDirPath(io, tmp_home) catch {};
+        try child_env.put("HOME", tmp_home);
         panlog.debug("HOME not writable - overriding with {s}\n", .{tmp_home});
     }
 
-    child.env_map = &env_map;
-    if (env_map.get("PATH")) |path| {
+    if (child_env.get("PATH")) |path| {
         panlog.debug("Child PATH: {s}\n", .{path});
     } else {
         panlog.debug("No PATH in env_map!\n", .{});
     }
-    var out: std.ArrayListUnmanaged(u8) = .empty;
-    var err_buf: std.ArrayListUnmanaged(u8) = .empty;
-    defer {
-        out.deinit(a);
-        err_buf.deinit(a);
-    }
 
-    child.spawn() catch |e| {
+    // Cap collected output so a runaway pandoc/filter cannot exhaust memory.
+    // Generous vs. the pre-0.16 100 KB cap since LaTeX errors are verbose;
+    // exceeding it returns error.StreamTooLong, matching the old behavior.
+    const max_output_bytes = 1024 * 1024;
+    const result = std.process.run(a, io, .{
+        .argv = args.items,
+        .environ_map = &child_env,
+        .stdout_limit = .limited(max_output_bytes),
+        .stderr_limit = .limited(max_output_bytes),
+    }) catch |e| {
         if (e == error.FileNotFound) {
             std.debug.print(
                 "policypress: pandoc not found in PATH.\n" ++
@@ -432,39 +448,38 @@ pub fn run_pandoc(a: Allocator, args: Array([]const u8)) !void {
             );
             return error.PandocNotFound;
         }
+        if (e == error.StreamTooLong) {
+            std.debug.print(
+                "policypress: pandoc produced more than {d} bytes of output; aborting this policy.\n",
+                .{max_output_bytes},
+            );
+            return error.PandocFailed;
+        }
         std.debug.print("policypress: failed to spawn pandoc: {s}\n", .{@errorName(e)});
         return e;
     };
+    defer a.free(result.stdout);
+    defer a.free(result.stderr);
 
-    try child.collectOutput(a, &out, &err_buf, 100_000);
-
-    const term = child.wait() catch |e| {
-        std.debug.print(
-            "policypress: error waiting for pandoc: {s}\n",
-            .{@errorName(e)},
-        );
-        return e;
-    };
-
-    const exited_ok = switch (term) {
-        .Exited => |code| code == 0,
+    const exited_ok = switch (result.term) {
+        .exited => |code| code == 0,
         else => false,
     };
 
     if (!exited_ok) {
         // Print pandoc's stderr so the user can see the LaTeX/filter error.
-        if (err_buf.items.len > 0) {
-            std.debug.print("policypress: pandoc error output:\n{s}\n", .{err_buf.items});
+        if (result.stderr.len > 0) {
+            std.debug.print("policypress: pandoc error output:\n{s}\n", .{result.stderr});
         }
         return error.PandocFailed;
     }
 
-    panlog.debug("{any} {s}\n", .{ term, out.items });
-    if (err_buf.items.len > 0) {
+    panlog.debug("{any} {s}\n", .{ result.term, result.stdout });
+    if (result.stderr.len > 0) {
         // Pandoc exited successfully but filters (e.g. mermaid-filter) wrote to
         // stderr. Log at warn rather than err so the test runner doesn't mark the
         // test as "logged errors" for expected sandbox noise.
-        panlog.warn("!!! {s}\n!!! Called with:\n", .{err_buf.items});
+        panlog.warn("!!! {s}\n!!! Called with:\n", .{result.stderr});
         for (args.items) |arg|
             panlog.warn("\t{s}\n", .{arg});
     }

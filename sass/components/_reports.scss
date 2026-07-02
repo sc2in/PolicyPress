@@ -184,11 +184,12 @@
   color: var(--bs-heading-color);
 }
 
-// Light mode variables (default)
-:root {
-  --pp-section-title-bg: #{$gray-100};
-  --pp-section-title-hover-bg: #{$gray-200};
-}
+// NOTE: --pp-section-title-bg / --pp-section-title-hover-bg are defined in
+// common/_dark.scss (light defaults in :root, dark overrides under
+// [data-bs-theme="dark"]). Do not redeclare them here: this file is imported
+// after _dark.scss, and a :root redeclaration has equal specificity, so it
+// would win by source order and defeat the dark-mode value (report section
+// headers rendered as white bars in dark mode).
 
 // Performance optimizations for large content
 .report-section {

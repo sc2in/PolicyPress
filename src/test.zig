@@ -4,6 +4,7 @@ const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
+const io = tst.io;
 const math = std.math;
 const b = @import("builtin");
 
@@ -12,6 +13,8 @@ const pandoc = @import("pandoc");
 const report = @import("reports");
 const utils = @import("utils");
 const zigmark = @import("zigmark");
+
+const EnvMap = std.process.Environ.Map;
 
 // TODO
 // - [ ] The reports should generate correctly
@@ -27,19 +30,31 @@ const TestConfig =
     \\pdf_color = "#0e90f3"
 ;
 
+/// Builds a map of the current process environment for tests. Replaces the
+/// removed `std.process.getEnvMap`.
+fn testEnvMap(alloc: Allocator) !EnvMap {
+    return std.process.Environ.createMap(tst.environ, alloc);
+}
+
+/// Absolute path of a testing TmpDir. `std.Io.Dir` no longer has `realpathAlloc`,
+/// so reconstruct the path from the cwd and the tmp dir's cache-relative location.
+fn tmpAbsPath(alloc: Allocator, tmp: *tst.TmpDir) ![]u8 {
+    var buf: [std.fs.max_path_bytes]u8 = undefined;
+    const cwd_len = try std.process.currentPath(io, &buf);
+    return std.fs.path.join(alloc, &.{ buf[0..cwd_len], ".zig-cache", "tmp", &tmp.sub_path });
+}
+
 test {
     _ = utils;
     _ = zigmark;
     _ = pandoc;
     _ = report;
-    tst.refAllDeclsRecursive(@This());
+    tst.refAllDecls(@This());
 }
 
 test "config loading and validation" {
     const alloc = tst.allocator;
-    var env = try std.process.getEnvMap(alloc);
-    defer env.deinit();
-    var conf = try config.load(alloc, TestConfig);
+    var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
     alloc.free(conf.content_dir);
     conf.content_dir = try std.fs.path.join(alloc, &.{
@@ -50,13 +65,13 @@ test "config loading and validation" {
     alloc.free(conf.policy_dir);
     conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
 
-    try conf.validatePolicyFiles(alloc);
+    try conf.validatePolicyFiles(io, alloc);
 }
 
 test "policy processing" {
-    const test_policy_file = try std.fs.cwd().openFile("src/test/test_policy.md", .{});
-    defer test_policy_file.close();
-    const test_policy = try test_policy_file.readToEndAlloc(tst.allocator, std.math.maxInt(usize));
+    const test_policy_file = try std.Io.Dir.cwd().openFile(io, "src/test/test_policy.md", .{});
+    defer test_policy_file.close(io);
+    const test_policy = try utils.readAllAlloc(io, test_policy_file, tst.allocator, std.math.maxInt(usize));
     defer tst.allocator.free(test_policy);
 
     var frontmatter = try zigmark.Frontmatter.initFromMarkdown(tst.allocator, test_policy);
@@ -79,7 +94,7 @@ test "policy processing" {
     try tst.expect(rev.contains("approved_by"));
     try tst.expect(rev.contains("version"));
 
-    var t1 = Array(u8){};
+    var t1 = Array(u8).empty;
     defer t1.deinit(tst.allocator);
     try t1.appendSlice(tst.allocator, test_policy);
     var f1 = try utils.get_metadata(tst.allocator, &t1, .{
@@ -105,15 +120,15 @@ test "policy processing" {
     try tst.expectEqual(0, std.mem.count(u8, t1.items, "{% end %}"));
 }
 test "pdf rendering" {
-    if (!pandoc.executableInPath("xelatex")) return error.SkipZigTest;
-    var args = Array([]u8){};
-    var env = try std.process.getEnvMap(tst.allocator);
+    var env = try testEnvMap(tst.allocator);
     defer env.deinit();
+    if (!pandoc.executableInPath(io, &env, "xelatex")) return error.SkipZigTest;
+    var args = Array([]u8).empty;
 
     var tmp = tst.tmpDir(.{});
 
     const alloc = tst.allocator;
-    var conf = try config.load(alloc, TestConfig);
+    var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
 
     // Free and replace root
@@ -125,27 +140,27 @@ test "pdf rendering" {
     });
     alloc.free(conf.policy_dir);
     conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
-    conf.build_dir = try tmp.dir.realpathAlloc(alloc, ".");
+    conf.build_dir = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(conf.build_dir);
 
-    try pandoc.create_global_args(tst.allocator, &args, conf);
+    try pandoc.create_global_args(io, &env, tst.allocator, &args, conf);
     defer pandoc.destroy_global_args(tst.allocator, &args);
     // Use a mermaid-free fixture so the test works in the Nix sandbox
     // (Chrome/user-namespaces are unavailable there). Mermaid shortcode
     // transformation is already covered by the "policy processing" test.
     const md = utils.MDFile{ .path = "src/test/test_policy_render.md" };
-    pandoc.process_md_file(tst.allocator, md, args, conf) catch |e| {
+    pandoc.process_md_file(io, &env, tst.allocator, md, args, conf) catch |e| {
         std.debug.print("Test Policy Pandoc Call Failed! \nConfig:{f}\n", .{conf});
         return e;
     };
 
     // Verify the PDF was actually written to the output directory.
     // Re-open with iterate permission; the tmpDir handle lacks it by default.
-    var out_dir = try std.fs.openDirAbsolute(conf.build_dir, .{ .iterate = true });
-    defer out_dir.close();
+    var out_dir = try std.Io.Dir.openDirAbsolute(io, conf.build_dir, .{ .iterate = true });
+    defer out_dir.close(io);
     var pdf_found = false;
     var dir_iter = out_dir.iterate();
-    while (try dir_iter.next()) |entry| {
+    while (try dir_iter.next(io)) |entry| {
         if (std.mem.endsWith(u8, entry.name, ".pdf")) {
             pdf_found = true;
             break;
@@ -158,25 +173,14 @@ test "pdf rendering" {
 
 test "report generation" {
 
-    // var env = try std.process.getEnvMap(tst.allocator);
-    // defer env.deinit();
-
     // var tmp = tst.tmpDir(.{});
-    // const builddir = try tmp.dir.realpathAlloc(tst.allocator, ".");
+    // const builddir = try tmpAbsPath(tst.allocator, &tmp);
     // defer tst.allocator.free(builddir);
 
-    // const c_file = try std.fs.cwd().realpathAlloc(tst.allocator, "data/scf.json");
-    // defer tst.allocator.free(c_file);
-
-    // const c_path = try std.fs.cwd().realpathAlloc(tst.allocator, ".");
-    // const p_path = try std.fs.path.join(tst.allocator, &.{ c_path, "content/policies" });
-    // defer tst.allocator.free(c_path);
-    // defer tst.allocator.free(p_path);
-
-    // var f = try report.init(tst.allocator, c_file);
+    // var f = try report.init(io, tst.allocator, "data/scf.json");
     // defer f.deinit();
 
-    // const rep = try f.report(p_path);
+    // const rep = try f.report(io, "content/policies");
     // var j = try std.json.parseFromSlice(std.json.Value, tst.allocator, rep, .{});
     // defer j.deinit();
     // try tst.expect(j.value.object.count() >= 1239); // test for number of controls read as of 10/2/2025
@@ -196,57 +200,61 @@ test "stamp: no stamp → always rebuild" {
     const alloc = tst.allocator;
     var tmp = tst.tmpDir(.{});
     defer tmp.cleanup();
-    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(tmp_path);
 
-    try tmp.dir.writeFile(.{ .sub_path = "policy.md", .data = "content" });
+    try tmp.dir.writeFile(io, .{ .sub_path = "policy.md", .data = "content" });
     const src_path = try std.fs.path.join(alloc, &.{ tmp_path, "policy.md" });
     defer alloc.free(src_path);
 
-    try tst.expect(!utils.stampIsNewer(src_path, tmp_path, alloc));
+    try tst.expect(!utils.stampIsNewer(io, src_path, tmp_path, alloc));
 }
 
 test "stamp: writeStamp → stampIsNewer returns true" {
     const alloc = tst.allocator;
     var tmp = tst.tmpDir(.{});
     defer tmp.cleanup();
-    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(tmp_path);
 
-    try tmp.dir.writeFile(.{ .sub_path = "policy.md", .data = "content" });
+    try tmp.dir.writeFile(io, .{ .sub_path = "policy.md", .data = "content" });
     const src_path = try std.fs.path.join(alloc, &.{ tmp_path, "policy.md" });
     defer alloc.free(src_path);
 
-    utils.writeStamp(alloc, tmp_path, src_path);
+    utils.writeStamp(io, alloc, tmp_path, src_path);
 
     // Set stamp mtime to 2 s in the future so it is definitely newer.
     const stamp_path = try std.fs.path.join(alloc, &.{ tmp_path, "policy" });
     defer alloc.free(stamp_path);
-    const stamp_file = try std.fs.cwd().openFile(stamp_path, .{ .mode = .read_write });
-    defer stamp_file.close();
-    const now = std.time.nanoTimestamp();
-    try stamp_file.updateTimes(now, now + 2_000_000_000);
+    const stamp_file = try std.Io.Dir.cwd().openFile(io, stamp_path, .{ .mode = .read_write });
+    defer stamp_file.close(io);
+    const now = std.Io.Timestamp.now(io, .real);
+    const future = std.Io.Timestamp.fromNanoseconds(now.toNanoseconds() + 2_000_000_000);
+    try stamp_file.setTimestamps(io, .{
+        .access_timestamp = .{ .new = now },
+        .modify_timestamp = .{ .new = future },
+    });
 
-    try tst.expect(utils.stampIsNewer(src_path, tmp_path, alloc));
+    try tst.expect(utils.stampIsNewer(io, src_path, tmp_path, alloc));
 }
 
 test "stamp: writeStamp creates file with correct stem" {
     const alloc = tst.allocator;
     var tmp = tst.tmpDir(.{});
     defer tmp.cleanup();
-    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(tmp_path);
 
-    try tmp.dir.writeFile(.{ .sub_path = "access-control.md", .data = "body" });
+    try tmp.dir.writeFile(io, .{ .sub_path = "access-control.md", .data = "body" });
     const src_path = try std.fs.path.join(alloc, &.{ tmp_path, "access-control.md" });
     defer alloc.free(src_path);
 
-    try tst.expect(!utils.stampIsNewer(src_path, tmp_path, alloc));
-    utils.writeStamp(alloc, tmp_path, src_path);
+    try tst.expect(!utils.stampIsNewer(io, src_path, tmp_path, alloc));
+    utils.writeStamp(io, alloc, tmp_path, src_path);
 
     const stem_path = try std.fs.path.join(alloc, &.{ tmp_path, "access-control" });
     defer alloc.free(stem_path);
-    try std.fs.accessAbsolute(stem_path, .{});
+    try std.Io.Dir.accessAbsolute(io, stem_path, .{});
 }
 
 // ============================================================
@@ -258,7 +266,7 @@ test "stamp: writeStamp creates file with correct stem" {
 test "bad config: missing extra section" {
     try tst.expectError(
         error.NoExtraInZolaConfig,
-        config.load(tst.allocator, "base_url = \"http://localhost\""),
+        config.load(io, tst.allocator, "base_url = \"http://localhost\""),
     );
 }
 
@@ -270,7 +278,7 @@ test "bad config: missing logo" {
         \\pdf_color = "#000"
         \\policy_dir = "."
     ;
-    try tst.expectError(error.NoLogoInExtra, config.load(tst.allocator, bad));
+    try tst.expectError(error.NoLogoInExtra, config.load(io, tst.allocator, bad));
 }
 
 test "bad config: missing organization" {
@@ -281,7 +289,7 @@ test "bad config: missing organization" {
         \\pdf_color = "#000"
         \\policy_dir = "."
     ;
-    try tst.expectError(error.NoOrganizationInExtra, config.load(tst.allocator, bad));
+    try tst.expectError(error.NoOrganizationInExtra, config.load(io, tst.allocator, bad));
 }
 
 test "bad config: missing pdf_color" {
@@ -292,7 +300,7 @@ test "bad config: missing pdf_color" {
         \\organization = "ACME"
         \\policy_dir = "."
     ;
-    try tst.expectError(error.NoPDFColorInExtra, config.load(tst.allocator, bad));
+    try tst.expectError(error.NoPDFColorInExtra, config.load(io, tst.allocator, bad));
 }
 
 test "bad config: missing base_url" {
@@ -303,7 +311,7 @@ test "bad config: missing base_url" {
         \\pdf_color = "#000"
         \\policy_dir = "."
     ;
-    try tst.expectError(error.NoBaseUrlInZolaConfig, config.load(tst.allocator, bad));
+    try tst.expectError(error.NoBaseUrlInZolaConfig, config.load(io, tst.allocator, bad));
 }
 
 // --- Missing Frontmatter → Helpful Error ---
@@ -329,9 +337,9 @@ test "missing frontmatter: no title → NoTitleInFrontMatter" {
         \\extra:
         \\  last_reviewed: "2024-01-01"
         \\  major_revisions:
-    ++ "\n" ++ full_revision,
+        ++ "\n" ++ full_revision,
     );
-    var arr = Array(u8){};
+    var arr = Array(u8).empty;
     defer arr.deinit(alloc);
     try arr.appendSlice(alloc, md);
     try tst.expectError(
@@ -347,9 +355,9 @@ test "missing frontmatter: no last_reviewed → NoLastReviewInFrontMatter" {
         \\description: "Test"
         \\extra:
         \\  major_revisions:
-    ++ "\n" ++ full_revision,
+        ++ "\n" ++ full_revision,
     );
-    var arr = Array(u8){};
+    var arr = Array(u8).empty;
     defer arr.deinit(alloc);
     try arr.appendSlice(alloc, md);
     try tst.expectError(
@@ -365,9 +373,9 @@ test "missing frontmatter: no revisions → NoRevisionsInFrontMatter" {
         \\description: "Test"
         \\extra:
         \\  last_reviewed: "2024-01-01"
-    ,
+        ,
     );
-    var arr = Array(u8){};
+    var arr = Array(u8).empty;
     defer arr.deinit(alloc);
     try arr.appendSlice(alloc, md);
     try tst.expectError(
@@ -383,12 +391,12 @@ test "missing frontmatter: description → NoDescriptionInFrontMatter" {
         \\extra:
         \\  last_reviewed: "2024-01-01"
         \\  major_revisions:
-    ++ "\n" ++ full_revision,
+        ++ "\n" ++ full_revision,
     );
     var fm = try zigmark.Frontmatter.initFromMarkdown(alloc, md);
     defer fm.deinit();
     // validateFrontMatter ignores its Config receiver
-    var conf = try config.load(alloc, TestConfig);
+    var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
     try tst.expectError(error.NoDescriptionInFrontMatter, conf.validateFrontMatter(fm));
 }
@@ -404,11 +412,11 @@ test "missing frontmatter: revision missing date → NoDateForRevision" {
         \\  - description: "Initial"
         \\    approved_by: "Approver"
         \\    version: "1.0"
-    ,
+        ,
     );
     var fm = try zigmark.Frontmatter.initFromMarkdown(alloc, md);
     defer fm.deinit();
-    var conf = try config.load(alloc, TestConfig);
+    var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
     try tst.expectError(error.NoDateForRevision, conf.validateFrontMatter(fm));
 }
@@ -424,11 +432,11 @@ test "missing frontmatter: revision missing approved_by → NoApprovalForRevisio
         \\  - date: "2024-01-01"
         \\    description: "Initial"
         \\    version: "1.0"
-    ,
+        ,
     );
     var fm = try zigmark.Frontmatter.initFromMarkdown(alloc, md);
     defer fm.deinit();
-    var conf = try config.load(alloc, TestConfig);
+    var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
     try tst.expectError(error.NoApprovalForRevision, conf.validateFrontMatter(fm));
 }
@@ -437,8 +445,10 @@ test "missing frontmatter: revision missing approved_by → NoApprovalForRevisio
 
 test "draft mode: pandoc args include page-background flags" {
     const alloc = tst.allocator;
-    var args = Array([]u8){};
-    var conf = try config.load(alloc, TestConfig);
+    var env = try testEnvMap(alloc);
+    defer env.deinit();
+    var args = Array([]u8).empty;
+    var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
     alloc.free(conf.content_dir);
     conf.content_dir = try std.fs.path.join(alloc, &.{ conf.root, "src", "test" });
@@ -446,7 +456,7 @@ test "draft mode: pandoc args include page-background flags" {
     conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
 
     conf.is_draft = true;
-    try pandoc.create_global_args(alloc, &args, conf);
+    try pandoc.create_global_args(io, &env, alloc, &args, conf);
     defer pandoc.destroy_global_args(alloc, &args);
 
     var found_bg = false;
@@ -461,8 +471,10 @@ test "draft mode: pandoc args include page-background flags" {
 
 test "non-draft mode: pandoc args exclude page-background flags" {
     const alloc = tst.allocator;
-    var args = Array([]u8){};
-    var conf = try config.load(alloc, TestConfig);
+    var env = try testEnvMap(alloc);
+    defer env.deinit();
+    var args = Array([]u8).empty;
+    var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
     alloc.free(conf.content_dir);
     conf.content_dir = try std.fs.path.join(alloc, &.{ conf.root, "src", "test" });
@@ -470,7 +482,7 @@ test "non-draft mode: pandoc args exclude page-background flags" {
     conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
 
     conf.is_draft = false;
-    try pandoc.create_global_args(alloc, &args, conf);
+    try pandoc.create_global_args(io, &env, alloc, &args, conf);
     defer pandoc.destroy_global_args(alloc, &args);
 
     for (args.items) |arg| {
@@ -485,12 +497,12 @@ test "non-draft mode: pandoc args exclude page-background flags" {
 
 test "redact mode: title suffix and content scrubbed" {
     const alloc = tst.allocator;
-    const test_policy_file = try std.fs.cwd().openFile("src/test/test_policy.md", .{});
-    defer test_policy_file.close();
-    const raw = try test_policy_file.readToEndAlloc(alloc, std.math.maxInt(usize));
+    const test_policy_file = try std.Io.Dir.cwd().openFile(io, "src/test/test_policy.md", .{});
+    defer test_policy_file.close(io);
+    const raw = try utils.readAllAlloc(io, test_policy_file, alloc, std.math.maxInt(usize));
     defer alloc.free(raw);
 
-    var contents = Array(u8){};
+    var contents = Array(u8).empty;
     defer contents.deinit(alloc);
     try contents.appendSlice(alloc, raw);
 
@@ -523,21 +535,23 @@ fn findPageBackground(args: Array([]u8)) ?[]const u8 {
 
 test "draft mode: uses site-root static/draft.png when present" {
     const alloc = tst.allocator;
-    var args = Array([]u8){};
-    var conf = try config.load(alloc, TestConfig);
+    var env = try testEnvMap(alloc);
+    defer env.deinit();
+    var args = Array([]u8).empty;
+    var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
 
     var tmp = tst.tmpDir(.{});
     defer tmp.cleanup();
-    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(tmp_path);
-    try tmp.dir.makePath("static");
-    try tmp.dir.writeFile(.{ .sub_path = "static/draft.png", .data = "" });
+    try tmp.dir.createDirPath(io, "static");
+    try tmp.dir.writeFile(io, .{ .sub_path = "static/draft.png", .data = "" });
 
     alloc.free(conf.root);
     conf.root = try alloc.dupe(u8, tmp_path);
     conf.is_draft = true;
-    try pandoc.create_global_args(alloc, &args, conf);
+    try pandoc.create_global_args(io, &env, alloc, &args, conf);
     defer pandoc.destroy_global_args(alloc, &args);
 
     const path = findPageBackground(args) orelse return error.NoBgArg;
@@ -548,21 +562,23 @@ test "draft mode: uses site-root static/draft.png when present" {
 
 test "draft mode: falls back to themes/policypress/static/draft.png when site-root copy absent" {
     const alloc = tst.allocator;
-    var args = Array([]u8){};
-    var conf = try config.load(alloc, TestConfig);
+    var env = try testEnvMap(alloc);
+    defer env.deinit();
+    var args = Array([]u8).empty;
+    var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
 
     var tmp = tst.tmpDir(.{});
     defer tmp.cleanup();
-    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(tmp_path);
-    try tmp.dir.makePath("themes/policypress/static");
-    try tmp.dir.writeFile(.{ .sub_path = "themes/policypress/static/draft.png", .data = "" });
+    try tmp.dir.createDirPath(io, "themes/policypress/static");
+    try tmp.dir.writeFile(io, .{ .sub_path = "themes/policypress/static/draft.png", .data = "" });
 
     alloc.free(conf.root);
     conf.root = try alloc.dupe(u8, tmp_path);
     conf.is_draft = true;
-    try pandoc.create_global_args(alloc, &args, conf);
+    try pandoc.create_global_args(io, &env, alloc, &args, conf);
     defer pandoc.destroy_global_args(alloc, &args);
 
     const path = findPageBackground(args) orelse return error.NoBgArg;
@@ -571,23 +587,25 @@ test "draft mode: falls back to themes/policypress/static/draft.png when site-ro
 
 test "draft mode: site-root static/draft.png wins over theme fallback when both exist" {
     const alloc = tst.allocator;
-    var args = Array([]u8){};
-    var conf = try config.load(alloc, TestConfig);
+    var env = try testEnvMap(alloc);
+    defer env.deinit();
+    var args = Array([]u8).empty;
+    var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
 
     var tmp = tst.tmpDir(.{});
     defer tmp.cleanup();
-    const tmp_path = try tmp.dir.realpathAlloc(alloc, ".");
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(tmp_path);
-    try tmp.dir.makePath("static");
-    try tmp.dir.writeFile(.{ .sub_path = "static/draft.png", .data = "" });
-    try tmp.dir.makePath("themes/policypress/static");
-    try tmp.dir.writeFile(.{ .sub_path = "themes/policypress/static/draft.png", .data = "" });
+    try tmp.dir.createDirPath(io, "static");
+    try tmp.dir.writeFile(io, .{ .sub_path = "static/draft.png", .data = "" });
+    try tmp.dir.createDirPath(io, "themes/policypress/static");
+    try tmp.dir.writeFile(io, .{ .sub_path = "themes/policypress/static/draft.png", .data = "" });
 
     alloc.free(conf.root);
     conf.root = try alloc.dupe(u8, tmp_path);
     conf.is_draft = true;
-    try pandoc.create_global_args(alloc, &args, conf);
+    try pandoc.create_global_args(io, &env, alloc, &args, conf);
     defer pandoc.destroy_global_args(alloc, &args);
 
     const path = findPageBackground(args) orelse return error.NoBgArg;
@@ -598,9 +616,13 @@ test "draft mode: site-root static/draft.png wins over theme fallback when both 
 
 test "executableInPath: sh is present on unix" {
     if (comptime b.os.tag == .windows) return error.SkipZigTest;
-    try tst.expect(pandoc.executableInPath("sh"));
+    var env = try testEnvMap(tst.allocator);
+    defer env.deinit();
+    try tst.expect(pandoc.executableInPath(io, &env, "sh"));
 }
 
 test "executableInPath: nonexistent binary returns false" {
-    try tst.expect(!pandoc.executableInPath("pp-test-nonexistent-xyzzy-12345"));
+    var env = try testEnvMap(tst.allocator);
+    defer env.deinit();
+    try tst.expect(!pandoc.executableInPath(io, &env, "pp-test-nonexistent-xyzzy-12345"));
 }

@@ -63,7 +63,7 @@ pub const Config = struct {
     }
     pub fn load_config_toml(io: std.Io, alloc: Allocator) !Config {
         conflog.debug("Loading config.toml", .{});
-        const content = try std.Io.Dir.cwd().readFileAlloc(io, "config.toml", alloc, .limited(1024 * 1024 * 1024));
+        const content = try std.Io.Dir.cwd().readFileAlloc(io, "config.toml", alloc, .limited(1024 * 1024));
         defer alloc.free(content);
 
         return try Config.load(io, alloc, content);

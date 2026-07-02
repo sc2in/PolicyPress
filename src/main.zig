@@ -426,7 +426,14 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
             &error_list,
         });
     }
-    group.await(io) catch {};
+    // await blocks until every task finishes even when returning
+    // error.Canceled, so no task outlives this frame; propagate the error
+    // rather than reporting a cancelled build as success.
+    group.await(io) catch |err| {
+        compile_node.end();
+        root_progress.end();
+        return err;
+    };
 
     compile_node.end();
     root_progress.end();

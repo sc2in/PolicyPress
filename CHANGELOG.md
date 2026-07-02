@@ -13,8 +13,9 @@ keys) is considered stable.
 - **Zig 0.16.0 migration** — the codebase and Nix toolchain now target Zig 0.16.0. The new
   `std.Io` context is threaded through all filesystem, process, and concurrency code
   (`std.Thread.Pool` → `std.Io.Group`); dependencies were updated to 0.16-compatible
-  versions; `zig-datetime` and `zig-yaml` were dropped (today's date is now computed via
-  `std.time.epoch`). `minimum_zig_version` is now `0.16.0`.
+  versions; the direct `zig-datetime` and `zig-yaml` dependencies were dropped (today's
+  date is now computed via `std.time.epoch`; `zig-yaml` remains in the lockfile as a
+  transitive dependency of zigmark). `minimum_zig_version` is now `0.16.0`.
 
 ### Added
 

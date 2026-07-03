@@ -216,8 +216,9 @@
                 installPhase = "touch $out";
                 nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ runtimeDeps;
                 TYPST_FONT_PATHS = "${typstFonts}/share/fonts";
-                # Deterministic font resolution in and out of the sandbox.
-                TYPST_IGNORE_SYSTEM_FONTS = "1";
+                # Deterministic font resolution in and out of the sandbox
+                # (typst accepts only "true"/"false" here).
+                TYPST_IGNORE_SYSTEM_FONTS = "true";
                 meta = (old.meta or { }) // {
                   description = "Run zig build test";
                 };

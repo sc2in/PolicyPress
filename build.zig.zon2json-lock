@@ -1,8 +1,8 @@
 {
-  "zigmark-0.7.2-cwOiyEMyCgCy7my13p9ptks2vvZG3p9xjOqBRqcUmrDX": {
+  "zigmark-0.7.4-cwOiyEMyCgBy834ZlSIgdMG2lvWRis3kbSrC4pSpkZ1h": {
     "name": "zigmark",
-    "url": "git+https://github.com/sc2in/zigmark?ref=v0.7.3#b9bee4e018df06fdef412ab95d6ce4332befedc2",
-    "hash": "sha256-nPDZxt0SC7fkWnkc1VKvGs1KIdtfDT5Sz1IXWnpgpew="
+    "url": "git+https://github.com/sc2in/zigmark?ref=v0.7.4#b82e5ed2c993e5360c15a3e51732fe76e0712727",
+    "hash": "sha256-/4ABWZ7ioX9+MGWmsLpTPoNTjbNwRyLbjKHbI0JQJz0="
   },
   "tomlz-0.3.0-H2E6w3VKAgCSZQFKG-VugLEn3cjOWshGqwGzAVABNm--": {
     "name": "tomlz",
@@ -34,10 +34,10 @@
     "url": "git+https://github.com/github/cmark-gfm.git#587a12bb54d95ac37241377e6ddc93ea0e45439b",
     "hash": "sha256-egCWzw09e5daT8cnlSORC3gep9soiqonVC4GQ/s3voM="
   },
-  "pozeiden-0.1.3-NAqiXeOXCgAUNGkydN-lIYUZQ87uzGQPOQ-wXvK4FNW3": {
+  "pozeiden-0.2.0-NAqiXaypCgBCkAMB3WZpGLPnwV5XTsUvOf3KUY9aAN0p": {
     "name": "pozeiden",
-    "url": "https://github.com/sc2in/pozeiden/archive/refs/tags/v0.1.3.tar.gz",
-    "hash": "sha256-D6MZywks5n7jCWx/C02HT8LSdaWleCsL2/jjpYAbM1Q="
+    "url": "https://github.com/sc2in/pozeiden/archive/refs/tags/v0.2.0.tar.gz",
+    "hash": "sha256-9j8xkNndJX+l20+/qlfK2aLFCfPQsX1xoTDQ+V2jXUg="
   },
   "mvzr-0.3.9-ZSOky8FzAQBQ9-GkQnaLjOZZHxrioD8NwY-QyZT6oAyR": {
     "name": "mvzr",
@@ -63,10 +63,5 @@
     "name": "clap",
     "url": "git+https://github.com/Hejsil/zig-clap#1d3d273524e3c180f015ff1e93c83075e4634e2c",
     "hash": "sha256-Ytdm6tGAO+2V5jNLn7oB0r4DnmhoL6PIDQ0ihxzsLts="
-  },
-  "pozeiden-0.2.0-NAqiXaypCgBCkAMB3WZpGLPnwV5XTsUvOf3KUY9aAN0p": {
-    "name": "pozeiden",
-    "url": "git+https://github.com/sc2in/pozeiden?ref=v0.2.0#9d44249023a41d4191685023d47a9e2076b99c43",
-    "hash": "sha256-9j8xkNndJX+l20+/qlfK2aLFCfPQsX1xoTDQ+V2jXUg="
   }
 }

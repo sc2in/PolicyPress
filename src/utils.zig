@@ -5,6 +5,7 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
+const builtin = @import("builtin");
 
 const mvzr = @import("mvzr");
 const zigmark = @import("zigmark");
@@ -369,6 +370,110 @@ pub fn redact(a: Allocator, txt: *Array(u8), remove: bool) !void {
     }
     txt.deinit(a);
     txt.* = new;
+}
+
+/// Replace `_` characters in the **body** of `txt` (after the frontmatter) with
+/// the UTF-8 solid-block character `█` (U+2588).
+///
+/// `redact` fills redacted spans with underscores.  In CommonMark, a run of
+/// three or more `_` on its own line is a thematic break, so zigmark renders it
+/// as a thin gray rule.  Replacing with `█` produces proper black-bar redaction
+/// marks without any special Markdown meaning.
+///
+/// Only the body is processed; the frontmatter block (keys like `last_reviewed`,
+/// `major_revisions`) must remain intact for the later metadata extraction pass.
+pub fn underscoresToBlocks(alloc: Allocator, txt: *Array(u8)) !void {
+    const block = "█"; // 3-byte UTF-8: 0xE2 0x96 0x88
+    if (std.mem.indexOfScalar(u8, txt.items, '_') == null) return;
+
+    // Locate the end of the frontmatter so we leave it untouched.
+    const content = txt.items;
+    const body_start: usize = blk: {
+        if (content.len < 4) break :blk 0;
+        const delim: []const u8 = switch (content[0]) {
+            '-' => "---",
+            '+' => "+++",
+            else => break :blk 0,
+        };
+        const close = std.mem.indexOfPos(u8, content, 3, delim) orelse break :blk 0;
+        break :blk close + delim.len;
+    };
+
+    var aw: std.Io.Writer.Allocating = .init(alloc);
+    defer aw.deinit();
+    // Copy the frontmatter verbatim.
+    try aw.writer.writeAll(content[0..body_start]);
+    // Replace underscores in the body with █.
+    // Insert a space every 10 blocks so Typst can wrap the bar within the text
+    // width (redact replaces spaces too, producing one unbreakable "word").
+    var block_count: usize = 0;
+    for (content[body_start..]) |c| {
+        if (c == '_') {
+            try aw.writer.writeAll(block);
+            block_count += 1;
+            if (block_count % 10 == 0) try aw.writer.writeByte(' ');
+        } else {
+            block_count = 0;
+            try aw.writer.writeByte(c);
+        }
+    }
+    const new_bytes = try aw.toOwnedSlice();
+    txt.deinit(alloc);
+    txt.* = Array(u8){ .items = new_bytes, .capacity = new_bytes.len };
+}
+
+test "underscoresToBlocks replaces body underscores with solid blocks" {
+    const allocator = tst.allocator;
+    var arr = Array(u8).empty;
+    defer arr.deinit(allocator);
+    try arr.appendSlice(allocator, "some ____ text");
+
+    try underscoresToBlocks(allocator, &arr);
+    try tst.expectEqualStrings("some ████ text", arr.items);
+}
+
+test "underscoresToBlocks leaves frontmatter untouched" {
+    const allocator = tst.allocator;
+    var arr = Array(u8).empty;
+    defer arr.deinit(allocator);
+    try arr.appendSlice(allocator, "---\nlast_reviewed: 2026-01-01\n---\nbody __ here");
+
+    try underscoresToBlocks(allocator, &arr);
+    try tst.expectEqualStrings("---\nlast_reviewed: 2026-01-01\n---\nbody ██ here", arr.items);
+}
+
+test "underscoresToBlocks inserts a break space every 10 blocks" {
+    const allocator = tst.allocator;
+    var arr = Array(u8).empty;
+    defer arr.deinit(allocator);
+    try arr.appendSlice(allocator, "_" ** 12);
+
+    try underscoresToBlocks(allocator, &arr);
+    try tst.expectEqualStrings("██████████ ██", arr.items);
+}
+
+test "underscoresToBlocks is a no-op without underscores" {
+    const allocator = tst.allocator;
+    var arr = Array(u8).empty;
+    defer arr.deinit(allocator);
+    try arr.appendSlice(allocator, "clean text");
+
+    try underscoresToBlocks(allocator, &arr);
+    try tst.expectEqualStrings("clean text", arr.items);
+}
+
+/// Returns true when `name` resolves to an executable on the PATH.
+pub fn executableInPath(io: std.Io, env: *std.process.Environ.Map, name: []const u8) bool {
+    if (comptime builtin.os.tag == .windows) return false;
+    const path_env = env.get("PATH") orelse return false;
+    var it = std.mem.tokenizeScalar(u8, path_env, ':');
+    var buf: [std.fs.max_path_bytes]u8 = undefined;
+    while (it.next()) |dir| {
+        const full = std.fmt.bufPrint(&buf, "{s}/{s}", .{ dir, name }) catch continue;
+        std.Io.Dir.accessAbsolute(io, full, .{}) catch continue;
+        return true;
+    }
+    return false;
 }
 
 test "Redaction" {

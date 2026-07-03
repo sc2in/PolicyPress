@@ -498,6 +498,7 @@ fn describeCompileError(err: anyerror) []const u8 {
         error.InvalidShortCode => "a shortcode block ({% ... %}) is malformed - check for missing {% end %}",
         error.NoResourcePathDefined => "could not determine resource path from the file's location",
         error.TypstFailed => "typst exited with an error - check the output above for details",
+        error.TypstWorkFileConflict => "could not create a unique .typ work file at the site root",
         error.TypstNotFound => "typst was not found; run inside the PolicyPress devshell (nix develop) or install it from https://typst.app/open-source/",
         error.FileNotFound => "policy file was not found on disk (it may have been deleted mid-build)",
         error.OutOfMemory => "out of memory while processing this file",

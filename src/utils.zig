@@ -386,7 +386,11 @@ pub fn underscoresToBlocks(alloc: Allocator, txt: *Array(u8)) !void {
     const block = "█"; // 3-byte UTF-8: 0xE2 0x96 0x88
     if (std.mem.indexOfScalar(u8, txt.items, '_') == null) return;
 
-    // Locate the end of the frontmatter so we leave it untouched.
+    // Locate the end of the frontmatter so we leave it untouched. The closing
+    // delimiter only counts when it is a whole line ("---" at line start,
+    // followed by a newline or EOF) — a "---" inside a frontmatter value must
+    // not end the protected region early, or later underscores in keys like
+    // `last_reviewed` would be corrupted.
     const content = txt.items;
     const body_start: usize = blk: {
         if (content.len < 4) break :blk 0;
@@ -395,8 +399,16 @@ pub fn underscoresToBlocks(alloc: Allocator, txt: *Array(u8)) !void {
             '+' => "+++",
             else => break :blk 0,
         };
-        const close = std.mem.indexOfPos(u8, content, 3, delim) orelse break :blk 0;
-        break :blk close + delim.len;
+        var search: usize = 3;
+        while (std.mem.indexOfPos(u8, content, search, delim)) |idx| : (search = idx + 1) {
+            if (content[idx - 1] != '\n') continue;
+            const line_end = idx + delim.len;
+            if (line_end >= content.len) break :blk line_end;
+            if (content[line_end] == '\n') break :blk line_end + 1;
+            if (content[line_end] == '\r' and line_end + 1 < content.len and content[line_end + 1] == '\n')
+                break :blk line_end + 2;
+        }
+        break :blk 0;
     };
 
     var aw: std.Io.Writer.Allocating = .init(alloc);
@@ -440,6 +452,18 @@ test "underscoresToBlocks leaves frontmatter untouched" {
 
     try underscoresToBlocks(allocator, &arr);
     try tst.expectEqualStrings("---\nlast_reviewed: 2026-01-01\n---\nbody ██ here", arr.items);
+}
+
+test "underscoresToBlocks ignores a --- inside a frontmatter value" {
+    const allocator = tst.allocator;
+    var arr = Array(u8).empty;
+    defer arr.deinit(allocator);
+    // The "---" in the description must not end the protected region:
+    // last_reviewed's underscore has to survive.
+    try arr.appendSlice(allocator, "---\ndescription: \"a --- b\"\nlast_reviewed: 2026-01-01\n---\nbody __ here");
+
+    try underscoresToBlocks(allocator, &arr);
+    try tst.expectEqualStrings("---\ndescription: \"a --- b\"\nlast_reviewed: 2026-01-01\n---\nbody ██ here", arr.items);
 }
 
 test "underscoresToBlocks inserts a break space every 10 blocks" {

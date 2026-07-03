@@ -92,21 +92,28 @@ pub fn compile(
     // typst rejects source files outside --root, so the system temp directory
     // is not usable. Write a hidden file at the site root and delete it after
     // compilation. Random suffix: unique per task even within one process, so
-    // concurrent compiles of same-named files cannot collide.
-    var typ_id: u64 = undefined;
-    io.random(std.mem.asBytes(&typ_id));
-    const typ_name = try std.fmt.allocPrint(alloc, ".pp_{x}_{s}.typ", .{ typ_id, std.fs.path.basename(input_file) });
-    defer alloc.free(typ_name);
-    const typ_abs = try std.fs.path.join(alloc, &.{ config.root, typ_name });
-    defer alloc.free(typ_abs);
-
-    const typ_file = std.Io.Dir.createFileAbsolute(io, typ_abs, .{ .exclusive = true }) catch |e| blk: {
-        if (e == error.PathAlreadyExists) {
-            std.Io.Dir.deleteFileAbsolute(io, typ_abs) catch {};
-            break :blk try std.Io.Dir.createFileAbsolute(io, typ_abs, .{});
+    // concurrent compiles of same-named files cannot collide. On the
+    // (astronomically unlikely) name collision, retry with a fresh name —
+    // never delete a file this run did not create.
+    const typ_file, const typ_abs = blk: {
+        var attempt: usize = 0;
+        while (attempt < 16) : (attempt += 1) {
+            var typ_id: u64 = undefined;
+            io.random(std.mem.asBytes(&typ_id));
+            const typ_name = try std.fmt.allocPrint(alloc, ".pp_{x}_{s}.typ", .{ typ_id, std.fs.path.basename(input_file) });
+            defer alloc.free(typ_name);
+            const abs = try std.fs.path.join(alloc, &.{ config.root, typ_name });
+            const f = std.Io.Dir.createFileAbsolute(io, abs, .{ .exclusive = true }) catch |e| {
+                alloc.free(abs);
+                if (e == error.PathAlreadyExists) continue;
+                return e;
+            };
+            break :blk .{ f, abs };
         }
-        return e;
+        log.err("could not create a unique .typ work file under {s}\n", .{config.root});
+        return error.TypstWorkFileConflict;
     };
+    defer alloc.free(typ_abs);
     defer {
         typ_file.close(io);
         std.Io.Dir.deleteFileAbsolute(io, typ_abs) catch {};
@@ -119,7 +126,7 @@ pub fn compile(
         return e;
     };
 
-    const out_path = try std.fmt.allocPrint(alloc, "{s}/{s}", .{ config.build_dir, rendered.pdf_name });
+    const out_path = try std.fs.path.join(alloc, &.{ config.build_dir, rendered.pdf_name });
     defer alloc.free(out_path);
 
     try runTypst(io, env, alloc, typ_abs, out_path, config.root);

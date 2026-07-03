@@ -30,6 +30,17 @@ keys) is considered stable.
 - Full test suite now runs on macOS CI (previously only semantic analysis,
   blocked by mermaid-filter's Chromium dependency).
 
+### Fixed
+
+- `redact_web` no longer drives PDF redaction (#115). It was documented as
+  web-only but seeded the PDF pipeline's redact default, so an org hiding
+  content (e.g. phone numbers) on the website could not keep it in the PDFs
+  without passing `--no-redact`. PDF redaction is now controlled solely by
+  `--redact`/`--no-redact` and the action's `redact_mode` input (which always
+  passes an explicit flag, so action consumers are unaffected). If you ran
+  the bare CLI and relied on `redact_web = true` redacting PDFs, pass
+  `--redact` explicitly.
+
 ### Removed
 
 - pandoc, texlive/eisvogel-tex, and mermaid-filter (Node.js + Puppeteer +

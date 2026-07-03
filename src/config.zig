@@ -126,7 +126,12 @@ pub const Config = struct {
         config.org = e.getString("organization").?;
         config.build_dir = "public";
         config.zola_config = t;
-        config.redact = e.getBool("redact_web") orelse false;
+        // PDF redaction is controlled only by --redact/--no-redact (and the
+        // action's redact_mode input). `redact_web` is read by the Zola
+        // templates for the website's redaction bars and deliberately does
+        // not affect PDFs: an org may hide content (e.g. phone numbers) on
+        // the public site while keeping it in the PDFs. (#115)
+        config.redact = false;
         return config;
     }
     pub fn deinit(self: *Config, alloc: Allocator) void {

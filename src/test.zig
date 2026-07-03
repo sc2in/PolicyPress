@@ -56,6 +56,10 @@ test "config loading and validation" {
     const alloc = tst.allocator;
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
+    // redact_web is web-only (Zola templates); PDF redaction comes solely
+    // from --redact/--no-redact. TestConfig sets redact_web = true, so this
+    // pins the decoupling (#115).
+    try tst.expect(!conf.redact);
     alloc.free(conf.content_dir);
     conf.content_dir = try std.fs.path.join(alloc, &.{
         conf.root,

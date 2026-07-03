@@ -19,6 +19,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Configure permissions
+        # Unprivileged user namespaces for bubblewrap (zig2nix's zig-hook);
+        # see the comment in ci.yml.
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
       - name: Compute preview URL
         id: preview_url
         run: |

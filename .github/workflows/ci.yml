@@ -67,6 +67,14 @@ jobs:
       - name: Install omnix
         run: nix --accept-flake-config profile add nixpkgs#omnix
 
+      - name: Configure permissions
+        # Enable unprivileged user namespaces, required by bubblewrap: zig2nix's
+        # zig-hook runs the compiler inside bwrap for network isolation, so any
+        # from-source build of zig2nix tooling fails without this on Ubuntu
+        # 24.04 runners ("bwrap: setting up uid map: Permission denied").
+        # The sysctl does not exist on macOS so || true makes it safe.
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
       - name: Run CI
         run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then

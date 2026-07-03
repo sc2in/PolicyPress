@@ -42,8 +42,8 @@
         // Switch to git+https URLs with hashes before publishing to FlakeHub.
         // .zetta = .{ .path = "../zetta" },
         .zigmark = .{
-            .url = "git+https://github.com/sc2in/zigmark#e590c0a1d707744811d936b038d4a7e0780b32e9",
-            .hash = "zigmark-0.7.0-cwOiyN4KCgAHRBp6kiQE2fbckRQiOUfPQNq9rYPtOrqG",
+            .url = "git+https://github.com/sc2in/zigmark#9c8a99caaa613b44886ca5ff04fb8ab841b4d484",
+            .hash = "zigmark-0.7.2-cwOiyIoYCgD20PuJUYu7uQyFLcng6H7Xg09j-QEivL44",
         },
         .tomlz = .{
             .url = "git+https://github.com/sc2in/tomlz.git#ecd64e239768b573ec58286d0db1842991433e99",
@@ -60,6 +60,10 @@
         .clap = .{
             .url = "git+https://github.com/Hejsil/zig-clap#1d3d273524e3c180f015ff1e93c83075e4634e2c",
             .hash = "clap-0.11.0-oBajB-jlAQA8x4XSScN1d48Q83iYl-LDU63htNyXbXBe",
+        },
+        .pozeiden = .{
+            .url = "git+https://github.com/sc2in/pozeiden#19259125f772cb44117e7a77575292994fd7463c",
+            .hash = "pozeiden-0.1.3-NAqiXeOXCgAUNGkydN-lIYUZQ87uzGQPOQ-wXvK4FNW3",
         },
     },
     .paths = .{

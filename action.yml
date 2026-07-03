@@ -76,7 +76,10 @@ runs:
       uses: actions/checkout@v4
       with:
         repository: sc2in/policypress
-        ref: ${{ steps.get-ref.outputs.ref }}
+        # action_ref for remote consumers (uses: sc2in/policypress@vX); for
+        # in-repo `uses: ./` runs it is empty, so fall back to the workflow's
+        # own commit — previews then use the PR's theme, not main's.
+        ref: ${{ steps.get-ref.outputs.ref || github.sha }}
         path: themes/policypress
 
     - name: Install policypress binary
@@ -84,25 +87,37 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        case "$(uname -s)-$(uname -m)" in
-          Linux-x86_64)   BINARY="policypress-x86_64-linux" ;;
-          Linux-aarch64)  BINARY="policypress-aarch64-linux" ;;
-          Darwin-arm64)   BINARY="policypress-aarch64-macos" ;;
-          Darwin-x86_64)  BINARY="policypress-x86_64-macos" ;;
-          *)
-            echo "Unsupported platform: $(uname -s)-$(uname -m)"
-            exit 1
-            ;;
-        esac
-
         mkdir -p "${RUNNER_TEMP}/policypress-bin"
-        gh release download \
-          --repo sc2in/policypress \
-          --pattern "${BINARY}" \
-          --dir "${RUNNER_TEMP}/policypress-bin"
-        mv "${RUNNER_TEMP}/policypress-bin/${BINARY}" \
-           "${RUNNER_TEMP}/policypress-bin/policypress"
-        chmod +x "${RUNNER_TEMP}/policypress-bin/policypress"
+
+        if [ -z "${{ steps.get-ref.outputs.ref }}" ]; then
+          # Running via `uses: ./` from a checkout of this repo (e.g. the PR
+          # preview workflow). Build the binary from the action's own flake so
+          # previews exercise the code under review — the latest release binary
+          # may not even match this branch's toolchain.
+          echo "No action ref (local action) - building policypress from the flake…"
+          out="$(nix build "path:${{ github.action_path }}#policypress-safe" --print-out-paths --no-link)"
+          install -m755 "${out}/bin/policypress" "${RUNNER_TEMP}/policypress-bin/policypress"
+        else
+          case "$(uname -s)-$(uname -m)" in
+            Linux-x86_64)   BINARY="policypress-x86_64-linux" ;;
+            Linux-aarch64)  BINARY="policypress-aarch64-linux" ;;
+            Darwin-arm64)   BINARY="policypress-aarch64-macos" ;;
+            Darwin-x86_64)  BINARY="policypress-x86_64-macos" ;;
+            *)
+              echo "Unsupported platform: $(uname -s)-$(uname -m)"
+              exit 1
+              ;;
+          esac
+
+          gh release download \
+            --repo sc2in/policypress \
+            --pattern "${BINARY}" \
+            --dir "${RUNNER_TEMP}/policypress-bin"
+          mv "${RUNNER_TEMP}/policypress-bin/${BINARY}" \
+             "${RUNNER_TEMP}/policypress-bin/policypress"
+          chmod +x "${RUNNER_TEMP}/policypress-bin/policypress"
+        fi
+
         echo "${RUNNER_TEMP}/policypress-bin" >> "${GITHUB_PATH}"
 
     - name: Copy theme shortcodes

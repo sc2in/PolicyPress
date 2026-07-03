@@ -63,5 +63,10 @@
     "name": "clap",
     "url": "git+https://github.com/Hejsil/zig-clap#1d3d273524e3c180f015ff1e93c83075e4634e2c",
     "hash": "sha256-Ytdm6tGAO+2V5jNLn7oB0r4DnmhoL6PIDQ0ihxzsLts="
+  },
+  "pozeiden-0.1.3-NAqiXeOmCgBPHLnODXyEWC2VDC_X70Yt9LWRmEip9_GD": {
+    "name": "pozeiden",
+    "url": "git+https://github.com/sc2in/pozeiden#5ef009b254716025b6700c0b4348d40c48680237",
+    "hash": "sha256-N6lhRIrypbTrXZGdzF5q0vFoiGemfGGU5Y5z7JuCXDg="
   }
 }

@@ -265,25 +265,14 @@ pub fn render(
 
 // ── Mermaid rendering (pozeiden) ──────────────────────────────────────────────
 
-/// Serialises pozeiden calls: pozeiden uses a module-global render arena,
-/// global theme variables, and lazily-initialised grammar caches, none of
-/// which are thread-safe — while policies compile concurrently on the io
-/// thread pool. A spinlock (rather than std.Io.Mutex) because zigmark's
-/// MermaidRendererFn signature has no io parameter; the critical section is
-/// a sub-millisecond SVG render, so spinning is cheap.
-var mermaid_busy: std.atomic.Value(bool) = .init(false);
-
-/// `zigmark.MermaidRendererFn` adapter around pozeiden. The font is overridden
-/// to the families shipped in the nix closure so Typst can resolve the SVG
-/// text (pozeiden's default is "trebuchet ms", which is never available).
-/// Errors are logged and propagated — zigmark then falls back to rendering
-/// the diagram source as a plain code block.
+/// `zigmark.MermaidRendererFn` adapter around pozeiden, called concurrently
+/// from the policy compile tasks (pozeiden is thread-safe as of the pinned
+/// commit: threadlocal theme state, locked grammar-cache init). The font is
+/// overridden to the families shipped in the nix closure so Typst can resolve
+/// the SVG text (pozeiden's default is "trebuchet ms", which is never
+/// available). Errors are logged and propagated — zigmark then falls back to
+/// rendering the diagram source as a plain code block.
 fn renderMermaid(alloc: Allocator, source: []const u8) anyerror![]const u8 {
-    while (mermaid_busy.cmpxchgWeak(false, true, .acquire, .monotonic) != null) {
-        std.atomic.spinLoopHint();
-    }
-    defer mermaid_busy.store(false, .release);
-
     return pozeiden.renderWithOptions(alloc, source, .{
         .theme_override = .{ .font_family = "Source Sans 3, DejaVu Sans, sans-serif" },
     }) catch |e| {

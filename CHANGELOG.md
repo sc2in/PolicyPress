@@ -8,6 +8,36 @@ keys) is considered stable.
 
 ## [Unreleased]
 
+### Changed
+
+- **PDF engine migrated from pandoc/XeLaTeX/Eisvogel to Typst** (#58). Markdown
+  is rendered to Typst markup in-process by zigmark and compiled by the `typst`
+  CLI; the layout (title page, colored rule, logo, headers/footers, zebra
+  tables, TOC, version-history table) reproduces the Eisvogel look. CLI flags,
+  config options, and output filename patterns are unchanged.
+- The GitHub Action's build shell is now pinned to the action's own version
+  (previously it floated on `main`, so flake changes could break consumers
+  running older release binaries).
+- `-v/--verbose` now shows typst invocations instead of pandoc arguments.
+
+### Added
+
+- **Native mermaid rendering via pozeiden** - diagrams compile to inline SVG
+  in-process with no browser, Node.js, or Chromium. Diagram-bearing policies
+  now build inside the Nix sandbox and on macOS, and diagrams render at their
+  natural size (capped at the text width) instead of being scaled to full page
+  width.
+- Full test suite now runs on macOS CI (previously only semantic analysis,
+  blocked by mermaid-filter's Chromium dependency).
+
+### Removed
+
+- pandoc, texlive/eisvogel-tex, and mermaid-filter (Node.js + Puppeteer +
+  Chromium) from the toolchain, along with the `MERMAID_FILTER_CMD_MMDC`
+  sandbox workaround, fontconfig plumbing, and the embedded `eisvogel.latex`
+  template. The Nix CI closure shrinks from multiple GB to a few hundred MB.
+- `Config.data_dir` (was only used to stage the LaTeX template).
+
 ## [1.3.0] - 2026-07-02
 
 ### Changed

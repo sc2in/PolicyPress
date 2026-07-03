@@ -105,16 +105,6 @@ runs:
         chmod +x "${RUNNER_TEMP}/policypress-bin/policypress"
         echo "${RUNNER_TEMP}/policypress-bin" >> "${GITHUB_PATH}"
 
-    - name: Copy pandoc templates
-      shell: bash
-      run: |
-        # pandoc looks for eisvogel.latex in {data-dir}/templates/ (where
-        # data-dir defaults to the site root). Copy it from the theme so
-        # consumers don't need to vendor it.
-        mkdir -p templates
-        cp -n themes/policypress/templates/eisvogel.latex templates/
-        cp -n themes/policypress/templates/eisvogel.pdf templates/ 2>/dev/null || true
-
     - name: Copy theme shortcodes
       shell: bash
       run: |
@@ -146,7 +136,10 @@ runs:
 
     - name: Build site and PDFs
       id: build
-      shell: nix develop "github:sc2in/policypress#ci" --command bash -e {0}
+      # The ci shell comes from the action's own checkout, so the toolchain
+      # (typst, zola, fonts) always matches the action version in use instead
+      # of floating on main. Also works for in-repo `uses: ./` workflows.
+      shell: nix develop "path:${{ github.action_path }}#ci" --command bash -e {0}
       run: |
         set -euo pipefail
 

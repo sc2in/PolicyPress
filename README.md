@@ -6,7 +6,7 @@
 
 A compliance policy management platform for small and mid-size businesses. Write policies in Markdown, version them in Git, publish a branded static site, and generate audit-ready PDFs — all from a single GitHub Action.
 
-PolicyPress is built on [Zola](https://www.getzola.org/) and [Pandoc](https://pandoc.org/). It is designed to be hosted by your customers in their own repositories; PolicyPress itself is the theme and toolchain, not the content.
+PolicyPress is built on [Zola](https://www.getzola.org/) and [Typst](https://typst.app/). It is designed to be hosted by your customers in their own repositories; PolicyPress itself is the theme and toolchain, not the content.
 
 ## Who this is for
 
@@ -89,7 +89,7 @@ Internal notes - stripped from redacted PDFs.
 
 PDFs are named `{Title}_-_v{version}.pdf`. With `redact_mode: true`, the name becomes `{Title}_(Redacted)_-_v{version}.pdf`. With `draft_mode: true`, it becomes `{Title}_(Draft)_-_v{version}.pdf`.
 
-PDFs are generated using the [Eisvogel](https://github.com/Wandmalfarbe/pandoc-latex-template) Pandoc LaTeX template via XeLaTeX.
+PDFs are generated with [Typst](https://typst.app/): markdown is rendered to Typst markup in-process ([zigmark](https://github.com/sc2in/zigmark)), mermaid diagrams become inline SVG via [pozeiden](https://github.com/sc2in/pozeiden), and the layout matches the classic [Eisvogel](https://github.com/Wandmalfarbe/pandoc-latex-template) look. The only external tool is the `typst` binary (bundled in the devshell and GitHub Action; on Windows install it with `winget install Typst.Typst` - without the Source Sans 3 font typst falls back to its embedded fonts, a cosmetic difference only).
 
 ## Compliance reports
 
@@ -119,7 +119,7 @@ nix run github:sc2in/policypress -- -c config.toml -o public
 # Generate redacted PDFs
 nix run github:sc2in/policypress -- -c config.toml -o public/redacted --redact
 
-# Verbose output (shows pandoc args)
+# Verbose output (shows typst invocations)
 nix run github:sc2in/policypress -- -v -c config.toml -o public
 
 # CI-friendly JSON log output
@@ -141,9 +141,9 @@ zig build test
 | Dependency | Purpose |
 | --- | --- |
 | [Zola](https://www.getzola.org/) | Static site generator |
-| [Pandoc](https://pandoc.org/) | PDF generation |
-| [Eisvogel](https://github.com/Wandmalfarbe/pandoc-latex-template) | PDF template |
-| [zigmark](https://github.com/sc2in/zigmark) | YAML/TOML frontmatter parsing |
+| [Typst](https://typst.app/) | PDF compilation |
+| [zigmark](https://github.com/sc2in/zigmark) | Markdown parsing + Typst rendering |
+| [pozeiden](https://github.com/sc2in/pozeiden) | Mermaid diagrams to SVG |
 | [tomlz](https://github.com/tsunaminoai/tomlz) | TOML config parsing |
 | [clap](https://github.com/Hejsil/zig-clap) | CLI argument parsing |
 | [mvzr](https://github.com/mnemnion/mvzr) | Regex for markdown transforms |
@@ -166,7 +166,8 @@ PolicyPress is developed and maintained by [Star City Security Consulting, LLC (
 **Built on:**
 
 - [Zola](https://www.getzola.org/) - static site generator
-- [Eisvogel](https://github.com/Wandmalfarbe/pandoc-latex-template) - PDF template by Pascal Wagler
+- [Typst](https://typst.app/) - PDF typesetting
+- [Eisvogel](https://github.com/Wandmalfarbe/pandoc-latex-template) by Pascal Wagler - the PDF layout PolicyPress reproduces
 - [Secure Controls Framework (SCF)](https://securecontrolsframework.com/) - control taxonomy
 - [AICPA Trust Services Criteria (TSC)](https://www.aicpa-cima.com/resources/landing/2017-trust-services-criteria) - SOC 2 control framework
 

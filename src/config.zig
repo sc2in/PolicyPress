@@ -32,9 +32,6 @@ pub const Config = struct {
     is_draft: bool = false,
     redact: bool = false,
     build_dir: []const u8,
-    /// Temporary directory containing the embedded eisvogel.latex template,
-    /// passed to pandoc as --data-dir.  Owned and freed by the caller.
-    data_dir: []const u8 = "",
     date: u.Date,
 
     zola_config: ?toml.Table,
@@ -102,7 +99,6 @@ pub const Config = struct {
         // if (b.color.len == 0) return error.NoPDFColorInExtra;
         // if (b.org.len == 0) return error.NoOrganizationInExtra;
         var config: Config = undefined;
-        config.data_dir = "";
         config.is_draft = false;
         config.date = u.Date.today(io);
 
@@ -130,7 +126,12 @@ pub const Config = struct {
         config.org = e.getString("organization").?;
         config.build_dir = "public";
         config.zola_config = t;
-        config.redact = e.getBool("redact_web") orelse false;
+        // PDF redaction is controlled only by --redact/--no-redact (and the
+        // action's redact_mode input). `redact_web` is read by the Zola
+        // templates for the website's redaction bars and deliberately does
+        // not affect PDFs: an org may hide content (e.g. phone numbers) on
+        // the public site while keeping it in the PDFs. (#115)
+        config.redact = false;
         return config;
     }
     pub fn deinit(self: *Config, alloc: Allocator) void {

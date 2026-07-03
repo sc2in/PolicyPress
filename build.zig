@@ -43,6 +43,12 @@ pub fn build(b: *std.Build) !void {
     });
     const zigmark_mod = zigmark_dep.module("zigmark");
 
+    const pozeiden_dep = b.dependency("pozeiden", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const pozeiden_mod = pozeiden_dep.module("pozeiden");
+
     const config_mod = b.addModule("config_parser", .{
         .root_source_file = b.path("src/config.zig"),
         .target = target,
@@ -61,8 +67,6 @@ pub fn build(b: *std.Build) !void {
 
     // config uses utils for Date/today and readAllAlloc helpers.
     config_mod.addImport("utils", utils_mod);
-
-    var pandoc_sh: *std.Build.Step.Compile = undefined;
 
     // the executable from your call to exe_mod.addExecutable
     if (target.result.os.tag != .windows) {
@@ -94,43 +98,29 @@ pub fn build(b: *std.Build) !void {
         _ = b.step("preview", "Serve the zola output (Not available on Windows. run `zola preview` instead.)");
     }
 
-    // Inject the eisvogel template into the pandoc module via an anonymous
-    // module.  build.zig can @embedFile at the project root level, bypassing
-    // Zig's module package-path restriction that applies inside src/pandoc.zig.
-    // A WriteFile step generates a tiny Zig wrapper that @embedFile the real
-    // template; the wrapper lives in the Zig cache, not src/, so paths resolve.
-    const write_eisvogel = b.addWriteFiles();
-    _ = write_eisvogel.addCopyFile(b.path("templates/eisvogel.latex"), "eisvogel.latex");
-    const eisvogel_wrapper = write_eisvogel.add("eisvogel_wrapper.zig",
-        \\pub const eisvogel_latex: []const u8 = @embedFile("eisvogel.latex");
-    );
-    const pandoc_opts_mod = b.addModule("pandoc_options", .{
-        .root_source_file = eisvogel_wrapper,
-    });
-
-    const pandoc_sh_mod = b.addModule("pandocsh", .{
-        .root_source_file = b.path("src/pandoc.zig"),
+    // Typst PDF engine: markdown → zigmark → Typst markup (mermaid via
+    // pozeiden) → `typst compile`.
+    const typst_mod = b.addModule("typst_engine", .{
+        .root_source_file = b.path("src/typst.zig"),
         .target = target,
         .optimize = optimize,
     });
-    // pandoc_sh_mod.addImport("zetta", zetta_mod);
-    pandoc_sh_mod.addImport("clap", clap.module("clap"));
-    pandoc_sh_mod.addImport("mvzr", mvzr.module("mvzr"));
-    pandoc_sh_mod.addImport("config", config_mod);
-    pandoc_sh_mod.addImport("utils", utils_mod);
-    pandoc_sh_mod.addImport("pandoc_options", pandoc_opts_mod);
-    pandoc_sh = b.addExecutable(.{
-        .root_module = pandoc_sh_mod,
-        .name = "pandoc_sh",
+    typst_mod.addImport("clap", clap.module("clap"));
+    typst_mod.addImport("config", config_mod);
+    typst_mod.addImport("utils", utils_mod);
+    typst_mod.addImport("zigmark", zigmark_mod);
+    typst_mod.addImport("pozeiden", pozeiden_mod);
+    const typst_exe = b.addExecutable(.{
+        .root_module = typst_mod,
+        .name = "pdf_engine",
     });
 
-    var pandoc_step = b.step("pdf", "run pandoc.sh");
-    const pandoc_exe = b.addRunArtifact(pandoc_sh);
+    const pdf_step = b.step("pdf", "Compile a single policy to PDF via the typst engine");
+    const pdf_run = b.addRunArtifact(typst_exe);
     if (b.args) |args| {
-        pandoc_exe.addArgs(args);
+        pdf_run.addArgs(args);
     }
-
-    pandoc_step.dependOn(&pandoc_exe.step);
+    pdf_step.dependOn(&pdf_run.step);
 
     const reports_mod = b.addModule("policy_report", .{
         .target = target,
@@ -152,7 +142,7 @@ pub fn build(b: *std.Build) !void {
     policypress_mod.addImport("build_options", build_opts.createModule());
     policypress_mod.addImport("clap", clap.module("clap"));
     policypress_mod.addImport("config", config_mod);
-    policypress_mod.addImport("pandoc", pandoc_sh_mod);
+    policypress_mod.addImport("typst", typst_mod);
     policypress_mod.addImport("reports", reports_mod);
     policypress_mod.addImport("utils", utils_mod);
     const policypress_exe = b.addExecutable(.{
@@ -188,8 +178,7 @@ pub fn build(b: *std.Build) !void {
         });
         test_module.addImport("zigmark", zigmark_mod);
         test_module.addImport("utils", utils_mod);
-        test_module.addImport("pandoc", pandoc_sh_mod);
-        test_module.addImport("pandoc_options", pandoc_opts_mod);
+        test_module.addImport("typst", typst_mod);
         test_module.addImport("config", config_mod);
         test_module.addImport("reports", reports_mod);
         test_module.addImport("mvzr", mvzr.module("mvzr"));
@@ -206,21 +195,18 @@ pub fn build(b: *std.Build) !void {
         // Used by ZLS for IDE diagnostics and as a fast CI sanity check.
         const check_step = b.step("check", "Semantic analysis (no binary emitted, used by ZLS)");
         check_step.dependOn(&policypress_exe.step);
-        check_step.dependOn(&pandoc_sh.step);
+        check_step.dependOn(&typst_exe.step);
     }
     {
         // E2E test: run policypress against the starter/ template, mirroring
-        // what action.yml does for real consumers.  Requires pandoc + XeLaTeX
-        // in PATH (provided by the devshell / Nix flake check environment).
+        // what action.yml does for real consumers.  Requires typst in PATH
+        // (provided by the devshell / Nix flake check environment).
         const e2e_step = b.step("e2e", "Run end-to-end test against starter/");
 
-        // Step 1: copy eisvogel.latex into starter/templates/ (the action does
-        // this via "Copy pandoc templates"; consumers don't vendor it).
-        // Also ensure starter/static/logo.png exists (required by config.toml).
+        // Step 1: ensure starter/static/logo.png exists (required by config.toml).
         const copy_template = b.addSystemCommand(&.{
             "bash", "-c",
-            "mkdir -p starter/templates starter/static && " ++
-                "cp -f templates/eisvogel.latex starter/templates/ && " ++
+            "mkdir -p starter/static && " ++
                 "{ cp -f static/logo.png starter/static/logo.png 2>/dev/null || " ++
                 "touch starter/static/logo.png; }",
         });

@@ -48,9 +48,6 @@ git submodule update --init
 Zola does not automatically propagate certain files from a theme into the build. After adding the submodule, copy these assets once into your repository and commit them:
 
 ```bash
-mkdir -p templates
-cp -n themes/policypress/templates/eisvogel.latex templates/
-
 mkdir -p templates/shortcodes
 cp -n themes/policypress/templates/shortcodes/*.html templates/shortcodes/
 
@@ -164,7 +161,7 @@ variables:
   ${{ else }}:
     publish: 'false'
   # Pin to a specific release. Update this when you want to upgrade policypress.
-  POLICYPRESS_VERSION: 'v1.2.6'
+  POLICYPRESS_VERSION: 'v1.4.0'
 
 pool:
   vmImage: ubuntu-latest
@@ -230,7 +227,7 @@ stages:
 Link it to a pipeline in **Azure DevOps → Pipelines → New pipeline** and point it at this file. Store the Azure Static Web Apps deployment token as a pipeline secret variable named `deployment_token`.
 
 > [!NOTE]
-> The first run downloads the Nix CI environment (~1–2 GB for Zola, Pandoc, and fonts), which takes a few minutes. The policypress binary itself is fetched as a pre-compiled release artifact, so no Zig compilation is needed. To upgrade policypress, update the `POLICYPRESS_VERSION` variable. For additional Nix store caching between runs, see [Determinate Systems FlakeHub Cache](https://docs.determinate.systems/flakehub-cache/).
+> The first run downloads the Nix CI environment (a few hundred MB for Zola, Typst, and fonts), which takes a minute or two. The policypress binary itself is fetched as a pre-compiled release artifact, so no Zig compilation is needed. To upgrade policypress, update the `POLICYPRESS_VERSION` variable. For additional Nix store caching between runs, see [Determinate Systems FlakeHub Cache](https://docs.determinate.systems/flakehub-cache/).
 
 </div>
 </div>

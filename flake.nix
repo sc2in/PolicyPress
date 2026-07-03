@@ -4,7 +4,6 @@
   inputs = {
     nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1.*.tar.gz";
     zig2nix.url = "https://flakehub.com/f/Cloudef/zig2nix/0.1.*.tar.gz";
-    eisvogel-tex.url = "github:sc2in/eisvogel-tex";
     flake-parts.url = "github:hercules-ci/flake-parts";
     git-hooks.url = "github:cachix/git-hooks.nix";
     treefmt-nix.url = "github:numtide/treefmt-nix";
@@ -15,7 +14,6 @@
       self,
       nixpkgs,
       zig2nix,
-      eisvogel-tex,
       flake-parts,
       git-hooks,
       treefmt-nix,
@@ -67,10 +65,9 @@
                   ./build.zig
                   ./build.zig.zon
                   ./src
-                  ./templates
-                  # logo.png and draft.png are referenced at test time by xelatex
-                  # (via the eisvogel template). Including them here avoids a
-                  # "unable to load picture" error in the pdf rendering test.
+                  # logo.png and draft.png are referenced at test time by the
+                  # typst pdf-rendering tests (header/title-page logo and the
+                  # draft watermark background).
                   ./static/logo.png
                   ./static/draft.png
                 ]
@@ -95,22 +92,21 @@
               );
             };
 
-            fontsConf = pkgs.makeFontsConf {
-              fontDirectories = [
+            # Fonts for typst (Source Sans 3 body, Source Code Pro mono).
+            # TYPST_FONT_PATHS is walked recursively by typst-cli; typst falls
+            # back to its embedded fonts when a family is missing.
+            typstFonts = pkgs.symlinkJoin {
+              name = "policypress-typst-fonts";
+              paths = [
                 pkgs.source-sans
                 pkgs.source-code-pro
               ];
             };
 
-            runtimeDeps =
-              with pkgs;
-              [
-                pandoc
-                zola
-                imagemagick
-                eisvogel-tex.packages.${system}.default
-              ]
-              ++ lib.optional (system != "aarch64-darwin") pkgs.mermaid-filter;
+            runtimeDeps = with pkgs; [
+              typst
+              zola
+            ];
 
             withDesc =
               drv: desc:
@@ -135,58 +131,6 @@
               );
 
             policypress = mkPolicypress "ReleaseSafe";
-
-            # mermaid-filter calls its bundled mmdc via an absolute Nix store path,
-            # bypassing PATH. MERMAID_FILTER_CMD_MMDC overrides that path with our
-            # wrapper, which runs at pandoc-filter invocation time (so $TMPDIR is the
-            # real, writable Nix-build temp dir) and:
-            #  1. Creates a writable user-data-dir for Chrome under $TMPDIR
-            #  2. Writes a fresh puppeteer JSON config pointing there
-            #  3. Strips any existing -p flag forwarded from mermaid-filter and
-            #     replaces it with our own so Chrome gets --no-sandbox + a valid dir
-            # mmdcWrapper is only usable on Linux — chromium is not packaged for macOS.
-            # On macOS the wrapper is a no-op stub so derivations that reference it
-            # still evaluate without errors; the pdf-rendering tests are skipped via
-            # the CI workflow instead of running `om ci run` on macOS.
-            mmdcWrapper =
-              if pkgs.stdenv.isLinux then
-                let
-                  realMmdc = "${pkgs.mermaid-filter}/lib/node_modules/mermaid-filter/node_modules/.bin/mmdc";
-                in
-                pkgs.writeShellApplication {
-                  name = "mmdc";
-                  runtimeInputs = [ pkgs.chromium ];
-                  text = ''
-                    chrome_userdata=$(mktemp -d)
-                    puppeteer_cfg=$(mktemp --suffix=.json)
-                    trap 'rm -rf "$chrome_userdata" "$puppeteer_cfg"' EXIT
-
-                    printf '{"executablePath":"%s/bin/chromium","userDataDir":"%s","args":["--no-sandbox","--disable-setuid-sandbox","--disable-dev-shm-usage","--disable-gpu","--no-zygote"]}' \
-                      "${pkgs.chromium}" "$chrome_userdata" > "$puppeteer_cfg"
-
-                    # Strip any existing -p / --puppeteerConfigFile arg forwarded by
-                    # mermaid-filter (it comes in as: -p /nix/store/...-puppeteer-config.json)
-                    args=()
-                    skip=false
-                    for arg in "$@"; do
-                      if $skip; then skip=false; continue; fi
-                      if [[ "$arg" == "-p" || "$arg" == "--puppeteerConfigFile" ]]; then
-                        skip=true; continue
-                      fi
-                      args+=("$arg")
-                    done
-
-                    exec ${realMmdc} -p "$puppeteer_cfg" "''${args[@]}"
-                  '';
-                }
-              else
-                pkgs.writeShellApplication {
-                  name = "mmdc";
-                  runtimeInputs = [ ];
-                  text = ''
-                    echo "mermaid diagrams are not supported on this platform, skipping" >&2
-                  '';
-                };
           in
           {
             # --- Formatting (nix fmt) -------------------------------------------
@@ -263,20 +207,18 @@
             checks.formatting = config.treefmt.build.check self;
 
             checks.test =
-              # MERMAID_FILTER_CMD_MMDC overrides the absolute-store-path mmdc binary
-              # that mermaid-filter would otherwise call, letting our wrapper create
-              # writable Chrome user-data and crashpad dirs under $TMPDIR at runtime.
+              # The pdf-rendering tests spawn `typst compile` in the sandbox;
+              # mermaid diagrams render in-process via pozeiden (pure Zig), so
+              # no Chromium or fontconfig plumbing is needed anymore.
               (mkPolicypress null).overrideAttrs (old: {
                 pname = "policypress-test";
                 buildPhase = "zig build test";
                 installPhase = "touch $out";
-                nativeBuildInputs =
-                  (old.nativeBuildInputs or [ ])
-                  ++ runtimeDeps
-                  ++ lib.optionals pkgs.stdenv.isLinux [ pkgs.chromium ]
-                  ++ [ mmdcWrapper ];
-                FONTCONFIG_FILE = fontsConf;
-                MERMAID_FILTER_CMD_MMDC = "${mmdcWrapper}/bin/mmdc";
+                nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ runtimeDeps;
+                TYPST_FONT_PATHS = "${typstFonts}/share/fonts";
+                # Deterministic font resolution in and out of the sandbox
+                # (typst accepts only "true"/"false" here).
+                TYPST_IGNORE_SYSTEM_FONTS = "true";
                 meta = (old.meta or { }) // {
                   description = "Run zig build test";
                 };
@@ -306,7 +248,7 @@
                   name = "policypress";
                   runtimeInputs = [ policypress ] ++ runtimeDeps;
                   text = ''
-                    export FONTCONFIG_FILE="${fontsConf}"
+                    export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
                     exec policypress "$@"
                   '';
                 };
@@ -329,13 +271,12 @@
                   ]
                   ++ runtimeDeps;
                   text = ''
-                    export FONTCONFIG_FILE="${fontsConf}"
+                    export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
                     mkdir -p static/pdfs
 
                     # Run regular and draft compilations in parallel on startup.
-                    # The PID-prefixed temp filenames in policypress prevent the two
-                    # processes from colliding when writing preprocessed markdown to
-                    # static/pdfs before pandoc picks it up.
+                    # The random-suffixed temp filenames in policypress prevent the
+                    # two processes from colliding on intermediate .typ sources.
                     policypress -o static/pdfs &
                     policypress -o static/pdfs --draft &
                     wait
@@ -367,7 +308,7 @@
                   ]
                   ++ runtimeDeps;
                   text = ''
-                    export FONTCONFIG_FILE="${fontsConf}"
+                    export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
                     zola build --base-url "http://0.0.0.0:1111"
                     policypress -o static/pdfs
                     policypress -o static/pdfs --draft
@@ -576,8 +517,7 @@
             devShells.ci = pkgs.mkShell {
               buildInputs = runtimeDeps;
               shellHook = ''
-                export FONTCONFIG_FILE="${fontsConf}"
-                mkdir -p "$HOME/.cache/fontconfig"
+                export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
               '';
             };
 
@@ -591,7 +531,6 @@
                   pkgs.act
                   pkgs.omnix
                   pkgs.watchexec
-                  pkgs.typst
                   zig2nix.outputs.packages.${system}."zls-0_16_0"
                   (pkgs.writeShellScriptBin "update-zon" ''
                     set -euo pipefail
@@ -604,7 +543,7 @@
                 ];
 
               shellHook = config.pre-commit.installationScript + ''
-                export FONTCONFIG_FILE="${fontsConf}"
+                export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
                 export ZIG_GLOBAL_CACHE_DIR=.zig-cache
 
                 # Install the release-tag CHANGELOG guard. The pre-commit

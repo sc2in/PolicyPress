@@ -68,19 +68,23 @@ jobs:
         run: nix --accept-flake-config profile add nixpkgs#omnix
 
       - name: Configure permissions
-        # Enable unprivileged user namespaces required by Chromium/mermaid-filter
-        # on Linux. The sysctl does not exist on macOS so || true makes it safe.
+        # Enable unprivileged user namespaces, required by bubblewrap: zig2nix's
+        # zig-hook runs the compiler inside bwrap for network isolation, so any
+        # from-source build of zig2nix tooling fails without this on Ubuntu
+        # 24.04 runners ("bwrap: setting up uid map: Permission denied").
+        # The sysctl does not exist on macOS so || true makes it safe.
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
 
       - name: Run CI
         run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then
-            # mermaid-filter/Chromium not available on macOS; run semantic
-            # analysis only until a macOS-compatible renderer is available.
-            # Use just the pinned Zig (prebuilt) rather than the full devShell:
-            # zig2nix's source-built inputs currently pull glibc into the
-            # aarch64-darwin closure, which nix refuses to evaluate.
-            nix shell .#zig --command zig build check
+            # Full test suite on macOS: the typst engine renders mermaid
+            # in-process (pozeiden), so the old mermaid-filter/Chromium
+            # limitation is gone. Use just the pinned Zig (prebuilt) plus
+            # typst rather than the full devShell: zig2nix's source-built
+            # inputs currently pull glibc into the aarch64-darwin closure,
+            # which nix refuses to evaluate.
+            nix shell .#zig nixpkgs#typst --command zig build test
           else
             om ci run
           fi

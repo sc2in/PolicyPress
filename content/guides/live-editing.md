@@ -34,7 +34,7 @@ You can refer to [Adding a Policy](@/guides/adding-a-policy.md#front-matter) for
 
 ### Saving Changes
 
-After making changes to the policy, save the file. If you are running `devbox run serve`, the changes will be automatically reflected in the local web server.
+After making changes to the policy, save the file. If you are running `nix run .#serve`, the changes will be automatically reflected in the local web server.
 
 ## Committing Changes
 

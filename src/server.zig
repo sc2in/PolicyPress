@@ -34,7 +34,7 @@ pub fn main(init: std.process.Init) !void {
     defer res.deinit();
 
     if (res.args.help != 0) {
-        std.debug.print("PolicyPress Dev Server\nSee Readme.md or run `devbox build docs` to learn more.\n\n", .{});
+        std.debug.print("PolicyPress Dev Server\nSee Readme.md or run `nix run .#docs` to learn more.\n\n", .{});
         return clap.help(&stderr, clap.Help, &params, .{});
     }
     const serve_dir = if (res.args.dir.len >= 1) res.args.dir[0] else "public";

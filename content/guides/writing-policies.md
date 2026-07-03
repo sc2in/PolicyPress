@@ -117,7 +117,7 @@ graph TD
 Supported types include `graph`, `sequenceDiagram`, `flowchart`, `classDiagram`, and `gantt`. See [Mermaid docs](https://mermaid.js.org/intro/) for the full syntax.
 
 > [!NOTE]
-> Mermaid diagrams require `mermaid-filter` at build time. It's included in the PolicyPress devshell and GitHub Action automatically.
+> Mermaid diagrams are rendered natively by PolicyPress (via [pozeiden](https://github.com/sc2in/pozeiden)) - no extra tooling is required, and they work on every platform including macOS and Windows.
 
 ### `{%/* admonition(type="...") */%} ... {%/* end */%}` - callout boxes
 

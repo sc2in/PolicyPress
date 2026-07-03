@@ -16,7 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure unprivileged user namespaces
+      - name: Configure permissions
+        # Unprivileged user namespaces for bubblewrap (zig2nix's zig-hook);
+        # see the comment in ci.yml.
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
 
       - name: Build site and PDFs

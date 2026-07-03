@@ -1,8 +1,8 @@
 {
-  "zigmark-0.7.2-cwOiyIoYCgD20PuJUYu7uQyFLcng6H7Xg09j-QEivL44": {
+  "zigmark-0.7.2-cwOiyEMyCgCy7my13p9ptks2vvZG3p9xjOqBRqcUmrDX": {
     "name": "zigmark",
-    "url": "git+https://github.com/sc2in/zigmark#9c8a99caaa613b44886ca5ff04fb8ab841b4d484",
-    "hash": "sha256-URfWS415QXUs+Tz8cJogCBgmlj6U4f1b4Nsp2zV5AFc="
+    "url": "git+https://github.com/sc2in/zigmark?ref=v0.7.3#b9bee4e018df06fdef412ab95d6ce4332befedc2",
+    "hash": "sha256-nPDZxt0SC7fkWnkc1VKvGs1KIdtfDT5Sz1IXWnpgpew="
   },
   "tomlz-0.3.0-H2E6w3VKAgCSZQFKG-VugLEn3cjOWshGqwGzAVABNm--": {
     "name": "tomlz",
@@ -64,9 +64,9 @@
     "url": "git+https://github.com/Hejsil/zig-clap#1d3d273524e3c180f015ff1e93c83075e4634e2c",
     "hash": "sha256-Ytdm6tGAO+2V5jNLn7oB0r4DnmhoL6PIDQ0ihxzsLts="
   },
-  "pozeiden-0.1.3-NAqiXeOmCgBPHLnODXyEWC2VDC_X70Yt9LWRmEip9_GD": {
+  "pozeiden-0.2.0-NAqiXaypCgBCkAMB3WZpGLPnwV5XTsUvOf3KUY9aAN0p": {
     "name": "pozeiden",
-    "url": "git+https://github.com/sc2in/pozeiden#5ef009b254716025b6700c0b4348d40c48680237",
-    "hash": "sha256-N6lhRIrypbTrXZGdzF5q0vFoiGemfGGU5Y5z7JuCXDg="
+    "url": "git+https://github.com/sc2in/pozeiden?ref=v0.2.0#9d44249023a41d4191685023d47a9e2076b99c43",
+    "hash": "sha256-9j8xkNndJX+l20+/qlfK2aLFCfPQsX1xoTDQ+V2jXUg="
   }
 }

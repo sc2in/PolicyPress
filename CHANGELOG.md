@@ -8,6 +8,8 @@ keys) is considered stable.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-07-03
+
 ### Changed
 
 - **PDF engine migrated from pandoc/XeLaTeX/Eisvogel to Typst** (#58). Markdown

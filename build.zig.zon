@@ -70,7 +70,6 @@
         "build.zig",
         "build.zig.zon",
         "src",
-        "templates/eisvogel.latex",
         "LICENSE",
         "README.md",
         "SECURITY.md",

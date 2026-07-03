@@ -9,7 +9,7 @@ const math = std.math;
 const b = @import("builtin");
 
 const config = @import("config").Config;
-const pandoc = @import("pandoc");
+const typst = @import("typst");
 const report = @import("reports");
 const utils = @import("utils");
 const zigmark = @import("zigmark");
@@ -47,7 +47,7 @@ fn tmpAbsPath(alloc: Allocator, tmp: *tst.TmpDir) ![]u8 {
 test {
     _ = utils;
     _ = zigmark;
-    _ = pandoc;
+    _ = typst;
     _ = report;
     tst.refAllDecls(@This());
 }
@@ -122,8 +122,7 @@ test "policy processing" {
 test "pdf rendering" {
     var env = try testEnvMap(tst.allocator);
     defer env.deinit();
-    if (!pandoc.executableInPath(io, &env, "xelatex")) return error.SkipZigTest;
-    var args = Array([]u8).empty;
+    if (!utils.executableInPath(io, &env, "typst")) return error.SkipZigTest;
 
     var tmp = tst.tmpDir(.{});
 
@@ -143,14 +142,11 @@ test "pdf rendering" {
     conf.build_dir = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(conf.build_dir);
 
-    try pandoc.create_global_args(io, &env, tst.allocator, &args, conf);
-    defer pandoc.destroy_global_args(tst.allocator, &args);
-    // Use a mermaid-free fixture so the test works in the Nix sandbox
-    // (Chrome/user-namespaces are unavailable there). Mermaid shortcode
-    // transformation is already covered by the "policy processing" test.
-    const md = utils.MDFile{ .path = "src/test/test_policy_render.md" };
-    pandoc.process_md_file(io, &env, tst.allocator, md, args, conf) catch |e| {
-        std.debug.print("Test Policy Pandoc Call Failed! \nConfig:{f}\n", .{conf});
+    // test_policy.md contains a mermaid diagram: unlike the pandoc pipeline
+    // (which needed Chrome for mermaid-filter), pozeiden renders it in-process
+    // so the full pipeline works even inside the Nix sandbox.
+    typst.compile(io, &env, tst.allocator, conf, "src/test/test_policy.md") catch |e| {
+        std.debug.print("Test Policy Typst Call Failed! \nConfig:{f}\n", .{conf});
         return e;
     };
 
@@ -169,6 +165,37 @@ test "pdf rendering" {
     try tst.expect(pdf_found);
 
     tmp.cleanup();
+}
+
+test "typst source: mermaid renders as inline svg via pozeiden" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    var rendered = try typst.render(io, alloc, conf, "src/test/test_policy.md");
+    defer rendered.deinit(alloc);
+
+    // The mermaid fenced block must become an embedded SVG image, not a
+    // leftover code block (which would mean pozeiden silently failed).
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "bytes(\"<svg") != null);
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "```mermaid") == null);
+}
+
+test "typst source: redaction produces solid bars" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+    conf.redact = true;
+
+    var rendered = try typst.render(io, alloc, conf, "src/test/test_policy.md");
+    defer rendered.deinit(alloc);
+
+    // Redacted spans must render as solid █ bars, not underscores (which
+    // CommonMark would turn into thematic breaks).
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "█") != null);
+    // Sanitised filename carries the __Redacted__ pattern that the Zola
+    // templates hardcode in PDF links (issue #97).
+    try tst.expectEqualStrings("Test_Policy__Redacted__-_v1.1.pdf", rendered.pdf_name);
 }
 
 test "report generation" {
@@ -443,51 +470,33 @@ test "missing frontmatter: revision missing approved_by → NoApprovalForRevisio
 
 // --- Draft Mode Adds Watermark ---
 
-test "draft mode: pandoc args include page-background flags" {
+test "draft mode: typst source includes draft.png page background" {
     const alloc = tst.allocator;
-    var env = try testEnvMap(alloc);
-    defer env.deinit();
-    var args = Array([]u8).empty;
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
-    alloc.free(conf.content_dir);
-    conf.content_dir = try std.fs.path.join(alloc, &.{ conf.root, "src", "test" });
-    alloc.free(conf.policy_dir);
-    conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
 
     conf.is_draft = true;
-    try pandoc.create_global_args(io, &env, alloc, &args, conf);
-    defer pandoc.destroy_global_args(alloc, &args);
+    var rendered = try typst.render(io, alloc, conf, "src/test/test_policy_render.md");
+    defer rendered.deinit(alloc);
 
-    var found_bg = false;
-    var found_opacity = false;
-    for (args.items) |arg| {
-        if (std.mem.indexOf(u8, arg, "page-background=") != null) found_bg = true;
-        if (std.mem.indexOf(u8, arg, "page-background-opacity=") != null) found_opacity = true;
-    }
-    try tst.expect(found_bg);
-    try tst.expect(found_opacity);
+    // The repository root ships static/draft.png, so the watermark helper is
+    // defined and applied as the page background (body pages + title page).
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "#let _pp_draft_bg") != null);
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "draft.png") != null);
+    try tst.expectEqual(2, std.mem.count(u8, rendered.source, "background: _pp_draft_bg"));
 }
 
-test "non-draft mode: pandoc args exclude page-background flags" {
+test "non-draft mode: typst source excludes draft background" {
     const alloc = tst.allocator;
-    var env = try testEnvMap(alloc);
-    defer env.deinit();
-    var args = Array([]u8).empty;
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
-    alloc.free(conf.content_dir);
-    conf.content_dir = try std.fs.path.join(alloc, &.{ conf.root, "src", "test" });
-    alloc.free(conf.policy_dir);
-    conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
 
     conf.is_draft = false;
-    try pandoc.create_global_args(io, &env, alloc, &args, conf);
-    defer pandoc.destroy_global_args(alloc, &args);
+    var rendered = try typst.render(io, alloc, conf, "src/test/test_policy_render.md");
+    defer rendered.deinit(alloc);
 
-    for (args.items) |arg| {
-        try tst.expect(std.mem.indexOf(u8, arg, "page-background=") == null);
-    }
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "_pp_draft_bg") == null);
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "draft.png") == null);
 }
 
 // --- Redact Mode Removes Sensitive Content ---
@@ -524,20 +533,8 @@ test "redact mode: title suffix and content scrubbed" {
 
 // --- draft.png path resolution ---
 
-// Helper: find the page-background= value among pandoc args.
-fn findPageBackground(args: Array([]u8)) ?[]const u8 {
-    for (args.items) |arg| {
-        if (std.mem.startsWith(u8, arg, "page-background="))
-            return arg["page-background=".len..];
-    }
-    return null;
-}
-
 test "draft mode: uses site-root static/draft.png when present" {
     const alloc = tst.allocator;
-    var env = try testEnvMap(alloc);
-    defer env.deinit();
-    var args = Array([]u8).empty;
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
 
@@ -551,10 +548,9 @@ test "draft mode: uses site-root static/draft.png when present" {
     alloc.free(conf.root);
     conf.root = try alloc.dupe(u8, tmp_path);
     conf.is_draft = true;
-    try pandoc.create_global_args(io, &env, alloc, &args, conf);
-    defer pandoc.destroy_global_args(alloc, &args);
 
-    const path = findPageBackground(args) orelse return error.NoBgArg;
+    const path = (try typst.resolveDraftPng(io, alloc, conf)) orelse return error.NoDraftPng;
+    defer alloc.free(path);
     // Must point at the site-root copy, not the theme fallback.
     try tst.expect(std.mem.indexOf(u8, path, "static" ++ std.fs.path.sep_str ++ "draft.png") != null);
     try tst.expect(std.mem.indexOf(u8, path, "themes" ++ std.fs.path.sep_str ++ "policypress") == null);
@@ -562,9 +558,6 @@ test "draft mode: uses site-root static/draft.png when present" {
 
 test "draft mode: falls back to themes/policypress/static/draft.png when site-root copy absent" {
     const alloc = tst.allocator;
-    var env = try testEnvMap(alloc);
-    defer env.deinit();
-    var args = Array([]u8).empty;
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
 
@@ -578,18 +571,14 @@ test "draft mode: falls back to themes/policypress/static/draft.png when site-ro
     alloc.free(conf.root);
     conf.root = try alloc.dupe(u8, tmp_path);
     conf.is_draft = true;
-    try pandoc.create_global_args(io, &env, alloc, &args, conf);
-    defer pandoc.destroy_global_args(alloc, &args);
 
-    const path = findPageBackground(args) orelse return error.NoBgArg;
+    const path = (try typst.resolveDraftPng(io, alloc, conf)) orelse return error.NoDraftPng;
+    defer alloc.free(path);
     try tst.expect(std.mem.indexOf(u8, path, "themes" ++ std.fs.path.sep_str ++ "policypress" ++ std.fs.path.sep_str ++ "static" ++ std.fs.path.sep_str ++ "draft.png") != null);
 }
 
 test "draft mode: site-root static/draft.png wins over theme fallback when both exist" {
     const alloc = tst.allocator;
-    var env = try testEnvMap(alloc);
-    defer env.deinit();
-    var args = Array([]u8).empty;
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
 
@@ -605,11 +594,27 @@ test "draft mode: site-root static/draft.png wins over theme fallback when both 
     alloc.free(conf.root);
     conf.root = try alloc.dupe(u8, tmp_path);
     conf.is_draft = true;
-    try pandoc.create_global_args(io, &env, alloc, &args, conf);
-    defer pandoc.destroy_global_args(alloc, &args);
 
-    const path = findPageBackground(args) orelse return error.NoBgArg;
+    const path = (try typst.resolveDraftPng(io, alloc, conf)) orelse return error.NoDraftPng;
+    defer alloc.free(path);
     try tst.expect(std.mem.indexOf(u8, path, "themes" ++ std.fs.path.sep_str ++ "policypress") == null);
+}
+
+test "draft mode: returns null when no draft.png exists anywhere" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    alloc.free(conf.root);
+    conf.root = try alloc.dupe(u8, tmp_path);
+    conf.is_draft = true;
+
+    try tst.expectEqual(null, try typst.resolveDraftPng(io, alloc, conf));
 }
 
 // --- executableInPath ---
@@ -618,11 +623,11 @@ test "executableInPath: sh is present on unix" {
     if (comptime b.os.tag == .windows) return error.SkipZigTest;
     var env = try testEnvMap(tst.allocator);
     defer env.deinit();
-    try tst.expect(pandoc.executableInPath(io, &env, "sh"));
+    try tst.expect(utils.executableInPath(io, &env, "sh"));
 }
 
 test "executableInPath: nonexistent binary returns false" {
     var env = try testEnvMap(tst.allocator);
     defer env.deinit();
-    try tst.expect(!pandoc.executableInPath(io, &env, "pp-test-nonexistent-xyzzy-12345"));
+    try tst.expect(!utils.executableInPath(io, &env, "pp-test-nonexistent-xyzzy-12345"));
 }

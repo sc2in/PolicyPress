@@ -32,9 +32,6 @@ pub const Config = struct {
     is_draft: bool = false,
     redact: bool = false,
     build_dir: []const u8,
-    /// Temporary directory containing the embedded eisvogel.latex template,
-    /// passed to pandoc as --data-dir.  Owned and freed by the caller.
-    data_dir: []const u8 = "",
     date: u.Date,
 
     zola_config: ?toml.Table,
@@ -102,7 +99,6 @@ pub const Config = struct {
         // if (b.color.len == 0) return error.NoPDFColorInExtra;
         // if (b.org.len == 0) return error.NoOrganizationInExtra;
         var config: Config = undefined;
-        config.data_dir = "";
         config.is_draft = false;
         config.date = u.Date.today(io);
 

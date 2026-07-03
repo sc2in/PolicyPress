@@ -3,7 +3,8 @@
 //!
 //! This program automates the process of converting Markdown policy documents into styled PDF files.
 //! It loads configuration from a TOML file, processes Markdown files (including YAML front matter and custom placeholders),
-//! applies organization branding, and invokes Pandoc with a set of dynamically constructed arguments to generate PDFs.
+//! applies organization branding, renders the markdown to Typst markup in-process (zigmark; mermaid
+//! diagrams via pozeiden), and invokes `typst compile` to generate PDFs.
 //! The build is highly configurable, supporting custom logos, organization names, color extraction from images,
 //! and options for draft/redacted document states. The system is designed for batch processing of policy directories,
 //! with robust error handling and logging at multiple stages of the pipeline.
@@ -16,7 +17,7 @@ const build_options = @import("build_options");
 
 const clap = @import("clap");
 const Config = @import("config").Config;
-const Pandoc = @import("pandoc");
+const Typst = @import("typst");
 const Reports = @import("reports");
 const stampIsNewer = @import("utils").stampIsNewer;
 const writeStamp = @import("utils").writeStamp;
@@ -184,7 +185,7 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         \\--no-draft             Do not add draft watermark to output (overrides config.toml).
         \\--redact               Redact content within redaction tags (overrides config.toml).
         \\--no-redact            Do not redact text within redaction tags (overrides config.toml).
-        \\-v, --verbose          Show debug output (pandoc args, file paths).
+        \\-v, --verbose          Show debug output (typst invocations, file paths).
         \\-q, --quiet            Suppress progress output; show errors only.
         \\    --json             Emit log output as JSON lines (for CI).
     );
@@ -315,25 +316,6 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
 
     const output_path = if (res.args.output) |o| o else default_output;
     config.build_dir = output_path;
-
-    // Write the embedded eisvogel.latex to a tmpdir so pandoc can find it
-    // without the consumer needing to vendor the template in their repository.
-    const data_dir_path = blk: {
-        const base = env.get("TMPDIR") orelse env.get("TMP") orelse "/tmp";
-        // Random suffix instead of pid: getpid was a raw Linux syscall and
-        // not portable to the macOS/Windows builds.
-        var run_id: u64 = undefined;
-        io.random(std.mem.asBytes(&run_id));
-        break :blk try std.fmt.allocPrint(alloc, "{s}/pp-data-{x}", .{ base, run_id });
-    };
-    defer alloc.free(data_dir_path);
-    std.Io.Dir.cwd().createDirPath(io, data_dir_path) catch {};
-    defer std.Io.Dir.cwd().deleteTree(io, data_dir_path) catch {};
-    config.data_dir = Pandoc.writeEisvogel(io, alloc, data_dir_path) catch |err| blk: {
-        std.debug.print("policypress: warning: could not write embedded template ({s}), falling back to --data-dir=.\n", .{@errorName(err)});
-        break :blk config.root;
-    };
-    defer if (!std.mem.eql(u8, config.data_dir, config.root)) alloc.free(config.data_dir);
 
     std.Io.Dir.cwd().createDirPath(io, output_path) catch |err| {
         std.debug.print(
@@ -515,8 +497,8 @@ fn describeCompileError(err: anyerror) []const u8 {
         error.NoDescriptionForRevision => "a revision entry is missing the 'description' field",
         error.InvalidShortCode => "a shortcode block ({% ... %}) is malformed - check for missing {% end %}",
         error.NoResourcePathDefined => "could not determine resource path from the file's location",
-        error.PandocFailed => "pandoc exited with an error - check the output above for details",
-        error.PandocNotFound => "pandoc was not found; make sure you are running inside the PolicyPress devshell (nix develop)",
+        error.TypstFailed => "typst exited with an error - check the output above for details",
+        error.TypstNotFound => "typst was not found; run inside the PolicyPress devshell (nix develop) or install it from https://typst.app/open-source/",
         error.FileNotFound => "policy file was not found on disk (it may have been deleted mid-build)",
         error.OutOfMemory => "out of memory while processing this file",
         else => @errorName(err),
@@ -538,7 +520,7 @@ fn compileOne(
 ) void {
     defer progress_node.completeOne();
 
-    Pandoc.compile(io, env, alloc, config, input_path) catch |err| {
+    Typst.compile(io, env, alloc, config, input_path) catch |err| {
         error_mutex.lockUncancelable(io);
         defer error_mutex.unlock(io);
         error_count.* += 1;

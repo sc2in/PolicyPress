@@ -8,6 +8,23 @@ keys) is considered stable.
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-07-04
+
+### Security (GHSA-j557-r6p7-8r3m)
+
+- **Web redaction was CSS-only** — the `{% redact() %}` shortcode hid content
+  with `color: transparent` but emitted the raw text into the HTML, leaving it
+  fully readable in source and indexed by Zola's `search_index.en.js`. The
+  shortcode now emits no body content when `redact_web = true`.
+- **Starter kit workflow published unredacted PDFs** — the default
+  `starter/.github/workflows/build.yml` had `redact_mode` defaulting to
+  `false`, so a push to `main` would deploy unredacted PDFs to GitHub Pages
+  without any opt-in. The default is now `true`.
+- **PDF redaction silently skipped malformed blocks** — if a `{% redact() %}`
+  tag had no matching `{% end %}` (or vice-versa), the block passed through
+  unredacted without any error. `redact()` now returns `error.UnclosedRedaction`
+  on any orphaned tag, failing the build before a PDF is written.
+
 ## [1.4.0] - 2026-07-03
 
 ### Changed

@@ -344,7 +344,13 @@ test "FM parse via zigmark reads title from example policy" {
 
 pub fn redact(a: Allocator, txt: *Array(u8), remove: bool) !void {
     const r: mvzr.Regex = mvzr.compile("\\{%\\s*redact\\(\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;
-    if (!r.isMatch(txt.items)) return;
+    const unclosed = mvzr.compile("\\{%\\s*(redact\\(\\)|end)\\s*%\\}").?;
+
+    if (!r.isMatch(txt.items)) {
+        // No complete pair — fail loudly if any orphaned tag is present.
+        if (unclosed.isMatch(txt.items)) return error.UnclosedRedaction;
+        return;
+    }
 
     var new = try txt.clone(a);
 
@@ -370,6 +376,9 @@ pub fn redact(a: Allocator, txt: *Array(u8), remove: bool) !void {
     }
     txt.deinit(a);
     txt.* = new;
+
+    // After processing all matched pairs, any remaining tag is an orphan.
+    if (unclosed.isMatch(txt.items)) return error.UnclosedRedaction;
 }
 
 /// Replace `_` characters in the **body** of `txt` (after the frontmatter) with
@@ -498,32 +507,6 @@ pub fn executableInPath(io: std.Io, env: *std.process.Environ.Map, name: []const
         return true;
     }
     return false;
-}
-
-test "Redaction" {
-    const t =
-        \\{% redact() %}
-        \\This is a test policy for demonstration purposes. It contains sensitive information that should not be disclosed.
-        \\{% end %}
-    ;
-    var ts = Array(u8).empty;
-    defer ts.deinit(tst.allocator);
-
-    const expected = [_]u8{'_'} ** t.len;
-
-    try ts.appendSlice(tst.allocator, t);
-    try redact(tst.allocator, &ts, true);
-    // std.debug.print("{s}\n", .{ts.items});
-    try tst.expectEqualStrings(&expected, ts.items);
-
-    var t2 = Array(u8).empty;
-    defer t2.deinit(tst.allocator);
-
-    const expected2 = "This is a test policy for demonstration purposes. It contains sensitive information that should not be disclosed.";
-
-    try t2.appendSlice(tst.allocator, t);
-    try redact(tst.allocator, &t2, false);
-    try tst.expectEqualStrings(std.mem.trim(u8, expected2, "\n "), std.mem.trim(u8, t2.items, "\n "));
 }
 
 // ============================================================

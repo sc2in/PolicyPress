@@ -32,7 +32,7 @@ jobs:
         with:
           config_path: config.toml
           draft_mode: ${{ github.event.inputs.draft || 'false' }}
-          redact_mode: ${{ github.event.inputs.redact || 'false' }}
+          redact_mode: ${{ github.event.inputs.redact || 'true' }}
 
       - name: Upload PDFs
         uses: actions/upload-artifact@v4

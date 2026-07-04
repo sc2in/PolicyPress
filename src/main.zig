@@ -13,16 +13,16 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
+const EnvMap = std.process.Environ.Map;
 const build_options = @import("build_options");
 
 const clap = @import("clap");
 const Config = @import("config").Config;
-const Typst = @import("typst");
+const Date = @import("utils").Date;
 const Reports = @import("reports");
 const stampIsNewer = @import("utils").stampIsNewer;
+const Typst = @import("typst");
 const writeStamp = @import("utils").writeStamp;
-const Date = @import("utils").Date;
-const EnvMap = std.process.Environ.Map;
 
 // ---------------------------------------------------------------------------
 // Logging

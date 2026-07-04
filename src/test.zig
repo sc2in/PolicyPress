@@ -6,15 +6,14 @@ const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const io = tst.io;
 const math = std.math;
+const EnvMap = std.process.Environ.Map;
 const b = @import("builtin");
 
 const config = @import("config").Config;
-const typst = @import("typst");
 const report = @import("reports");
+const typst = @import("typst");
 const utils = @import("utils");
 const zigmark = @import("zigmark");
-
-const EnvMap = std.process.Environ.Map;
 
 // TODO
 // - [ ] The reports should generate correctly
@@ -504,9 +503,74 @@ test "non-draft mode: typst source excludes draft background" {
 }
 
 // --- Redact Mode Removes Sensitive Content ---
-// Core redaction behaviour is covered by the "Redaction" test in utils.zig.
-// This test confirms the pipeline wires it correctly: get_metadata returns a
-// "(Redacted)" title and the content buffer has no raw redact shortcodes left.
+// The unit tests below cover redact() directly. The pipeline wiring test
+// ("redact mode: title suffix and content scrubbed") confirms get_metadata and
+// redact() integrate correctly end-to-end.
+
+test "redact: well-formed block is redacted" {
+    const t =
+        \\{% redact() %}
+        \\This is sensitive information that should be redacted.
+        \\{% end %}
+    ;
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    try ts.appendSlice(tst.allocator, t);
+    try utils.redact(tst.allocator, &ts, true);
+    const expected = [_]u8{'_'} ** t.len;
+    try tst.expectEqualStrings(&expected, ts.items);
+}
+
+test "redact: well-formed block is unredacted when remove=false" {
+    const t =
+        \\{% redact() %}
+        \\sensitive content
+        \\{% end %}
+    ;
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    try ts.appendSlice(tst.allocator, t);
+    try utils.redact(tst.allocator, &ts, false);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "sensitive content") != null);
+}
+
+test "redact: unclosed opening tag returns UnclosedRedaction" {
+    // An opening {% redact() %} with no matching {% end %} must never pass
+    // through silently — the build must fail with UnclosedRedaction.
+    const t =
+        \\{% redact() %}
+        \\This sensitive content has no closing tag.
+    ;
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    try ts.appendSlice(tst.allocator, t);
+    try tst.expectError(error.UnclosedRedaction, utils.redact(tst.allocator, &ts, true));
+}
+
+test "redact: dangling end tag returns UnclosedRedaction" {
+    // A {% end %} with no matching {% redact() %} must also be caught.
+    const t =
+        \\Normal text with no opening tag.
+        \\{% end %}
+    ;
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    try ts.appendSlice(tst.allocator, t);
+    try tst.expectError(error.UnclosedRedaction, utils.redact(tst.allocator, &ts, true));
+}
+
+test "redact: multiple blocks are all redacted" {
+    // Every block must be redacted; none may slip through if the iterator
+    // resets correctly after each replacement.
+    const t =
+        \\{% redact() %}first secret{% end %} public {% redact() %}second secret{% end %}
+    ;
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    try ts.appendSlice(tst.allocator, t);
+    try utils.redact(tst.allocator, &ts, true);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "secret") == null);
+}
 
 test "redact mode: title suffix and content scrubbed" {
     const alloc = tst.allocator;

@@ -69,7 +69,7 @@ description=description) }}
           {% endif %}
 
           {% if member.description %}
-          <p class="member-description">{{ member.description | safe }}</p>
+          <p class="member-description">{{ member.description }}</p>
           {% elif member.content %}
           <p class="member-description">{{ member.content | safe |
             truncate(length=150) }}</p>

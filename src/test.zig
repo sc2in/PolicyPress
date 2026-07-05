@@ -518,6 +518,28 @@ test "missing frontmatter: revision missing approved_by → NoApprovalForRevisio
     try tst.expectError(error.NoApprovalForRevision, conf.validateFrontMatter(fm));
 }
 
+test "empty frontmatter: blank approved_by → EmptyApprovalForRevision" {
+    const alloc = tst.allocator;
+    // Present but empty: an audit PDF must not claim approval by nobody.
+    const md = makePolicyMd(
+        \\title: "Test Policy"
+        \\description: "Test"
+        \\extra:
+        \\  last_reviewed: "2024-01-01"
+        \\  major_revisions:
+        \\  - date: "2024-01-01"
+        \\    description: "Initial"
+        \\    approved_by: "   "
+        \\    version: "1.0"
+        ,
+    );
+    var fm = try zigmark.Frontmatter.initFromMarkdown(alloc, md);
+    defer fm.deinit();
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+    try tst.expectError(error.EmptyApprovalForRevision, conf.validateFrontMatter(fm));
+}
+
 // --- Draft Mode Adds Watermark ---
 
 test "draft mode: typst source includes draft.png page background" {
@@ -785,4 +807,34 @@ test "executableInPath: nonexistent binary returns false" {
     var env = try testEnvMap(tst.allocator);
     defer env.deinit();
     try tst.expect(!utils.executableInPath(io, &env, "pp-test-nonexistent-xyzzy-12345"));
+}
+
+// --- Build-time mermaid rendering (src/diagrams.zig, `render-diagrams`) ---
+// The site ships no client-side mermaid bundle; the `<pre class="mermaid">`
+// placeholder Zola emits is rewritten to inline SVG (pozeiden) at build time.
+
+const diagrams = @import("diagrams.zig");
+
+test "diagrams: mermaid placeholder is rewritten to inline svg" {
+    const alloc = tst.allocator;
+    // Body arrives HTML-escaped (Zola auto-escapes shortcode bodies), e.g. -->.
+    const html = "<p>before</p><pre class=\"mermaid\">\n  graph TD; A--&gt;B\n</pre><p>after</p>";
+    const result = try diagrams.rewriteHtml(alloc, html);
+    try tst.expect(result != null);
+    const r = result.?;
+    defer alloc.free(r.html);
+
+    try tst.expectEqual(@as(usize, 1), r.count);
+    try tst.expect(std.mem.indexOf(u8, r.html, "<figure class=\"mermaid-diagram\">") != null);
+    try tst.expect(std.mem.indexOf(u8, r.html, "<svg") != null);
+    // The placeholder must be gone (no residual client-render target).
+    try tst.expect(std.mem.indexOf(u8, r.html, "<pre class=\"mermaid\">") == null);
+    // Surrounding markup is preserved verbatim.
+    try tst.expect(std.mem.indexOf(u8, r.html, "<p>before</p>") != null);
+    try tst.expect(std.mem.indexOf(u8, r.html, "<p>after</p>") != null);
+}
+
+test "diagrams: html without a mermaid block is left unchanged (null)" {
+    const alloc = tst.allocator;
+    try tst.expect(try diagrams.rewriteHtml(alloc, "<p>no diagrams here</p>") == null);
 }

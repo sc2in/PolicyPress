@@ -1,7 +1,7 @@
 {% macro javascript() %}
-<script
-  src="{{ get_url(path='plugins/mermaid/dist/mermaid.min.js') | safe }}"
-  defer></script>
+{# Mermaid diagrams are rendered to inline SVG at build time by the
+   `policypress render-diagrams` step (pozeiden), so no client-side mermaid
+   bundle is loaded here. #}
 <script type="text/javascript" src="{{ get_url(path='js/main.js') | safe }}"
   defer></script>
 {% if config.build_search_index %}

@@ -19,10 +19,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Build only reads the repo and uploads artifacts; Pages/OIDC write is held
+    # solely by the `deploy` job below, which is the only step that publishes.
     permissions:
       contents: read
-      pages: write
-      id-token: write
 
     steps:
       - uses: actions/checkout@v4

@@ -62,9 +62,11 @@ pdf_color = "#0e90f3"
 # Path to your policies directory, relative to content/.
 policy_dir = "policies/"
 
-# Set to true to render a redaction bar over {% redact() %}...{% end %} blocks
-# on the website. Does not affect PDF generation — use --redact on the CLI for PDFs.
-redact_web = false
+# Renders a redaction bar over {% redact() %}...{% end %} blocks on the *website*.
+# Defaults to true because this starter auto-deploys to public GitHub Pages: with
+# it off, redacted content would ship in the site's HTML and search index. Does
+# not affect PDFs — use --redact (redact_mode in the action) for those.
+redact_web = true
 
 # Set to true to stamp all PDFs with a DRAFT watermark by default.
 # Can be overridden per-run with --draft / --no-draft.

@@ -194,11 +194,53 @@ pub const Config = struct {
         if (revs.array.items.len == 0) return error.NoRevisionsInFrontMatter;
         for (revs.array.items) |rev| {
             _ = rev.object.getKey("date") orelse return error.NoDateForRevision;
-            _ = rev.object.getKey("approved_by") orelse return error.NoApprovalForRevision;
+            // Presence *and* non-emptiness: an audit PDF must never ship with a
+            // blank `approved_by` (the revision would claim approval by nobody).
+            // `.getKey` only interns the key name, so read the value with `.get`.
+            const approved_by = rev.object.get("approved_by") orelse return error.NoApprovalForRevision;
+            switch (approved_by) {
+                .string => |s| if (std.mem.trim(u8, s, " \t\r\n").len == 0) return error.EmptyApprovalForRevision,
+                else => {},
+            }
             _ = rev.object.getKey("version") orelse return error.NoVersionForRevision;
             _ = rev.object.getKey("description") orelse return error.NoDescriptionForRevision;
         }
         // _ = frontMatter.get("date") orelse return error.NoDateInFrontMatter;
+    }
+
+    /// Severity of a policy's front-matter problems.
+    pub const IssueKind = enum { none, advisory, critical };
+
+    /// Validate one policy file's front matter without stopping the build.
+    /// Logs the specific problem and classifies it: a missing `description`
+    /// is advisory (it feeds teasers/SEO, not the audit trail); anything that
+    /// undermines the audit record (title, approvals, revision dates/versions,
+    /// or an unparseable file) is critical. The caller decides whether critical
+    /// issues abort the build (see `--strict`). `path` is resolved from cwd.
+    pub fn reviewPolicyFile(self: Config, io: std.Io, alloc: Allocator, path: []const u8) IssueKind {
+        const content = std.Io.Dir.cwd().readFileAlloc(io, path, alloc, .limited(10 * 1024 * 1024)) catch |err| {
+            conflog.warn("{s}: cannot read for validation: {s}", .{ path, @errorName(err) });
+            return .critical;
+        };
+        defer alloc.free(content);
+
+        var frontMatter = zigmark.Frontmatter.initFromMarkdown(alloc, content) catch |err| {
+            conflog.warn("{s}: cannot parse front matter: {s}", .{ path, @errorName(err) });
+            return .critical;
+        };
+        defer frontMatter.deinit();
+
+        self.validateFrontMatter(frontMatter) catch |err| switch (err) {
+            error.NoDescriptionInFrontMatter, error.NoDescriptionForRevision => {
+                conflog.warn("{s}: missing description (advisory)", .{path});
+                return .advisory;
+            },
+            else => {
+                conflog.warn("{s}: {s}", .{ path, @errorName(err) });
+                return .critical;
+            },
+        };
+        return .none;
     }
 };
 

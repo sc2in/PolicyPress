@@ -1,3 +1,7 @@
+{# The `<pre class="mermaid">` wrapper is the marker that `policypress
+   render-diagrams` (pozeiden) replaces with inline SVG at build time — keep the
+   class exactly as-is. If that step is not run (e.g. `zola serve` dev preview),
+   this falls back to showing the diagram source as text. #}
 <pre class="mermaid">
-  {{ body  }}
+  {{ body }}
 </pre>

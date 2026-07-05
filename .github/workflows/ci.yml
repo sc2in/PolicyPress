@@ -14,6 +14,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege by default. Only the tag-gated `release` job below opts into
+# `contents: write`; the build/test job never needs it.
+permissions:
+  contents: read
+
 jobs:
   ci:
     strategy:
@@ -28,8 +33,10 @@ jobs:
           }}
     runs-on: ${{ matrix.os }}
     permissions:
+      # id-token is consumed by the FlakeHub cache on every run. contents stays
+      # read-only: build/test must never be able to push commits or move tags.
       id-token: "write"
-      contents: "write"
+      contents: "read"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -55,11 +62,27 @@ jobs:
           fi
           echo "CHANGELOG.md updated since $prev ✓"
 
+      # Releases are cut from the tag exactly as pushed (CI no longer stamps and
+      # force-moves the tag). Guard that the maintainer stamped the version
+      # before tagging so the release binary can't disagree with the tag.
+      - name: Verify version is stamped to match the release tag
+        if: ${{ github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
+        run: |
+          version="${{ github.ref_name }}"
+          version="${version#v}"
+          zon_version="$(grep -oP '\.version = "\K[^"]+' build.zig.zon | head -1)"
+          toml_version="$(grep -oP '^version = "\K[^"]+' config.toml | head -1)"
+          if [ "$zon_version" != "$version" ] || [ "$toml_version" != "$version" ]; then
+            echo "::error::Version drift: tag=$version, build.zig.zon=$zon_version, config.toml=$toml_version. Run 'nix run .#bump ${version}' and commit before tagging."
+            exit 1
+          fi
+          echo "Version $version is stamped in build.zig.zon and config.toml ✓"
+
       - name: Install Nix
         uses: DeterminateSystems/determinate-nix-action@v3
 
       - name: Setup Nix cache
-        uses: DeterminateSystems/flakehub-cache-action@main
+        uses: DeterminateSystems/flakehub-cache-action@9926dde74484ccb2224835b80531de64ed4336ef # v3.21.2
         with:
           use-gha-cache: "enabled"
           flakehub-flake-name: "sc2in/PolicyPress"
@@ -113,25 +136,35 @@ jobs:
           path: artifacts/
           retention-days: 7
 
-      - name: Stamp and commit version in build.zig.zon and config.toml
-        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
-        run: |
-          version="${{ github.ref_name }}"
-          version="${version#v}"
-          sed -i "s/\.version = \"[^\"]*\"/.version = \"$version\"/" build.zig.zon
-          # Keep config.toml's [extra] version in sync (the only uncommented
-          # top-level `version = "..."`). `nix run .#bump` normally does this,
-          # but stamp here too so a bare `git tag` push can't drift.
-          sed -i "s/^version = \"[^\"]*\"/version = \"$version\"/" config.toml
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add build.zig.zon config.toml
-          git diff --cached --quiet || git commit -m "chore: release ${version}"
-          git tag -f "${{ github.ref_name }}"
-          git push --force origin "${{ github.ref_name }}"
+  # Release job: runs only on release tags and holds the write scope the build/
+  # test job deliberately lacks. The pushed tag is authoritative — the version
+  # must already be stamped (`nix run .#bump <ver>` before tagging), so nothing
+  # here rewrites or force-moves vX.Y.Z after the publish triggers have fired.
+  release:
+    needs: [ci]
+    if: ${{ github.ref_type == 'tag' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+      contents: "write"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@v3
+
+      - name: Setup Nix cache
+        uses: DeterminateSystems/flakehub-cache-action@9926dde74484ccb2224835b80531de64ed4336ef # v3.21.2
+        with:
+          use-gha-cache: "enabled"
+          flakehub-flake-name: "sc2in/PolicyPress"
+
+      - name: Configure permissions
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
 
       - name: Build release binaries
-        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         run: |
           nix develop --command bash -c '
             set -euo pipefail
@@ -149,7 +182,6 @@ jobs:
           '
 
       - name: Create GitHub Release
-        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         uses: softprops/action-gh-release@v2
         with:
           files: |
@@ -157,8 +189,10 @@ jobs:
             SHA256SUMS.txt
           generate_release_notes: true
 
+      # The floating major tag (e.g. v1) is a convenience alias consumers pin to.
+      # Moving it is safe: `v1` does not match the trigger pattern
+      # `v?[0-9]+.[0-9]+.[0-9]+*`, so it never re-fires CI or the FlakeHub publish.
       - name: Update floating major version tag
-        if: ${{ success() && github.ref_type == 'tag' && matrix.os == 'ubuntu-latest' }}
         run: |
           major=$(echo "${{ github.ref_name }}" | grep -oP '^v?\d+')
           git tag -f "$major"

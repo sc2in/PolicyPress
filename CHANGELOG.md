@@ -23,6 +23,32 @@ keys) is considered stable.
 - **Action inputs are no longer spliced into the build script.** Inputs such as
   `base_url` are passed through the environment instead of `${{ }}`
   interpolation, removing a shell-injection surface on the consumer's runner.
+- **Dev preview server binds loopback by default.** `policypress` no longer
+  serves the built site on `0.0.0.0` (all interfaces) while printing
+  `127.0.0.1`; it binds `127.0.0.1` and takes an explicit `--interface`
+  (e.g. `0.0.0.0`) to expose drafts/internal policies on the LAN. (#117)
+- **Front-matter validation runs during the build.** The previously dead
+  `validatePolicyFiles`/`validateFrontMatter` checks now run on every build:
+  missing audit fields (title, approvals, revision dates/versions) — and a
+  blank `approved_by` — are reported, and `--strict` turns them into a build
+  failure. Missing `description` stays advisory. (#117)
+- **Search suggestions and policy descriptions are HTML-escaped.** The search
+  teaser (built from page bodies and injected via `innerHTML`) and the
+  front-matter `description` (previously `| safe`) are now escaped, closing a
+  stored-XSS surface. (#117)
+- **CI runs with least privilege and stops moving release tags.** Build/test
+  now runs read-only; only a separate tag-gated `release` job holds
+  `contents: write`. The release tag is no longer force-moved after the publish
+  triggers fire (versions must be stamped with `nix run .#bump` before tagging,
+  now guarded in CI), and the `@main`-pinned third-party actions are pinned to
+  release commit SHAs. (#117)
+- **The action fails closed on an unverified binary.** A missing
+  `SHA256SUMS.txt` or a missing/failed checksum entry now aborts the action
+  instead of downgrading to a warning and running the binary anyway. (#117)
+- **Starter deploy is safer by default.** The starter build job drops the
+  unused Pages/OIDC write scopes (only the deploy job keeps them), `redact_web`
+  defaults to `true` so a public Pages deploy masks redaction blocks on the
+  site, and the README carries a prominent Pages-visibility warning. (#117)
 
 ### Fixed
 
@@ -51,12 +77,36 @@ keys) is considered stable.
 - **Mobile navigation works again.** The menu button is a real toggle wired to
   the collapse handler, so the nav and search are reachable below the `md`
   breakpoint.
+- **Stale PDFs are swept from the output directory.** A policy that is renamed,
+  retitled, deleted, or turned into a draft no longer leaves its old PDF behind
+  at a guessable URL: each build removes PDFs that match no current policy (any
+  variant), so it stays safe to build several variants into one directory. (#117)
+- **Dead code cleaned up.** The advertised `-i/--input` flag now actually
+  re-roots the content directory, the unused `reports` import was removed, and
+  `control_report`'s standalone entrypoint points at the real
+  `data/<standard>.json` path. The dev preview server compiles again (its
+  argument parsing had drifted from the current CLI API). (#117)
+
+### Changed
+
+- **Mermaid diagrams render to inline SVG at build time.** The website no longer
+  ships the ~30 MB vendored `mermaid` bundle or loads client-side JavaScript to
+  draw diagrams. A new `policypress render-diagrams <dir>` step (run after
+  `zola build`, wired into the action) rewrites each diagram to inline SVG with
+  the same in-process renderer (pozeiden) used for PDFs, so diagrams are
+  identical across site and PDF and render with JavaScript disabled. Dev preview
+  via `zola serve` shows the diagram source as a fallback. (#114)
 
 ### Added
 
 - `tests/redaction-leak-check.sh` builds the demo site and redacted PDFs and
   asserts no `{% redact() %}` content survives into the site (HTML, search
-  index, feeds) or the PDF output directory. It runs in CI on Linux.
+  index, feeds) or the PDF output directory. It runs in CI on Linux. It now also
+  asserts mermaid diagrams became inline SVG (no client bundle referenced) and
+  that stale PDFs are swept on rebuild.
+- `--strict` build flag: fail the build on audit-critical front-matter problems.
+- `render-diagrams` subcommand: render a built site's mermaid diagrams to inline
+  SVG (see Changed).
 
 ## [1.4.1] - 2026-07-04
 

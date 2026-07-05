@@ -118,6 +118,19 @@ Source:
     return false;
   }
 
+  // Escape HTML metacharacters so index text (page bodies) can never inject
+  // markup when a teaser is written via innerHTML. Only the <b> markers that
+  // makeTeaser adds around matched terms are intentional HTML; everything
+  // derived from the document body is escaped before it is concatenated.
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   // Taken from mdbook
   // The strategy is as follows:
   // First, assign a value to each word in the document:
@@ -169,9 +182,9 @@ Source:
 
     if (weighted.length === 0) {
       if (body.length !== undefined && body.length > TEASER_MAX_WORDS * 10) {
-        return body.substring(0, TEASER_MAX_WORDS * 10) + "...";
+        return escapeHtml(body.substring(0, TEASER_MAX_WORDS * 10)) + "...";
       } else {
-        return body;
+        return escapeHtml(body);
       }
     }
 
@@ -209,7 +222,7 @@ Source:
       var word = weighted[i];
       if (startIndex < word[2]) {
         // missing text from index to start of `word`
-        teaser.push(body.substring(startIndex, word[2]));
+        teaser.push(escapeHtml(body.substring(startIndex, word[2])));
         startIndex = word[2];
       }
 
@@ -230,9 +243,9 @@ Source:
         // if using substring method directly, it may occur error codes on emoji chars
         var strBefor = body.substring(word[2], startIndex);
         var strAfter = substringByByte(strBefor, 12);
-        teaser.push(strAfter);
+        teaser.push(escapeHtml(strAfter));
       } else {
-        teaser.push(body.substring(word[2], startIndex));
+        teaser.push(escapeHtml(body.substring(word[2], startIndex)));
       }
 
       if (word[1] === TERM_WEIGHT) {

@@ -89,6 +89,16 @@ jobs:
             om ci run
           fi
 
+      # End-to-end guard for the redaction feature: build the demo site and
+      # redacted PDFs and assert no {% redact() %} content survives into the
+      # published site (HTML, search index, feeds) or the PDF output dir.
+      - name: Redaction leak check
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        shell: nix develop --command bash -e {0}
+        run: |
+          zig build
+          bash tests/redaction-leak-check.sh
+
       - name: Collect artifacts
         if: ${{ success() && matrix.os == 'ubuntu-latest' && (github.ref_type == 'tag' || github.ref_name == 'main') }}
         run: |
@@ -132,6 +142,10 @@ jobs:
               [[ "$target" == *windows* ]] && ext=".exe"
               cp "zig-out/bin/policypress${ext}" "policypress-${target}${ext}"
             done
+            # Publish checksums so the composite action can verify the binary it
+            # downloads matches the one built here for this exact tag.
+            sha256sum policypress-* > SHA256SUMS.txt
+            cat SHA256SUMS.txt
           '
 
       - name: Create GitHub Release
@@ -140,6 +154,7 @@ jobs:
         with:
           files: |
             policypress-*
+            SHA256SUMS.txt
           generate_release_notes: true
 
       - name: Update floating major version tag

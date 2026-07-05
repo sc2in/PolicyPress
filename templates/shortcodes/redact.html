@@ -1,6 +1,9 @@
 {% set redact_web = config.extra.policypress.redact_web or false %}
-{% if redact_web %}
-<span class="redaction" role="img" aria-label="[redacted]"></span>
-{% else %}
+{%- if redact_web -%}
+{#- Mask server-side: emit solid bars sized to the content, never the body
+    itself. The text must not reach the page source, the client-side search
+    index, or the RSS/Atom feed. -#}
+<span class="redaction" role="img" aria-label="[redacted]">{% for _ in range(end=body | length) %}█{% endfor %}</span>
+{%- else -%}
 {{ body | safe }}
-{% endif %}
+{%- endif -%}

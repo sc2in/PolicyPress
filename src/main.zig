@@ -21,6 +21,7 @@ const Config = @import("config").Config;
 const Date = @import("utils").Date;
 const Reports = @import("reports");
 const stampIsNewer = @import("utils").stampIsNewer;
+const isDraftPolicy = @import("utils").isDraftPolicy;
 const Typst = @import("typst");
 const writeStamp = @import("utils").writeStamp;
 
@@ -165,6 +166,7 @@ fn handleBuildError(err: anyerror) void {
         error.PolicyDirUnreadable,
         error.OutputDirFailed,
         error.CompilationFailed,
+        error.DuplicateOutputName,
         => {},
         // Anything unexpected.
         else => std.debug.print(
@@ -344,6 +346,7 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         file_paths.deinit(alloc);
     }
     var skipped: usize = 0;
+    var drafts_skipped: usize = 0;
     while (walker.next(io) catch |err| {
         std.debug.print(
             "policypress: error while scanning policy directory: {s}\n",
@@ -358,6 +361,14 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
             if (stampIsNewer(io, input_path, stamps_dir_path, alloc)) {
                 alloc.free(input_path);
                 skipped += 1;
+                continue;
+            }
+            // Skip `draft: true` policies: Zola omits them from the site, so a
+            // draft must not get an official-looking PDF at a guessable URL.
+            if (isDraftPolicy(io, alloc, policy_dir, entry.path)) {
+                std.log.info("policypress: skipping draft policy '{s}'", .{entry.path});
+                alloc.free(input_path);
+                drafts_skipped += 1;
                 continue;
             }
             try file_paths.append(alloc, input_path);
@@ -375,6 +386,39 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     }
     if (skipped > 0) {
         std.log.info("policypress: {d} up to date, rebuilding {d}.", .{ skipped, total_files });
+    }
+
+    // --- Detect output-filename collisions ---
+    // Two policies with the same title + version resolve to the same PDF name
+    // and would race to the same path during concurrent compilation, silently
+    // overwriting one another (exit 0, one PDF missing). Fail loudly instead,
+    // naming both offending files so the author can disambiguate.
+    {
+        var seen = std.StringHashMap([]const u8).init(alloc);
+        defer {
+            var it = seen.keyIterator();
+            while (it.next()) |k| alloc.free(k.*);
+            seen.deinit();
+        }
+        for (file_paths.items) |input_path| {
+            const name = Typst.outputName(io, alloc, config, input_path) catch |err| {
+                // A metadata error here (e.g. missing title) will resurface as
+                // a proper per-file compile error below; don't fail the whole
+                // build during the collision pre-pass.
+                std.log.debug("policypress: could not pre-compute output name for '{s}': {s}", .{ input_path, @errorName(err) });
+                continue;
+            };
+            if (seen.get(name)) |other| {
+                std.debug.print(
+                    "policypress: two policies produce the same PDF '{s}':\n  {s}\n  {s}\n" ++
+                        "Give them distinct titles or versions.\n",
+                    .{ name, other, input_path },
+                );
+                alloc.free(name);
+                return error.DuplicateOutputName;
+            }
+            try seen.put(name, input_path);
+        }
     }
 
     // --- Parallel compilation ---

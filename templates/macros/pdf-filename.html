@@ -1,0 +1,39 @@
+{# PDF filename slug — mirrors the canonical sanitiser in the policypress
+   binary (u.sanitizePdfName in src/utils.zig). Every character that is not
+   ASCII-alphanumeric, "_", "-", or "." becomes "_", so the download links the
+   site builds resolve to the files the binary actually writes. Keep the two
+   rules in lock-step: any change here needs the same change in sanitizePdfName
+   (and the golden test in src/test.zig). #}
+{% macro slug(title) -%}
+{{ title
+  | replace(from=" ", to="_")
+  | replace(from="!", to="_")
+  | replace(from='"', to="_")
+  | replace(from="#", to="_")
+  | replace(from="$", to="_")
+  | replace(from="%", to="_")
+  | replace(from="&", to="_")
+  | replace(from="'", to="_")
+  | replace(from="(", to="_")
+  | replace(from=")", to="_")
+  | replace(from="*", to="_")
+  | replace(from="+", to="_")
+  | replace(from=",", to="_")
+  | replace(from="/", to="_")
+  | replace(from=":", to="_")
+  | replace(from=";", to="_")
+  | replace(from="<", to="_")
+  | replace(from="=", to="_")
+  | replace(from=">", to="_")
+  | replace(from="?", to="_")
+  | replace(from="@", to="_")
+  | replace(from="[", to="_")
+  | replace(from="\\", to="_")
+  | replace(from="]", to="_")
+  | replace(from="^", to="_")
+  | replace(from="`", to="_")
+  | replace(from="{", to="_")
+  | replace(from="|", to="_")
+  | replace(from="}", to="_")
+  | replace(from="~", to="_") }}
+{%- endmacro slug %}

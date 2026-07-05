@@ -8,6 +8,56 @@ keys) is considered stable.
 
 ## [Unreleased]
 
+### Security
+
+- **Web redaction now renders visible bars server-side.** Building on 1.4.1
+  (which stopped emitting the body), the `{% redact() %}` shortcode now emits
+  solid `█` bars sized to the hidden content when `redact_web = true`, so a
+  redacted policy shows a clear redaction mark while the text still never
+  reaches the HTML, the client-side search index, or the RSS/Atom feed.
+- **Composite action pins and verifies the binary.** The action downloads the
+  release binary for the exact pinned action ref (e.g. `@v1.4.1`) instead of the
+  latest release, verifies it against a published `SHA256SUMS.txt`, and falls
+  back to building from source for refs without a release. `ci` now publishes
+  the checksums alongside the release binaries.
+- **Action inputs are no longer spliced into the build script.** Inputs such as
+  `base_url` are passed through the environment instead of `${{ }}`
+  interpolation, removing a shell-injection surface on the consumer's runner.
+
+### Fixed
+
+- **Redacted PDFs no longer corrupt legitimate underscores.** Redaction masked
+  spans with underscores and then converted *every* `_` in the body to `█`,
+  mangling snake_case identifiers, `_emphasis_`, and URLs in the redacted PDF.
+  Redacted spans are now masked with `█` directly and only the spans change.
+- **Whitespace-trim redaction tags are honored.** `{%- redact() -%}` /
+  `{%- end -%}` variants are now redacted (and still caught when orphaned)
+  rather than passing through unmasked.
+- **Policy version is chosen by date, not string order.** Selection now matches
+  the website (most recent by `date`, numeric version tiebreak), so `1.10` no
+  longer loses to `1.9` and the PDF and site never disagree on the version.
+- **Incremental-build stamps are keyed by full path.** Two policies with the
+  same file name in different directories no longer share a stamp, which could
+  cause the second to be skipped as "up to date" with no PDF produced.
+- **Colliding PDF names fail the build.** Two policies that resolve to the same
+  `{Title}_-_v{version}.pdf` now stop the build (naming both files) instead of
+  silently overwriting one another.
+- **Site PDF links match the generated files.** The download links on policy
+  pages and the PDF filenames now share one sanitizer, so a title with
+  punctuation no longer produces a 404 link.
+- **`draft: true` policies are excluded from PDF generation**, matching Zola
+  (which omits drafts from the site) and the documentation, so an unapproved
+  draft no longer gets an official-looking PDF at a guessable URL.
+- **Mobile navigation works again.** The menu button is a real toggle wired to
+  the collapse handler, so the nav and search are reachable below the `md`
+  breakpoint.
+
+### Added
+
+- `tests/redaction-leak-check.sh` builds the demo site and redacted PDFs and
+  asserts no `{% redact() %}` content survives into the site (HTML, search
+  index, feeds) or the PDF output directory. It runs in CI on Linux.
+
 ## [1.4.1] - 2026-07-04
 
 ### Security (GHSA-j557-r6p7-8r3m)

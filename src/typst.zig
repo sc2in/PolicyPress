@@ -132,6 +132,25 @@ pub fn compile(
     try runTypst(io, env, alloc, typ_abs, out_path, config.root);
 }
 
+/// Compute the output PDF filename for a policy without rendering it. Used to
+/// detect two policies that would resolve to the same filename (same title +
+/// version) before compilation, which would otherwise race to the same path
+/// and silently overwrite one another. Caller owns the returned slice.
+pub fn outputName(io: std.Io, alloc: Allocator, config: Config, input_file: []const u8) ![]u8 {
+    var dir = try std.Io.Dir.cwd().openDir(io, config.root, .{});
+    defer dir.close(io);
+    var file = try dir.openFile(io, input_file, .{ .mode = .read_only });
+    defer file.close(io);
+
+    const raw = try u.readAllAlloc(io, file, alloc, 100_000_000);
+    var contents = Array(u8){ .items = raw, .capacity = raw.len };
+    defer contents.deinit(alloc);
+
+    var fm = try u.get_metadata(alloc, &contents, config);
+    defer fm.deinit(alloc);
+    return fm.filename(alloc);
+}
+
 /// Render a Markdown policy file to a complete Typst source. Split out from
 /// `compile` so tests can assert on the generated markup without a typst
 /// binary. Caller owns the result (free via `Rendered.deinit`).
@@ -168,11 +187,9 @@ pub fn render(
     try u.replace_zola_at(alloc, &contents, config.base_url);
     try u.replace_admonitions(alloc, &contents);
     try u.replace_mermaid(alloc, &contents);
+    // `u.redact` masks redacted spans with solid `█` bars directly (only the
+    // spans, never legitimate underscores elsewhere in the body).
     try u.redact(alloc, &contents, config.redact);
-    // `u.redact` fills redacted blocks with `_` characters, which CommonMark
-    // parses as thematic breaks (→ thin gray lines). Replace them with `█`
-    // (U+2588 FULL BLOCK) so they render as solid black bars.
-    if (config.redact) try u.underscoresToBlocks(alloc, &contents);
 
     // ── 3. Extract frontmatter ───────────────────────────────────────────────
 
@@ -260,12 +277,12 @@ pub fn render(
     const typ_src = try aw.toOwnedSlice();
     errdefer alloc.free(typ_src);
 
-    // ── 6. Sanitise output filename ──────────────────────────────────────────
+    // ── 6. Output filename ────────────────────────────────────────────────────
+    // fm.filename applies the canonical sanitiser (u.sanitizePdfName); no
+    // second pass here, so the name always matches what the site links to.
 
     const out = try fm.filename(alloc);
     errdefer alloc.free(out);
-    std.mem.replaceScalar(u8, out, ' ', '_');
-    sanitizeFilename(out);
 
     return .{ .source = typ_src, .pdf_name = out };
 }
@@ -571,26 +588,6 @@ fn writeVersionHistory(writer: anytype, fm: *zigmark.Frontmatter) !void {
     }
 
     try writer.writeAll(")\n");
-}
-
-// ── Filename helpers ──────────────────────────────────────────────────────────
-
-/// Sanitise an output filename in-place: path separators and unsafe characters
-/// become '_', leading '.' and '..' sequences are defused.
-fn sanitizeFilename(name: []u8) void {
-    var prev_dot = false;
-    for (name, 0..) |*ch, i| {
-        var c = ch.*;
-        if (c == '/' or c == '\\') c = '_';
-        if (!std.ascii.isAlphanumeric(c) and c != '_' and c != '-' and c != '.') c = '_';
-        if (c == '.') {
-            if (i == 0 or prev_dot) {
-                c = '_';
-                prev_dot = false;
-            } else prev_dot = true;
-        } else prev_dot = false;
-        ch.* = c;
-    }
 }
 
 // ── typst subprocess ──────────────────────────────────────────────────────────

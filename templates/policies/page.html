@@ -10,7 +10,7 @@
 {# Link to the PDF version for print and for discovery #}
 {% set versions = page.extra.major_revisions | sort(attribute="date") | reverse %}
 {% set current_version = versions | first %}
-{%- set title_slug = page.title | replace(from=" ", to="_") -%}
+{%- set title_slug = macros_pdf::slug(title=page.title) | trim -%}
 {%- if config.extra.policypress.redact_web -%}
   {%- set pdf_official = title_slug ~ "__Redacted__-_v" ~ current_version.version ~ ".pdf" -%}
 {%- else -%}
@@ -44,8 +44,8 @@ reverse %}
 {% set today = now() | date(format="%s") | int %}
 {% set review_overdue = (today - last_reviewed_ts) > 31557600 %}
 
-{%- set title_slug = page.title | replace(from=" ", to="_") -%}
-{# policypress sanitizes '(' and ')' to '_', so (Redacted) becomes __Redacted__ #}
+{%- set title_slug = macros_pdf::slug(title=page.title) | trim -%}
+{# The binary sanitises '(' and ')' to '_', so (Redacted) becomes __Redacted__ #}
 {%- if config.extra.policypress.redact_web -%}
   {%- set pdf_official = title_slug ~ "__Redacted__-_v" ~ current_version.version ~ ".pdf" -%}
   {%- set pdf_draft = title_slug ~ "__Redacted___Draft__-_v" ~ current_version.version ~ ".pdf" -%}

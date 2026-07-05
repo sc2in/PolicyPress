@@ -110,7 +110,9 @@ test "policy processing" {
     try tst.expectEqualStrings("2025-02-24", f1.last_reviewed);
     const out_file_name = try f1.filename(tst.allocator);
     defer tst.allocator.free(out_file_name);
-    try tst.expectEqualStrings("Test_Policy_(Redacted)_-_v1.1.pdf", out_file_name);
+    // filename() applies the canonical sanitiser, so "(Redacted)" becomes
+    // "__Redacted__" — the actual name on disk, matching the site's links.
+    try tst.expectEqualStrings("Test_Policy__Redacted__-_v1.1.pdf", out_file_name);
 
     try utils.replace_zola_at(tst.allocator, &t1, "https://test.lol");
     try utils.replace_org(tst.allocator, &t1, "loltest");
@@ -118,7 +120,8 @@ test "policy processing" {
     try utils.redact(tst.allocator, &t1, true);
 
     try tst.expect(std.mem.indexOf(u8, t1.items, "~~~mermaid") != null);
-    try tst.expect(std.mem.indexOf(u8, t1.items, &[_]u8{'_'} ** 10) != null);
+    // Redacted spans are masked with solid █ bars, not underscore placeholders.
+    try tst.expect(std.mem.indexOf(u8, t1.items, "██████████") != null);
     try tst.expectEqual(3, std.mem.count(u8, t1.items, "https://test.lol/"));
     try tst.expectEqual(0, std.mem.count(u8, t1.items, "{% end %}"));
 }
@@ -196,6 +199,11 @@ test "typst source: redaction produces solid bars" {
     // Redacted spans must render as solid █ bars, not underscores (which
     // CommonMark would turn into thematic breaks).
     try tst.expect(std.mem.indexOf(u8, rendered.source, "█") != null);
+    // Golden no-leak: the redact block's content must NOT survive anywhere in
+    // the Typst source that becomes the redacted PDF.
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "sensitive information that should not be disclosed") == null);
+    // No unconsumed redaction tag may remain either.
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "{% redact") == null);
     // Sanitised filename carries the __Redacted__ pattern that the Zola
     // templates hardcode in PDF links (issue #97).
     try tst.expectEqualStrings("Test_Policy__Redacted__-_v1.1.pdf", rendered.pdf_name);
@@ -253,8 +261,12 @@ test "stamp: writeStamp → stampIsNewer returns true" {
 
     utils.writeStamp(io, alloc, tmp_path, src_path);
 
-    // Set stamp mtime to 2 s in the future so it is definitely newer.
-    const stamp_path = try std.fs.path.join(alloc, &.{ tmp_path, "policy" });
+    // Set stamp mtime to 2 s in the future so it is definitely newer. The
+    // stamp filename is keyed by the full path (separators flattened), not the
+    // bare stem, so two same-named policies in different dirs never collide.
+    const stamp_name = try utils.stampName(alloc, src_path);
+    defer alloc.free(stamp_name);
+    const stamp_path = try std.fs.path.join(alloc, &.{ tmp_path, stamp_name });
     defer alloc.free(stamp_path);
     const stamp_file = try std.Io.Dir.cwd().openFile(io, stamp_path, .{ .mode = .read_write });
     defer stamp_file.close(io);
@@ -268,7 +280,7 @@ test "stamp: writeStamp → stampIsNewer returns true" {
     try tst.expect(utils.stampIsNewer(io, src_path, tmp_path, alloc));
 }
 
-test "stamp: writeStamp creates file with correct stem" {
+test "stamp: writeStamp creates a stamp file keyed by full path" {
     const alloc = tst.allocator;
     var tmp = tst.tmpDir(.{});
     defer tmp.cleanup();
@@ -282,9 +294,44 @@ test "stamp: writeStamp creates file with correct stem" {
     try tst.expect(!utils.stampIsNewer(io, src_path, tmp_path, alloc));
     utils.writeStamp(io, alloc, tmp_path, src_path);
 
-    const stem_path = try std.fs.path.join(alloc, &.{ tmp_path, "access-control" });
-    defer alloc.free(stem_path);
-    try std.Io.Dir.accessAbsolute(io, stem_path, .{});
+    const stamp_name = try utils.stampName(alloc, src_path);
+    defer alloc.free(stamp_name);
+    const stamp_path = try std.fs.path.join(alloc, &.{ tmp_path, stamp_name });
+    defer alloc.free(stamp_path);
+    try std.Io.Dir.accessAbsolute(io, stamp_path, .{});
+}
+
+test "stamp: same filename in different dirs gets distinct stamps" {
+    // Regression: keying stamps by basename made two policies with the same
+    // file name (access/policy.md vs data/policy.md) share one stamp, so the
+    // second was skipped as "up to date" and its PDF never produced.
+    const alloc = tst.allocator;
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    try tmp.dir.createDirPath(io, "access");
+    try tmp.dir.createDirPath(io, "data");
+    try tmp.dir.writeFile(io, .{ .sub_path = "access/policy.md", .data = "a" });
+    try tmp.dir.writeFile(io, .{ .sub_path = "data/policy.md", .data = "b" });
+
+    const a_path = try std.fs.path.join(alloc, &.{ tmp_path, "access/policy.md" });
+    defer alloc.free(a_path);
+    const b_path = try std.fs.path.join(alloc, &.{ tmp_path, "data/policy.md" });
+    defer alloc.free(b_path);
+
+    const a_name = try utils.stampName(alloc, a_path);
+    defer alloc.free(a_name);
+    const b_name = try utils.stampName(alloc, b_path);
+    defer alloc.free(b_name);
+    // Distinct keys, and neither contains a path separator.
+    try tst.expect(!std.mem.eql(u8, a_name, b_name));
+    try tst.expect(std.mem.indexOfScalar(u8, a_name, '/') == null);
+
+    // Stamping the first must not mark the second as up to date.
+    utils.writeStamp(io, alloc, tmp_path, a_path);
+    try tst.expect(!utils.stampIsNewer(io, b_path, tmp_path, alloc));
 }
 
 // ============================================================
@@ -517,8 +564,48 @@ test "redact: well-formed block is redacted" {
     defer ts.deinit(tst.allocator);
     try ts.appendSlice(tst.allocator, t);
     try utils.redact(tst.allocator, &ts, true);
-    const expected = [_]u8{'_'} ** t.len;
-    try tst.expectEqualStrings(&expected, ts.items);
+    // The span is masked with solid █ bars; no plaintext and no tags survive.
+    try tst.expect(std.mem.indexOf(u8, ts.items, "sensitive") == null);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "{%") == null);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "█") != null);
+    // No underscore placeholder leaks through (the old two-pass artefact).
+    try tst.expect(std.mem.indexOfScalar(u8, ts.items, '_') == null);
+}
+
+test "redact: whitespace-trim tag variant is still redacted" {
+    // Tera trim markers ({%- ... -%}) must not let a block slip past the
+    // redactor unmasked.
+    const t =
+        \\{%- redact() -%}
+        \\leaked secret value
+        \\{%- end -%}
+    ;
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    try ts.appendSlice(tst.allocator, t);
+    try utils.redact(tst.allocator, &ts, true);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "leaked secret") == null);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "█") != null);
+}
+
+test "redact: legitimate underscores in the body survive" {
+    // Only the redacted span is masked; snake_case identifiers, _emphasis_,
+    // and URLs elsewhere keep their underscores intact.
+    const t =
+        \\Set MAX_RETRY_COUNT and read the audit_log at /docs/my_page.
+        \\Use _emphasis_ freely.
+        \\{% redact() %}hide me{% end %}
+    ;
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    try ts.appendSlice(tst.allocator, t);
+    try utils.redact(tst.allocator, &ts, true);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "MAX_RETRY_COUNT") != null);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "audit_log") != null);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "my_page") != null);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "_emphasis_") != null);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "hide me") == null);
+    try tst.expect(std.mem.indexOf(u8, ts.items, "█") != null);
 }
 
 test "redact: well-formed block is unredacted when remove=false" {
@@ -595,8 +682,8 @@ test "redact mode: title suffix and content scrubbed" {
     try tst.expect(std.mem.indexOf(u8, fm.title, "(Redacted)") != null);
     // No unprocessed shortcode tags should remain.
     try tst.expect(std.mem.indexOf(u8, contents.items, "{% end %}") == null);
-    // Redacted blocks become underscores, not visible text.
-    try tst.expect(std.mem.indexOf(u8, contents.items, &[_]u8{'_'} ** 10) != null);
+    // Redacted blocks become solid █ bars, not visible text.
+    try tst.expect(std.mem.indexOf(u8, contents.items, "██████████") != null);
 }
 
 // --- draft.png path resolution ---

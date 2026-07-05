@@ -1,10 +1,12 @@
 {% macro header(current_section) %}
 <header class="navbar fixed-top navbar-expand-md navbar-light my-auto">
 	<div class="container">
-		{# <input class="menu-btn order-0" type="checkbox" id="menu-btn"> #}
-		<label class="menu-icon d-md-none" for="menu-btn"><span
-				class="navicon"></span>
-		</label>
+		<button class="navbar-toggler d-md-none order-0" type="button"
+			data-bs-toggle="collapse" data-bs-target="#navbarMain"
+			aria-controls="navbarMain" aria-expanded="false"
+			aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
 		<a class="navbar-brand order-1 order-md-0 me-auto"
 			href="{{ config.base_url | safe }}"><img class="brand-logo"
 				src="{{ get_url(path=config.extra.menu.logo) }}">{{
@@ -38,7 +40,7 @@
 			{% endfor %}
 			{% endif %}
 		</ul>
-		<div class="collapse navbar-collapse order-4 order-md-1">
+		<div id="navbarMain" class="collapse navbar-collapse order-4 order-md-1">
 			<ul class="navbar-nav main-nav me-auto order-5 order-md-2">
 				{% if lang == config.default_language %}
 				{% set rootsectionpath = "_index.md" %}

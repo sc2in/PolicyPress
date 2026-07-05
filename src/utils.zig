@@ -42,11 +42,15 @@ pub const FrontMatter = struct {
             },
         );
     }
-    /// Generates a PDF filename from the title and most recent version in the front matter.
+    /// Generates a PDF filename from the title and most recent version in the
+    /// front matter. This is the single source of truth for PDF names; the site
+    /// templates mirror the same rule via the `pdf_filename` macro so that the
+    /// links they build resolve to the files produced here. Does not mutate the
+    /// front matter (an earlier version aliased and rewrote `self.title`).
     pub fn filename(self: FrontMatter, a: Allocator) ![]u8 {
-        const tmp = self.title;
-        std.mem.replaceScalar(u8, tmp, ' ', '_');
-        return std.fmt.allocPrint(a, "{s}_-_v{s}.pdf", .{ tmp, self.most_recent_version });
+        const name = try std.fmt.allocPrint(a, "{s}_-_v{s}.pdf", .{ self.title, self.most_recent_version });
+        sanitizePdfName(name);
+        return name;
     }
 
     pub fn deinit(self: *FrontMatter, a: Allocator) void {
@@ -56,9 +60,115 @@ pub const FrontMatter = struct {
     }
 };
 
+/// Canonical PDF-filename sanitiser, applied in-place. This is the one rule the
+/// whole toolchain agrees on; the `pdf_filename` Tera macro replicates it so the
+/// site's download links match the files this binary writes.
+///
+/// Rule: any character that is not ASCII-alphanumeric, `_`, `-`, or `.` becomes
+/// `_` (so spaces, `/`, `(`, `&`, `?`, quotes, etc. are all normalised). A
+/// leading `.` and any doubled `.` are defused so the name can never be `.`,
+/// `..`, or a hidden dotfile.
+pub fn sanitizePdfName(name: []u8) void {
+    var prev_dot = false;
+    for (name, 0..) |*ch, i| {
+        var c = ch.*;
+        if (!std.ascii.isAlphanumeric(c) and c != '_' and c != '-' and c != '.') c = '_';
+        if (c == '.') {
+            if (i == 0 or prev_dot) {
+                c = '_';
+                prev_dot = false;
+            } else prev_dot = true;
+        } else prev_dot = false;
+        ch.* = c;
+    }
+}
+
 /// Parses front matter from a markdown file using zigmark, extracts document
 /// metadata, and returns a FrontMatter struct.  Handles YAML, TOML, JSON, and
 /// ZON front matter; resolves empty arrays without errors (fixes #73).
+/// Normalise a revision's `version` into `buf` as a string. zigmark's YAML
+/// parser returns quoted scalars as `.string` and unquoted numerics as
+/// `.float`/`.integer`, so all three are accepted. Returns null when absent
+/// or an unsupported type.
+fn revisionVersion(obj: anytype, buf: []u8) ?[]const u8 {
+    return switch (obj.get("version") orelse return null) {
+        .string => |s| s,
+        .float => |f| std.fmt.bufPrint(buf, "{d}", .{f}) catch null,
+        .integer => |n| std.fmt.bufPrint(buf, "{d}", .{n}) catch null,
+        else => null,
+    };
+}
+
+/// A revision's `date` as a string (ISO `YYYY-MM-DD`), or null when absent or
+/// not a string. ISO dates order correctly under a plain byte comparison.
+fn revisionDate(obj: anytype) ?[]const u8 {
+    return switch (obj.get("date") orelse return null) {
+        .string => |s| s,
+        else => null,
+    };
+}
+
+/// Order two dotted version strings numerically ("1.9" < "1.10", "9.0" <
+/// "10.0"). Segments that are not integers fall back to a byte comparison so a
+/// version like "1.0-rc1" still orders deterministically. Returns the order of
+/// `x` relative to `y`.
+fn compareVersions(x: []const u8, y: []const u8) std.math.Order {
+    var xi = std.mem.splitScalar(u8, x, '.');
+    var yi = std.mem.splitScalar(u8, y, '.');
+    while (true) {
+        const xs = xi.next();
+        const ys = yi.next();
+        if (xs == null and ys == null) return .eq;
+        // A missing trailing segment counts as 0 so "1.0" == "1".
+        const x_seg = std.mem.trim(u8, xs orelse "0", " ");
+        const y_seg = std.mem.trim(u8, ys orelse "0", " ");
+        const x_num = std.fmt.parseInt(u64, x_seg, 10) catch {
+            const ord = std.mem.order(u8, x_seg, y_seg);
+            if (ord != .eq) return ord;
+            continue;
+        };
+        const y_num = std.fmt.parseInt(u64, y_seg, 10) catch {
+            const ord = std.mem.order(u8, x_seg, y_seg);
+            if (ord != .eq) return ord;
+            continue;
+        };
+        if (x_num != y_num) return if (x_num < y_num) .lt else .gt;
+    }
+}
+
+/// True when revision `new` is more recent than `cur`. Primary key is the
+/// `date` (matching the site, which sorts revisions by date); ties (or missing
+/// dates) fall back to a numeric version comparison. This keeps the PDF's
+/// version label in agreement with the website and never lets "1.10" lose to
+/// "1.9" under a lexicographic compare.
+fn revisionIsNewer(new_obj: anytype, cur_obj: anytype) bool {
+    const new_date = revisionDate(new_obj);
+    const cur_date = revisionDate(cur_obj);
+    if (new_date != null and cur_date != null) {
+        switch (std.mem.order(u8, new_date.?, cur_date.?)) {
+            .gt => return true,
+            .lt => return false,
+            .eq => {},
+        }
+    }
+    var new_buf: [32]u8 = undefined;
+    var cur_buf: [32]u8 = undefined;
+    const new_ver = revisionVersion(new_obj, &new_buf) orelse return false;
+    const cur_ver = revisionVersion(cur_obj, &cur_buf) orelse return true;
+    return compareVersions(new_ver, cur_ver) == .gt;
+}
+
+test "compareVersions orders dotted versions numerically" {
+    try tst.expect(compareVersions("1.9", "1.10") == .lt);
+    try tst.expect(compareVersions("1.10", "1.9") == .gt);
+    try tst.expect(compareVersions("9.0", "10.0") == .lt);
+    try tst.expect(compareVersions("2.0", "2.0") == .eq);
+    try tst.expect(compareVersions("2", "2.0") == .eq);
+    try tst.expect(compareVersions("2.1", "2") == .gt);
+    // A plain lexicographic compare would wrongly rank "1.9" above "1.10".
+    try tst.expect(std.mem.order(u8, "1.9", "1.10") == .gt);
+}
+
 pub fn get_metadata(a: Allocator, txt: *Array(u8), config: anytype) !FrontMatter {
     var fm = try zigmark.Frontmatter.initFromMarkdown(a, txt.items);
     defer fm.deinit();
@@ -83,7 +193,8 @@ pub fn get_metadata(a: Allocator, txt: *Array(u8), config: anytype) !FrontMatter
     };
     if (revisions.len == 0) return error.NoRevisionsInFrontMatter;
 
-    // Find the most recent revision by comparing version strings.
+    // Find the most recent revision by date (with a numeric version tiebreak),
+    // matching the website's date-based selection.
     var most_recent = revisions[0];
     for (revisions[1..]) |rev| {
         const cur_obj = switch (most_recent) {
@@ -94,15 +205,7 @@ pub fn get_metadata(a: Allocator, txt: *Array(u8), config: anytype) !FrontMatter
             .object => |o| o,
             else => continue,
         };
-        const cur_ver = switch (cur_obj.get("version") orelse continue) {
-            .string => |s| s,
-            else => continue,
-        };
-        const new_ver = switch (new_obj.get("version") orelse continue) {
-            .string => |s| s,
-            else => continue,
-        };
-        if (std.mem.order(u8, new_ver, cur_ver) == .gt) {
+        if (revisionIsNewer(new_obj, cur_obj)) {
             most_recent = rev;
         }
     }
@@ -342,9 +445,41 @@ test "FM parse via zigmark reads title from example policy" {
     try tst.expect(fm.get("title") != null);
 }
 
+/// The UTF-8 solid-block character `█` (U+2588) used to mask redacted spans.
+const redaction_block = "█";
+
+/// Build the replacement string for a redacted span: `count` solid `█` blocks
+/// with a break space inserted after every 10 so Typst can wrap the bar within
+/// the text width (a redacted block otherwise becomes one unbreakable "word",
+/// since redaction also replaces the block's internal spaces and newlines).
+/// Caller owns the returned slice.
+fn buildRedactionBar(a: Allocator, count: usize) ![]u8 {
+    var buf = Array(u8).empty;
+    errdefer buf.deinit(a);
+    var n: usize = 0;
+    while (n < count) : (n += 1) {
+        try buf.appendSlice(a, redaction_block);
+        if ((n + 1) % 10 == 0) try buf.append(a, ' ');
+    }
+    return buf.toOwnedSlice(a);
+}
+
+/// Redact `{% redact() %}...{% end %}` shortcode blocks in `txt`.
+///
+/// When `remove` is true the entire block (tags and content) is replaced with
+/// solid `█` bars; when false the tags are stripped and the inner content is
+/// kept. Whitespace-trim tag variants (`{%- redact() -%}`, `{%- end -%}`) are
+/// accepted so trimmed authoring never leaks a block past the redactor. Any
+/// orphaned tag with no matching pair is a hard error (`UnclosedRedaction`) so
+/// a malformed block can never pass through silently into a `--redact` PDF.
+///
+/// Redacted spans are masked with `█` directly rather than an underscore
+/// placeholder: underscores collide with legitimate content (snake_case
+/// identifiers, `_emphasis_`, URLs) and previously corrupted every literal
+/// underscore in the document when converted to bars in a second pass.
 pub fn redact(a: Allocator, txt: *Array(u8), remove: bool) !void {
-    const r: mvzr.Regex = mvzr.compile("\\{%\\s*redact\\(\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;
-    const unclosed = mvzr.compile("\\{%\\s*(redact\\(\\)|end)\\s*%\\}").?;
+    const r: mvzr.Regex = mvzr.compile("\\{%-?\\s*redact\\(\\)\\s*-?%\\}.+?\\{%-?\\s*end\\s*-?%\\}").?;
+    const unclosed = mvzr.compile("\\{%-?\\s*(redact\\(\\)|end)\\s*-?%\\}").?;
 
     if (!r.isMatch(txt.items)) {
         // No complete pair — fail loudly if any orphaned tag is present.
@@ -359,11 +494,9 @@ pub fn redact(a: Allocator, txt: *Array(u8), remove: bool) !void {
         const s = std.mem.indexOf(u8, m.slice, "%}") orelse return error.InvalidShortCode;
         const e = std.mem.lastIndexOf(u8, m.slice, "{%") orelse return error.InvalidShortCode;
         const inner = m.slice[s + 2 .. e - 1];
-        const replace = if (remove) blk: {
-            const replace = try a.alloc(u8, m.slice.len);
-            @memset(replace, '_');
-            break :blk replace;
-        } else blk: {
+        const replace = if (remove)
+            try buildRedactionBar(a, m.slice.len)
+        else blk: {
             const replace = try a.alloc(u8, m.slice.len);
             @memset(replace, ' ');
             @memcpy(replace[0..inner.len], inner);
@@ -379,120 +512,6 @@ pub fn redact(a: Allocator, txt: *Array(u8), remove: bool) !void {
 
     // After processing all matched pairs, any remaining tag is an orphan.
     if (unclosed.isMatch(txt.items)) return error.UnclosedRedaction;
-}
-
-/// Replace `_` characters in the **body** of `txt` (after the frontmatter) with
-/// the UTF-8 solid-block character `█` (U+2588).
-///
-/// `redact` fills redacted spans with underscores.  In CommonMark, a run of
-/// three or more `_` on its own line is a thematic break, so zigmark renders it
-/// as a thin gray rule.  Replacing with `█` produces proper black-bar redaction
-/// marks without any special Markdown meaning.
-///
-/// Only the body is processed; the frontmatter block (keys like `last_reviewed`,
-/// `major_revisions`) must remain intact for the later metadata extraction pass.
-pub fn underscoresToBlocks(alloc: Allocator, txt: *Array(u8)) !void {
-    const block = "█"; // 3-byte UTF-8: 0xE2 0x96 0x88
-    if (std.mem.indexOfScalar(u8, txt.items, '_') == null) return;
-
-    // Locate the end of the frontmatter so we leave it untouched. The closing
-    // delimiter only counts when it is a whole line ("---" at line start,
-    // followed by a newline or EOF) — a "---" inside a frontmatter value must
-    // not end the protected region early, or later underscores in keys like
-    // `last_reviewed` would be corrupted.
-    const content = txt.items;
-    const body_start: usize = blk: {
-        if (content.len < 4) break :blk 0;
-        const delim: []const u8 = switch (content[0]) {
-            '-' => "---",
-            '+' => "+++",
-            else => break :blk 0,
-        };
-        var search: usize = 3;
-        while (std.mem.indexOfPos(u8, content, search, delim)) |idx| : (search = idx + 1) {
-            if (content[idx - 1] != '\n') continue;
-            const line_end = idx + delim.len;
-            if (line_end >= content.len) break :blk line_end;
-            if (content[line_end] == '\n') break :blk line_end + 1;
-            if (content[line_end] == '\r' and line_end + 1 < content.len and content[line_end + 1] == '\n')
-                break :blk line_end + 2;
-        }
-        break :blk 0;
-    };
-
-    var aw: std.Io.Writer.Allocating = .init(alloc);
-    defer aw.deinit();
-    // Copy the frontmatter verbatim.
-    try aw.writer.writeAll(content[0..body_start]);
-    // Replace underscores in the body with █.
-    // Insert a space every 10 blocks so Typst can wrap the bar within the text
-    // width (redact replaces spaces too, producing one unbreakable "word").
-    var block_count: usize = 0;
-    for (content[body_start..]) |c| {
-        if (c == '_') {
-            try aw.writer.writeAll(block);
-            block_count += 1;
-            if (block_count % 10 == 0) try aw.writer.writeByte(' ');
-        } else {
-            block_count = 0;
-            try aw.writer.writeByte(c);
-        }
-    }
-    const new_bytes = try aw.toOwnedSlice();
-    txt.deinit(alloc);
-    txt.* = Array(u8){ .items = new_bytes, .capacity = new_bytes.len };
-}
-
-test "underscoresToBlocks replaces body underscores with solid blocks" {
-    const allocator = tst.allocator;
-    var arr = Array(u8).empty;
-    defer arr.deinit(allocator);
-    try arr.appendSlice(allocator, "some ____ text");
-
-    try underscoresToBlocks(allocator, &arr);
-    try tst.expectEqualStrings("some ████ text", arr.items);
-}
-
-test "underscoresToBlocks leaves frontmatter untouched" {
-    const allocator = tst.allocator;
-    var arr = Array(u8).empty;
-    defer arr.deinit(allocator);
-    try arr.appendSlice(allocator, "---\nlast_reviewed: 2026-01-01\n---\nbody __ here");
-
-    try underscoresToBlocks(allocator, &arr);
-    try tst.expectEqualStrings("---\nlast_reviewed: 2026-01-01\n---\nbody ██ here", arr.items);
-}
-
-test "underscoresToBlocks ignores a --- inside a frontmatter value" {
-    const allocator = tst.allocator;
-    var arr = Array(u8).empty;
-    defer arr.deinit(allocator);
-    // The "---" in the description must not end the protected region:
-    // last_reviewed's underscore has to survive.
-    try arr.appendSlice(allocator, "---\ndescription: \"a --- b\"\nlast_reviewed: 2026-01-01\n---\nbody __ here");
-
-    try underscoresToBlocks(allocator, &arr);
-    try tst.expectEqualStrings("---\ndescription: \"a --- b\"\nlast_reviewed: 2026-01-01\n---\nbody ██ here", arr.items);
-}
-
-test "underscoresToBlocks inserts a break space every 10 blocks" {
-    const allocator = tst.allocator;
-    var arr = Array(u8).empty;
-    defer arr.deinit(allocator);
-    try arr.appendSlice(allocator, "_" ** 12);
-
-    try underscoresToBlocks(allocator, &arr);
-    try tst.expectEqualStrings("██████████ ██", arr.items);
-}
-
-test "underscoresToBlocks is a no-op without underscores" {
-    const allocator = tst.allocator;
-    var arr = Array(u8).empty;
-    defer arr.deinit(allocator);
-    try arr.appendSlice(allocator, "clean text");
-
-    try underscoresToBlocks(allocator, &arr);
-    try tst.expectEqualStrings("clean text", arr.items);
 }
 
 /// Returns true when `name` resolves to an executable on the PATH.
@@ -513,12 +532,29 @@ pub fn executableInPath(io: std.Io, env: *std.process.Environ.Map, name: []const
 // Stamp-file caching helpers
 // ============================================================
 
+/// Derive a stamp filename that is unique to the policy's full relative path,
+/// not just its basename. Two policies with the same file name in different
+/// directories (`access/policy.md` vs `data/policy.md`) must not share a stamp,
+/// or the second would be skipped as "up to date" and its PDF never produced.
+/// Path separators become `_`; the trailing `.md` is dropped so the stamp does
+/// not look like a Markdown file. The result is a single flat filename.
+pub fn stampName(alloc: Allocator, input_path: []const u8) ![]u8 {
+    var rel = std.mem.trimStart(u8, input_path, "/\\");
+    if (std.mem.endsWith(u8, rel, ".md")) rel = rel[0 .. rel.len - 3];
+    const key = try alloc.dupe(u8, rel);
+    for (key) |*c| {
+        if (c.* == '/' or c.* == '\\') c.* = '_';
+    }
+    return key;
+}
+
 /// Returns true if the per-policy stamp file is newer than the source file,
 /// meaning the PDF is already up to date and compilation can be skipped.
 /// Returns false on any IO error so the policy is always rebuilt on doubt.
 pub fn stampIsNewer(io: std.Io, input_path: []const u8, stamps_dir: []const u8, alloc: Allocator) bool {
-    const stem = std.fs.path.stem(std.fs.path.basename(input_path));
-    const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, stem }) catch return false;
+    const name = stampName(alloc, input_path) catch return false;
+    defer alloc.free(name);
+    const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, name }) catch return false;
     defer alloc.free(stamp_path);
 
     const src = std.Io.Dir.openFileAbsolute(io, input_path, .{}) catch return false;
@@ -535,11 +571,30 @@ pub fn stampIsNewer(io: std.Io, input_path: []const u8, stamps_dir: []const u8, 
 /// Touches a stamp file for `input_path` inside `stamps_dir` to record that
 /// compilation succeeded. Failures are non-fatal (worst case: needless rebuild).
 pub fn writeStamp(io: std.Io, alloc: Allocator, stamps_dir: []const u8, input_path: []const u8) void {
-    const stem = std.fs.path.stem(std.fs.path.basename(input_path));
-    const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, stem }) catch return;
+    const name = stampName(alloc, input_path) catch return;
+    defer alloc.free(name);
+    const stamp_path = std.fs.path.join(alloc, &.{ stamps_dir, name }) catch return;
     defer alloc.free(stamp_path);
     const f = std.Io.Dir.cwd().createFile(io, stamp_path, .{ .truncate = true }) catch return;
     f.close(io);
+}
+
+/// Returns true when the policy at `dir`/`sub_path` is marked `draft: true` in
+/// its front matter. Draft policies are excluded from PDF generation (Zola
+/// likewise omits them from the site), so an unapproved draft never ships an
+/// official-looking PDF at a guessable URL. Returns false on any read/parse
+/// error so a policy is never silently dropped by mistake — a malformed file
+/// surfaces later as a real compile error instead.
+pub fn isDraftPolicy(io: std.Io, alloc: Allocator, dir: std.Io.Dir, sub_path: []const u8) bool {
+    const content = dir.readFileAlloc(io, sub_path, alloc, .limited(10 * 1024 * 1024)) catch return false;
+    defer alloc.free(content);
+    var fm = zigmark.Frontmatter.initFromMarkdown(alloc, content) catch return false;
+    defer fm.deinit();
+    return switch (fm.get("draft") orelse return false) {
+        .bool => |b| b,
+        .string => |s| std.ascii.eqlIgnoreCase(s, "true"),
+        else => false,
+    };
 }
 
 /// Converts {% admonition(type="...", title="...") %}...{% end %} shortcodes

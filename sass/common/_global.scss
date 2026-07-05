@@ -248,13 +248,15 @@ article {
   }
 }
 
-// Redaction blocks - body text is hidden behind a solid black bar.
-// white-space: pre-wrap preserves line breaks for multi-line redactions.
+// Redaction blocks - the content is replaced server-side with solid █ bars
+// (the text never reaches the page), then tinted so the glyphs read as one
+// continuous bar. overflow-wrap lets a long bar break instead of overflowing.
 .redaction {
   display: inline;
   background-color: $black;
   color: transparent;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   border-radius: 2px;
   user-select: none;
   cursor: default;

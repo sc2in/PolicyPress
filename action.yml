@@ -89,14 +89,20 @@ runs:
       run: |
         mkdir -p "${RUNNER_TEMP}/policypress-bin"
 
-        if [ -z "${{ steps.get-ref.outputs.ref }}" ]; then
-          # Running via `uses: ./` from a checkout of this repo (e.g. the PR
-          # preview workflow). Build the binary from the action's own flake so
-          # previews exercise the code under review — the latest release binary
-          # may not even match this branch's toolchain.
-          echo "No action ref (local action) - building policypress from the flake…"
+        build_from_flake() {
+          # Build the binary from the action's own checkout (pinned at the ref
+          # the consumer selected), so the binary always matches the theme code
+          # under `uses:`. Used for local `uses: ./` runs and whenever no
+          # release asset exists for the pinned ref (e.g. a branch or major-tag
+          # pin like @v1 that has no per-ref release).
+          echo "Building policypress from the flake at the pinned ref…"
           out="$(nix build "path:${{ github.action_path }}#policypress-safe" --print-out-paths --no-link)"
           install -m755 "${out}/bin/policypress" "${RUNNER_TEMP}/policypress-bin/policypress"
+        }
+
+        REF="${{ steps.get-ref.outputs.ref }}"
+        if [ -z "${REF}" ]; then
+          build_from_flake
         else
           case "$(uname -s)-$(uname -m)" in
             Linux-x86_64)   BINARY="policypress-x86_64-linux" ;;
@@ -109,13 +115,24 @@ runs:
               ;;
           esac
 
-          gh release download \
-            --repo sc2in/policypress \
-            --pattern "${BINARY}" \
-            --dir "${RUNNER_TEMP}/policypress-bin"
-          mv "${RUNNER_TEMP}/policypress-bin/${BINARY}" \
-             "${RUNNER_TEMP}/policypress-bin/policypress"
-          chmod +x "${RUNNER_TEMP}/policypress-bin/policypress"
+          # Download the release binary for the EXACT pinned ref (not "latest"),
+          # so pinning `uses: sc2in/policypress@vX.Y.Z` runs the vX.Y.Z binary.
+          bindir="${RUNNER_TEMP}/policypress-bin"
+          if gh release download "${REF}" --repo sc2in/policypress \
+               --pattern "${BINARY}" --dir "${bindir}"; then
+            # Verify the download against the release checksums when present.
+            if gh release download "${REF}" --repo sc2in/policypress \
+                 --pattern "SHA256SUMS.txt" --dir "${bindir}" 2>/dev/null; then
+              ( cd "${bindir}" && grep " ${BINARY}\$" SHA256SUMS.txt | sha256sum -c - )
+            else
+              echo "::warning::No SHA256SUMS.txt on release ${REF}; skipping checksum verification."
+            fi
+            mv "${bindir}/${BINARY}" "${bindir}/policypress"
+            chmod +x "${bindir}/policypress"
+          else
+            echo "::warning::No release asset ${BINARY} for ref ${REF}; building from source."
+            build_from_flake
+          fi
         fi
 
         echo "${RUNNER_TEMP}/policypress-bin" >> "${GITHUB_PATH}"
@@ -155,25 +172,36 @@ runs:
       # (typst, zola, fonts) always matches the action version in use instead
       # of floating on main. Also works for in-repo `uses: ./` workflows.
       shell: nix develop "path:${{ github.action_path }}#ci" --command bash -e {0}
+      # Inputs are passed through the environment, never interpolated into the
+      # script body: a value like base_url can come from an untrusted source
+      # (e.g. a PR preview URL) and `${{ }}` splicing would allow shell
+      # injection on the consumer's runner.
+      env:
+        PP_CONFIG_PATH: ${{ inputs.config_path }}
+        PP_OUTPUT_DIR: ${{ inputs.output_dir }}
+        PP_BASE_URL: ${{ inputs.base_url }}
+        PP_DRAFT_MODE: ${{ inputs.draft_mode }}
+        PP_REDACT_MODE: ${{ inputs.redact_mode }}
+        PP_GENERATE_DRAFT_PDFS: ${{ inputs.generate_draft_pdfs }}
       run: |
         set -euo pipefail
 
         # Build the Zola static site
         ZOLA_ARGS=()
-        if [ -n "${{ inputs.base_url }}" ]; then
-          ZOLA_ARGS+=(--base-url "${{ inputs.base_url }}")
+        if [ -n "${PP_BASE_URL}" ]; then
+          ZOLA_ARGS+=(--base-url "${PP_BASE_URL}")
         fi
         zola build "${ZOLA_ARGS[@]}"
 
         # Build flags - explicitly set draft/redact so action inputs always
         # override whatever is in the consumer's config.toml.
-        ARGS=(-c "${{ inputs.config_path }}" -o "${{ inputs.output_dir }}/pdfs")
-        if [ "${{ inputs.draft_mode }}" = "true" ]; then
+        ARGS=(-c "${PP_CONFIG_PATH}" -o "${PP_OUTPUT_DIR}/pdfs")
+        if [ "${PP_DRAFT_MODE}" = "true" ]; then
           ARGS+=(--draft)
         else
           ARGS+=(--no-draft)
         fi
-        if [ "${{ inputs.redact_mode }}" = "true" ]; then
+        if [ "${PP_REDACT_MODE}" = "true" ]; then
           ARGS+=(--redact)
         else
           ARGS+=(--no-redact)
@@ -184,9 +212,9 @@ runs:
 
         # Optionally generate a second draft-watermarked set of PDFs so that
         # sites with show_draft_pdfs = true have valid files to link to.
-        if [ "${{ inputs.generate_draft_pdfs }}" = "true" ]; then
-          DRAFT_ARGS=(-c "${{ inputs.config_path }}" -o "${{ inputs.output_dir }}/pdfs" --draft)
-          if [ "${{ inputs.redact_mode }}" = "true" ]; then
+        if [ "${PP_GENERATE_DRAFT_PDFS}" = "true" ]; then
+          DRAFT_ARGS=(-c "${PP_CONFIG_PATH}" -o "${PP_OUTPUT_DIR}/pdfs" --draft)
+          if [ "${PP_REDACT_MODE}" = "true" ]; then
             DRAFT_ARGS+=(--redact)
           else
             DRAFT_ARGS+=(--no-redact)
@@ -194,6 +222,6 @@ runs:
           policypress "${DRAFT_ARGS[@]}"
         fi
 
-        echo "pdf_path=${{ inputs.output_dir }}/pdfs"    >> "$GITHUB_OUTPUT"
-        echo "site_path=public"                          >> "$GITHUB_OUTPUT"
-        echo "report_path=${{ inputs.output_dir }}/reports" >> "$GITHUB_OUTPUT"
+        echo "pdf_path=${PP_OUTPUT_DIR}/pdfs"    >> "$GITHUB_OUTPUT"
+        echo "site_path=public"                  >> "$GITHUB_OUTPUT"
+        echo "report_path=${PP_OUTPUT_DIR}/reports" >> "$GITHUB_OUTPUT"

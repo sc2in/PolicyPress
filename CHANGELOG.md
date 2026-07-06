@@ -8,6 +8,8 @@ keys) is considered stable.
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-07-06
+
 ### Security
 
 - **Web redaction now renders visible bars server-side.** Building on 1.4.1

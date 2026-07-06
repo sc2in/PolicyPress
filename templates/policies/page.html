@@ -77,7 +77,7 @@ reverse %}
           {% endif %}
         </div>
         {% if page.description %}
-        <p class="policy-description">{{ page.description | safe }}</p>
+        <p class="policy-description">{{ page.description }}</p>
         {% endif %}
         <div class="policy-actions">
           <a href="{{ get_url(path='pdfs/' ~ pdf_official) | safe }}" class="btn btn-sm btn-primary">

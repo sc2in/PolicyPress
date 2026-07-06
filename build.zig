@@ -145,6 +145,8 @@ pub fn build(b: *std.Build) !void {
     policypress_mod.addImport("typst", typst_mod);
     policypress_mod.addImport("reports", reports_mod);
     policypress_mod.addImport("utils", utils_mod);
+    // Build-time mermaid rendering for the site (src/diagrams.zig, `render-diagrams`).
+    policypress_mod.addImport("pozeiden", pozeiden_mod);
     const policypress_exe = b.addExecutable(.{
         .root_module = policypress_mod,
         .name = "policypress",
@@ -182,6 +184,8 @@ pub fn build(b: *std.Build) !void {
         test_module.addImport("config", config_mod);
         test_module.addImport("reports", reports_mod);
         test_module.addImport("mvzr", mvzr.module("mvzr"));
+        // src/diagrams.zig (imported by src/test.zig) renders mermaid via pozeiden.
+        test_module.addImport("pozeiden", pozeiden_mod);
         const unit_tests = b.addTest(.{
             .root_module = test_module,
         });

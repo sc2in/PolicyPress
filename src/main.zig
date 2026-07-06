@@ -19,11 +19,11 @@ const build_options = @import("build_options");
 const clap = @import("clap");
 const Config = @import("config").Config;
 const Date = @import("utils").Date;
-const Reports = @import("reports");
 const stampIsNewer = @import("utils").stampIsNewer;
 const isDraftPolicy = @import("utils").isDraftPolicy;
 const Typst = @import("typst");
 const writeStamp = @import("utils").writeStamp;
+const diagrams = @import("diagrams.zig");
 
 // ---------------------------------------------------------------------------
 // Logging
@@ -107,9 +107,10 @@ const top_level_usage =
     \\Usage: policypress [SUBCOMMAND] [OPTIONS]
     \\
     \\Subcommands:
-    \\  build   Build PDFs from policy Markdown files (default when no subcommand given)
-    \\  new     Scaffold a new policy file
-    \\  help    Show this message
+    \\  build            Build PDFs from policy Markdown files (default when no subcommand given)
+    \\  new              Scaffold a new policy file
+    \\  render-diagrams  Render site mermaid diagrams to inline SVG (run after `zola build`)
+    \\  help             Show this message
     \\
     \\Run 'policypress <subcommand> --help' for subcommand-specific help.
     \\
@@ -143,6 +144,12 @@ pub fn main(init: std.process.Init) void {
         } else if (std.mem.eql(u8, subcmd, "build")) {
             runBuild(io, env, alloc, rest) catch |err| handleBuildError(err);
             return;
+        } else if (std.mem.eql(u8, subcmd, "render-diagrams")) {
+            runRenderDiagrams(io, alloc, rest) catch |err| {
+                std.debug.print("policypress render-diagrams: {s}\n", .{@errorName(err)});
+                std.process.exit(1);
+            };
+            return;
         } else if (std.mem.eql(u8, subcmd, "help")) {
             std.debug.print("{s}", .{top_level_usage});
             return;
@@ -167,6 +174,7 @@ fn handleBuildError(err: anyerror) void {
         error.OutputDirFailed,
         error.CompilationFailed,
         error.DuplicateOutputName,
+        error.ValidationFailed,
         => {},
         // Anything unexpected.
         else => std.debug.print(
@@ -176,6 +184,35 @@ fn handleBuildError(err: anyerror) void {
     }
     std.process.exit(1);
 }
+
+/// `render-diagrams [DIR]` — rewrite the mermaid placeholders Zola emits into
+/// inline SVG across a built site (default DIR: public). Run after `zola build`.
+fn runRenderDiagrams(io: std.Io, alloc: Allocator, args: []const [:0]const u8) !void {
+    var dir: []const u8 = "public";
+    for (args) |a| {
+        if (std.mem.eql(u8, a, "-h") or std.mem.eql(u8, a, "--help")) {
+            std.debug.print(
+                \\Usage: policypress render-diagrams [DIR]
+                \\
+                \\Rewrite <pre class="mermaid"> blocks in the built site's HTML into
+                \\inline SVG (rendered in-process by pozeiden), so the site ships no
+                \\client-side mermaid bundle. DIR defaults to 'public'.
+                \\
+            , .{});
+            return;
+        }
+        if (!std.mem.startsWith(u8, a, "-")) dir = a;
+    }
+    _ = try diagrams.renderDir(io, alloc, dir);
+}
+
+/// A policy discovered in the content tree, plus whether it is out of date.
+const Policy = struct {
+    /// Path to the markdown source, relative to cwd.
+    path: []const u8,
+    /// True when the policy is out of date and must be recompiled this run.
+    rebuild: bool,
+};
 
 fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const u8) !void {
     const params = comptime clap.parseParamsComptime(
@@ -187,6 +224,7 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         \\--no-draft             Do not add draft watermark to output (overrides config.toml).
         \\--redact               Redact content within redaction tags (overrides config.toml).
         \\--no-redact            Do not redact text within redaction tags (overrides config.toml).
+        \\--strict               Fail the build on audit-critical front-matter problems.
         \\-v, --verbose          Show debug output (typst invocations, file paths).
         \\-q, --quiet            Suppress progress output; show errors only.
         \\    --json             Emit log output as JSON lines (for CI).
@@ -267,6 +305,22 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     if (res.args.redact != 0) config.redact = true;
     if (res.args.@"no-redact" != 0) config.redact = false;
 
+    // `--input` re-roots the content directory (and the policy dir beneath it).
+    // Config.load derives both from a hardcoded "content"; here we swap that
+    // base while preserving the configured policy sub-path.
+    if (res.args.input) |input| {
+        const rel_policy = std.mem.trimStart(u8, config.policy_dir[config.content_dir.len..], std.fs.path.sep_str);
+        const new_content = if (std.fs.path.isAbsolute(input))
+            try alloc.dupe(u8, input)
+        else
+            try std.fs.path.join(alloc, &.{ config.root, input });
+        const new_policy = try std.fs.path.join(alloc, &.{ new_content, rel_policy });
+        alloc.free(config.content_dir);
+        alloc.free(config.policy_dir);
+        config.content_dir = new_content;
+        config.policy_dir = new_policy;
+    }
+
     if (res.args.quiet != 0) {
         pp_log_level = .err;
     } else if (res.args.verbose != 0) {
@@ -339,11 +393,12 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     std.Io.Dir.cwd().createDirPath(io, stamps_dir_path) catch {}; // non-fatal if it fails
 
     // --- Collect policy files ---
-
-    var file_paths = Array([]const u8).empty;
+    // Retain every non-draft policy: the rebuild subset (`rebuild == true`) is
+    // what gets compiled, but the full list also drives the stale-PDF sweep.
+    var policies = Array(Policy).empty;
     defer {
-        for (file_paths.items) |path| alloc.free(path);
-        file_paths.deinit(alloc);
+        for (policies.items) |p| alloc.free(p.path);
+        policies.deinit(alloc);
     }
     var skipped: usize = 0;
     var drafts_skipped: usize = 0;
@@ -357,35 +412,72 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         if (entry.kind == .file and std.mem.endsWith(u8, entry.path, ".md")) {
             const base_name = std.fs.path.basename(entry.path);
             if (std.mem.eql(u8, base_name, "_index.md")) continue;
-            const input_path = try std.fs.path.join(alloc, &.{ config.policy_dir, entry.path });
-            if (stampIsNewer(io, input_path, stamps_dir_path, alloc)) {
-                alloc.free(input_path);
-                skipped += 1;
-                continue;
-            }
             // Skip `draft: true` policies: Zola omits them from the site, so a
             // draft must not get an official-looking PDF at a guessable URL.
+            // They are deliberately left out of `policies`, so the sweep below
+            // also removes any PDF left over from before a policy became a draft.
             if (isDraftPolicy(io, alloc, policy_dir, entry.path)) {
                 std.log.info("policypress: skipping draft policy '{s}'", .{entry.path});
-                alloc.free(input_path);
                 drafts_skipped += 1;
                 continue;
             }
-            try file_paths.append(alloc, input_path);
+            const input_path = try std.fs.path.join(alloc, &.{ config.policy_dir, entry.path });
+            const fresh = stampIsNewer(io, input_path, stamps_dir_path, alloc);
+            if (fresh) skipped += 1;
+            try policies.append(alloc, .{ .path = input_path, .rebuild = !fresh });
         }
     }
 
-    const total_files = file_paths.items.len;
-    if (total_files == 0) {
-        if (skipped > 0) {
-            std.log.info("policypress: all {d} policies are up to date.", .{skipped});
+    var rebuild_count: usize = 0;
+    for (policies.items) |p| {
+        if (p.rebuild) rebuild_count += 1;
+    }
+
+    // Remove PDFs orphaned by policies that were renamed, retitled, deleted, or
+    // turned into drafts. Runs even when nothing needs rebuilding, since a
+    // since-deleted policy still leaves its PDF at a guessable URL otherwise.
+    try sweepStalePdfs(io, alloc, config, output_path, policies.items);
+
+    // --- Front-matter validation (pre-flight) ---
+    // Warn on incomplete front matter; with --strict, fail on audit-critical
+    // gaps. Runs over every current policy (not just the rebuild subset) so a
+    // stamp-fresh policy with a blanked approval still trips --strict in CI.
+    {
+        const strict = res.args.strict != 0;
+        var critical: usize = 0;
+        var advisory: usize = 0;
+        for (policies.items) |p| {
+            switch (config.reviewPolicyFile(io, alloc, p.path)) {
+                .none => {},
+                .advisory => advisory += 1,
+                .critical => critical += 1,
+            }
+        }
+        if (critical + advisory > 0) {
+            std.log.warn(
+                "policypress: front-matter validation found {d} audit-critical and {d} advisory issue(s).",
+                .{ critical, advisory },
+            );
+        }
+        if (strict and critical > 0) {
+            std.log.err(
+                "policypress: {d} audit-critical front-matter problem(s); aborting (--strict).",
+                .{critical},
+            );
+            return error.ValidationFailed;
+        }
+    }
+
+    if (rebuild_count == 0) {
+        if (policies.items.len > 0) {
+            std.log.info("policypress: all {d} policies are up to date.", .{policies.items.len});
         } else {
             std.log.info("policypress: no .md files found in '{s}'", .{config.policy_dir});
         }
         return;
     }
     if (skipped > 0) {
-        std.log.info("policypress: {d} up to date, rebuilding {d}.", .{ skipped, total_files });
+        std.log.info("policypress: {d} up to date, rebuilding {d}.", .{ skipped, rebuild_count });
     }
 
     // --- Detect output-filename collisions ---
@@ -400,7 +492,8 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
             while (it.next()) |k| alloc.free(k.*);
             seen.deinit();
         }
-        for (file_paths.items) |input_path| {
+        for (policies.items) |p| {
+            const input_path = p.path;
             const name = Typst.outputName(io, alloc, config, input_path) catch |err| {
                 // A metadata error here (e.g. missing title) will resurface as
                 // a proper per-file compile error below; don't fail the whole
@@ -424,7 +517,7 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     // --- Parallel compilation ---
 
     const root_progress = std.Progress.start(io, .{ .root_name = "PolicyPress" });
-    const compile_node = root_progress.start("compiling policies", total_files);
+    const compile_node = root_progress.start("compiling policies", rebuild_count);
 
     var error_mutex: std.Io.Mutex = .init;
     var error_count: usize = 0;
@@ -438,13 +531,14 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     // removed std.Thread.Pool / WaitGroup). io.async runs tasks on the io's
     // thread pool up to its async limit; group.await joins them all.
     var group: std.Io.Group = .init;
-    for (file_paths.items) |input_path| {
+    for (policies.items) |p| {
+        if (!p.rebuild) continue;
         group.async(io, compileOne, .{
             io,
             env,
             alloc,
             config,
-            input_path,
+            p.path,
             stamps_dir_path,
             compile_node,
             &error_mutex,
@@ -465,14 +559,96 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     root_progress.end();
 
     if (error_count > 0) {
-        std.log.err("policypress: {d} of {d} policies failed:", .{ error_count, total_files });
+        std.log.err("policypress: {d} of {d} policies failed:", .{ error_count, rebuild_count });
         for (error_list.items) |e| {
             std.log.err("  ✗ {s}\n    {s}", .{ e.path, describeCompileError(e.err) });
         }
         return error.CompilationFailed;
     }
 
-    std.log.info("policypress: {d} policies compiled successfully.", .{total_files});
+    std.log.info("policypress: {d} policies compiled successfully.", .{rebuild_count});
+}
+
+/// Remove PDFs in the output directory that no longer correspond to any current
+/// policy — a renamed, retitled, deleted, or newly-drafted policy would
+/// otherwise leave its old PDF behind at a guessable URL. A PDF is kept if it
+/// matches ANY build variant (official / draft / redacted / both) of ANY current
+/// policy, so building several variants into one directory stays safe. The
+/// sweep is abandoned if any policy's output name cannot be computed, so a
+/// temporarily-broken front matter never causes a live PDF to be deleted.
+fn sweepStalePdfs(
+    io: std.Io,
+    alloc: Allocator,
+    config: Config,
+    output_path: []const u8,
+    policies: []const Policy,
+) !void {
+    var keep = std.StringHashMap(void).init(alloc);
+    defer {
+        var it = keep.keyIterator();
+        while (it.next()) |k| alloc.free(k.*);
+        keep.deinit();
+    }
+
+    // Every variant that changes the output filename (redact/draft are encoded
+    // as a title suffix), so all coexisting variants of a live policy are kept.
+    const variants = [_]struct { redact: bool, draft: bool }{
+        .{ .redact = false, .draft = false },
+        .{ .redact = true, .draft = false },
+        .{ .redact = false, .draft = true },
+        .{ .redact = true, .draft = true },
+    };
+    for (policies) |p| {
+        for (variants) |v| {
+            var vcfg = config; // shallow copy: only reads config; never deinit'd
+            vcfg.redact = v.redact;
+            vcfg.is_draft = v.draft;
+            const name = Typst.outputName(io, alloc, vcfg, p.path) catch |err| {
+                // Can't resolve this policy's name → don't risk deleting a PDF
+                // that might be its live output; skip the sweep entirely.
+                std.log.debug(
+                    "policypress: skipping stale-PDF sweep; cannot resolve output name for '{s}': {s}",
+                    .{ p.path, @errorName(err) },
+                );
+                return;
+            };
+            const gop = try keep.getOrPut(name);
+            if (gop.found_existing) alloc.free(name);
+        }
+    }
+
+    var dir = std.Io.Dir.cwd().openDir(io, output_path, .{ .iterate = true }) catch |err| {
+        std.log.debug(
+            "policypress: skipping stale-PDF sweep; cannot open '{s}': {s}",
+            .{ output_path, @errorName(err) },
+        );
+        return;
+    };
+    defer dir.close(io);
+
+    // Collect first, then delete: mutating a directory mid-iteration is unsafe.
+    var stale = Array([]const u8).empty;
+    defer {
+        for (stale.items) |s| alloc.free(s);
+        stale.deinit(alloc);
+    }
+    var iter = dir.iterate();
+    while (try iter.next(io)) |entry| {
+        if (!std.mem.endsWith(u8, entry.name, ".pdf")) continue;
+        if (keep.contains(entry.name)) continue;
+        try stale.append(alloc, try alloc.dupe(u8, entry.name));
+    }
+
+    for (stale.items) |name| {
+        dir.deleteFile(io, name) catch |err| {
+            std.log.warn("policypress: could not remove stale PDF '{s}': {s}", .{ name, @errorName(err) });
+            continue;
+        };
+        std.log.info("policypress: removed stale PDF '{s}'", .{name});
+    }
+    if (stale.items.len > 0) {
+        std.log.info("policypress: removed {d} stale PDF(s) from '{s}'.", .{ stale.items.len, output_path });
+    }
 }
 
 const ErrorInfo = struct {

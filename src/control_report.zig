@@ -209,11 +209,11 @@ pub fn main(pctx: std.process.Init) !void {
         return clap.help(stderr, clap.Help, &params, .{});
     }
     const path = if (res.args.report) |r| blk: {
-        break :blk try std.fmt.allocPrint(
-            alloc,
-            "templates/opencontrols/standards/{s}.json",
-            .{@tagName(r)},
-        );
+        // Control data lives in data/<standard>.json (e.g. data/scf.json); the
+        // enum tag is upper-case (SCF), so lower-case it to match the filename.
+        const lower = try std.ascii.allocLowerString(alloc, @tagName(r));
+        defer alloc.free(lower);
+        break :blk try std.fmt.allocPrint(alloc, "data/{s}.json", .{lower});
     } else {
         std.debug.print("No Report specified\n", .{});
         return error.NoReportSpecified;

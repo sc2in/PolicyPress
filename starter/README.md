@@ -21,7 +21,7 @@ The [`sc2in/policypress`](https://github.com/sc2in/policypress) action handles e
   with:
     config_path: config.toml   # path to your config.toml
     draft_mode: false          # true → DRAFT watermark on all PDFs
-    redact_mode: false         # true → redact {% redact() %}...{% end %} blocks
+    redact_mode: true          # true → redact {% redact() %}...{% end %} blocks in PDFs
 ```
 
 On every push to `main` it:
@@ -64,3 +64,18 @@ extra:
 Enable Pages in your repo: **Settings → Pages → Source → GitHub Actions**.
 
 The workflow deploys automatically on every push to `main`.
+
+> [!WARNING]
+> **GitHub Pages sites are public by default.** Once you enable Pages, this
+> workflow publishes your policy website to the open internet on every push to
+> `main` (and uploads your PDFs as a build artifact). Before enabling it:
+>
+> - Web redaction is **on by default** (`redact_web = true` in `config.toml`), so
+>   `{% redact() %}` blocks are masked on the site, and PDFs are redacted by
+>   default (`redact_mode: true`). If you turn either off, the redacted content —
+>   including its text in the site's search index and feeds — becomes publicly
+>   visible.
+> - `draft: true` policies are excluded from both the website and the PDFs.
+> - To keep policies **internal**, do not enable Pages: serve the built `public/`
+>   directory behind your own authentication, or restrict Pages visibility to
+>   your organization (available on GitHub Enterprise).

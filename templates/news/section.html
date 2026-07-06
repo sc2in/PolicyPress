@@ -79,7 +79,7 @@ description=description) }}
           {% if featured.extra.lead %}
           <p class="featured-excerpt">{{ featured.extra.lead | safe }}</p>
           {% elif featured.description %}
-          <p class="featured-excerpt">{{ featured.description | safe }}</p>
+          <p class="featured-excerpt">{{ featured.description }}</p>
           {% elif featured.content %}
           <p class="featured-excerpt">{{ featured.content | safe | striptags |
             truncate(length=200) }}</p>
@@ -125,7 +125,7 @@ description=description) }}
             {% if page.extra.lead %}
             <p class="news-excerpt">{{ page.extra.lead | safe }}</p>
             {% elif page.description %}
-            <p class="news-excerpt">{{ page.description | safe }}</p>
+            <p class="news-excerpt">{{ page.description }}</p>
             {% elif page.content %}
             <p class="news-excerpt">{{ page.content | safe | striptags |
               truncate(length=150) }}</p>

@@ -4,9 +4,21 @@
 [![Latest Release](https://img.shields.io/github/v/release/sc2in/policypress)](https://github.com/sc2in/policypress/releases/latest)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE)
 
-A compliance policy management platform for small and mid-size businesses. Write policies in Markdown, version them in Git, publish a branded static site, and generate audit-ready PDFs — all from a single GitHub Action.
+**▶ [Live demo](https://policypress.sc2.in)** · **[Documentation](https://policypress.sc2.in/guides/installation/)** · **[Sample PDF](https://policypress.sc2.in/pdfs/Example_Security_Policy__Redacted__-_v2.1.pdf)**
 
-PolicyPress is built on [Zola](https://www.getzola.org/) and [Typst](https://typst.app/). It is designed to be hosted by your customers in their own repositories; PolicyPress itself is the theme and toolchain, not the content.
+Compliance policy management for small and mid-size teams — write policies in Markdown, version them in Git, publish a branded static site, and generate audit-ready PDFs, all from a single GitHub Action.
+
+PolicyPress is built on [Zola](https://www.getzola.org/) and [Typst](https://typst.app/). You host it yourself in your own Git repository — PolicyPress is the theme and toolchain, not the content, so your policies never leave your infrastructure. Consultants and MSPs can just as easily run it on behalf of their clients.
+
+## See it in action
+
+[![PolicyPress homepage showing the hero and feature overview](docs/media/homepage.png)](https://policypress.sc2.in)
+
+| A policy page | Automatic compliance coverage |
+| --- | --- |
+| [![A policy page with version, last-reviewed date, and PDF download](docs/media/policy.png)](https://policypress.sc2.in/policies/example-security-policy/) | [![A SOC 2 control-coverage report generated from policy tags](docs/media/coverage.png)](https://policypress.sc2.in/reports/soc2/) |
+
+Browse the [live demo](https://policypress.sc2.in), or open a [sample redacted PDF](https://policypress.sc2.in/pdfs/Example_Security_Policy__Redacted__-_v2.1.pdf) straight from the pipeline.
 
 ## Who this is for
 
@@ -22,6 +34,18 @@ What you get:
 - Draft watermarks for policies under review
 - Redaction tags for internal notes that should not appear in distributed copies
 
+## Why PolicyPress
+
+Most teams manage policies in one of three ways, and each leaves a gap PolicyPress fills:
+
+| Instead of… | The gap | With PolicyPress |
+| --- | --- | --- |
+| **Notion / Confluence / SharePoint** | No real version history, no audit-ready PDFs, not Git-native | Every change is a Git commit; each policy exports a versioned PDF |
+| **Drata / Vanta** and other GRC SaaS | Heavyweight, cloud-only, subscription-priced; your data lives in their platform | Runs from your own repo with no subscription; your data never leaves your infrastructure |
+| **Plain Zola / MkDocs** | A website, but no PDFs, no compliance-control mapping, no draft/redaction workflow | Site *and* PDFs from one source, with SCF/SOC 2 coverage reports and redaction built in |
+
+Self-hosted, Git-native, and free for noncommercial use — no SaaS lock-in.
+
 ## How it works
 
 1. Your policies live in a Git repository as Markdown files
@@ -32,7 +56,7 @@ What you get:
 
 **The fastest path:** use the [policypress-template](https://github.com/sc2in/policypress-template) repository. Click **Use this template → Create a new repository**, edit `config.toml` with your organization name and brand color, replace the logo, enable GitHub Pages, and push.
 
-If you need Azure DevOps or a custom setup, see the [Installation guide](https://sc2in.github.io/policypress/guides/installation/).
+If you need Azure DevOps or a custom setup, see the [Installation guide](https://policypress.sc2.in/guides/installation/).
 
 ## Policy front matter
 
@@ -175,8 +199,8 @@ PolicyPress is developed and maintained by [Star City Security Consulting, LLC (
 
 ## License
 
-[PolyForm Noncommercial License 1.0.0](LICENSE)
+PolicyPress is released under the [PolyForm Noncommercial License 1.0.0](LICENSE) — free and open for **noncommercial** use, including personal projects, research, education, nonprofits, and government. The source is public: read it, run it, modify it, and self-host it for any noncommercial purpose.
+
+**Commercial use** — using PolicyPress in or for a for-profit business — requires a commercial license. Contact [sc2.in](https://sc2.in).
 
 Copyright © 2026 Star City Security Consulting, LLC (SC2) - [sc2.in](https://sc2.in)
-
-Free for noncommercial use including personal projects, research, education, nonprofits, and government. For commercial licensing, contact [sc2.in](https://sc2.in).

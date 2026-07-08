@@ -1,7 +1,7 @@
 # The URL the site will be built for
 base_url = "https://policypress.sc2.in"
 title = "PolicyPress"
-description = "PolicyPress is a Zola and Doks based theme helping you build modern policy websites."
+description = "Compliance policy management for small and mid-size teams - write policies in Markdown, version them in Git, publish a branded site and audit-ready PDFs."
 
 # The default language; used in feeds and search index
 # Note: the search index doesn't support Chinese/Japanese/Korean Languages

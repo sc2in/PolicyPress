@@ -540,6 +540,134 @@ test "empty frontmatter: blank approved_by → EmptyApprovalForRevision" {
     try tst.expectError(error.EmptyApprovalForRevision, conf.validateFrontMatter(fm));
 }
 
+// --- Raw HTML divergence (#117): the site renders it, PDFs silently drop it ---
+
+test "raw html: block-level HTML is detected" {
+    const alloc = tst.allocator;
+    const f = (try config.findRawHtml(alloc,
+        "Before.\n\n<div class=\"tab-group\">\n<p>site-only</p>\n</div>\n\nAfter.\n")).?;
+    defer f.deinit(alloc);
+    try tst.expect(f.kind == .block);
+    try tst.expect(std.mem.startsWith(u8, f.snippet, "<div"));
+}
+
+test "raw html: inline HTML is detected" {
+    const alloc = tst.allocator;
+    const f = (try config.findRawHtml(alloc, "Some <span class=\"x\">text</span> here.\n")).?;
+    defer f.deinit(alloc);
+    try tst.expect(f.kind == .in_line);
+}
+
+test "raw html: nested containers are walked (list > quote > inline)" {
+    const alloc = tst.allocator;
+    const f = (try config.findRawHtml(alloc, "- item\n\n  > quoted <br> break\n")).?;
+    defer f.deinit(alloc);
+    try tst.expect(f.kind == .in_line);
+}
+
+test "raw html: code fences, code spans, and autolinks do not trip" {
+    const alloc = tst.allocator;
+    try tst.expect((try config.findRawHtml(alloc, "```html\n<div>not raw</div>\n```\n")) == null);
+    try tst.expect((try config.findRawHtml(alloc, "Use `<div>` for layout.\n")) == null);
+    // Email/URI autolinks parse as .autolink, not inline HTML — the demo
+    // content relies on this (example-security-policy.md uses <security-team@…>).
+    try tst.expect((try config.findRawHtml(alloc, "Contact <security-team@organization.com>.\n")) == null);
+    try tst.expect((try config.findRawHtml(alloc, "See <https://example.com> for details.\n")) == null);
+}
+
+test "review: raw HTML in body → critical; clean body → none" {
+    const alloc = tst.allocator;
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    const html_policy =
+        \\---
+        \\title: "Test Policy"
+        \\description: "Test"
+        \\extra:
+        \\  last_reviewed: "2024-01-01"
+        \\  major_revisions:
+        \\  - date: "2024-01-01"
+        \\    description: "Initial"
+        \\    revised_by: "Author"
+        \\    approved_by: "Approver"
+        \\    version: "1.0"
+        \\---
+        \\Body text.
+        \\
+        \\<div class="note">raw</div>
+        \\
+    ;
+    const clean_policy =
+        \\---
+        \\title: "Test Policy"
+        \\description: "Test"
+        \\extra:
+        \\  last_reviewed: "2024-01-01"
+        \\  major_revisions:
+        \\  - date: "2024-01-01"
+        \\    description: "Initial"
+        \\    revised_by: "Author"
+        \\    approved_by: "Approver"
+        \\    version: "1.0"
+        \\---
+        \\Body text — pure Markdown, no raw HTML.
+        \\
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "html_policy.md", .data = html_policy });
+    try tmp.dir.writeFile(io, .{ .sub_path = "clean_policy.md", .data = clean_policy });
+
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    const html_path = try std.fs.path.join(alloc, &.{ tmp_path, "html_policy.md" });
+    defer alloc.free(html_path);
+    const clean_path = try std.fs.path.join(alloc, &.{ tmp_path, "clean_policy.md" });
+    defer alloc.free(clean_path);
+
+    try tst.expectEqual(config.IssueKind.critical, conf.reviewPolicyFile(io, alloc, html_path));
+    try tst.expectEqual(config.IssueKind.none, conf.reviewPolicyFile(io, alloc, clean_path));
+}
+
+test "review: advisory front matter + raw HTML body → critical (max wins)" {
+    const alloc = tst.allocator;
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // No top-level `description` (advisory) *and* raw HTML in the body: the
+    // more severe classification must win.
+    const advisory_html =
+        \\---
+        \\title: "Test Policy"
+        \\extra:
+        \\  last_reviewed: "2024-01-01"
+        \\  major_revisions:
+        \\  - date: "2024-01-01"
+        \\    description: "Initial"
+        \\    revised_by: "Author"
+        \\    approved_by: "Approver"
+        \\    version: "1.0"
+        \\---
+        \\Body text.
+        \\
+        \\<span>inline markup</span>
+        \\
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "advisory_html.md", .data = advisory_html });
+
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    const path = try std.fs.path.join(alloc, &.{ tmp_path, "advisory_html.md" });
+    defer alloc.free(path);
+
+    try tst.expectEqual(config.IssueKind.critical, conf.reviewPolicyFile(io, alloc, path));
+}
+
 // --- Draft Mode Adds Watermark ---
 
 test "draft mode: typst source includes draft.png page background" {

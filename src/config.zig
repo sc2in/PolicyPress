@@ -208,15 +208,18 @@ pub const Config = struct {
         // _ = frontMatter.get("date") orelse return error.NoDateInFrontMatter;
     }
 
-    /// Severity of a policy's front-matter problems.
+    /// Severity of a policy's validation problems.
     pub const IssueKind = enum { none, advisory, critical };
 
-    /// Validate one policy file's front matter without stopping the build.
-    /// Logs the specific problem and classifies it: a missing `description`
-    /// is advisory (it feeds teasers/SEO, not the audit trail); anything that
-    /// undermines the audit record (title, approvals, revision dates/versions,
-    /// or an unparseable file) is critical. The caller decides whether critical
-    /// issues abort the build (see `--strict`). `path` is resolved from cwd.
+    /// Validate one policy file without stopping the build. Checks front matter
+    /// and the Markdown body, logging each specific problem and classifying it.
+    /// A missing `description` is advisory (it feeds teasers/SEO, not the audit
+    /// trail); anything that undermines the audit record is critical: bad front
+    /// matter (title, approvals, revision dates/versions, an unparseable file)
+    /// or raw HTML in the body (the website renders it but the Typst/PDF path
+    /// silently drops it, so the two artifacts would diverge — see
+    /// `reviewPolicyBody`). The caller decides whether critical issues abort the
+    /// build (see `--strict`). `path` is resolved from cwd.
     pub fn reviewPolicyFile(self: Config, io: std.Io, alloc: Allocator, path: []const u8) IssueKind {
         const content = std.Io.Dir.cwd().readFileAlloc(io, path, alloc, .limited(10 * 1024 * 1024)) catch |err| {
             conflog.warn("{s}: cannot read for validation: {s}", .{ path, @errorName(err) });
@@ -233,16 +236,128 @@ pub const Config = struct {
         self.validateFrontMatter(frontMatter) catch |err| switch (err) {
             error.NoDescriptionInFrontMatter, error.NoDescriptionForRevision => {
                 conflog.warn("{s}: missing description (advisory)", .{path});
-                return .advisory;
+                // A body problem outranks the advisory. IssueKind is ordered
+                // none < advisory < critical, so take the more severe of the two.
+                const body = reviewPolicyBody(alloc, path, content);
+                return if (@intFromEnum(body) > @intFromEnum(IssueKind.advisory)) body else .advisory;
             },
             else => {
                 conflog.warn("{s}: {s}", .{ path, @errorName(err) });
                 return .critical;
             },
         };
+        return reviewPolicyBody(alloc, path, content);
+    }
+
+    /// Check the Markdown body for constructs that silently diverge between the
+    /// website and the PDF. Currently one rule: raw or inline HTML, which Zola
+    /// renders on the site (`page.content | safe`) but zigmark's Typst renderer
+    /// omits (`renderers/typst.zig` drops `html_block`/`html_in_line`), so a PDF
+    /// would be missing content the website shows. Critical, because a divergent
+    /// audit record is an integrity failure. Detection is AST-based, so `<div>`
+    /// inside a code fence/span and `<user@host>` autolinks never false-positive.
+    fn reviewPolicyBody(alloc: Allocator, path: []const u8, content: []const u8) IssueKind {
+        const finding = findRawHtml(alloc, content) catch |err| {
+            conflog.warn("{s}: cannot parse body for validation: {s}", .{ path, @errorName(err) });
+            return .critical;
+        };
+        if (finding) |f| {
+            defer f.deinit(alloc);
+            conflog.warn(
+                "{s}: raw HTML in policy body ('{s}'): the website renders it but it is silently dropped from the PDF; remove it or fence it as a code example",
+                .{ path, f.snippet },
+            );
+            return .critical;
+        }
         return .none;
     }
+
+    /// Whether the dropped HTML was a block (`<div>…</div>`) or inline (`<br>`).
+    pub const RawHtmlKind = enum { block, in_line };
+
+    /// A raw-HTML occurrence in a Markdown body that the Typst renderer would
+    /// silently drop.
+    pub const RawHtmlFinding = struct {
+        kind: RawHtmlKind,
+        /// Owned, truncated copy of the offending markup; caller frees.
+        snippet: []u8,
+
+        pub fn deinit(self: RawHtmlFinding, alloc: Allocator) void {
+            alloc.free(self.snippet);
+        }
+    };
+
+    /// Parse `content` (frontmatter included — the parser skips it exactly like
+    /// the PDF render path in `typst.zig`) and return the first raw/inline HTML
+    /// node, or null when the body has none. AST-based via zigmark's own parser,
+    /// so it matches precisely what the renderer would drop.
+    pub fn findRawHtml(alloc: Allocator, content: []const u8) !?RawHtmlFinding {
+        var parser = zigmark.Parser.init();
+        defer parser.deinit(alloc);
+        var doc = try parser.parseMarkdown(alloc, content);
+        defer doc.deinit(alloc);
+
+        const hit = firstRawHtmlInBlocks(doc.children.items) orelse return null;
+
+        // Report the first line only, capped at 80 bytes, without splitting a
+        // UTF-8 sequence: enough for the author to locate the tag.
+        var snip = std.mem.trim(u8, hit.content, " \t\r\n");
+        if (std.mem.indexOfScalar(u8, snip, '\n')) |nl| snip = snip[0..nl];
+        var end = @min(snip.len, 80);
+        while (end < snip.len and (snip[end] & 0xC0) == 0x80) end -= 1;
+        return .{ .kind = hit.kind, .snippet = try alloc.dupe(u8, snip[0..end]) };
+    }
 };
+
+/// Borrowed reference to a raw-HTML node in a parsed document. `content` points
+/// into the `Document`, so callers must copy it out before the document is freed.
+const RawHtmlRef = struct {
+    kind: Config.RawHtmlKind,
+    content: []const u8,
+};
+
+/// Depth-first search for the first raw HTML node reachable from `blocks`.
+/// Switches are exhaustive on purpose: if a future zigmark bump adds a block
+/// kind, this fails to compile so the rule gets revisited.
+fn firstRawHtmlInBlocks(blocks: []const zigmark.AST.Block) ?RawHtmlRef {
+    for (blocks) |*block| switch (block.*) {
+        .html_block => |hb| return .{ .kind = .block, .content = hb.content },
+        .paragraph => |p| if (firstRawHtmlInInlines(p.children.items)) |f| return f,
+        .heading => |h| if (firstRawHtmlInInlines(h.children.items)) |f| return f,
+        .blockquote => |bq| if (firstRawHtmlInBlocks(bq.children.items)) |f| return f,
+        .footnote_definition => |fd| if (firstRawHtmlInBlocks(fd.children.items)) |f| return f,
+        .list => |l| for (l.items.items) |*item| {
+            if (firstRawHtmlInBlocks(item.children.items)) |f| return f;
+        },
+        .table => |t| {
+            for (t.header.cells.items) |*cell| {
+                if (firstRawHtmlInInlines(cell.children.items)) |f| return f;
+            }
+            for (t.body.items) |*row| for (row.cells.items) |*cell| {
+                if (firstRawHtmlInInlines(cell.children.items)) |f| return f;
+            };
+        },
+        // Leaf blocks with no raw-HTML nodes. Code blocks are excluded on
+        // purpose: `<div>` inside a fence is content, not markup.
+        .code_block, .fenced_code_block, .thematic_break => {},
+    };
+    return null;
+}
+
+/// Depth-first search for the first raw inline HTML reachable from `inlines`.
+fn firstRawHtmlInInlines(inlines: []const zigmark.AST.Inline) ?RawHtmlRef {
+    for (inlines) |*il| switch (il.*) {
+        .html_in_line => |h| return .{ .kind = .in_line, .content = h.content },
+        .emphasis => |e| if (firstRawHtmlInInlines(e.children.items)) |f| return f,
+        .strong => |s| if (firstRawHtmlInInlines(s.children.items)) |f| return f,
+        .strikethrough => |s| if (firstRawHtmlInInlines(s.children.items)) |f| return f,
+        .link => |l| if (firstRawHtmlInInlines(l.children.items)) |f| return f,
+        // Leaf inlines. `autolink` is deliberately treated as non-HTML:
+        // `<user@host>` / `<https://…>` are autolinks, which the PDF renders.
+        .text, .code_span, .image, .autolink, .footnote_reference, .hard_break, .soft_break => {},
+    };
+    return null;
+}
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;

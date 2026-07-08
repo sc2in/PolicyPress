@@ -8,6 +8,18 @@ keys) is considered stable.
 
 ## [Unreleased]
 
+### Added
+
+- **Raw HTML in policy bodies is now flagged by the build pre-flight** (#117).
+  The website renders raw/inline HTML but the PDF pipeline (zigmark → Typst)
+  silently drops it, so a site and its audit PDF could diverge without warning.
+  The pre-flight now parses each policy body and reports raw HTML as
+  audit-critical: a warning by default, fatal with `--strict`. Detection is
+  AST-based, so `<div>` inside a code fence or inline code and `<user@host>`
+  autolinks never false-positive. HTML examples belong in fenced code blocks;
+  site-only pages (the guides) may still use HTML since only the policy
+  directory is rendered to PDF.
+
 ## [1.4.2] - 2026-07-06
 
 ### Security

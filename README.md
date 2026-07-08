@@ -91,6 +91,8 @@ PDFs are named `{Title}_-_v{version}.pdf`. With `redact_mode: true`, the name be
 
 PDFs are generated with [Typst](https://typst.app/): markdown is rendered to Typst markup in-process ([zigmark](https://github.com/sc2in/zigmark)), mermaid diagrams become inline SVG via [pozeiden](https://github.com/sc2in/pozeiden), and the layout matches the classic [Eisvogel](https://github.com/Wandmalfarbe/pandoc-latex-template) look. The only external tool is the `typst` binary (bundled in the devshell and GitHub Action; on Windows install it with `winget install Typst.Typst` - without the Source Sans 3 font typst falls back to its embedded fonts, a cosmetic difference only).
 
+Keep policies in **pure Markdown**. Raw or inline HTML renders on the website but the PDF pipeline silently drops it, so the two artifacts would diverge. The build flags raw HTML in any policy body as audit-critical - a warning by default, fatal with `--strict`. To show HTML as an example, put it in a fenced code block or inline code. Site-only pages (such as the guides on this site) may use HTML freely; only the policy directory is rendered to PDF.
+
 ## Compliance reports
 
 The site includes optional compliance coverage views. To enable them, add your control data files and configure the paths:

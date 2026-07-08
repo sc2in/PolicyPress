@@ -166,6 +166,12 @@ language_code = "en-US"
 # Set theme-color meta tag for Chrome browser
 theme_color = "#fff"
 
+# Brand color for the web theme's primary/accent surfaces (buttons, links,
+# badges, highlights). Optional - omit to use the theme's built-in default.
+# Set here to match the blue logo and the PDF `pdf_color` so the web and PDF
+# branding agree. Recolors without recompiling SCSS.
+brand_color = "#0e90f3"
+
 # More about site's title
 title_separator = "|"          # set as |, -, _, etc
 title_addition = "PolicyPress"

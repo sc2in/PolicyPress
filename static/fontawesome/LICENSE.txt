@@ -1,0 +1,14 @@
+Font Awesome Free 6.5.0
+https://fontawesome.com
+Copyright (c) Fonticons, Inc.
+
+Bundled here (self-hosted) so the site loads no third-party CDN. Files:
+  css/all.min.css
+  webfonts/fa-solid-900.woff2, fa-brands-400.woff2, fa-regular-400.woff2
+
+Font Awesome Free license:
+  - Icons:  CC BY 4.0        https://creativecommons.org/licenses/by/4.0/
+  - Fonts:  SIL OFL 1.1      https://scripts.sil.org/OFL
+  - Code:   MIT              https://opensource.org/licenses/MIT
+
+Full license text: https://fontawesome.com/license/free

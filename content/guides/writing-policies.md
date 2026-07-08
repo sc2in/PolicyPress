@@ -73,6 +73,8 @@ A well-structured policy has these sections, roughly in order:
 
 Not every policy needs every section. Purpose/Scope and Policy Statements are always required.
 
+**No raw HTML.** Policies must be pure Markdown. Raw or inline HTML renders on the website but is silently dropped from the PDF, so the two artifacts would diverge - the build flags it as audit-critical (fatal with `--strict`). To show HTML as an example, put it in a fenced code block or inline code.
+
 ## Shortcodes
 
 PolicyPress provides a few shortcodes for common patterns.

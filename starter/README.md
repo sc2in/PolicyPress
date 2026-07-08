@@ -51,6 +51,8 @@ extra:
 ---
 ```
 
+Keep policies in pure Markdown - raw HTML is flagged by the build because it would render on the site but vanish from the PDFs. Use a code block to show HTML as an example.
+
 ## Shortcodes
 
 | Shortcode | What it does |

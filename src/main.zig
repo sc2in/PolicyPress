@@ -224,7 +224,7 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         \\--no-draft             Do not add draft watermark to output (overrides config.toml).
         \\--redact               Redact content within redaction tags (overrides config.toml).
         \\--no-redact            Do not redact text within redaction tags (overrides config.toml).
-        \\--strict               Fail the build on audit-critical front-matter problems.
+        \\--strict               Fail the build on audit-critical policy problems (front matter, raw HTML in bodies).
         \\-v, --verbose          Show debug output (typst invocations, file paths).
         \\-q, --quiet            Suppress progress output; show errors only.
         \\    --json             Emit log output as JSON lines (for CI).
@@ -455,13 +455,13 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         }
         if (critical + advisory > 0) {
             std.log.warn(
-                "policypress: front-matter validation found {d} audit-critical and {d} advisory issue(s).",
+                "policypress: policy validation found {d} audit-critical and {d} advisory issue(s).",
                 .{ critical, advisory },
             );
         }
         if (strict and critical > 0) {
             std.log.err(
-                "policypress: {d} audit-critical front-matter problem(s); aborting (--strict).",
+                "policypress: {d} audit-critical policy problem(s); aborting (--strict).",
                 .{critical},
             );
             return error.ValidationFailed;

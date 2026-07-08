@@ -2,9 +2,9 @@
 
 All notable changes to PolicyPress are documented here.
 
-Versions track the tool and theme API. The major version will remain 0.x
-until the public API (action inputs/outputs, config.toml schema, front matter
-keys) is considered stable.
+Versions track the tool and theme API. The public API - GitHub Action
+inputs/outputs, `config.toml` schema, and front-matter keys - follows semantic
+versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
@@ -19,6 +19,20 @@ keys) is considered stable.
   autolinks never false-positive. HTML examples belong in fenced code blocks;
   site-only pages (the guides) may still use HTML since only the policy
   directory is rendered to PDF.
+
+### Changed
+
+- Reworked the README and project metadata for launch: unified the product
+  description, added a live-demo link, screenshots, a sample PDF, and a "Why
+  PolicyPress" comparison; clarified the free-for-noncommercial licensing and
+  the commercial path (#118).
+
+### Fixed
+
+- Corrected the theme license declaration in `theme.toml` to PolyForm
+  Noncommercial 1.0.0, matching `LICENSE` and the source SPDX headers (#118).
+- Repointed the README documentation links to the live docs site
+  (`https://policypress.sc2.in`); the previous GitHub Pages URLs 404'd (#118).
 
 ## [1.4.2] - 2026-07-06
 

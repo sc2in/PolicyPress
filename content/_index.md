@@ -1,6 +1,6 @@
 +++
 title = "PolicyPress Security Center"
-description = "Comprehensive security policy management for modern organizations. Centralized policies, compliance tracking, and security frameworks."
+description = "Compliance policy management for small and mid-size teams - write policies in Markdown, version them in Git, publish a branded site and audit-ready PDFs."
 insert_anchor_links = "right"
 template = "index.html"
 

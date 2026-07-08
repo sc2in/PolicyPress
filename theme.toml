@@ -1,9 +1,9 @@
 name = "PolicyPress"
-description = "PolicyPress is a Zola theme helping you build modern documentation."
-license = "AGPL-3.0"
+description = "Compliance policy management for small and mid-size teams - Markdown policies, a branded site, and audit-ready PDFs."
+license = "PolyForm-Noncommercial-1.0.0"
 homepage = "https://github.com/sc2in/policypress"
 min_version = "0.15.0"
-demo = ""
+demo = "https://policypress.sc2.in"
 
 [extra]
 

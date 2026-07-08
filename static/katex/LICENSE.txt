@@ -1,0 +1,12 @@
+KaTeX 0.11.1
+https://katex.org
+Copyright (c) 2013-2020 Khan Academy and other contributors
+
+Bundled here (self-hosted) so math-enabled pages load no third-party CDN. Files:
+  katex.min.css
+  katex.min.js
+  contrib/auto-render.min.js
+  fonts/KaTeX_*.{woff2,woff,ttf}
+
+KaTeX is released under the MIT License:
+  https://github.com/KaTeX/KaTeX/blob/main/LICENSE

@@ -152,6 +152,10 @@
                     "sass/bootstrap/.*"
                     "static/plugins/.*"
                     "static/[^/]+\\.js"
+                    # Vendored third-party assets - keep upstream (minified) form
+                    ".*\\.min\\.(css|js)$"
+                    "static/fontawesome/.*"
+                    "static/katex/.*"
                   ];
                 };
                 taplo.enable = true;
@@ -166,6 +170,9 @@
                   "^sass/bootstrap/"
                   "^static/plugins/"
                   "^static/[^/]+\\.js$"
+                  ".*\\.min\\.(css|js)$"
+                  "^static/fontawesome/"
+                  "^static/katex/"
                 ];
               in
               {

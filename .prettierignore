@@ -5,3 +5,9 @@ public/
 zig-out/
 .zig-cache/
 test-out/
+
+# Vendored third-party assets - keep them in their upstream (minified) form
+**/*.min.js
+**/*.min.css
+static/fontawesome/
+static/katex/

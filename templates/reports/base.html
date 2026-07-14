@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="report-container">
+<script>
+  // Progressive enhancement: flag that JS is active so the collapse CSS (gated
+  // under .pp-js) applies. Set before the sections paint so there is no flash of
+  // expanded-then-collapsed content. Without JS the sections stay fully visible.
+  document.documentElement.classList.add('pp-js');
+</script>
+<div class="report-container" id="main-content">
   <div class="report-header">
     {% if page %}
     <h1>{{ page.title }}</h1>
@@ -31,47 +37,63 @@
 </div>
 
 <script>
-function expandAllSections() {
-  document.querySelectorAll('.section-title').forEach(function(title) {
-    title.classList.add('active');
-    const content = title.nextElementSibling;
-    if (content) {
-      content.classList.add('active');
-      content.style.maxHeight = 'none';
-    }
-  });
+// Open or close one section. Drives the toggle button's aria-expanded, the
+// .active classes the CSS keys off, and the inline max-height used for the
+// animation. `open` is a boolean.
+function setSection(toggle, open) {
+  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const title = toggle.closest('.section-title');
+  const content = document.getElementById(toggle.getAttribute('aria-controls'));
+  if (title) title.classList.toggle('active', open);
+  if (content) {
+    content.classList.toggle('active', open);
+    content.style.maxHeight = open ? content.scrollHeight + 'px' : '0';
+  }
 }
 
-// Inject control counts into section headers so collapsed state isn't blank
+// Used by the Print/Export button and print CSS: force every section open.
+function expandAllSections() {
+  document.querySelectorAll('.section-toggle').forEach(function(t) { setSection(t, true); });
+}
+
+// Expand the section that contains an anchor target, so deep links into a
+// collapsed section land on visible content instead of a hidden node.
+function openSectionFor(hash) {
+  if (!hash || hash.length < 2) return;
+  const target = document.getElementById(decodeURIComponent(hash.slice(1)));
+  if (!target) return;
+  const content = target.closest('.section-content');
+  if (!content || !content.id) return;
+  const toggle = document.querySelector('.section-toggle[aria-controls="' + content.id + '"]');
+  if (toggle) {
+    setSection(toggle, true);
+    target.scrollIntoView();
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+  // Inject control counts into the toggle button so a collapsed header isn't blank.
   document.querySelectorAll('.report-section').forEach(function(section) {
-    const title = section.querySelector('.section-title');
+    const toggle = section.querySelector('.section-toggle');
     const count = section.querySelectorAll('.control-item').length;
-    if (count > 0 && title && !title.querySelector('.section-control-count')) {
+    if (count > 0 && toggle && !toggle.querySelector('.section-control-count')) {
       const hint = document.createElement('small');
       hint.className = 'section-control-count';
       hint.textContent = count + ' control' + (count === 1 ? '' : 's');
-      title.insertBefore(hint, title.querySelector('.badge, .float-end') || null);
+      toggle.appendChild(hint);
     }
   });
+  openSectionFor(location.hash);
 });
 
-// Collapsible sections via event delegation
-document.addEventListener('click', function(e) {
-  if (e.target.closest('.section-title') && !e.target.closest('button')) {
-    const title = e.target.closest('.section-title');
-    title.classList.toggle('active');
-    const content = title.nextElementSibling;
-    if (!content) return;
+window.addEventListener('hashchange', function() { openSectionFor(location.hash); });
 
-    if (content.classList.contains('active')) {
-      content.classList.remove('active');
-      content.style.maxHeight = '0';
-    } else {
-      content.classList.add('active');
-      content.style.maxHeight = content.scrollHeight + 'px';
-    }
-  }
+// Collapsible sections via event delegation on the toggle button. The button's
+// native semantics give keyboard operation (Enter/Space) and focus for free.
+document.addEventListener('click', function(e) {
+  const toggle = e.target.closest('.section-toggle');
+  if (!toggle) return;
+  setSection(toggle, toggle.getAttribute('aria-expanded') !== 'true');
 });
 </script>
 {% endblock content %}

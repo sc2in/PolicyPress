@@ -30,9 +30,13 @@
   {% endif %}
   {% set_global cur_family = item.family %}
   {% set_global open_section = true %}
+  {% set fam_slug = item.family | slugify %}
+  {% set section_slug = "tsc-" ~ fam_slug %}
 <div class="report-section">
-  <h2 class="section-title">{{ item.family }}</h2>
-  <div class="section-content">
+  <h2 class="section-title">
+    <button type="button" class="section-toggle" aria-expanded="false" aria-controls="{{ section_slug }}">{{ item.family }}</button>
+  </h2>
+  <div class="section-content" id="{{ section_slug }}">
 {% endif %}
 
 {% set control_policies = line_items[key] | default(value=[]) %}

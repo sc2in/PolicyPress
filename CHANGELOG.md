@@ -8,6 +8,27 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Accessibility
+
+- **Compliance report sections are now keyboard-operable and work without
+  JavaScript** (#119). Each collapsible family/domain header is a real `<button>`
+  with `aria-expanded`/`aria-controls`, so it is focusable and toggles with
+  Enter/Space; the collapse styling is gated behind a `pp-js` flag so a no-JS
+  visitor sees every section expanded rather than collapsed-and-stuck. Deep
+  links into a collapsed section now expand it first. The pure-CSS print
+  force-expand is unchanged.
+- **Guide tab groups follow the ARIA tabs pattern** (#119): arrow keys move
+  between tabs (wrapping), Home/End jump to the ends, Enter/Space activate, and
+  each panel is a labelled, focusable `tabpanel`.
+- **Accessibility sweep** (#119): every page's "Skip to main content" link now
+  has a target (`id="main-content"` added to the default page/section, reports,
+  team, news, and 404 templates; the news templates' duplicate skip link was
+  removed); the policy title is an `<h1>`; the header logo has descriptive `alt`
+  text; the search box is a proper ARIA combobox (`role="combobox"`, managed
+  `aria-expanded`/`aria-activedescendant`, a `listbox` of `option`s, and a polite
+  live-region result count); and rendered mermaid diagrams carry
+  `role="img"` with a fallback label.
+
 ### Added
 
 - **The build pre-flight now flags overdue policy reviews** (#119). A policy

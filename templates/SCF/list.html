@@ -29,14 +29,17 @@
 {% endfor %}
 {% set domain_total = domain_items | group_by(attribute="control_id") | length %}
 
+{% set domain_slug = domain | slugify %}
+{% set section_slug = "scf-" ~ domain_slug %}
 <div class="report-section">
   <h2 class="section-title">
+    <button type="button" class="section-toggle" aria-expanded="false" aria-controls="{{ section_slug }}">
     {{ domain }}
     {% set _dc = domain_covered | float %}
     {% set _dt = domain_total | float %}
     {% set _dpct = 0 %}
     {% if domain_total > 0 %}{% set _dpct = (_dc / _dt * 100) | round | int %}{% endif %}
-    <span class="badge ms-2 float-end
+    <span class="badge ms-2
       {%- if _dpct >= 80 %} bg-success
       {%- elif _dpct >= 50 %} bg-warning text-dark
       {%- else %} bg-secondary
@@ -44,8 +47,9 @@
       style="font-size: 0.75em;">
       {{ domain_covered }}/{{ domain_total }}
     </span>
+    </button>
   </h2>
-  <div class="section-content">
+  <div class="section-content" id="{{ section_slug }}">
     {% for control_id, control_group in domain_items | group_by(attribute="control_id") %}
     {% set control = control_group | first %}
     {% set control_policies = line_items[control_id] | default(value=[]) %}

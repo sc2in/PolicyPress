@@ -1020,7 +1020,7 @@ test "diagrams: mermaid placeholder is rewritten to inline svg" {
     defer alloc.free(r.html);
 
     try tst.expectEqual(@as(usize, 1), r.count);
-    try tst.expect(std.mem.indexOf(u8, r.html, "<figure class=\"mermaid-diagram\">") != null);
+    try tst.expect(std.mem.indexOf(u8, r.html, "<figure class=\"mermaid-diagram\" role=\"img\" aria-label=\"Diagram\">") != null);
     try tst.expect(std.mem.indexOf(u8, r.html, "<svg") != null);
     // The placeholder must be gone (no residual client-render target).
     try tst.expect(std.mem.indexOf(u8, r.html, "<pre class=\"mermaid\">") == null);

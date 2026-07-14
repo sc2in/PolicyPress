@@ -28,6 +28,7 @@ const Config = @import("config").Config;
 const u = @import("utils");
 const zigmark = @import("zigmark");
 const pozeiden = @import("pozeiden");
+const fonts = @import("fonts.zig");
 
 const EnvMap = std.process.Environ.Map;
 
@@ -292,9 +293,10 @@ pub fn render(
 /// `zigmark.MermaidRendererFn` adapter around pozeiden, called concurrently
 /// from the policy compile tasks (pozeiden is thread-safe as of the pinned
 /// commit: threadlocal theme state, locked grammar-cache init). The font is
-/// overridden to the families shipped in the nix closure so Typst can resolve
-/// the SVG text (pozeiden's default is "trebuchet ms", which is never
-/// available). Errors are logged and propagated — zigmark then falls back to
+/// overridden to Source Sans 3 (bundled with the binary and passed to typst via
+/// --font-path) so Typst can resolve the SVG text (pozeiden's default is
+/// "trebuchet ms", which is never available). Errors are logged and propagated
+/// — zigmark then falls back to
 /// rendering the diagram source as a plain code block.
 fn renderMermaid(alloc: Allocator, source: []const u8) anyerror![]const u8 {
     return pozeiden.renderWithOptions(alloc, source, .{
@@ -434,11 +436,15 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
     try writer.writeAll("],\n      [#context counter(page).display(\"1\")],\n    )\n  ],\n)\n\n");
 
     // ── Text / font settings ─────────────────────────────────────────────────
-    // Families shipped by the flake (source-sans, source-code-pro), with
-    // DejaVu as a broad fallback. "Source Sans Pro" covers pre-v3 installs.
+    // Source Sans 3 (body) and Source Code Pro (mono) are embedded in the binary
+    // and passed to typst via --font-path (see fonts.zig / runTypst), so they
+    // always resolve. Only bundled/typst-embedded families are named to keep a
+    // bare compile warning-free; typst still auto-falls-back to its embedded
+    // fonts for any glyph these lack. "DejaVu Sans Mono" is one of typst's
+    // built-in fonts, kept as an explicit monospace fallback for code.
     try writer.writeAll(
         "#set text(\n" ++
-            "  font: (\"Source Sans 3\", \"Source Sans Pro\", \"DejaVu Sans\"),\n" ++
+            "  font: \"Source Sans 3\",\n" ++
             "  size: 11pt,\n" ++
             "  lang: \"en\",\n" ++
             ")\n\n",
@@ -592,9 +598,13 @@ fn writeVersionHistory(writer: anytype, fm: *zigmark.Frontmatter) !void {
 
 // ── typst subprocess ──────────────────────────────────────────────────────────
 
-/// Spawn `typst compile --root <root> <input.typ> <output.pdf>` and wait.
-/// Fonts are resolved through TYPST_FONT_PATHS from the environment (exported
-/// by the flake devshell/checks); typst's embedded fonts are the fallback.
+/// Spawn `typst compile --root <root> --font-path <bundled> <input.typ>
+/// <output.pdf>` and wait. The template's fonts (Source Sans 3, Source Code
+/// Pro) are embedded in the binary and extracted to `--font-path` by
+/// `fonts.ensureFontPath`, so PDF generation is self-contained without a system
+/// font install. TYPST_FONT_PATHS from the environment (e.g. the flake
+/// devshell) still contributes additional families; typst's embedded fonts are
+/// the final fallback.
 fn runTypst(
     io: std.Io,
     env: *EnvMap,
@@ -634,13 +644,35 @@ fn runTypst(
     };
     defer if (root_abs.ptr != root.ptr) a.free(root_abs);
 
-    const argv = [_][]const u8{ "typst", "compile", "--root", root_abs, input, output };
-    log.debug("running: typst compile --root {s} {s} {s}\n", .{ root_abs, input, output });
+    // Point typst at the bundled fonts (extracted once per process). On the
+    // unlikely failure to materialise them, fall back to TYPST_FONT_PATHS /
+    // typst's embedded fonts rather than aborting the compile.
+    const font_dir: ?[]const u8 = fonts.ensureFontPath(io, a, &child_env) catch |e| blk: {
+        log.warn("could not extract bundled fonts ({s}); relying on TYPST_FONT_PATHS / embedded fonts\n", .{@errorName(e)});
+        break :blk null;
+    };
+
+    var argv_buf: [8][]const u8 = undefined;
+    var argc: usize = 0;
+    for ([_][]const u8{ "typst", "compile", "--root", root_abs }) |arg| {
+        argv_buf[argc] = arg;
+        argc += 1;
+    }
+    if (font_dir) |fd| {
+        argv_buf[argc] = "--font-path";
+        argv_buf[argc + 1] = fd;
+        argc += 2;
+    }
+    argv_buf[argc] = input;
+    argv_buf[argc + 1] = output;
+    argc += 2;
+    const argv = argv_buf[0..argc];
+    log.debug("running: typst compile --root {s} (font-path: {?s}) {s} {s}\n", .{ root_abs, font_dir, input, output });
 
     // Cap collected output so a runaway process cannot exhaust memory.
     const max_output_bytes = 1024 * 1024;
     const result = std.process.run(a, io, .{
-        .argv = &argv,
+        .argv = argv,
         .environ_map = &child_env,
         .stdout_limit = .limited(max_output_bytes),
         .stderr_limit = .limited(max_output_bytes),

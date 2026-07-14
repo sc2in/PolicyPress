@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.4.3] - 2026-07-14
+
 ### Added
 
 - **Raw HTML in policy bodies is now flagged by the build pre-flight** (#117).

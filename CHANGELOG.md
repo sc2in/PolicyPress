@@ -22,6 +22,12 @@ versioning; breaking changes to it bump the major version.
 
 ### Internal
 
+- Added rulesets-as-code (`.github/rulesets/*.json`) with a `sync-rulesets`
+  workflow that reconciles the live branch rulesets by name on push to `main`.
+  The `protect-main` ruleset now declares **required status checks**
+  (`ci (ubuntu-latest)` / `ci (macos-latest)`) so main can no longer be merged
+  red — previously main had no required checks. Inert until the repository
+  owner creates a `RULESET_SYNC_TOKEN` secret.
 - Added golden snapshots of the generated Typst markup (`golden_test.zig`,
   baselines in `tests/golden/`, regenerate with `zig build update-golden`). They
   render fixtures under a date-pinned config and diff byte-for-byte, so any

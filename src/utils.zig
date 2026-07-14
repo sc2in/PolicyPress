@@ -12,6 +12,18 @@ const zigmark = @import("zigmark");
 
 const panlog = std.log.scoped(.pandoc);
 
+// ── Input-read byte caps ───────────────────────────────────────────────────────
+// Centralised limits so a malformed or hostile file cannot drive an unbounded
+// read/allocation. Sized to realistic inputs, not to the filesystem.
+
+/// A `config.toml` is a small hand-written file.
+pub const max_config_bytes: usize = 1 << 20; // 1 MiB
+/// A single policy Markdown file. Capped at zigmark's own 16 MiB parser ceiling
+/// — a larger file could not be parsed anyway — replacing the former 100 MB reads.
+pub const max_policy_bytes: usize = 16 << 20; // 16 MiB
+/// A generated site HTML page (mermaid rewrite pass reads whole files).
+pub const max_html_bytes: usize = 50 << 20; // 50 MiB
+
 /// Custom logging function that prints log messages depending on the log level and scope.
 pub fn logFn(
     comptime level: std.log.Level,
@@ -484,7 +496,7 @@ test "FM parse via zigmark reads title from example policy" {
     ) catch return; // skip if file absent in test environment
     defer f.close();
 
-    const contents = try f.readToEndAlloc(alloc, 100_000_000);
+    const contents = try f.readToEndAlloc(alloc, max_policy_bytes);
     defer alloc.free(contents);
 
     var fm = try zigmark.Frontmatter.initFromMarkdown(alloc, contents);

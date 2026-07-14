@@ -285,7 +285,7 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         return error.ConfigReadFailed;
     };
     defer config_file.close(io);
-    const contents = @import("utils").readAllAlloc(io, config_file, alloc, 1024 * 1024) catch |err| {
+    const contents = @import("utils").readAllAlloc(io, config_file, alloc, @import("utils").max_config_bytes) catch |err| {
         std.debug.print(
             "policypress: failed to read config file '{s}': {s}\n",
             .{ config_path, @errorName(err) },
@@ -831,7 +831,7 @@ fn runNew(io: std.Io, alloc: Allocator, args: []const [:0]const u8) !void {
     };
     defer config_file.close(io);
 
-    const contents = @import("utils").readAllAlloc(io, config_file, alloc, 1024 * 1024) catch {
+    const contents = @import("utils").readAllAlloc(io, config_file, alloc, @import("utils").max_config_bytes) catch {
         std.debug.print("policypress new: failed to read '{s}'\n", .{config_path});
         std.process.exit(1);
     };

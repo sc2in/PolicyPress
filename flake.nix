@@ -113,6 +113,31 @@
               );
             };
 
+            # Source for the redaction-leak-check flake check: it runs a full
+            # `zola build` plus PDF generation, so it needs both the web inputs
+            # and the buildable Zig sources, plus the test script and control data.
+            leakCheckSrc = lib.fileset.toSource {
+              root = ./.;
+              fileset = lib.fileset.intersection (lib.fileset.gitTracked ./.) (
+                lib.fileset.unions (
+                  [
+                    ./build.zig
+                    ./build.zig.zon
+                    ./src
+                    ./config.toml
+                    ./content
+                    ./templates
+                    ./sass
+                    ./static
+                    ./data
+                    ./tests
+                  ]
+                  ++ lib.optional (builtins.pathExists ./build.zig.zon2json-lock) ./build.zig.zon2json-lock
+                  ++ lib.optional (builtins.pathExists ./theme.toml) ./theme.toml
+                )
+              );
+            };
+
             # Fonts for typst (Source Sans 3 body, Source Code Pro mono).
             # TYPST_FONT_PATHS is walked recursively by typst-cli; typst falls
             # back to its embedded fonts when a family is missing.
@@ -293,6 +318,58 @@
               _JAVA_OPTIONS = "-Djava.awt.headless=true";
               meta = (old.meta or { }) // {
                 description = "Validate demo PDFs against PDF/UA-1 with veraPDF";
+              };
+            });
+
+            # zig fmt is not covered by treefmt; check it in CI. Fast, no deps.
+            checks.zig-fmt = (mkPolicypress null).overrideAttrs (old: {
+              pname = "policypress-zig-fmt";
+              buildPhase = "zig fmt --check build.zig src";
+              installPhase = "touch $out";
+              meta = (old.meta or { }) // {
+                description = "zig fmt --check build.zig src";
+              };
+            });
+
+            # The shipped binary is ReleaseSafe, but `checks.test` runs Debug.
+            # Also exercise the tests under ReleaseSafe.
+            checks.test-release-safe = (mkPolicypress null).overrideAttrs (old: {
+              pname = "policypress-test-release-safe";
+              buildPhase = "zig build test -Doptimize=ReleaseSafe";
+              installPhase = "touch $out";
+              nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ runtimeDeps;
+              TYPST_FONT_PATHS = "${typstFonts}/share/fonts";
+              TYPST_IGNORE_SYSTEM_FONTS = "true";
+              meta = (old.meta or { }) // {
+                description = "Run zig build test -Doptimize=ReleaseSafe";
+              };
+            });
+
+            # Smoke-run the fuzz targets once each (no coverage-guided fuzzing).
+            checks.fuzz-smoke = (mkPolicypress null).overrideAttrs (old: {
+              pname = "policypress-fuzz-smoke";
+              buildPhase = "zig build fuzz";
+              installPhase = "touch $out";
+              meta = (old.meta or { }) // {
+                description = "Run zig build fuzz (smoke test)";
+              };
+            });
+
+            # Run the redaction-leak integration check in the sandbox, so it
+            # gates `om ci` / `nix flake check` and not only the GitHub step.
+            checks.redaction-leak = (mkPolicypress null).overrideAttrs (old: {
+              pname = "policypress-redaction-leak";
+              src = leakCheckSrc;
+              buildPhase = ''
+                zig build
+                bash tests/redaction-leak-check.sh
+              '';
+              installPhase = "touch $out";
+              nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ runtimeDeps;
+              TYPST_FONT_PATHS = "${typstFonts}/share/fonts";
+              TYPST_IGNORE_SYSTEM_FONTS = "true";
+              meta = (old.meta or { }) // {
+                description = "Run tests/redaction-leak-check.sh";
               };
             });
 

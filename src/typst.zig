@@ -148,7 +148,7 @@ pub fn outputName(io: std.Io, alloc: Allocator, config: Config, input_file: []co
     var file = try dir.openFile(io, input_file, .{ .mode = .read_only });
     defer file.close(io);
 
-    const raw = try u.readAllAlloc(io, file, alloc, 100_000_000);
+    const raw = try u.readAllAlloc(io, file, alloc, u.max_policy_bytes);
     var contents = Array(u8){ .items = raw, .capacity = raw.len };
     defer contents.deinit(alloc);
 
@@ -180,7 +180,7 @@ pub fn render(
     };
     defer file.close(io);
 
-    const raw = try u.readAllAlloc(io, file, alloc, 100_000_000);
+    const raw = try u.readAllAlloc(io, file, alloc, u.max_policy_bytes);
     var contents = Array(u8){
         .items = raw,
         .capacity = raw.len,
@@ -216,7 +216,16 @@ pub fn render(
 
     // ── 5. Build Typst source ────────────────────────────────────────────────
 
-    const color = if (config.color[0] == '#') config.color[1..] else config.color;
+    // The colour is interpolated raw into `rgb("#…")` in the preamble, so
+    // validate it is a bare hex colour: a stray `"` or `)` in `pdf_color` would
+    // otherwise break out of the call and inject arbitrary Typst (which can
+    // read files within --root). Fall back to black on anything unexpected.
+    const color = blk: {
+        const c = if (config.color.len > 0 and config.color[0] == '#') config.color[1..] else config.color;
+        if (isHexColor(c)) break :blk c;
+        log.warn("pdf_color '{s}' is not a valid hex colour (expected 3/4/6/8 hex digits); using 000000\n", .{config.color});
+        break :blk "000000";
+    };
 
     const footer_left = try std.fmt.allocPrint(
         alloc,
@@ -378,6 +387,25 @@ fn writeEscaped(writer: anytype, s: []const u8) !void {
             else => try writer.writeByte(c),
         }
     }
+}
+
+/// True when `s` is a bare hex colour (`rgb()`-compatible): 3, 4, 6, or 8 hex
+/// digits and nothing else. Guards the raw `rgb("#{s}")` interpolation against
+/// Typst injection via a hostile `pdf_color`.
+fn isHexColor(s: []const u8) bool {
+    if (s.len != 3 and s.len != 4 and s.len != 6 and s.len != 8) return false;
+    for (s) |c| if (!std.ascii.isHex(c)) return false;
+    return true;
+}
+
+test "isHexColor accepts hex triples/sextets and rejects injection" {
+    try std.testing.expect(isHexColor("0e90f3"));
+    try std.testing.expect(isHexColor("fff"));
+    try std.testing.expect(isHexColor("AABBCCDD"));
+    try std.testing.expect(!isHexColor(""));
+    try std.testing.expect(!isHexColor("0e90f")); // 5 digits
+    try std.testing.expect(!isHexColor("\") ; #read")); // injection attempt
+    try std.testing.expect(!isHexColor("gggggg"));
 }
 
 /// Write `s` inside a Typst string literal (double-quoted). Only `"` and `\`

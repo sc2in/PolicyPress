@@ -22,6 +22,10 @@ versioning; breaking changes to it bump the major version.
 
 ### Internal
 
+- Added golden snapshots of the generated Typst markup (`golden_test.zig`,
+  baselines in `tests/golden/`, regenerate with `zig build update-golden`). They
+  render fixtures under a date-pinned config and diff byte-for-byte, so any
+  unintended change to the PDF markup is caught in the existing `test` gate.
 - Added a fuzz harness (`zig build fuzz`) for PolicyPress's own config/front
   matter/raw-HTML/redaction/shortcode surfaces, and new `nix flake check` gates:
   a fuzz smoke run, `zig fmt --check`, a ReleaseSafe test build (the shipped

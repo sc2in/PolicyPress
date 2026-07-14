@@ -122,6 +122,16 @@ pub fn build(b: *std.Build) !void {
     }
     pdf_step.dependOn(&pdf_run.step);
 
+    // Shared render helper for the golden Typst-markup snapshots (used by both
+    // golden_test.zig and tools/golden_gen.zig).
+    const golden_mod = b.addModule("golden", .{
+        .root_source_file = b.path("src/golden.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    golden_mod.addImport("config", config_mod);
+    golden_mod.addImport("typst", typst_mod);
+
     const reports_mod = b.addModule("policy_report", .{
         .target = target,
         .optimize = .ReleaseFast,
@@ -193,6 +203,20 @@ pub fn build(b: *std.Build) !void {
         run_unit_tests.setCwd(b.path("."));
         const test_step = b.step("test", "Run unit tests");
         test_step.dependOn(&run_unit_tests.step);
+
+        // Golden snapshots of the generated Typst markup. golden_test.zig sits
+        // at the repo root so its @embedFile("tests/golden/…") resolves. Hangs
+        // off the test step, so checks.test covers it with no new flake check.
+        const golden_test_mod = b.createModule(.{
+            .root_source_file = b.path("golden_test.zig"),
+            .target = target,
+            .optimize = optimize,
+        });
+        golden_test_mod.addImport("golden", golden_mod);
+        const golden_tests = b.addTest(.{ .root_module = golden_test_mod });
+        const run_golden_tests = b.addRunArtifact(golden_tests);
+        run_golden_tests.setCwd(b.path("."));
+        test_step.dependOn(&run_golden_tests.step);
     }
     {
         // Fuzz harness for PolicyPress's own surfaces (src/fuzz.zig).
@@ -217,6 +241,41 @@ pub fn build(b: *std.Build) !void {
         const run_fuzz = b.addRunArtifact(fuzz_tests);
         const fuzz_step = b.step("fuzz", "Run fuzz tests (append --fuzz for coverage-guided fuzzing)");
         fuzz_step.dependOn(&run_fuzz.step);
+    }
+    {
+        // Regenerate the golden Typst baselines that golden_test.zig checks.
+        // Run after an intentional rendering change; review the diff.
+        //   zig build update-golden && git diff tests/golden/
+        const golden_gen_mod = b.createModule(.{
+            .root_source_file = b.path("tools/golden_gen.zig"),
+            .target = target,
+            .optimize = optimize,
+        });
+        golden_gen_mod.addImport("golden", golden_mod);
+        const golden_gen = b.addExecutable(.{
+            .name = "golden_gen",
+            .root_module = golden_gen_mod,
+        });
+
+        const Baseline = struct { name: []const u8, fixture: []const u8, flag: ?[]const u8 };
+        const baselines = [_]Baseline{
+            .{ .name = "test_policy.typ", .fixture = "src/test/test_policy.md", .flag = null },
+            .{ .name = "test_policy_redacted.typ", .fixture = "src/test/test_policy.md", .flag = "--redact" },
+            .{ .name = "test_policy_draft.typ", .fixture = "src/test/test_policy.md", .flag = "--draft" },
+            .{ .name = "test_policy_render.typ", .fixture = "src/test/test_policy_render.md", .flag = null },
+        };
+
+        const update_golden = b.addUpdateSourceFiles();
+        for (baselines) |bl| {
+            const run = b.addRunArtifact(golden_gen);
+            run.setCwd(b.path("."));
+            run.addArg(bl.fixture);
+            if (bl.flag) |f| run.addArg(f);
+            const out = run.captureStdOut(.{});
+            update_golden.addCopyFileToSource(out, b.fmt("tests/golden/{s}", .{bl.name}));
+        }
+        const update_golden_step = b.step("update-golden", "Regenerate golden Typst baselines in tests/golden/");
+        update_golden_step.dependOn(&update_golden.step);
     }
     {
         // `zig build check` - semantic analysis without emitting a binary.

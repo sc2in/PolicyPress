@@ -71,6 +71,26 @@ test "config loading and validation" {
     try conf.validatePolicyFiles(io, alloc);
 }
 
+test "review preflight flags overdue policies" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+    // Pin the build date so the last-reviewed age comparison is deterministic;
+    // the default threshold is 365 days.
+    conf.date = .{ .year = 2026, .month = 1, .day = 1 };
+    try tst.expectEqual(@as(u32, 365), conf.review_overdue_days);
+    // overdue_policy.md: last_reviewed 2000-01-01 -> critical.
+    try tst.expectEqual(
+        config.IssueKind.critical,
+        conf.reviewPolicyFile(io, alloc, "src/test/overdue_policy.md"),
+    );
+    // fresh_policy.md: last_reviewed 2025-12-15 (17 days back) -> clean.
+    try tst.expectEqual(
+        config.IssueKind.none,
+        conf.reviewPolicyFile(io, alloc, "src/test/fresh_policy.md"),
+    );
+}
+
 test "policy processing" {
     const test_policy_file = try std.Io.Dir.cwd().openFile(io, "src/test/test_policy.md", .{});
     defer test_policy_file.close(io);
@@ -544,8 +564,7 @@ test "empty frontmatter: blank approved_by → EmptyApprovalForRevision" {
 
 test "raw html: block-level HTML is detected" {
     const alloc = tst.allocator;
-    const f = (try config.findRawHtml(alloc,
-        "Before.\n\n<div class=\"tab-group\">\n<p>site-only</p>\n</div>\n\nAfter.\n")).?;
+    const f = (try config.findRawHtml(alloc, "Before.\n\n<div class=\"tab-group\">\n<p>site-only</p>\n</div>\n\nAfter.\n")).?;
     defer f.deinit(alloc);
     try tst.expect(f.kind == .block);
     try tst.expect(std.mem.startsWith(u8, f.snippet, "<div"));
@@ -621,6 +640,9 @@ test "review: raw HTML in body → critical; clean body → none" {
 
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
+    // Pin the date near the fixtures' 2024-01-01 review so this test isolates
+    // raw-HTML detection from the separate overdue-review check.
+    conf.date = .{ .year = 2024, .month = 6, .day = 1 };
 
     const html_path = try std.fs.path.join(alloc, &.{ tmp_path, "html_policy.md" });
     defer alloc.free(html_path);
@@ -661,6 +683,9 @@ test "review: advisory front matter + raw HTML body → critical (max wins)" {
 
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
+    // Pin near the fixture's 2024-01-01 review so the raw-HTML critical, not the
+    // overdue-review critical, is what this "max wins over advisory" test asserts.
+    conf.date = .{ .year = 2024, .month = 6, .day = 1 };
 
     const path = try std.fs.path.join(alloc, &.{ tmp_path, "advisory_html.md" });
     defer alloc.free(path);
@@ -684,6 +709,48 @@ test "draft mode: typst source includes draft.png page background" {
     try tst.expect(std.mem.indexOf(u8, rendered.source, "#let _pp_draft_bg") != null);
     try tst.expect(std.mem.indexOf(u8, rendered.source, "draft.png") != null);
     try tst.expectEqual(2, std.mem.count(u8, rendered.source, "background: _pp_draft_bg"));
+}
+
+test "redact mode: typst source includes a REDACTED title-page banner" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    conf.redact = true;
+    var rendered = try typst.render(io, alloc, conf, "src/test/test_policy_render.md");
+    defer rendered.deinit(alloc);
+
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "[REDACTED]") != null);
+}
+
+test "non-redact mode: typst source has no REDACTED banner" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    conf.redact = false;
+    var rendered = try typst.render(io, alloc, conf, "src/test/test_policy_render.md");
+    defer rendered.deinit(alloc);
+
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "[REDACTED]") == null);
+}
+
+test "classification: config default appears in the footer, and can be overridden" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    // Default preserves the historical "Confidential" footer.
+    try tst.expectEqualStrings("Confidential", conf.classification);
+    var r1 = try typst.render(io, alloc, conf, "src/test/test_policy_render.md");
+    defer r1.deinit(alloc);
+    try tst.expect(std.mem.indexOf(u8, r1.source, "Confidential") != null);
+
+    // A site-wide override flows into the footer.
+    conf.classification = "Internal Use Only";
+    var r2 = try typst.render(io, alloc, conf, "src/test/test_policy_render.md");
+    defer r2.deinit(alloc);
+    try tst.expect(std.mem.indexOf(u8, r2.source, "Internal Use Only") != null);
 }
 
 test "non-draft mode: typst source excludes draft background" {

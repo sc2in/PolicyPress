@@ -5,6 +5,13 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Weekly rebuild so time-based "Review overdue" badges (rendered from the
+  # build-time date) stay current on quiet repos that rarely push. Runs on the
+  # default branch, so the `github.ref == 'refs/heads/main'` deploy gating below
+  # still holds. Note: GitHub suspends scheduled runs on repos with no activity
+  # for 60 days — a manual run (or any push) re-arms the schedule.
+  schedule:
+    - cron: "17 6 * * 1"
   workflow_dispatch:
     inputs:
       draft:
@@ -40,6 +47,11 @@ jobs:
           name: policies
           path: public/pdfs/
           retention-days: 90
+
+      - name: Pages visibility reminder
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "::notice title=Publishing to GitHub Pages::This run publishes your policy site (and uploads PDFs as an artifact). GitHub Pages is public by default — see the 'GitHub Pages Setup' warning in README.md before relying on it for internal-only policies."
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3

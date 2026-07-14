@@ -6,9 +6,15 @@
 {% set data = load_data(path=config.extra.policypress.tsc2017_controls | default(value="data/tsc2017.yml")) %}
 {% set line_items = tax.items | group_by(attribute="name") %}
 
-{% set covered_count = tax.items | length %}
+{# Coverage = data-file controls with >=1 mapped policy, over the total number
+   of data-file controls. Counting `tax.items | length` (distinct taxonomy terms
+   used) instead would let a typo'd control ID inflate the numerator. #}
+{% set_global covered_count = 0 %}
 {% set_global total_count = 0 %}
-{% for key, item in data %}{% set_global total_count = total_count + 1 %}{% endfor %}
+{% for key, item in data %}
+{% set_global total_count = total_count + 1 %}
+{% if key in line_items %}{% set_global covered_count = covered_count + 1 %}{% endif %}
+{% endfor %}
 {{ macros_coverage::coverage_bar(covered=covered_count, total=total_count, label="SOC 2 TSC Coverage") }}
 
 {# Group controls by family using set_global to track family transitions #}

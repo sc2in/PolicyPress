@@ -34,6 +34,16 @@ pub const Config = struct {
     build_dir: []const u8,
     date: u.Date,
 
+    /// Days after `extra.last_reviewed` at which a policy's review is treated as
+    /// overdue (audit-critical). Configurable via
+    /// `[extra.policypress] review_overdue_days`; defaults to 365 to match the
+    /// templates' one-year (31 557 600 s) "Review overdue" badge threshold.
+    review_overdue_days: u32 = 365,
+    /// Document classification shown centred in the PDF footer. Configurable via
+    /// `[extra.policypress] classification`; a per-policy `extra.classification`
+    /// overrides it. Defaults to "Confidential" (the historical hardcoded value).
+    classification: []const u8 = "Confidential",
+
     zola_config: ?toml.Table,
 
     pub fn format(self: Config, writer: *std.Io.Writer) !void {
@@ -79,6 +89,8 @@ pub const Config = struct {
         try obj.put(alloc, "is_draft", .{ .bool = self.is_draft });
         try obj.put(alloc, "redact", .{ .bool = self.redact });
         try obj.put(alloc, "build_dir", .{ .string = self.build_dir });
+        try obj.put(alloc, "review_overdue_days", .{ .integer = @intCast(self.review_overdue_days) });
+        try obj.put(alloc, "classification", .{ .string = self.classification });
 
         return .{ .object = obj };
     }
@@ -124,6 +136,14 @@ pub const Config = struct {
         });
         config.color = e.getString("pdf_color").?;
         config.org = e.getString("organization").?;
+        // Optional; borrowed from the toml table (kept alive in zola_config),
+        // like `color`/`org`. A non-positive or overflowing value falls back to
+        // the default rather than disabling the check.
+        config.review_overdue_days = if (e.getInteger("review_overdue_days")) |v|
+            (if (v > 0 and v <= std.math.maxInt(u32)) @intCast(v) else 365)
+        else
+            365;
+        config.classification = e.getString("classification") orelse "Confidential";
         config.build_dir = "public";
         config.zola_config = t;
         // PDF redaction is controlled only by --redact/--no-redact (and the
@@ -211,6 +231,38 @@ pub const Config = struct {
     /// Severity of a policy's validation problems.
     pub const IssueKind = enum { none, advisory, critical };
 
+    /// The more severe of two issue kinds (IssueKind is ordered
+    /// none < advisory < critical).
+    fn maxKind(a: IssueKind, b: IssueKind) IssueKind {
+        return if (@intFromEnum(a) >= @intFromEnum(b)) a else b;
+    }
+
+    /// Classify a policy by how long ago it was reviewed. `extra.last_reviewed`
+    /// older than `review_overdue_days` (relative to the build date) is
+    /// audit-critical: on a quiet repo the site's own time-based "Review
+    /// overdue" badge only refreshes on a rebuild, so a PDF can keep asserting a
+    /// review that is really years stale. An unparseable date is advisory — the
+    /// format is the author's to fix, but a garbled review date should not pass
+    /// silently either. A missing date is left to `validateFrontMatter`
+    /// (`error.NoLastReviewInFrontMatter`), so this returns `.none` for it.
+    fn reviewOverdue(self: Config, path: []const u8, frontMatter: zigmark.Frontmatter) IssueKind {
+        const val = frontMatter.get("extra.last_reviewed") orelse return .none;
+        const s = switch (val) {
+            .string => |str| str,
+            else => return .none,
+        };
+        const reviewed = u.Date.parse(s) orelse {
+            conflog.warn("{s}: unparseable extra.last_reviewed '{s}' (expected YYYY-MM-DD); review age not checked (advisory)", .{ path, s });
+            return .advisory;
+        };
+        const age_days = self.date.epochDay() - reviewed.epochDay();
+        if (age_days > @as(i64, self.review_overdue_days)) {
+            conflog.warn("{s}: last reviewed {s} ({d} days ago) exceeds review_overdue_days={d}; the review is overdue", .{ path, s, age_days, self.review_overdue_days });
+            return .critical;
+        }
+        return .none;
+    }
+
     /// Validate one policy file without stopping the build. Checks front matter
     /// and the Markdown body, logging each specific problem and classifying it.
     /// A missing `description` is advisory (it feeds teasers/SEO, not the audit
@@ -236,17 +288,19 @@ pub const Config = struct {
         self.validateFrontMatter(frontMatter) catch |err| switch (err) {
             error.NoDescriptionInFrontMatter, error.NoDescriptionForRevision => {
                 conflog.warn("{s}: missing description (advisory)", .{path});
-                // A body problem outranks the advisory. IssueKind is ordered
-                // none < advisory < critical, so take the more severe of the two.
+                // A body or overdue-review problem outranks the advisory.
+                // IssueKind is ordered none < advisory < critical; take the most
+                // severe across all three checks.
                 const body = reviewPolicyBody(alloc, path, content);
-                return if (@intFromEnum(body) > @intFromEnum(IssueKind.advisory)) body else .advisory;
+                const overdue = self.reviewOverdue(path, frontMatter);
+                return maxKind(maxKind(body, overdue), .advisory);
             },
             else => {
                 conflog.warn("{s}: {s}", .{ path, @errorName(err) });
                 return .critical;
             },
         };
-        return reviewPolicyBody(alloc, path, content);
+        return maxKind(reviewPolicyBody(alloc, path, content), self.reviewOverdue(path, frontMatter));
     }
 
     /// Check the Markdown body for constructs that silently diverge between the

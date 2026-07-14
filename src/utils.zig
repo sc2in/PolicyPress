@@ -366,7 +366,54 @@ pub const Date = struct {
             .day = @as(u8, md.day_index) + 1,
         };
     }
+
+    /// Parse an ISO `YYYY-MM-DD` date (the format policy front matter uses for
+    /// `last_reviewed` and revision dates). Returns null on any malformed input
+    /// — callers treat an unparseable date as advisory, not a hard failure.
+    /// Only the calendar date is validated (ranges, not weekday); a trailing
+    /// time component (e.g. `2025-02-24T00:00:00`) is tolerated and ignored.
+    pub fn parse(s: []const u8) ?Date {
+        if (s.len < 10) return null;
+        if (s[4] != '-' or s[7] != '-') return null;
+        const year = std.fmt.parseInt(u16, s[0..4], 10) catch return null;
+        const month = std.fmt.parseInt(u8, s[5..7], 10) catch return null;
+        const day = std.fmt.parseInt(u8, s[8..10], 10) catch return null;
+        if (month < 1 or month > 12) return null;
+        const dim = std.time.epoch.getDaysInMonth(year, @enumFromInt(month));
+        if (day < 1 or day > dim) return null;
+        return .{ .year = year, .month = month, .day = day };
+    }
+
+    /// Days since the Unix epoch (1970-01-01) for this calendar date, via
+    /// Howard Hinnant's `days_from_civil`. Used to compute review ages in whole
+    /// days without pulling in a date-time dependency.
+    pub fn epochDay(self: Date) i64 {
+        const y: i64 = @as(i64, self.year) - @intFromBool(self.month <= 2);
+        const era: i64 = @divFloor(if (y >= 0) y else y - 399, 400);
+        const yoe: i64 = y - era * 400; // [0, 399]
+        const mp: i64 = @mod(@as(i64, self.month) + 9, 12); // Mar=0..Feb=11
+        const doy: i64 = @divTrunc(153 * mp + 2, 5) + @as(i64, self.day) - 1; // [0, 365]
+        const doe: i64 = yoe * 365 + @divTrunc(yoe, 4) - @divTrunc(yoe, 100) + doy; // [0, 146096]
+        return era * 146097 + doe - 719468;
+    }
 };
+
+test "Date.parse accepts valid ISO dates and rejects malformed ones" {
+    try tst.expectEqual(@as(?Date, .{ .year = 2025, .month = 2, .day = 24 }), Date.parse("2025-02-24"));
+    try tst.expectEqual(@as(?Date, .{ .year = 2024, .month = 2, .day = 29 }), Date.parse("2024-02-29")); // leap day
+    try tst.expectEqual(@as(?Date, null), Date.parse("2025-02-29")); // not a leap year
+    try tst.expectEqual(@as(?Date, null), Date.parse("2025-13-01")); // bad month
+    try tst.expectEqual(@as(?Date, null), Date.parse("2025/02/24")); // wrong separator
+    try tst.expectEqual(@as(?Date, null), Date.parse("nope"));
+}
+
+test "Date.epochDay matches known reference days" {
+    try tst.expectEqual(@as(i64, 0), (Date{ .year = 1970, .month = 1, .day = 1 }).epochDay());
+    // 2025-02-24 minus 2024-02-24 is a leap year apart == 366 days.
+    const a = (Date{ .year = 2024, .month = 2, .day = 24 }).epochDay();
+    const b = (Date{ .year = 2025, .month = 2, .day = 24 }).epochDay();
+    try tst.expectEqual(@as(i64, 366), b - a);
+}
 
 /// Reads all remaining bytes from an already-open file into a fresh allocation.
 /// Replaces 0.15's `File.readToEndAlloc`, which was removed in 0.16.

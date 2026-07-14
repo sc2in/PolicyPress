@@ -8,6 +8,21 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Added
+
+- **Opt-in tagged, accessible PDFs (PDF/UA-1)** (#119). Set
+  `[extra.policypress] pdf_standard = "ua-1"` to emit PDFs with a structure
+  tree, document title, and image alt text — the accessibility standard many
+  procurement reviews require. It is opt-in because ua-1 is a hard-fail
+  standard; to make policies conform, PolicyPress now unconditionally emits the
+  title page as a real level-1 heading (so body headings are consecutive) and a
+  fallback `#set image(alt: …)` (so mermaid diagrams and other images always
+  carry alt text) — both are back-compatible with plain, untagged builds. When
+  `pdf_standard` is set, the build pre-flight also flags a policy that skips a
+  heading level and names the file, because Typst's own error points at an
+  internal temp file that is deleted on failure. The demo docs site now builds
+  as PDF/UA-1; the starter is left untagged. See the "Building PDFs" guide.
+
 ### Accessibility
 
 - **Compliance report sections are now keyboard-operable and work without

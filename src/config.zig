@@ -44,6 +44,11 @@ pub const Config = struct {
     /// overrides it. Defaults to "Confidential" (the historical hardcoded value).
     classification: []const u8 = "Confidential",
 
+    /// Optional Typst `--pdf-standard` value (e.g. "ua-1" for tagged, accessible
+    /// PDFs). Off by default: ua-1 is a hard-fail standard, so it is opt-in via
+    /// `[extra.policypress] pdf_standard`. Borrowed from the toml table.
+    pdf_standard: ?[]const u8 = null,
+
     zola_config: ?toml.Table,
 
     pub fn format(self: Config, writer: *std.Io.Writer) !void {
@@ -91,6 +96,7 @@ pub const Config = struct {
         try obj.put(alloc, "build_dir", .{ .string = self.build_dir });
         try obj.put(alloc, "review_overdue_days", .{ .integer = @intCast(self.review_overdue_days) });
         try obj.put(alloc, "classification", .{ .string = self.classification });
+        try obj.put(alloc, "pdf_standard", if (self.pdf_standard) |v| .{ .string = v } else .null);
 
         return .{ .object = obj };
     }
@@ -144,6 +150,7 @@ pub const Config = struct {
         else
             365;
         config.classification = e.getString("classification") orelse "Confidential";
+        config.pdf_standard = e.getString("pdf_standard");
         config.build_dir = "public";
         config.zola_config = t;
         // PDF redaction is controlled only by --redact/--no-redact (and the
@@ -263,6 +270,15 @@ pub const Config = struct {
         return .none;
     }
 
+    /// Heading-level preflight, active only when a tagged-PDF standard is
+    /// configured (`pdf_standard`). Plain builds never fail on heading levels,
+    /// so this returns `.none` unless the opt-in is set. See
+    /// `reviewHeadingLevels` for the rule.
+    fn reviewHeadings(self: Config, alloc: Allocator, path: []const u8, content: []const u8) IssueKind {
+        if (self.pdf_standard == null) return .none;
+        return reviewHeadingLevels(alloc, path, content);
+    }
+
     /// Validate one policy file without stopping the build. Checks front matter
     /// and the Markdown body, logging each specific problem and classifying it.
     /// A missing `description` is advisory (it feeds teasers/SEO, not the audit
@@ -288,19 +304,23 @@ pub const Config = struct {
         self.validateFrontMatter(frontMatter) catch |err| switch (err) {
             error.NoDescriptionInFrontMatter, error.NoDescriptionForRevision => {
                 conflog.warn("{s}: missing description (advisory)", .{path});
-                // A body or overdue-review problem outranks the advisory.
-                // IssueKind is ordered none < advisory < critical; take the most
-                // severe across all three checks.
+                // A body, overdue-review, or heading-level problem outranks the
+                // advisory. IssueKind is ordered none < advisory < critical;
+                // take the most severe across all checks.
                 const body = reviewPolicyBody(alloc, path, content);
                 const overdue = self.reviewOverdue(path, frontMatter);
-                return maxKind(maxKind(body, overdue), .advisory);
+                const headings = self.reviewHeadings(alloc, path, content);
+                return maxKind(maxKind(maxKind(body, overdue), headings), .advisory);
             },
             else => {
                 conflog.warn("{s}: {s}", .{ path, @errorName(err) });
                 return .critical;
             },
         };
-        return maxKind(reviewPolicyBody(alloc, path, content), self.reviewOverdue(path, frontMatter));
+        return maxKind(
+            maxKind(reviewPolicyBody(alloc, path, content), self.reviewOverdue(path, frontMatter)),
+            self.reviewHeadings(alloc, path, content),
+        );
     }
 
     /// Check the Markdown body for constructs that silently diverge between the
@@ -323,6 +343,41 @@ pub const Config = struct {
             );
             return .critical;
         }
+        return .none;
+    }
+
+    /// When a tagged-PDF standard (`pdf_standard`, e.g. "ua-1") is enabled, a
+    /// skipped heading level is a hard compile error in Typst — and Typst's own
+    /// error points at a hidden `.pp_<hex>_*.typ` temp file that is deleted on
+    /// failure (see typst.zig), so the author is left with nothing to inspect.
+    /// This preflight catches the skip against the Markdown body first and names
+    /// the source file. The PDF's title page is a level-1 heading, so the body's
+    /// first heading may be at most level 2; any jump of more than one level
+    /// (e.g. `##` straight to `####`) is flagged. Returns `.none` otherwise.
+    fn reviewHeadingLevels(alloc: Allocator, path: []const u8, content: []const u8) IssueKind {
+        var parser = zigmark.Parser.init();
+        defer parser.deinit(alloc);
+        var doc = parser.parseMarkdown(alloc, content) catch |err| {
+            conflog.warn("{s}: cannot parse body for heading-level check: {s}", .{ path, @errorName(err) });
+            return .critical;
+        };
+        defer doc.deinit(alloc);
+
+        // The title page contributes a level-1 heading ahead of the body.
+        var prev: u8 = 1;
+        for (doc.children.items) |*block| switch (block.*) {
+            .heading => |h| {
+                if (h.level > prev + 1) {
+                    conflog.warn(
+                        "{s}: heading level jumps from {d} to {d}; PDF/UA-1 forbids skipped heading levels and Typst will fail the compile with an error pointing at a since-deleted temp file",
+                        .{ path, prev, h.level },
+                    );
+                    return .critical;
+                }
+                prev = h.level;
+            },
+            else => {},
+        };
         return .none;
     }
 

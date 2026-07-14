@@ -135,7 +135,7 @@ pub fn compile(
     const out_path = try std.fs.path.join(alloc, &.{ config.build_dir, rendered.pdf_name });
     defer alloc.free(out_path);
 
-    try runTypst(io, env, alloc, typ_abs, out_path, config.root);
+    try runTypst(io, env, alloc, typ_abs, out_path, config.root, config.pdf_standard);
 }
 
 /// Compute the output PDF filename for a policy without rendering it. Used to
@@ -402,6 +402,13 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
     try writeStringLit(writer, opts.author);
     try writer.writeAll("\",\n)\n\n");
 
+    // Fallback alt text for every image lacking an explicit `alt:` — makes the
+    // mermaid `image(bytes(...))` emission (and any future images) satisfy
+    // PDF/UA-1's "every image needs alt text" rule without touching zigmark.
+    // Harmless in a plain (non-ua-1) compile. A meaningful per-diagram label is
+    // an upstream follow-up (see diagrams.zig / the ua-1 guide).
+    try writer.writeAll("#set image(alt: \"Diagram\")\n\n");
+
     // ── Draft watermark helper (reused on body pages and the title page) ─────
     // Full-page draft.png background, matching the pandoc pipeline's
     // page-background variable. The PNG's own alpha carries the opacity.
@@ -533,10 +540,14 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
     // Fixed top padding so the title block appears in the upper-middle area.
     try writer.writeAll("  #v(3cm)\n\n");
 
-    // Title
-    try writer.writeAll("  #text(size: 36pt, weight: \"bold\")[");
+    // Title — emitted as a real level-1 heading (not styled #text) so the
+    // document's heading outline starts at level 1 and the body's `==` headings
+    // are consecutive, which PDF/UA-1 requires. `outlined: false` keeps it out
+    // of the table of contents; the #show-heading rule below tints it #282828,
+    // and the explicit #text size/weight preserves the 36pt bold look.
+    try writer.writeAll("  #heading(level: 1, outlined: false)[#text(size: 36pt, weight: \"bold\")[");
     try writeEscaped(writer, opts.title);
-    try writer.writeAll("]\n\n");
+    try writer.writeAll("]]\n\n");
 
     // Version
     try writer.writeAll("  #v(0.5cm)\n  #text(size: 18pt)[Version v");
@@ -638,6 +649,7 @@ fn runTypst(
     input: []const u8,
     output: []const u8,
     root: []const u8,
+    pdf_standard: ?[]const u8,
 ) !void {
     // Work on a private copy of the environment: the build pipeline runs
     // policies concurrently and shares one env map across tasks, so mutating
@@ -678,7 +690,8 @@ fn runTypst(
         break :blk null;
     };
 
-    var argv_buf: [8][]const u8 = undefined;
+    // Base 4 + optional --font-path (2) + optional --pdf-standard (2) + in/out (2).
+    var argv_buf: [10][]const u8 = undefined;
     var argc: usize = 0;
     for ([_][]const u8{ "typst", "compile", "--root", root_abs }) |arg| {
         argv_buf[argc] = arg;
@@ -687,6 +700,11 @@ fn runTypst(
     if (font_dir) |fd| {
         argv_buf[argc] = "--font-path";
         argv_buf[argc + 1] = fd;
+        argc += 2;
+    }
+    if (pdf_standard) |std_val| {
+        argv_buf[argc] = "--pdf-standard";
+        argv_buf[argc + 1] = std_val;
         argc += 2;
     }
     argv_buf[argc] = input;

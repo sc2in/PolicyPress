@@ -91,6 +91,28 @@ test "review preflight flags overdue policies" {
     );
 }
 
+test "ua-1 preflight flags heading-level skips only when pdf_standard is set" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+    // Pin the date so heading_skip.md's recent review is never the reason.
+    conf.date = .{ .year = 2026, .month = 1, .day = 1 };
+
+    // Off by default: a heading skip is fine for a plain (non-tagged) PDF.
+    try tst.expectEqual(@as(?[]const u8, null), conf.pdf_standard);
+    try tst.expectEqual(
+        config.IssueKind.none,
+        conf.reviewPolicyFile(io, alloc, "src/test/heading_skip.md"),
+    );
+
+    // Opt-in to ua-1: the level skip becomes audit-critical.
+    conf.pdf_standard = "ua-1";
+    try tst.expectEqual(
+        config.IssueKind.critical,
+        conf.reviewPolicyFile(io, alloc, "src/test/heading_skip.md"),
+    );
+}
+
 test "policy processing" {
     const test_policy_file = try std.Io.Dir.cwd().openFile(io, "src/test/test_policy.md", .{});
     defer test_policy_file.close(io);

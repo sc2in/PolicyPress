@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import 'macros/coverage-bar.html' as macros_coverage %}
 
 {% block seo %}
 {{ super() }}
@@ -203,7 +204,10 @@ description=description, is_home=true) }}
 {% endif %}
 
 {% else %}
-{# ===== DASHBOARD LAYOUT (default) ===== #}
+{# ===== DASHBOARD LAYOUT (default) =====
+   A data-driven compliance dashboard: policy count, review status, and
+   framework coverage are computed from the policies themselves, so the page
+   is useful even when extra.frontpage.* is unset. #}
 
 <div id="main-content" class="container py-4">
   <div class="row justify-content-center">
@@ -217,43 +221,171 @@ description=description, is_home=true) }}
         </p>
       </div>
 
-      <!-- Navigation tiles - configured from extra.frontpage.features.cards -->
-      {% if fp.features.cards %}
-      <div class="policy-index-grid" role="navigation" aria-label="Document sections">
-        {% for card in fp.features.cards %}
-        <a href="{{ get_url(path=card.link.url | default(value='/')) | safe }}"
-          class="policy-category-card">
-          {% if card.icon %}
-          <span class="category-icon" aria-hidden="true">
-            <i class="{{ card.icon }}"></i>
-          </span>
-          {% endif %}
-          <span class="category-name">{{ card.title }}</span>
-          <span class="category-meta">{{ card.description | striptags | truncate(length=60) }}</span>
-        </a>
-        {% endfor %}
+      {# ---- Gather policies (section + subsections), guarded ---- #}
+      {% set policy_root = config.extra.policypress.policy_root | default(value="policies/_index.md") %}
+      {% set policy_section = get_section(path=policy_root, required=false) %}
+      {% set_global policies = [] %}
+      {% if policy_section %}
+      {% set_global policies = policy_section.pages %}
+      {% for sub in policy_section.subsections %}
+      {% set subsection = get_section(path=sub) %}
+      {% set_global policies = policies | concat(with=subsection.pages) %}
+      {% endfor %}
+      {% endif %}
+
+      {# ---- Review-status counts (1yr = 31557600s, 9mo = 23668200s) ---- #}
+      {% set today = now() | date(format="%s") | int %}
+      {% set_global overdue_count = 0 %}
+      {% for policy in policies %}
+      {% if policy.extra.last_reviewed %}
+      {% set lr_ts = policy.extra.last_reviewed | date(format="%s") | int %}
+      {% set diff = today - lr_ts %}
+      {% if diff > 31557600 %}{% set_global overdue_count = overdue_count + 1 %}{% endif %}
+      {% endif %}
+      {% endfor %}
+
+      {# ---- Framework coverage (only when the taxonomy + control data exist) ---- #}
+      {% set_global has_scf = false %}
+      {% set_global has_tsc = false %}
+      {% for t in config.taxonomies %}
+      {% if t.name == "SCF" %}{% set_global has_scf = true %}{% endif %}
+      {% if t.name == "TSC2017" %}{% set_global has_tsc = true %}{% endif %}
+      {% endfor %}
+
+      {% set_global scf_pct = -1 %}{% set_global scf_covered = 0 %}{% set_global scf_total = 0 %}
+      {% if has_scf %}
+      {% set scf_data = load_data(path=config.extra.policypress.scf_controls | default(value="data/scf.yml"), required=false) %}
+      {% if scf_data %}
+      {% set scf_tax = get_taxonomy(kind="SCF") %}
+      {% set_global scf_covered = scf_tax.items | length %}
+      {% set_global scf_total = scf_data | length %}
+      {% if scf_total > 0 %}{% set_global scf_pct = (scf_covered / scf_total * 100) | round | int %}{% endif %}
+      {% endif %}
+      {% endif %}
+
+      {% set_global tsc_pct = -1 %}{% set_global tsc_covered = 0 %}{% set_global tsc_total = 0 %}
+      {% if has_tsc %}
+      {% set tsc_data = load_data(path=config.extra.policypress.tsc2017_controls | default(value="data/tsc2017.yml"), required=false) %}
+      {% if tsc_data %}
+      {% set tsc_tax = get_taxonomy(kind="TSC2017") %}
+      {% set_global tsc_covered = tsc_tax.items | length %}
+      {% for key, item in tsc_data %}{% set_global tsc_total = tsc_total + 1 %}{% endfor %}
+      {% if tsc_total > 0 %}{% set_global tsc_pct = (tsc_covered / tsc_total * 100) | round | int %}{% endif %}
+      {% endif %}
+      {% endif %}
+
+      {# ---- Stat tiles ---- #}
+      {% if policies | length > 0 %}
+      <div class="row g-3 mb-4">
+        <div class="col-8 col-lg-4">
+          <div class="card h-100 text-center"><div class="card-body">
+            <div class="h2 mb-0 fw-bold text-nowrap">{{ policies | length }}</div>
+            <div class="text-muted small text-uppercase text-nowrap">Policies</div>
+          </div></div>
+        </div>
+        <div class="col-8 col-lg-4">
+          <div class="card h-100 text-center"><div class="card-body">
+            <div class="h2 mb-0 fw-bold text-nowrap {% if overdue_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ overdue_count }}</div>
+            <div class="text-muted small text-uppercase text-nowrap">Reviews overdue</div>
+          </div></div>
+        </div>
+        {% if scf_pct >= 0 %}
+        <div class="col-8 col-lg-4">
+          <div class="card h-100 text-center"><div class="card-body">
+            <div class="h2 mb-0 fw-bold text-nowrap">{{ scf_pct }}%</div>
+            <div class="text-muted small text-uppercase text-nowrap">SCF coverage</div>
+          </div></div>
+        </div>
+        {% endif %}
+        {% if tsc_pct >= 0 %}
+        <div class="col-8 col-lg-4">
+          <div class="card h-100 text-center"><div class="card-body">
+            <div class="h2 mb-0 fw-bold text-nowrap">{{ tsc_pct }}%</div>
+            <div class="text-muted small text-uppercase text-nowrap">SOC 2 coverage</div>
+          </div></div>
+        </div>
+        {% endif %}
       </div>
       {% endif %}
 
-      <!-- Recent activity strip -->
-      {% set news_section = get_section(path="news/_index.md", required=false) %}
-      {% if news_section and news_section.pages %}
-      <div class="activity-strip">
-        <h2>Recent Updates</h2>
-        <ul class="activity-list" role="list">
-          {% for item in news_section.pages | slice(end=5) %}
-          <li>
-            <time datetime="{{ item.date | date(format='%Y-%m-%d') }}">
-              {{ item.date | date(format='%b %d') }}
-            </time>
-            <a href="{{ item.permalink | safe }}">{{ item.title }}</a>
-          </li>
-          {% endfor %}
-        </ul>
-        <div class="mt-2">
-          <a href="{{ get_url(path='news/') | safe }}" class="btn btn-sm btn-outline-secondary">
-            All updates <i class="fas fa-arrow-right" aria-hidden="true"></i>
+      {# ---- Coverage bars ---- #}
+      {% if scf_pct >= 0 or tsc_pct >= 0 %}
+      <div class="card mb-4"><div class="card-body">
+        <h2 class="h5 mb-3">Compliance coverage</h2>
+        {% if scf_pct >= 0 %}{{ macros_coverage::coverage_bar(covered=scf_covered, total=scf_total, label="SCF") }}{% endif %}
+        {% if tsc_pct >= 0 %}{{ macros_coverage::coverage_bar(covered=tsc_covered, total=tsc_total, label="SOC 2 (TSC 2017)") }}{% endif %}
+        <a href="{{ get_url(path='reports/') | safe }}" class="small">View full reports <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+      </div></div>
+      {% endif %}
+
+      <div class="row g-4">
+        {# ---- Policy review status ---- #}
+        {% if policies | length > 0 %}
+        <div class="col-lg-7">
+          <div class="card h-100"><div class="card-body">
+            <h2 class="h5 mb-3">Policy review status</h2>
+            <div class="list-group list-group-flush">
+              {% for policy in policies | sort(attribute="extra.last_reviewed") %}
+              {% set current_revision = policy.extra.major_revisions | sort(attribute="date") | reverse | first %}
+              <div class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent">
+                <span>
+                  <a href="{{ get_url(path=policy.path) | safe }}">{{ policy.title }}</a>
+                  {% if current_revision %}<span class="text-muted small ms-1">v{{ current_revision.version }}</span>{% endif %}
+                </span>
+                {% if policy.extra.last_reviewed %}
+                {% set lr_ts = policy.extra.last_reviewed | date(format="%s") | int %}
+                {% set diff = today - lr_ts %}
+                {% if diff > 31557600 %}
+                <span class="badge bg-danger">Overdue</span>
+                {% elif diff > 23668200 %}
+                <span class="badge bg-warning text-dark">Due soon</span>
+                {% else %}
+                <span class="badge bg-success-subtle text-success-emphasis">Current</span>
+                {% endif %}
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div></div>
+        </div>
+        {% endif %}
+
+        {# ---- Recent updates ---- #}
+        {% set news_section = get_section(path="news/_index.md", required=false) %}
+        {% if news_section and news_section.pages %}
+        <div class="col-lg-5">
+          <div class="card h-100"><div class="card-body">
+            <h2 class="h5 mb-3">Recent updates</h2>
+            <ul class="activity-list list-unstyled mb-3" role="list">
+              {% for item in news_section.pages | slice(end=5) %}
+              <li class="mb-2">
+                <time class="text-muted small" datetime="{{ item.date | date(format='%Y-%m-%d') }}">{{ item.date | date(format='%b %d') }}</time>
+                <a href="{{ item.permalink | safe }}" class="ms-1">{{ item.title }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+            <a href="{{ get_url(path='news/') | safe }}" class="btn btn-sm btn-outline-secondary">
+              All updates <i class="fas fa-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div></div>
+        </div>
+        {% endif %}
+      </div>
+
+      {# ---- Optional navigation tiles (from extra.frontpage.features.cards) ---- #}
+      {% if fp.features.cards %}
+      <div class="mt-4">
+        <h2 class="h5 mb-3">Browse</h2>
+        <div class="policy-index-grid" role="navigation" aria-label="Document sections">
+          {% for card in fp.features.cards %}
+          <a href="{{ get_url(path=card.link.url | default(value='/')) | safe }}" class="policy-category-card">
+            {% if card.icon %}
+            <span class="category-icon" aria-hidden="true"><i class="{{ card.icon }}"></i></span>
+            {% endif %}
+            <span class="category-name">{{ card.title }}</span>
+            <span class="category-meta">{{ card.description | striptags | truncate(length=60) }}</span>
           </a>
+          {% endfor %}
         </div>
       </div>
       {% endif %}

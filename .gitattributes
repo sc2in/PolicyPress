@@ -1,0 +1,5 @@
+# Vendored binary font assets — never treat as text (no EOL/whitespace munging).
+*.otf binary
+*.ttf binary
+*.woff binary
+*.woff2 binary

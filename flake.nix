@@ -156,6 +156,8 @@
                     ".*\\.min\\.(css|js)$"
                     "static/fontawesome/.*"
                     "static/katex/.*"
+                    # Vendored PDF fonts embedded into the binary (@embedFile)
+                    "src/fonts/.*"
                   ];
                 };
                 taplo.enable = true;
@@ -173,6 +175,7 @@
                   ".*\\.min\\.(css|js)$"
                   "^static/fontawesome/"
                   "^static/katex/"
+                  "^src/fonts/"
                 ];
               in
               {

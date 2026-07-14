@@ -8,8 +8,89 @@
 {% endmacro %}
 
 {% macro stylesheet() %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="{{ get_url(path='fontawesome/css/all.min.css') | safe }}">
 <link rel="stylesheet" href="{{ get_url(path='main.css') | safe }}">
+{% endmacro %}
+
+{# Optional brand color: set config.extra.brand_color (hex, e.g. "#0e90f3") to
+   recolor the web theme's primary/accent surfaces without recompiling SCSS.
+   Falls back to the theme's compiled default when unset. Derived shades use
+   CSS color-mix(); RGB channels are parsed with Tera's int(base=16). #}
+{% macro brand() %}
+{% if config.extra.brand_color %}
+{% set c = config.extra.brand_color %}
+{% set h = c | trim_start_matches(pat="#") %}
+{% set n = h | int(base=16) %}
+{% set r = n / 65536 %}{% set r = r | int %}
+{% set g = n / 256 %}{% set g = g | int %}{% set g = g % 256 %}
+{% set b = n % 256 %}
+<style>
+  :root {
+    --pp-brand: {{ c }};
+    --bs-primary: {{ c }};
+    --bs-primary-rgb: {{ r }},{{ g }},{{ b }};
+    --bs-link-color: {{ c }};
+    --bs-link-color-rgb: {{ r }},{{ g }},{{ b }};
+    --pp-feature-icon-bg: {{ c }};
+    --pp-statistics-bg: {{ c }};
+    --pp-blockquote-border: {{ c }};
+  }
+  .btn-primary {
+    --bs-btn-bg: {{ c }};
+    --bs-btn-border-color: {{ c }};
+    --bs-btn-hover-bg: color-mix(in srgb, {{ c }}, #000 12%);
+    --bs-btn-hover-border-color: color-mix(in srgb, {{ c }}, #000 15%);
+    --bs-btn-active-bg: color-mix(in srgb, {{ c }}, #000 18%);
+    --bs-btn-active-border-color: color-mix(in srgb, {{ c }}, #000 20%);
+    --bs-btn-disabled-bg: {{ c }};
+    --bs-btn-disabled-border-color: {{ c }};
+  }
+  .btn-outline-primary {
+    --bs-btn-color: {{ c }};
+    --bs-btn-border-color: {{ c }};
+    --bs-btn-hover-bg: {{ c }};
+    --bs-btn-hover-border-color: {{ c }};
+    --bs-btn-active-bg: {{ c }};
+    --bs-btn-active-border-color: {{ c }};
+  }
+  [data-bs-theme="dark"] {
+    --bs-link-color: color-mix(in srgb, {{ c }}, #fff 35%);
+    --bs-link-color-rgb: {{ r }},{{ g }},{{ b }};
+    --pp-feature-icon-bg: color-mix(in srgb, {{ c }}, #fff 10%);
+    --pp-statistics-bg: color-mix(in srgb, {{ c }}, #000 10%);
+  }
+  [data-bs-theme="dark"] a:not(.btn):not(.nav-link):not(.navbar-brand):not(.docs-link):not(.dropdown-item) {
+    color: color-mix(in srgb, {{ c }}, #fff 35%);
+  }
+  [data-bs-theme="dark"] .btn-outline-primary {
+    color: color-mix(in srgb, {{ c }}, #fff 40%);
+    border-color: color-mix(in srgb, {{ c }}, #fff 15%);
+    background-color: color-mix(in srgb, {{ c }} 30%, transparent);
+  }
+  [data-bs-theme="dark"] .btn-outline-primary:hover,
+  [data-bs-theme="dark"] .btn-outline-primary:focus,
+  [data-bs-theme="dark"] .btn-outline-primary:active {
+    background-color: color-mix(in srgb, {{ c }}, #fff 20%);
+    border-color: color-mix(in srgb, {{ c }}, #fff 20%);
+    color: #fff;
+  }
+  /* Component surfaces that compiled the SCSS $primary to a literal color */
+  a.docs-link.active,
+  .docs-link.active { background-color: var(--pp-brand); }
+  [data-bs-theme="dark"] a.docs-link.active { background-color: color-mix(in srgb, var(--pp-brand), #000 12%); }
+  .navbar { --bs-navbar-hover-color: var(--pp-brand); }
+  .navbar .btn-link:hover,
+  .navbar .btn-link:active { color: var(--pp-brand); }
+  .control-id-link[href] { color: var(--pp-brand); }
+  .featured-post .featured-card .featured-content .featured-meta .badge,
+  .news-article .article-header .article-category .badge { background: var(--pp-brand); }
+  .sidebar-desktop-toggle:hover { color: var(--pp-brand); border-color: var(--pp-brand); }
+  a.docs-link:focus,
+  .sidebar-section-toggle:focus,
+  .sidebar-desktop-toggle:focus { outline-color: var(--pp-brand); }
+  .nav-pills { --bs-nav-pills-link-active-bg: var(--pp-brand); }
+</style>
+{% endif %}
 {% endmacro %}
 
 {% macro favicons() %}

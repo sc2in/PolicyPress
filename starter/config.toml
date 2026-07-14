@@ -47,6 +47,17 @@ landing_page = true
 blog = false
 policypress_version = "1"
 
+# Homepage layout: "dashboard" (default) shows a compliance dashboard built from
+# your policies (policy count, reviews overdue, framework coverage, review
+# status). "marketing" shows a landing page driven by the [extra.frontpage] keys
+# below. Internal ISMS sites usually want "dashboard".
+homepage_style = "dashboard"
+
+# Optional: brand color for the web theme (buttons, links, accents). Set it to
+# the same value as pdf_color so the site and PDFs share one brand color.
+# Omit to use the theme's default. Applied at load time - no SCSS recompile.
+# brand_color = "#0e90f3"
+
 # PolicyPress configuration
 [extra.policypress]
 # Your organization's name. Used in PDF headers, footers, and policy text
@@ -89,6 +100,8 @@ weight = 10
 name = "github"
 url = "https://github.com/example"
 
+# These keys apply only when homepage_style = "marketing". In the default
+# "dashboard" layout they are ignored (except features.cards, shown as tiles).
 [extra.frontpage]
 [extra.frontpage.hero]
 title = "Security Policies"

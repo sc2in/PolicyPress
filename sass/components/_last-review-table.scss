@@ -19,6 +19,15 @@
     }
   }
 }
+// The status cells keep their light pastel backgrounds in both themes, so their
+// text must stay dark. Without this, dark mode's light body text color is
+// inherited and renders light-on-light (near-unreadable).
+.nine-month,
+.six-month,
+.recent {
+  color: #212529;
+}
+
 .nine-month {
   background-color: rgb(240, 157, 157);
   font-weight: bold;

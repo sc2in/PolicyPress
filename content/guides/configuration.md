@@ -93,9 +93,34 @@ The team page is populated from `[[extra.policyteam.members]]` entries:
 | `image` | string | no | Filename under `static/` |
 | `page` | string | no | Path to a content page for the team member |
 
+## Branding
+
+| Field | Location | Type | Default | Description |
+|---|---|---|---|---|
+| `brand_color` | `[extra]` | string | theme default | Hex color for the **web** theme's primary/accent surfaces (buttons, links, badges, highlights). Applied at load time - no SCSS recompile needed. Set it to the same value as `pdf_color` so web and PDF branding match. |
+| `pdf_color` | `[extra.policypress]` | string | - | Hex accent color for **PDF** cover pages and rules (see Required fields). |
+| `logo` | `[extra.menu]` / `[extra.policypress]` | string | - | The navbar logo is `[extra.menu].logo` (web); the PDF title-page/header logo is `[extra.policypress].logo`; `[extra.schema].logo` and `[extra.open].image` set the JSON-LD and Open Graph images. |
+
+```toml
+[extra]
+brand_color = "#0e90f3"
+```
+
 ## Homepage
 
-The dashboard homepage layout is controlled by `[extra.frontpage]`. All sub-keys are optional - omit any section to hide it.
+Two homepage layouts are available, selected by `homepage_style` in `[extra]`:
+
+| Value | Layout |
+|---|---|
+| `"dashboard"` (default) | A compliance dashboard computed from your policies - policy count, reviews overdue, framework coverage, and a per-policy review-status list - plus any `[extra.frontpage.features.cards]` shown as navigation tiles. Best for an internal ISMS. |
+| `"marketing"` | A landing page (hero, feature grid, quick actions, statistics) driven by `[extra.frontpage]`. Best for a public-facing site. |
+
+```toml
+[extra]
+homepage_style = "dashboard"   # or "marketing"
+```
+
+The `[extra.frontpage]` keys below drive the **marketing** layout. All sub-keys are optional - omit any section to hide it. In dashboard mode only `features.cards` is used (as navigation tiles).
 
 | Section | Description |
 |---|---|

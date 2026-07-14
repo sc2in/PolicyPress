@@ -134,7 +134,13 @@
             color: var(--bs-secondary-color);
             font-style: italic;
             padding: 1rem;
-            background: var(--bs-light);
+            // Use the dark-aware section-title token (gray-100 light / gray-800
+            // dark). Bootstrap's var(--bs-light) is a fixed light gray with no
+            // dark-mode override, so it rendered as a white box on dark report
+            // pages (the [data-bs-theme="dark"] .bg-light rule only recolors the
+            // .bg-light utility class, not the raw var).
+            background: var(--pp-section-title-bg);
+            border: 1px solid var(--bs-border-color);
             border-radius: 4px;
             text-align: center;
           }

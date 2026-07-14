@@ -16,6 +16,7 @@ taxonomies:
     - HRS-05.4
     - HRS-05.5
 extra:
+  math: true
   owner: Security Team
   last_reviewed: 2025-02-24
   major_revisions:
@@ -48,6 +49,18 @@ B -- Yes --> C[Run tests]
 B -- No --> D[End]
 C --> D
 {% end %}
+
+## Math (KaTeX)
+
+Setting `math: true` under `extra` in a page's front matter enables LaTeX math rendering. PolicyPress self-hosts [KaTeX](https://katex.org/) — no third-party CDN is loaded — so math pages work offline and leak no visitor data.
+
+Inline math is wrapped in single dollar signs: the residual risk after applying a control with effectiveness $e$ is $R_{residual} = R_{inherent} \times (1 - e)$.
+
+Display math is wrapped in double dollar signs:
+
+$$Risk = \sum_{i=1}^{n} (Likelihood_i \times Impact_i)$$
+
+Where each $i$ denotes an identified threat scenario, $Likelihood_i \in [0, 1]$, and $Impact_i$ is scored on a scale of $1$ to $5$.
 
 ## Internal Links (Zola link replacement)
 

@@ -34,6 +34,7 @@ config.mode == "Serve" -%}
     </script>
     {{ macros_head::resource() }}
     {{ macros_head::stylesheet() }}
+    {{ macros_head::brand() }}
 
     {% block seo %}
     {% if config.extra.title_separator %}

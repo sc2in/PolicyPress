@@ -8,6 +8,16 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Changed
+
+- Bumped `zigmark` to v0.8.0 and `pozeiden` to v0.3.0. Both upstream releases
+  were written as production security & quality hardening rounds *for*
+  PolicyPress, and PolicyPress now inherits their input caps and injection
+  hardening: zigmark's 16 MiB / 128-depth parser caps and escaped-SVG-attribute
+  emission, and pozeiden's 4 MiB input / 1000-node / 2000-edge diagram caps and
+  thread-safe internals. No PolicyPress source changes were required; both APIs
+  are additive.
+
 ## [1.4.3] - 2026-07-14
 
 ### Added

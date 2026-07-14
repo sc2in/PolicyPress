@@ -6,8 +6,16 @@
 {% set data = load_data(path=config.extra.policypress.scf_controls | default(value="data/scf.yml")) %}
 {% set line_items = tax.items | group_by(attribute="name") %}
 
-{% set covered_count = tax.items | length %}
-{% set total_count = data | length %}
+{# Coverage = distinct data-file control_ids with >=1 mapped policy, over the
+   total number of distinct control_ids. Counting `tax.items | length` (taxonomy
+   terms used) over `data | length` (data rows) mismatched both ends: a typo'd
+   ID inflated the numerator and multi-row controls inflated the denominator. #}
+{% set_global covered_count = 0 %}
+{% set_global total_count = 0 %}
+{% for cid, group in data | group_by(attribute="control_id") %}
+{% set_global total_count = total_count + 1 %}
+{% if cid in line_items %}{% set_global covered_count = covered_count + 1 %}{% endif %}
+{% endfor %}
 {{ macros_coverage::coverage_bar(covered=covered_count, total=total_count, label="SCF Control Coverage") }}
 
 {% set domain_groups = data | group_by(attribute="domain") %}

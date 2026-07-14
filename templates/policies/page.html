@@ -69,13 +69,27 @@ reverse %}
         </h2>
         <div class="policy-meta">
           <i class="fas fa-calendar-check" aria-hidden="true"></i>
-          Last reviewed and approved on {{ page.extra.last_reviewed | date(format="%B %d, %Y") }}
+          Last reviewed on {{ page.extra.last_reviewed | date(format="%B %d, %Y") }}
+          {% if current_version.approved_by %}
+          <span class="policy-approval">&middot; Approved by {{ current_version.approved_by }} (v{{ current_version.version }})</span>
+          {% endif %}
           {% if review_overdue %}
           <span class="badge bg-warning text-dark ms-2">
             <i class="fas fa-clock" aria-hidden="true"></i> Review overdue
           </span>
           {% endif %}
+          {% if page.draft %}
+          <span class="badge bg-secondary ms-2">
+            <i class="fas fa-pencil" aria-hidden="true"></i> Draft
+          </span>
+          {% endif %}
         </div>
+        {% if page.extra.owner %}
+        <div class="policy-meta policy-owner">
+          <i class="fas fa-user-shield" aria-hidden="true"></i>
+          Owner: {{ page.extra.owner }}
+        </div>
+        {% endif %}
         {% if page.description %}
         <p class="policy-description">{{ page.description }}</p>
         {% endif %}

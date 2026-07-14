@@ -458,6 +458,19 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
                 "policypress: policy validation found {d} audit-critical and {d} advisory issue(s).",
                 .{ critical, advisory },
             );
+            // Surface the summary as a GitHub Actions annotation so it appears
+            // in the workflow run UI, not only in the (often-collapsed) log.
+            // Composite-action step stdout is annotation-eligible; per-file
+            // annotations are a noted follow-up.
+            if (env.get("GITHUB_ACTIONS") != null) {
+                var abuf: [256]u8 = undefined;
+                var aout = std.Io.File.stdout().writer(io, &abuf);
+                aout.interface.print(
+                    "::warning title=PolicyPress preflight::{d} audit-critical and {d} advisory policy issue(s); see the build log for per-file detail.\n",
+                    .{ critical, advisory },
+                ) catch {};
+                aout.interface.flush() catch {};
+            }
         }
         if (strict and critical > 0) {
             std.log.err(

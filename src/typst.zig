@@ -59,9 +59,14 @@ const DocOpts = struct {
     /// (or the watermark image is missing).
     draft_bg: ?[]const u8,
     footer_left: []const u8,
+    /// Classification shown centred in the footer (e.g. "Confidential").
     footer_center: []const u8,
     version: []const u8,
     last_reviewed: []const u8,
+    /// Whether this is a redacted build. Adds an in-document "REDACTED" banner
+    /// to the title page so a printed redacted PDF is self-identifying, not just
+    /// distinguishable by filename.
+    redact: bool = false,
 };
 
 /// A fully rendered policy: the Typst source and the sanitised PDF filename.
@@ -233,6 +238,16 @@ pub fn render(
     const header_title = try std.fmt.allocPrint(alloc, "{s} v{s}", .{ raw_title, fm.most_recent_version });
     defer alloc.free(header_title);
 
+    // Footer classification: a per-policy `extra.classification` overrides the
+    // site default (`config.classification`, itself "Confidential" unless set).
+    // Borrowed from raw_fm/config, both alive until the source is materialised.
+    const footer_center: []const u8 = blk: {
+        if (raw_fm.get("extra.classification")) |v| {
+            if (v == .string and v.string.len > 0) break :blk v.string;
+        }
+        break :blk config.classification;
+    };
+
     // Logo as a root-absolute Typst path ("/static/logo.png"): Typst resolves
     // leading-`/` paths against --root, independent of the .typ location.
     // Skip the logo if the file is absent.
@@ -268,9 +283,10 @@ pub fn render(
         .logo = logo,
         .draft_bg = draft_bg,
         .footer_left = footer_left,
-        .footer_center = "Confidential",
+        .footer_center = footer_center,
         .version = fm.most_recent_version,
         .last_reviewed = fm.last_reviewed,
+        .redact = config.redact,
     });
     try zigmark.renderTypstWithMermaid(alloc, &aw.writer, doc, &renderMermaid);
     try writeVersionHistory(&aw.writer, &raw_fm);
@@ -503,6 +519,16 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
         try writer.writeAll("  background: _pp_draft_bg,\n");
     }
     try writer.writeAll(")[\n");
+
+    // Redacted marking: a printed redacted PDF must be self-identifying in the
+    // document body, not merely by its filename. A draft build already carries
+    // the full-page watermark; this adds an unmistakable title-page banner.
+    if (opts.redact) {
+        try writer.writeAll(
+            "  #align(center)[#box(fill: rgb(\"#c0392b\"), inset: (x: 12pt, y: 6pt), radius: 3pt)[#text(fill: white, weight: \"bold\", size: 14pt, tracking: 2pt)[REDACTED]]]\n" ++
+                "  #v(0.5cm)\n\n",
+        );
+    }
 
     // Fixed top padding so the title block appears in the upper-middle area.
     try writer.writeAll("  #v(3cm)\n\n");

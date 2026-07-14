@@ -8,6 +8,41 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Added
+
+- **The build pre-flight now flags overdue policy reviews** (#119). A policy
+  whose `extra.last_reviewed` is older than `review_overdue_days` (default 365,
+  relative to the build date) is reported as audit-critical: a warning by
+  default, fatal with `--strict`. On a quiet repo the website's own time-based
+  "Review overdue" badge only refreshes on a rebuild, so a PDF could keep
+  asserting a review that was really years stale. An unparseable date is
+  advisory. Configure the window with `[extra.policypress] review_overdue_days`.
+- **Redacted PDFs now carry an in-document "REDACTED" title-page banner**, so a
+  printed redacted copy is self-identifying rather than distinguishable only by
+  filename (draft builds already carry a full-page watermark).
+- **The PDF footer classification is configurable.** It defaults to
+  "Confidential" (the previous hardcoded value); set a site-wide default with
+  `[extra.policypress] classification`, or override per policy with
+  `extra.classification` in front matter.
+- **Policy pages now render the document owner** (`extra.owner`, previously
+  documented but shown nowhere) and, in `--drafts` builds, a Draft badge.
+- The starter workflow now runs a weekly scheduled rebuild so time-based
+  "Review overdue" badges stay current on repositories that rarely push, and
+  prints a GitHub Pages visibility reminder on deploy.
+
+### Fixed
+
+- **Compliance coverage percentages are now computed honestly** (#119). The
+  SOC 2 TSC and SCF report bars counted *distinct taxonomy terms used* as the
+  numerator, so a typo'd control ID inflated coverage (and the SCF denominator
+  double-counted multi-row controls). Coverage is now "data-file controls with
+  at least one mapped policy" over the total number of controls, and the bar is
+  clamped so it can never exceed 100%.
+- Policy metadata no longer claims a document was "reviewed and approved on" the
+  last-reviewed date. It now shows the review date and, separately, the approver
+  and version from the latest revision — an approval date and a review date are
+  not the same fact.
+
 ### Changed
 
 - Bumped `zigmark` to v0.8.0 and `pozeiden` to v0.3.0. Both upstream releases

@@ -3,6 +3,9 @@
 {% set _c = covered | float %}
 {% set _t = total | float %}
 {% set pct = (_c / _t * 100) | round | int %}
+{# Defensive clamp: with a correct numerator pct is already <= 100, but a
+   stray mapping should never render a >100% bar or a bar wider than its track. #}
+{% if pct > 100 %}{% set pct = 100 %}{% endif %}
 {% else %}
 {% set pct = 0 %}
 {% endif %}

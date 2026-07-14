@@ -532,11 +532,16 @@
             };
 
             devShells.default = pkgs.mkShell {
+              # Note: the `policypress` package is deliberately NOT a devShell
+              # input. Building it requires a valid build.zig.zon2json-lock, but
+              # the shellHook below regenerates that lock on entry — so depending
+              # on the package here would deadlock the shell whenever a dep bump
+              # leaves the lock stale (the sandbox has no network to fetch the
+              # new dep). Develop with `zig build` / `nix run .#` instead.
               buildInputs =
                 runtimeDeps
                 ++ config.pre-commit.settings.enabledPackages
                 ++ [
-                  policypress
                   zig
                   pkgs.act
                   pkgs.omnix

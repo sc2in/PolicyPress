@@ -207,6 +207,11 @@ organization = "PolicyPress"
 logo = "logo.png"
 pdf_color = "#0e90f3"
 lead = "Security Policy Center for Our Business"
+# Emit tagged, accessible PDF/UA-1 PDFs. Recommended, but opt-in: ua-1 is a
+# hard-fail standard (every image needs alt text; headings must start at level 1
+# and never skip a level), so enabling it can turn a previously-fine policy into
+# a build error. See the "Accessible (tagged) PDFs" guide before turning it on.
+pdf_standard = "ua-1"
 # scf_controls = "data/scf.yml"         # optional: override default SCF control data path
 # tsc2017_controls = "data/tsc2017.yml" # optional: override default TSC2017 control data path
 

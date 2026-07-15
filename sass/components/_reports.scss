@@ -251,7 +251,9 @@
   margin-left: 0.5rem;
   font-size: 0.75rem;
   font-weight: normal;
-  color: var(--bs-secondary-color);
+  // Body colour (not the lighter secondary token) so the count meets the AA
+  // 4.5:1 ratio against the section-header background in both themes.
+  color: var(--bs-body-color);
   vertical-align: middle;
 }
 

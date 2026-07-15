@@ -24,48 +24,66 @@
 {% set r = n / 65536 %}{% set r = r | int %}
 {% set g = n / 256 %}{% set g = g | int %}{% set g = g % 256 %}
 {% set b = n % 256 %}
+{# Brand darkened ~30% (channels × 0.70) for text / white-on-brand surfaces so
+   they meet WCAG AA 4.5:1. Bootstrap 5.3 renders link colour from the *-rgb
+   variable (rgba(var(--bs-link-color-rgb),1)), so the darkened rgb must be set
+   there too, not only on --bs-link-color. #}
+{% set rs = r * 70 / 100 %}{% set rs = rs | int %}
+{% set gs = g * 70 / 100 %}{% set gs = gs | int %}
+{% set bs = b * 70 / 100 %}{% set bs = bs | int %}
 <style>
   :root {
     --pp-brand: {{ c }};
+    --pp-brand-strong: rgb({{ rs }},{{ gs }},{{ bs }});
     --bs-primary: {{ c }};
     --bs-primary-rgb: {{ r }},{{ g }},{{ b }};
-    --bs-link-color: {{ c }};
-    --bs-link-color-rgb: {{ r }},{{ g }},{{ b }};
+    --bs-link-color: var(--pp-brand-strong);
+    --bs-link-color-rgb: {{ rs }},{{ gs }},{{ bs }};
     --pp-feature-icon-bg: {{ c }};
-    --pp-statistics-bg: {{ c }};
+    --pp-statistics-bg: var(--pp-brand-strong);
     --pp-blockquote-border: {{ c }};
   }
   .btn-primary {
-    --bs-btn-bg: {{ c }};
-    --bs-btn-border-color: {{ c }};
-    --bs-btn-hover-bg: color-mix(in srgb, {{ c }}, #000 12%);
-    --bs-btn-hover-border-color: color-mix(in srgb, {{ c }}, #000 15%);
-    --bs-btn-active-bg: color-mix(in srgb, {{ c }}, #000 18%);
-    --bs-btn-active-border-color: color-mix(in srgb, {{ c }}, #000 20%);
-    --bs-btn-disabled-bg: {{ c }};
-    --bs-btn-disabled-border-color: {{ c }};
+    /* Darkened brand so the white button label meets 4.5:1. */
+    --bs-btn-bg: var(--pp-brand-strong);
+    --bs-btn-border-color: var(--pp-brand-strong);
+    --bs-btn-hover-bg: color-mix(in srgb, {{ c }}, #000 38%);
+    --bs-btn-hover-border-color: color-mix(in srgb, {{ c }}, #000 40%);
+    --bs-btn-active-bg: color-mix(in srgb, {{ c }}, #000 44%);
+    --bs-btn-active-border-color: color-mix(in srgb, {{ c }}, #000 46%);
+    --bs-btn-disabled-bg: var(--pp-brand-strong);
+    --bs-btn-disabled-border-color: var(--pp-brand-strong);
   }
   .btn-outline-primary {
-    --bs-btn-color: {{ c }};
-    --bs-btn-border-color: {{ c }};
-    --bs-btn-hover-bg: {{ c }};
-    --bs-btn-hover-border-color: {{ c }};
-    --bs-btn-active-bg: {{ c }};
-    --bs-btn-active-border-color: {{ c }};
+    /* Darkened brand so the resting outline label meets 4.5:1 on white. */
+    --bs-btn-color: var(--pp-brand-strong);
+    --bs-btn-border-color: var(--pp-brand-strong);
+    --bs-btn-hover-bg: var(--pp-brand-strong);
+    --bs-btn-hover-border-color: var(--pp-brand-strong);
+    --bs-btn-active-bg: var(--pp-brand-strong);
+    --bs-btn-active-border-color: var(--pp-brand-strong);
   }
   [data-bs-theme="dark"] {
-    --bs-link-color: color-mix(in srgb, {{ c }}, #fff 35%);
+    /* Lighter brand for links on dark surfaces (50% white) so they clear
+       4.5:1 even on tinted card backgrounds. */
+    --bs-link-color: color-mix(in srgb, {{ c }}, #fff 50%);
     --bs-link-color-rgb: {{ r }},{{ g }},{{ b }};
     --pp-feature-icon-bg: color-mix(in srgb, {{ c }}, #fff 10%);
-    --pp-statistics-bg: color-mix(in srgb, {{ c }}, #000 10%);
+    --pp-statistics-bg: var(--pp-brand-strong);
   }
-  [data-bs-theme="dark"] a:not(.btn):not(.nav-link):not(.navbar-brand):not(.docs-link):not(.dropdown-item) {
-    color: color-mix(in srgb, {{ c }}, #fff 35%);
+  [data-bs-theme="dark"] a:not(.btn):not(.nav-link):not(.navbar-brand):not(.docs-link):not(.dropdown-item):not(.skip-link) {
+    color: color-mix(in srgb, {{ c }}, #fff 50%);
   }
+  /* Skip link keeps a white label on the darkened brand in both themes. It is
+     a single critical a11y control, so !important guards it against any theme
+     link-colour rule. */
+  .skip-link { color: #fff !important; }
   [data-bs-theme="dark"] .btn-outline-primary {
-    color: color-mix(in srgb, {{ c }}, #fff 40%);
+    /* Lighter label (50% white) on a transparent resting fill so the outline
+       button meets 4.5:1 on dark card surfaces. */
+    color: color-mix(in srgb, {{ c }}, #fff 50%);
     border-color: color-mix(in srgb, {{ c }}, #fff 15%);
-    background-color: color-mix(in srgb, {{ c }} 30%, transparent);
+    background-color: transparent;
   }
   [data-bs-theme="dark"] .btn-outline-primary:hover,
   [data-bs-theme="dark"] .btn-outline-primary:focus,
@@ -76,14 +94,15 @@
   }
   /* Component surfaces that compiled the SCSS $primary to a literal color */
   a.docs-link.active,
-  .docs-link.active { background-color: var(--pp-brand); }
-  [data-bs-theme="dark"] a.docs-link.active { background-color: color-mix(in srgb, var(--pp-brand), #000 12%); }
+  .docs-link.active { background-color: var(--pp-brand-strong); }
+  [data-bs-theme="dark"] a.docs-link.active { background-color: var(--pp-brand-strong); }
   .navbar { --bs-navbar-hover-color: var(--pp-brand); }
   .navbar .btn-link:hover,
   .navbar .btn-link:active { color: var(--pp-brand); }
-  .control-id-link[href] { color: var(--pp-brand); }
+  .control-id-link[href] { color: var(--pp-brand-strong); }
+  [data-bs-theme="dark"] .control-id-link[href] { color: color-mix(in srgb, var(--pp-brand), #fff 35%); }
   .featured-post .featured-card .featured-content .featured-meta .badge,
-  .news-article .article-header .article-category .badge { background: var(--pp-brand); }
+  .news-article .article-header .article-category .badge { background: var(--pp-brand-strong); }
   .sidebar-desktop-toggle:hover { color: var(--pp-brand); border-color: var(--pp-brand); }
   a.docs-link:focus,
   .sidebar-section-toggle:focus,

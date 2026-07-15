@@ -51,7 +51,9 @@
   padding: 0.25rem 0.55rem;
   border-radius: 0.2rem;
   background: var(--bs-secondary-bg);
-  color: var(--bs-secondary-color);
+  // Body colour (not the lighter secondary token) to clear AA 4.5:1 on the
+  // subtle tag background.
+  color: var(--bs-body-color);
   text-decoration: none;
   font-family: $font-family-monospace;
   font-size: 0.8rem;

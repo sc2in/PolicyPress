@@ -35,8 +35,9 @@ description=description, is_home=true) }}
 {% if homepage_style == "marketing" %}
 {# ===== MARKETING LAYOUT (opt-in via extra.homepage_style = "marketing") ===== #}
 
+<main id="main-content">
 <!-- Hero Section -->
-<section class="hero-section" role="banner">
+<section class="hero-section">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-lg-10 text-center">
@@ -76,7 +77,7 @@ description=description, is_home=true) }}
   </div>
 </section>
 
-<section id="main-content" class="features-section">
+<section class="features-section">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-lg-10">
@@ -202,6 +203,7 @@ description=description, is_home=true) }}
   </div>
 </section>
 {% endif %}
+</main>
 
 {% else %}
 {# ===== DASHBOARD LAYOUT (default) =====
@@ -209,7 +211,7 @@ description=description, is_home=true) }}
    framework coverage are computed from the policies themselves, so the page
    is useful even when extra.frontpage.* is unset. #}
 
-<div id="main-content" class="container py-4">
+<main id="main-content" class="container py-4">
   <div class="row justify-content-center">
     <div class="col-xl-10">
 
@@ -392,7 +394,7 @@ description=description, is_home=true) }}
 
     </div>
   </div>
-</div>
+</main>
 
 {% endif %}
 

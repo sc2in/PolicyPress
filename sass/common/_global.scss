@@ -371,3 +371,38 @@ article {
     color: #000 !important;
   }
 }
+
+// Heading anchor links (Zola `insert_anchor_links`). The 🔗 is revealed only on
+// heading hover / keyboard focus. Hidden by default it declutters headings and
+// stays out of axe's "link in text block" (1.4.1) check, while the aria-label
+// keeps it available to assistive tech; :focus-visible reveals it for keyboard
+// users.
+.zola-anchor {
+  opacity: 0;
+  margin-left: 0.35rem;
+  font-size: 0.8em;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--bs-link-color);
+    outline-offset: 2px;
+  }
+}
+
+h1:hover > .zola-anchor,
+h2:hover > .zola-anchor,
+h3:hover > .zola-anchor,
+h4:hover > .zola-anchor,
+h5:hover > .zola-anchor,
+h6:hover > .zola-anchor {
+  opacity: 1;
+}
+
+// In-prose links get an underline so they are distinguishable from body text by
+// more than colour (WCAG 1.4.1). Excludes the heading anchor icon, buttons, and
+// badge-like links which are distinguished by shape/placement.
+.content a[href]:not(.zola-anchor):not(.btn):not(.badge) {
+  text-decoration: underline;
+}

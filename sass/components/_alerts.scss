@@ -91,7 +91,10 @@
   .admonition-title {
     font-weight: 600;
     font-size: $font-size-md;
-    color: var(--adm-color);
+    // Blend the (bright) accent toward the body colour so the title text meets
+    // AA 4.5:1 on the subtle tint — darker in light mode, lighter in dark mode —
+    // while keeping the accent hue. The border-left still uses the pure accent.
+    color: color-mix(in srgb, var(--adm-color) 42%, var(--bs-body-color));
     margin: 0 0 0.5rem;
     display: flex;
     align-items: center;

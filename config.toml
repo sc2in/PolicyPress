@@ -286,7 +286,7 @@ link = { url = "/guides/building-pdfs/", text = "PDF Guide" }
 icon = "fas fa-eye-slash"
 title = "Draft & Redaction"
 description = "Mark content as draft to watermark it, or wrap sensitive notes in redact blocks so internal text never appears in published output."
-link = { url = "/policies/policypress-feature-showcase/", text = "See it in action" }
+link = { url = "/policies/example-security-policy/", text = "See it in action" }
 
 [[extra.frontpage.features.cards]]
 icon = "fas fa-clipboard-check"

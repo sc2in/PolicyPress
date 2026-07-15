@@ -78,6 +78,36 @@ versioning; breaking changes to it bump the major version.
   `aria-expanded`/`aria-activedescendant`, a `listbox` of `option`s, and a polite
   live-region result count); and rendered mermaid diagrams carry
   `role="img"` with a fallback label.
+- **The site now passes automated WCAG 2.1/2.2 AA checks (axe-core) on every
+  page type, in light and dark mode** (#119). Fixes surfaced by axe:
+  - Report pages gained a real `<title>` and a `<main>` landmark; the default
+    page/section, team, 404, and home templates now expose their content
+    through a `<main>` landmark (clearing "no main landmark" / "content not in
+    a landmark"); the marketing hero moved inside `<main>` and dropped its
+    duplicate `role="banner"`.
+  - **Brand-colour contrast**: the brand blue (`#0e90f3`) failed 4.5:1 both as
+    link/label text and behind white text. A darkened `--pp-brand-strong`
+    (with its rgb set so Bootstrap 5.3's `*-rgb` link colour picks it up) now
+    backs links, primary/outline buttons, the active nav item, brand badges,
+    the skip link, and the stats band; dark-mode brand text is lightened to
+    stay legible on dark surfaces.
+  - Muted/secondary text, control-count hints, satisfies tags, and admonition
+    (callout) titles were darkened/blended to meet 4.5:1 in both themes.
+  - In-prose links are underlined (not colour-only); heading anchor links are
+    revealed on hover/focus (out of the "link in text block" check); a team
+    heading-order skip and the section index's `<h3>` were corrected.
+- **Automated accessibility gate**: a new CI step runs axe-core (vendored,
+  self-hosted — no npm/CDN) over a representative page of every template in
+  both colour schemes and fails on any A/AA violation. See `tests/a11y/`.
+
+### Changed
+
+- **Consolidated the two demo policies into one.** The separate
+  "PolicyPress Feature Showcase" was folded into the **Example Security
+  Policy**, which already demonstrates every shortcode, callout, diagram,
+  redaction, and compliance mapping in context — so there is a single reference
+  policy rather than two overlapping ones. Its taxonomy mappings were merged in
+  to preserve coverage.
 
 ### Added
 

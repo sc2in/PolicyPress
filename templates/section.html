@@ -35,13 +35,13 @@ description=description) }}
 
 {% block content %}
 
-<article id="main-content">
+<main id="main-content">
   <div class="page-header">
     <h1>{{ section.title }}</h1>
   </div>
   {{ section.content | safe }}
   {% if section.subsections -%}
-  <h3>Subsections:</h3>
+  <h2>Subsections:</h2>
   <ul>
     {% for subsec in section.subsections -%}
     {% set sec_ = get_section(path=subsec) -%}
@@ -50,7 +50,7 @@ description=description) }}
     {% endfor %}
   </ul>
   {% endif -%}
-  <h3>Pages:</h3>
+  <h2>Pages:</h2>
   <ul>
     {% if section.pages -%}
     {% for page in section.pages -%}
@@ -61,6 +61,6 @@ description=description) }}
     <li>No pages</li>
     {% endif %}
   </ul>
-</article>
+</main>
 
 {% endblock content %}

@@ -15,7 +15,27 @@ function inputFocus(e) {
 
   if (e.keyCode === 27) {
     userinput.blur();
-    suggestions.classList.add("d-none");
+    hideSuggestions();
+  }
+}
+
+// Collapse the suggestion listbox and reset the combobox's expanded state.
+function hideSuggestions() {
+  suggestions.classList.add("d-none");
+  userinput.setAttribute("aria-expanded", "false");
+  userinput.removeAttribute("aria-activedescendant");
+}
+
+// Mark one option as the active descendant of the combobox (screen readers
+// announce it) and clear the flag on the others.
+function setActiveOption(option) {
+  suggestions.querySelectorAll('a[role="option"]').forEach(function (a) {
+    a.setAttribute("aria-selected", a === option ? "true" : "false");
+  });
+  if (option && option.id) {
+    userinput.setAttribute("aria-activedescendant", option.id);
+  } else {
+    userinput.removeAttribute("aria-activedescendant");
   }
 }
 
@@ -23,7 +43,7 @@ document.addEventListener("click", function (event) {
   var isClickInsideElement = suggestions.contains(event.target);
 
   if (!isClickInsideElement) {
-    suggestions.classList.add("d-none");
+    hideSuggestions();
   }
 });
 
@@ -51,10 +71,12 @@ function suggestionFocus(e) {
     e.preventDefault();
     nextIndex = index > 0 ? index - 1 : 0;
     focusableSuggestions[nextIndex].focus();
+    setActiveOption(focusableSuggestions[nextIndex]);
   } else if (e.keyCode === 40) {
     e.preventDefault();
     nextIndex = index + 1 < focusable.length ? index + 1 : index;
     focusableSuggestions[nextIndex].focus();
+    setActiveOption(focusableSuggestions[nextIndex]);
   }
 }
 
@@ -88,6 +110,7 @@ Source:
     var items = value.split(/\s+/);
     suggestions.classList.remove("d-none");
 
+    var optionIndex = 0;
     results.forEach(function (page) {
       if (page.doc.body !== "") {
         entry = document.createElement("div");
@@ -98,15 +121,34 @@ Source:
           (t = entry.querySelector("span:first-child")),
           (d = entry.querySelector("span:nth-child(2)")));
         a.href = page.ref;
+        a.setAttribute("role", "option");
+        a.id = "search-option-" + optionIndex;
+        a.setAttribute("aria-selected", "false");
         t.textContent = page.doc.title;
         d.innerHTML = makeTeaser(page.doc.body, items);
 
         suggestions.appendChild(entry);
+        optionIndex++;
       }
     });
 
     while (childs.length > len) {
       suggestions.removeChild(childs[i]);
+    }
+
+    // Reflect the open/closed state and announce the result count politely.
+    var count = suggestions.querySelectorAll('a[role="option"]').length;
+    userinput.setAttribute("aria-expanded", count > 0 ? "true" : "false");
+    userinput.removeAttribute("aria-activedescendant");
+    var status = document.getElementById("search-status");
+    if (status) {
+      if (value === "") {
+        status.textContent = "";
+      } else if (count === 0) {
+        status.textContent = "No results";
+      } else {
+        status.textContent = count + (count === 1 ? " result" : " results");
+      }
     }
   }
 

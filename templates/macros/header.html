@@ -9,6 +9,7 @@
 		</button>
 		<a class="navbar-brand order-1 order-md-0 me-auto"
 			href="{{ config.base_url | safe }}"><img class="brand-logo"
+				alt="{{ config.extra.policypress.organization | default(value=config.title | default(value='PolicyPress')) }} logo"
 				src="{{ get_url(path=config.extra.menu.logo) }}">{{
 			config.title |
 			default(value="PolicyPress") }}</a>
@@ -80,11 +81,14 @@
 			</ul>
 			<div class="break order-6 d-md-none"></div>
 			{% if config.build_search_index %}
-			<form class="navbar-form ms-auto order-8 order-md-3">
+			<form class="navbar-form ms-auto order-8 order-md-3" role="search">
 				<input id="userinput" class="form-control is-search" type="search"
 					placeholder="Search policies..."
-					aria-label="Search policies..." autocomplete="on">
-				<div id="suggestions"></div>
+					aria-label="Search policies..." autocomplete="off"
+					role="combobox" aria-expanded="false" aria-controls="suggestions"
+					aria-autocomplete="list" aria-haspopup="listbox">
+				<div id="suggestions" role="listbox" aria-label="Search suggestions"></div>
+				<div id="search-status" class="sr-only" aria-live="polite"></div>
 			</form>
 			{% endif %}
 		</div>

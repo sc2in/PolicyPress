@@ -92,11 +92,13 @@ if (savedSidebar === "0") setSidebar(false);
 // same platform choice carries over to every page that has matching tabs.
 (function initTabGroups() {
   var groups = document.querySelectorAll(".tab-group");
+  var groupSeq = 0;
   groups.forEach(function (group) {
     var panes = Array.from(
       group.querySelectorAll(":scope > .tab-pane[data-tab]"),
     );
     if (!panes.length) return;
+    groupSeq++;
 
     // Stable key: sorted tab names joined, so GitHub/ADO tabs on every page share state.
     var tabNames = panes.map(function (p) {
@@ -116,35 +118,90 @@ if (savedSidebar === "0") setSidebar(false);
     nav.className = "tab-nav";
     nav.setAttribute("role", "tablist");
 
+    var tabs = [];
+
+    // Select tab `i`: update roving tabindex, aria-selected, and pane
+    // visibility, persist the choice, and optionally move focus (keyboard nav).
+    function activate(i, focus) {
+      panes.forEach(function (p) {
+        p.hidden = true;
+      });
+      tabs.forEach(function (t) {
+        t.classList.remove("active");
+        t.setAttribute("aria-selected", "false");
+        t.setAttribute("tabindex", "-1");
+      });
+      var tab = tabs[i];
+      tab.classList.add("active");
+      tab.setAttribute("aria-selected", "true");
+      tab.setAttribute("tabindex", "0");
+      panes[i].hidden = false;
+      localStorage.setItem(storageKey, tabNames[i]);
+      if (focus) tab.focus();
+    }
+
     panes.forEach(function (pane, i) {
       var name = pane.getAttribute("data-tab");
       var active = name === preferred;
+      var tabId = "pp-tab-" + groupSeq + "-" + i;
+      var paneId = "pp-tabpanel-" + groupSeq + "-" + i;
 
       var btn = document.createElement("li");
       btn.className = "tab-nav-item" + (active ? " active" : "");
+      btn.id = tabId;
       btn.setAttribute("role", "tab");
       btn.setAttribute("aria-selected", active ? "true" : "false");
       btn.setAttribute("tabindex", active ? "0" : "-1");
+      btn.setAttribute("aria-controls", paneId);
       btn.textContent = name;
+
+      // Pane becomes a labelled, focusable tabpanel.
+      pane.id = paneId;
+      pane.setAttribute("role", "tabpanel");
+      pane.setAttribute("aria-labelledby", tabId);
+      pane.setAttribute("tabindex", "0");
       pane.hidden = !active;
 
       btn.addEventListener("click", function () {
-        nav.querySelectorAll(".tab-nav-item").forEach(function (b) {
-          b.classList.remove("active");
-          b.setAttribute("aria-selected", "false");
-          b.setAttribute("tabindex", "-1");
-        });
-        panes.forEach(function (p) {
-          p.hidden = true;
-        });
-        btn.classList.add("active");
-        btn.setAttribute("aria-selected", "true");
-        btn.setAttribute("tabindex", "0");
-        pane.hidden = false;
-        localStorage.setItem(storageKey, name);
+        activate(i, false);
       });
 
+      tabs.push(btn);
       nav.appendChild(btn);
+    });
+
+    // ARIA APG tabs pattern, automatic activation: arrows move focus and select
+    // (wrapping), Home/End jump to the ends, Enter/Space (re)activate.
+    nav.addEventListener("keydown", function (e) {
+      var current = tabs.indexOf(document.activeElement);
+      if (current === -1) return;
+      var next = null;
+      switch (e.key) {
+        case "ArrowRight":
+        case "ArrowDown":
+          next = (current + 1) % tabs.length;
+          break;
+        case "ArrowLeft":
+        case "ArrowUp":
+          next = (current - 1 + tabs.length) % tabs.length;
+          break;
+        case "Home":
+          next = 0;
+          break;
+        case "End":
+          next = tabs.length - 1;
+          break;
+        case "Enter":
+        case " ":
+        case "Spacebar":
+          activate(current, true);
+          e.preventDefault();
+          return;
+        default:
+          return;
+      }
+      activate(next, true);
+      e.preventDefault();
     });
 
     group.insertBefore(nav, group.firstChild);

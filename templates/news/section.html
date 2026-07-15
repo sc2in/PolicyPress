@@ -39,9 +39,9 @@ description=description) }}
 {% endblock header %}
 
 {% block content %}
-<article class="news-container" role="main">
-  <!-- Skip link for keyboard navigation -->
-  <a href="#news-content" class="skip-link">Skip to news content</a>
+<article class="news-container" role="main" id="main-content">
+  {# Skip link is provided once by base.html (href="#main-content"); this
+     article carries that id, so no second skip link is needed here. #}
 
   <div class="page-header">
     <h1 class="text-center">{{ section.title }}</h1>

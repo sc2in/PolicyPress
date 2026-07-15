@@ -40,28 +40,47 @@
       .section-title {
         background: var(--pp-section-title-bg);
         color: var(--bs-heading-color);
-        padding: 1rem 1.5rem;
         margin: 0;
         font-size: 1.25rem;
         font-weight: 600;
         border-bottom: 1px solid var(--bs-border-color);
+      }
+
+      // The section header is a real <button> for keyboard operation and
+      // focus; `all: unset` strips the UA button chrome so it inherits the
+      // header's look, then flex lays out title / badge / +- indicator.
+      .section-toggle {
+        all: unset;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 1rem 1.5rem;
         cursor: pointer;
+        font: inherit;
+        color: inherit;
         transition: background-color 0.2s ease;
 
         &:hover {
           background: var(--pp-section-title-hover-bg);
         }
 
+        &:focus-visible {
+          outline: 2px solid var(--bs-link-color);
+          outline-offset: -2px;
+        }
+
         &::after {
           content: "\02795"; // plus sign
+          margin-left: auto; // push the indicator to the far right
           font-size: 0.9rem;
+          font-weight: normal;
           color: var(--bs-secondary-color);
-          float: right;
-          margin-left: 1rem;
           transition: transform 0.2s ease;
         }
 
-        &.active::after {
+        &[aria-expanded="true"]::after {
           content: "\2796"; // minus sign
           transform: rotate(180deg);
         }
@@ -197,8 +216,10 @@
 // would win by source order and defeat the dark-mode value (report section
 // headers rendered as white bars in dark mode).
 
-// Performance optimizations for large content
-.report-section {
+// Collapsible sections — gated under .pp-js (set by reports/base.html) so that
+// without JavaScript every section stays fully visible and readable rather than
+// collapsed-and-unopenable. The @media print block below force-expands them.
+.pp-js .report-section {
   .section-content {
     max-height: 0;
     overflow: hidden;

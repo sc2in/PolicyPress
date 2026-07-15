@@ -56,7 +56,11 @@ pub fn rewriteHtml(alloc: Allocator, html: []const u8) !?RewriteResult {
 
         if (renderSvg(alloc, source)) |svg| {
             defer alloc.free(svg);
-            try out.appendSlice(alloc, "<figure class=\"mermaid-diagram\">");
+            // role="img" + a fallback label so assistive tech announces the
+            // diagram rather than reading the raw SVG node soup. A meaningful
+            // per-diagram label needs alt text from the mermaid source, which is
+            // an upstream zigmark/pozeiden follow-up.
+            try out.appendSlice(alloc, "<figure class=\"mermaid-diagram\" role=\"img\" aria-label=\"Diagram\">");
             try out.appendSlice(alloc, svg);
             try out.appendSlice(alloc, "</figure>");
             count += 1;

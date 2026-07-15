@@ -28,7 +28,9 @@ table {
 
   &.badge-split-scf {
     .badge-split-label {
-      background-color: var(--bs-primary);
+      // Darkened brand (not raw --bs-primary) so the white label meets AA 4.5:1;
+      // falls back to --bs-primary when no brand colour is configured.
+      background-color: var(--pp-brand-strong, var(--bs-primary));
       color: #fff;
     }
     .badge-split-count {
@@ -39,7 +41,8 @@ table {
 
   &.badge-split-soc2 {
     .badge-split-label {
-      background-color: var(--bs-success);
+      // Darken the success green so the white label clears AA 4.5:1.
+      background-color: color-mix(in srgb, var(--bs-success), #000 18%);
       color: #fff;
     }
     .badge-split-count {

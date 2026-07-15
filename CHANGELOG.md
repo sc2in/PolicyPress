@@ -21,7 +21,10 @@ versioning; breaking changes to it bump the major version.
   `pdf_standard` is set, the build pre-flight also flags a policy that skips a
   heading level and names the file, because Typst's own error points at an
   internal temp file that is deleted on failure. The demo docs site now builds
-  as PDF/UA-1; the starter is left untagged. See the "Building PDFs" guide.
+  as PDF/UA-1; the starter is left untagged. See the "Building PDFs" guide. A
+  `nix flake check` gate (`checks.pdf-accessibility`) validates the demo PDFs
+  against PDF/UA-1 with veraPDF, so a rendering change cannot silently break
+  conformance.
 
 ### Accessibility
 

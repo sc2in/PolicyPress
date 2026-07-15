@@ -92,6 +92,27 @@
               );
             };
 
+            # Source for the PDF-accessibility check: the buildable Zig sources
+            # plus everything the binary needs to compile the demo policies to
+            # PDF (config.toml, content, static). Templates/sass are web-only.
+            pdfCheckSrc = lib.fileset.toSource {
+              root = ./.;
+              fileset = lib.fileset.intersection (lib.fileset.gitTracked ./.) (
+                lib.fileset.unions (
+                  [
+                    ./build.zig
+                    ./build.zig.zon
+                    ./src
+                    ./config.toml
+                    ./content
+                    ./static
+                  ]
+                  ++ lib.optional (builtins.pathExists ./build.zig.zon2json-lock) ./build.zig.zon2json-lock
+                  ++ lib.optional (builtins.pathExists ./theme.toml) ./theme.toml
+                )
+              );
+            };
+
             # Fonts for typst (Source Sans 3 body, Source Code Pro mono).
             # TYPST_FONT_PATHS is walked recursively by typst-cli; typst falls
             # back to its embedded fonts when a family is missing.
@@ -247,6 +268,33 @@
                   zola check --skip-external-links
                   touch $out
                 '';
+
+            # Validate the tagged PDFs actually conform to PDF/UA-1, using
+            # veraPDF (the PDF Association's reference validator). Builds the
+            # demo policies (config.toml has pdf_standard = "ua-1") and fails if
+            # any PDF is non-conformant — a regression gate so a rendering change
+            # can't silently break accessibility. Runs headless (no GUI).
+            checks.pdf-accessibility = (mkPolicypress null).overrideAttrs (old: {
+              pname = "policypress-pdf-accessibility";
+              src = pdfCheckSrc;
+              buildPhase = ''
+                export HOME="$TMPDIR"
+                zig build
+                mkdir -p public/pdfs
+                ./zig-out/bin/policypress -c config.toml -o public/pdfs
+                echo "Validating PDF/UA-1 conformance with veraPDF…"
+                verapdf --flavour ua1 --format text public/pdfs/*.pdf
+              '';
+              installPhase = "touch $out";
+              nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ runtimeDeps ++ [ pkgs.verapdf ];
+              TYPST_FONT_PATHS = "${typstFonts}/share/fonts";
+              TYPST_IGNORE_SYSTEM_FONTS = "true";
+              # Keep veraPDF's JVM off any display in the sandbox.
+              _JAVA_OPTIONS = "-Djava.awt.headless=true";
+              meta = (old.meta or { }) // {
+                description = "Validate demo PDFs against PDF/UA-1 with veraPDF";
+              };
+            });
 
             # --- Apps (nix run .#<name>) -----------------------------------------
 

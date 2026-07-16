@@ -22,6 +22,19 @@ versioning; breaking changes to it bump the major version.
 
 ### Internal
 
+- Added rulesets-as-code (`.github/rulesets/*.json`) with a `sync-rulesets`
+  workflow that reconciles the live branch rulesets by name on push to `main`.
+  The `protect-main` ruleset now declares **required status checks**
+  (`ci (ubuntu-latest)` / `ci (macos-latest)`) so main can no longer be merged
+  red — previously main had no required checks. Inert until the repository
+  owner creates a `RULESET_SYNC_TOKEN` secret.
+- Made `main` gate on a single accountable owner. A `CODEOWNERS` file assigns
+  every path to `@sc2ben`, and the `Default` ruleset now requires one
+  code-owner approval (`require_code_owner_review`) with bypass restricted to
+  the repository Admin role (no longer the broad Organization-admin actor).
+  Every change to main is therefore approved by the accountable account, and
+  only that account can bypass. (`require_last_push_approval` is dropped: with a
+  code-owner gate it only produced review deadlocks on a two-maintainer repo.)
 - Added golden snapshots of the generated Typst markup (`golden_test.zig`,
   baselines in `tests/golden/`, regenerate with `zig build update-golden`). They
   render fixtures under a date-pinned config and diff byte-for-byte, so any

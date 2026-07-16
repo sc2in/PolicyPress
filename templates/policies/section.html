@@ -16,7 +16,7 @@ macros_policies_latest_revision -%}
 {% set index_path = current_path ~ "_index.md" | trim_start_matches(pat="/") %}
 {% set index = get_section(path=index_path) %}
 
-<article id="main-content">
+<main id="main-content">
   <h1>{{ section.title }}</h1>
   {% if section.content %}
   <div class="section-description">{{ section.content | safe }}</div>
@@ -141,6 +141,6 @@ macros_policies_latest_revision -%}
   {% endif %}
   {% endfor %}
   {% endif %}
-</article>
+</main>
 
 {% endblock content %}

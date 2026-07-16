@@ -28,13 +28,6 @@ versioning; breaking changes to it bump the major version.
   (`ci (ubuntu-latest)` / `ci (macos-latest)`) so main can no longer be merged
   red — previously main had no required checks. Inert until the repository
   owner creates a `RULESET_SYNC_TOKEN` secret.
-- Made `main` gate on a single accountable owner. A `CODEOWNERS` file assigns
-  every path to `@sc2ben`, and the `Default` ruleset now requires one
-  code-owner approval (`require_code_owner_review`) with bypass restricted to
-  the repository Admin role (no longer the broad Organization-admin actor).
-  Every change to main is therefore approved by the accountable account, and
-  only that account can bypass. (`require_last_push_approval` is dropped: with a
-  code-owner gate it only produced review deadlocks on a two-maintainer repo.)
 - Added golden snapshots of the generated Typst markup (`golden_test.zig`,
   baselines in `tests/golden/`, regenerate with `zig build update-golden`). They
   render fixtures under a date-pinned config and diff byte-for-byte, so any
@@ -64,6 +57,25 @@ versioning; breaking changes to it bump the major version.
   `nix flake check` gate (`checks.pdf-accessibility`) validates the demo PDFs
   against PDF/UA-1 with veraPDF, so a rendering change cannot silently break
   conformance.
+- **The build pre-flight now flags overdue policy reviews** (#119). A policy
+  whose `extra.last_reviewed` is older than `review_overdue_days` (default 365,
+  relative to the build date) is reported as audit-critical: a warning by
+  default, fatal with `--strict`. On a quiet repo the website's own time-based
+  "Review overdue" badge only refreshes on a rebuild, so a PDF could keep
+  asserting a review that was really years stale. An unparseable date is
+  advisory. Configure the window with `[extra.policypress] review_overdue_days`.
+- **Redacted PDFs now carry an in-document "REDACTED" title-page banner**, so a
+  printed redacted copy is self-identifying rather than distinguishable only by
+  filename (draft builds already carry a full-page watermark).
+- **The PDF footer classification is configurable.** It defaults to
+  "Confidential" (the previous hardcoded value); set a site-wide default with
+  `[extra.policypress] classification`, or override per policy with
+  `extra.classification` in front matter.
+- **Policy pages now render the document owner** (`extra.owner`, previously
+  documented but shown nowhere) and, in `--drafts` builds, a Draft badge.
+- The starter workflow now runs a weekly scheduled rebuild so time-based
+  "Review overdue" badges stay current on repositories that rarely push, and
+  prints a GitHub Pages visibility reminder on deploy.
 
 ### Accessibility
 
@@ -85,28 +97,43 @@ versioning; breaking changes to it bump the major version.
   `aria-expanded`/`aria-activedescendant`, a `listbox` of `option`s, and a polite
   live-region result count); and rendered mermaid diagrams carry
   `role="img"` with a fallback label.
+- **The site now passes automated WCAG 2.1/2.2 AA checks (axe-core) on every
+  page type, in light and dark mode** (#119). Fixes surfaced by axe:
+  - Report pages gained a real `<title>` and a `<main>` landmark; the default
+    page/section, team, 404, and home templates now expose their content
+    through a `<main>` landmark (clearing "no main landmark" / "content not in
+    a landmark"); the marketing hero moved inside `<main>` and dropped its
+    duplicate `role="banner"`.
+  - **Brand-colour contrast**: the brand blue (`#0e90f3`) failed 4.5:1 both as
+    link/label text and behind white text. A darkened `--pp-brand-strong`
+    (with its rgb set so Bootstrap 5.3's `*-rgb` link colour picks it up) now
+    backs links, primary/outline buttons, the active nav item, brand badges,
+    the skip link, and the stats band; dark-mode brand text is lightened to
+    stay legible on dark surfaces.
+  - Muted/secondary text, control-count hints, satisfies tags, and admonition
+    (callout) titles were darkened/blended to meet 4.5:1 in both themes.
+  - In-prose links are underlined (not colour-only); heading anchor links are
+    revealed on hover/focus (out of the "link in text block" check); a team
+    heading-order skip and the section index's `<h3>` were corrected.
+- **Automated accessibility gate**: a new CI step runs axe-core (vendored,
+  self-hosted — no npm/CDN) over a representative page of every template in
+  both colour schemes and fails on any A/AA violation. See `tests/a11y/`.
 
-### Added
+### Changed
 
-- **The build pre-flight now flags overdue policy reviews** (#119). A policy
-  whose `extra.last_reviewed` is older than `review_overdue_days` (default 365,
-  relative to the build date) is reported as audit-critical: a warning by
-  default, fatal with `--strict`. On a quiet repo the website's own time-based
-  "Review overdue" badge only refreshes on a rebuild, so a PDF could keep
-  asserting a review that was really years stale. An unparseable date is
-  advisory. Configure the window with `[extra.policypress] review_overdue_days`.
-- **Redacted PDFs now carry an in-document "REDACTED" title-page banner**, so a
-  printed redacted copy is self-identifying rather than distinguishable only by
-  filename (draft builds already carry a full-page watermark).
-- **The PDF footer classification is configurable.** It defaults to
-  "Confidential" (the previous hardcoded value); set a site-wide default with
-  `[extra.policypress] classification`, or override per policy with
-  `extra.classification` in front matter.
-- **Policy pages now render the document owner** (`extra.owner`, previously
-  documented but shown nowhere) and, in `--drafts` builds, a Draft badge.
-- The starter workflow now runs a weekly scheduled rebuild so time-based
-  "Review overdue" badges stay current on repositories that rarely push, and
-  prints a GitHub Pages visibility reminder on deploy.
+- **Consolidated the two demo policies into one.** The separate
+  "PolicyPress Feature Showcase" was folded into the **Example Security
+  Policy**, which already demonstrates every shortcode, callout, diagram,
+  redaction, and compliance mapping in context — so there is a single reference
+  policy rather than two overlapping ones. Its taxonomy mappings were merged in
+  to preserve coverage.
+- Bumped `zigmark` to v0.8.0 and `pozeiden` to v0.3.0. Both upstream releases
+  were written as production security & quality hardening rounds *for*
+  PolicyPress, and PolicyPress now inherits their input caps and injection
+  hardening: zigmark's 16 MiB / 128-depth parser caps and escaped-SVG-attribute
+  emission, and pozeiden's 4 MiB input / 1000-node / 2000-edge diagram caps and
+  thread-safe internals. No PolicyPress source changes were required; both APIs
+  are additive.
 
 ### Fixed
 
@@ -121,15 +148,6 @@ versioning; breaking changes to it bump the major version.
   and version from the latest revision — an approval date and a review date are
   not the same fact.
 
-### Changed
-
-- Bumped `zigmark` to v0.8.0 and `pozeiden` to v0.3.0. Both upstream releases
-  were written as production security & quality hardening rounds *for*
-  PolicyPress, and PolicyPress now inherits their input caps and injection
-  hardening: zigmark's 16 MiB / 128-depth parser caps and escaped-SVG-attribute
-  emission, and pozeiden's 4 MiB input / 1000-node / 2000-edge diagram caps and
-  thread-safe internals. No PolicyPress source changes were required; both APIs
-  are additive.
 
 ## [1.4.3] - 2026-07-14
 

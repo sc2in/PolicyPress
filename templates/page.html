@@ -43,13 +43,13 @@ created_time=created_time, updated_time=updated_time, page_section=page_section)
 
 {% block content %}
 
-<article id="main-content">
+<main id="main-content">
   <div class="page-header">
     <h1>{{ page.title }}</h1>
   </div>
   {% if page.extra.lead %}<p class="lead">{{ page.extra.lead }}</p>{%
   endif %}
   {{ page.content | safe }}
-</article>
+</main>
 
 {% endblock content %}

@@ -19,6 +19,10 @@ taxonomies:
     - IAC-02
     - HRS-05
     - HRS-05.1
+    - HRS-05.2
+    - HRS-05.3
+    - HRS-05.4
+    - HRS-05.5
     - CRY-01
     - DCH-01
 extra:

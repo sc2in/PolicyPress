@@ -122,6 +122,15 @@ jobs:
           zig build
           bash tests/redaction-leak-check.sh
 
+      # Web accessibility gate: serve the site and run axe-core (vendored) over a
+      # representative page of every template in light and dark mode; fail on any
+      # WCAG A/AA violation. chromium + node come from nixpkgs (no npm).
+      - name: Accessibility scan (axe-core)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        shell: nix develop --command bash -e {0}
+        run: |
+          nix shell nixpkgs#chromium nixpkgs#nodejs --command bash tests/a11y/scan.sh
+
       - name: Collect artifacts
         if: ${{ success() && matrix.os == 'ubuntu-latest' && (github.ref_type == 'tag' || github.ref_name == 'main') }}
         run: |

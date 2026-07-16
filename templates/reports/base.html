@@ -1,5 +1,36 @@
 {% extends "base.html" %}
 
+{# Report pages are rendered from a page (e.g. reports/scf.md with template=)
+   or a section; without this block they inherit no <title>, which screen
+   readers and WCAG 2.4.2 (Level A) flag as a missing/uninformative title. #}
+{% block seo %}
+{{ super() }}
+{% set title_addition = "" %}
+{% if page %}
+{% set node_title = page.title %}
+{% set node_description = page.description %}
+{% elif section %}
+{% set node_title = section.title %}
+{% set node_description = section.description %}
+{% else %}
+{% set node_title = config.title %}
+{% set node_description = config.description %}
+{% endif %}
+
+{% if node_title and config.title %}
+{% set title = node_title %}
+{% set title_addition = title_separator ~ config.title %}
+{% elif node_title %}
+{% set title = node_title %}
+{% else %}
+{% set title = config.title %}
+{% endif %}
+
+{% set description = node_description | default(value=config.description) %}
+
+{{ macros_head::seo(title=title, title_addition=title_addition, description=description) }}
+{% endblock seo %}
+
 {% block content %}
 <script>
   // Progressive enhancement: flag that JS is active so the collapse CSS (gated
@@ -7,7 +38,7 @@
   // expanded-then-collapsed content. Without JS the sections stay fully visible.
   document.documentElement.classList.add('pp-js');
 </script>
-<div class="report-container" id="main-content">
+<main class="report-container" id="main-content">
   <div class="report-header">
     {% if page %}
     <h1>{{ page.title }}</h1>
@@ -34,7 +65,7 @@
   <div class="report-content">
     {% block report_content %}{% endblock report_content %}
   </div>
-</div>
+</main>
 
 <script>
 // Open or close one section. Drives the toggle button's aria-expanded, the

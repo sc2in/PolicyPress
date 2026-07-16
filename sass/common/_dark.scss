@@ -59,7 +59,9 @@ $link-color-dark: $blue-300;
   // consistently without relying on Bootstrap 5.3 native dark mode support.
   --bs-body-color: #{$body-color};
   --bs-body-bg: #{$body-bg};
-  --bs-secondary-color: #{$gray-600};
+  // Darkened from $gray-600 (#6c757d, 4.44:1 on white — just under AA) to a
+  // shade that clears 4.5:1 for muted/secondary text site-wide.
+  --bs-secondary-color: #5c636a;
   --bs-heading-color: #{$black};
   --bs-link-color: #{$primary};
   --bs-link-hover-color: #{darken($primary, 15%)};

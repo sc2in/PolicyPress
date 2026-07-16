@@ -6,7 +6,9 @@
   position: fixed;
   top: -40px;
   left: 6px;
-  background: $primary;
+  // Darkened brand so the white label meets AA; falls back to $primary when
+  // no brand colour is configured.
+  background: var(--pp-brand-strong, #{$primary});
   color: $white;
   padding: 8px;
   text-decoration: none;

@@ -37,7 +37,7 @@ description=description) }}
 {% endblock body %}
 
 {% block content %}
-<article class="team-container" id="main-content">
+<main class="team-container" id="main-content">
   <div class="page-header">
     <h1 class="text-center">{{ team_section.title }}</h1>
     {% if team_section.content %}
@@ -59,10 +59,10 @@ description=description) }}
         {% endif %}
 
         <div class="member-info">
-          <h3 class="member-name">
+          <h2 class="member-name">
             <a href="{{ member.permalink | safe }}"
               class="stretched-link text-body">{{ member.title }}</a>
-          </h3>
+          </h2>
 
           {% if member.extra.position %}
           <p class="member-position">{{ member.extra.position }}</p>
@@ -102,5 +102,5 @@ description=description) }}
       <code>content/team/</code> directory.</p>
   </div>
   {% endif %}
-</article>
+</main>
 {% endblock content %}

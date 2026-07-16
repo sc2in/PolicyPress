@@ -25,11 +25,11 @@ pub fn build(b: *std.Build) !void {
 
     const mvzr = b.dependency("mvzr", .{
         .target = target,
-        .optimize = .ReleaseSafe,
+        .optimize = optimize,
     });
     const clap = b.dependency("clap", .{
         .target = target,
-        .optimize = .ReleaseSafe,
+        .optimize = optimize,
     });
     // const zetta_dep = b.dependency("zetta", .{
     //     .target = target,
@@ -78,7 +78,7 @@ pub fn build(b: *std.Build) !void {
         const server_mod = b.addModule("server", .{
             .root_source_file = b.path("src/server.zig"),
             .target = target,
-            .optimize = .ReleaseFast,
+            .optimize = optimize,
         });
         server_mod.addImport("zap", zap.module("zap"));
         server_mod.addImport("clap", clap.module("clap"));
@@ -134,7 +134,7 @@ pub fn build(b: *std.Build) !void {
 
     const reports_mod = b.addModule("policy_report", .{
         .target = target,
-        .optimize = .ReleaseFast,
+        .optimize = optimize,
         .root_source_file = b.path("src/control_report.zig"),
     });
     reports_mod.addImport("clap", clap.module("clap"));

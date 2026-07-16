@@ -278,6 +278,30 @@ pub fn build(b: *std.Build) !void {
         update_golden_step.dependOn(&update_golden.step);
     }
     {
+        // Fuzz harness for PolicyPress's own surfaces (src/fuzz.zig).
+        //   zig build fuzz          — run each target once (smoke test)
+        //   zig build fuzz --fuzz   — coverage-guided fuzzing
+        const fuzz_module = b.addModule("fuzz", .{
+            .root_source_file = b.path("src/fuzz.zig"),
+            .target = target,
+            .optimize = .Debug,
+        });
+        fuzz_module.addImport("config", config_mod);
+        fuzz_module.addImport("utils", utils_mod);
+        fuzz_module.addImport("zigmark", zigmark_mod);
+        fuzz_module.addImport("tomlz", tomlz.module("tomlz"));
+        const fuzz_tests = b.addTest(.{
+            .root_module = fuzz_module,
+            // The self-hosted backend omits sanitizer-coverage sections,
+            // leaving the pcs array empty and panicking in Build/Fuzz.zig.
+            // LLVM emits the required __sancov_pcs1/__sancov_cntrs sections.
+            .use_llvm = true,
+        });
+        const run_fuzz = b.addRunArtifact(fuzz_tests);
+        const fuzz_step = b.step("fuzz", "Run fuzz tests (append --fuzz for coverage-guided fuzzing)");
+        fuzz_step.dependOn(&run_fuzz.step);
+    }
+    {
         // `zig build check` - semantic analysis without emitting a binary.
         // Used by ZLS for IDE diagnostics and as a fast CI sanity check.
         const check_step = b.step("check", "Semantic analysis (no binary emitted, used by ZLS)");

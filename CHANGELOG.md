@@ -10,6 +10,17 @@ versioning; breaking changes to it bump the major version.
 
 ### Internal
 
+- **CI now produces self-attestation evidence.** Every main-branch and tag run
+  uploads an `attestation-evidence` artifact (90-day retention) containing:
+  a CycloneDX 1.5 SBOM of the Zig dependencies compiled into the binary
+  (`tools/sbom.sh`, generated from the lock file's pinned URLs and SRI
+  hashes); a structured record of every `nix flake check` with captured build
+  logs (`tools/check-evidence.sh`); the veraPDF PDF/UA-1 validation reports
+  (text + JSON — the `pdf-accessibility` check now writes them into its own
+  `$out`, so the published evidence is the CI gate's hermetic output); and
+  the axe-core scan results as JSON (`A11Y_REPORT`, no behaviour change when
+  unset). GitHub Releases additionally ship `sbom.cdx.json` beside
+  `SHA256SUMS.txt`.
 - Build: the `mvzr`, `clap`, preview-server, and report modules now inherit the
   top-level `-Doptimize` instead of pinning `ReleaseSafe`/`ReleaseFast`, so a
   single build compiles each dependency at one optimize level instead of

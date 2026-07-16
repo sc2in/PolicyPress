@@ -8,6 +8,28 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Security
+
+- **The PDF colour is now validated as a bare hex value before it is
+  interpolated into the Typst preamble.** `pdf_color` was written straight into
+  `rgb("#…")`, so a malformed or hostile value could break out of the call and
+  inject arbitrary Typst (which can read files within the build root). Non-hex
+  values now fall back to black with a warning.
+- **File-read byte caps are centralized and tightened.** The former 100 MB
+  policy reads are capped at zigmark's 16 MiB parse ceiling (a larger file could
+  not be parsed anyway), and config reads at 1 MiB, so a malformed or hostile
+  file cannot drive an unbounded allocation.
+
+### Internal
+
+- Added a fuzz harness (`zig build fuzz`) for PolicyPress's own config/front
+  matter/raw-HTML/redaction/shortcode surfaces, and new `nix flake check` gates:
+  a fuzz smoke run, `zig fmt --check`, a ReleaseSafe test build (the shipped
+  binary is ReleaseSafe but tests ran Debug only), and the redaction-leak
+  integration check (previously only a GitHub step). Pinned the remaining
+  third-party GitHub Actions to commit SHAs; GitHub-owned `actions/*` stay
+  tag-pinned.
+
 ### Added
 
 - **Opt-in tagged, accessible PDFs (PDF/UA-1)** (#119). Set

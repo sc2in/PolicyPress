@@ -75,7 +75,7 @@ pub const Config = struct {
     }
     pub fn load_config_toml(io: std.Io, alloc: Allocator) !Config {
         conflog.debug("Loading config.toml", .{});
-        const content = try std.Io.Dir.cwd().readFileAlloc(io, "config.toml", alloc, .limited(1024 * 1024));
+        const content = try std.Io.Dir.cwd().readFileAlloc(io, "config.toml", alloc, .limited(u.max_config_bytes));
         defer alloc.free(content);
 
         return try Config.load(io, alloc, content);
@@ -199,7 +199,7 @@ pub const Config = struct {
             if (std.mem.eql(u8, entry.basename, "_index.md")) continue;
             conflog.debug("Validating Policy File: {s}\n", .{entry.path});
 
-            const content = try policy_dir.readFileAlloc(io, entry.path, alloc, .limited(10 * 1024 * 1024));
+            const content = try policy_dir.readFileAlloc(io, entry.path, alloc, .limited(u.max_policy_bytes));
             defer alloc.free(content);
 
             var frontMatter = try zigmark.Frontmatter.initFromMarkdown(alloc, content);
@@ -289,7 +289,7 @@ pub const Config = struct {
     /// `reviewPolicyBody`). The caller decides whether critical issues abort the
     /// build (see `--strict`). `path` is resolved from cwd.
     pub fn reviewPolicyFile(self: Config, io: std.Io, alloc: Allocator, path: []const u8) IssueKind {
-        const content = std.Io.Dir.cwd().readFileAlloc(io, path, alloc, .limited(10 * 1024 * 1024)) catch |err| {
+        const content = std.Io.Dir.cwd().readFileAlloc(io, path, alloc, .limited(u.max_policy_bytes)) catch |err| {
             conflog.warn("{s}: cannot read for validation: {s}", .{ path, @errorName(err) });
             return .critical;
         };

@@ -8,6 +8,13 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Internal
+
+- Build: the `mvzr`, `clap`, preview-server, and report modules now inherit the
+  top-level `-Doptimize` instead of pinning `ReleaseSafe`/`ReleaseFast`, so a
+  single build compiles each dependency at one optimize level instead of
+  several (#138).
+
 ## [1.5.0] - 2026-07-15
 
 ### Security

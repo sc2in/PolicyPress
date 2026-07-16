@@ -1,0 +1,7 @@
+# Everything on the default branch is owned by the accountable maintainer.
+# Combined with the `Default` ruleset's `require_code_owner_review` + a
+# one-approval requirement, this means every change that lands on main must be
+# approved by @sc2ben. Only @sc2ben (the sole repo admin, the one bypass actor)
+# can approve or bypass; other collaborators open PRs but cannot self-merge to
+# main. See .github/rulesets/ and CONTRIBUTING.md ("Releasing").
+* @sc2ben

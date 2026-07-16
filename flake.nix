@@ -628,20 +628,37 @@
 
                     echo "Updated build.zig.zon, config.toml, CHANGELOG.md"
 
+                    branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+
                     if [ "$commit" = 1 ]; then
                       git add build.zig.zon config.toml CHANGELOG.md
                       git commit -m "chore: release $new"
                       echo ""
-                      echo "Committed 'chore: release $new'. Publish with:"
-                      echo "  git tag v$new && git push origin HEAD v$new"
+                      echo "Committed 'chore: release $new' on '$branch'."
                     else
                       echo ""
-                      echo "Files edited (not committed). Then:"
+                      echo "Files edited (not committed). Commit with:"
                       echo "  git add build.zig.zon config.toml CHANGELOG.md && git commit -m 'chore: release $new'"
-                      echo "  git tag v$new && git push origin HEAD v$new"
                     fi
+
                     echo ""
-                    echo "On tag push, CI builds binaries, cuts the GitHub release, and publishes to FlakeHub."
+                    echo "Releasing (main is protected: direct pushes are rejected — a PR + green CI is required):"
+                    if [ "$branch" = "main" ]; then
+                      echo "  ! You are on 'main'. Move the release work onto a branch first:"
+                      echo "      git switch -c release-$new"
+                      if [ "$commit" = 1 ]; then
+                        echo "      git branch --force main origin/main   # rewind local main back to origin"
+                      fi
+                      echo ""
+                    fi
+                    echo "  1. Push the release branch and open a PR:"
+                    echo "       git push -u origin release-$new"
+                    echo "  2. Wait for ci (ubuntu-latest) + ci (macos-latest) to pass, then squash- or rebase-merge."
+                    echo "  3. Tag the merged commit on main and push the tag:"
+                    echo "       git switch main && git pull"
+                    echo "       git tag v$new && git push origin v$new"
+                    echo ""
+                    echo "The tag push triggers CI to build binaries, cut the GitHub release, and publish to FlakeHub."
                   '';
                 };
               in

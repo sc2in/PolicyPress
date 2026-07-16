@@ -52,3 +52,17 @@ zola build   # verify template/theme changes render correctly
 ## Release notes
 
 Follow `CHANGELOG.md` conventions; record notable changes at the corresponding version section. A maintainer may adapt as needed.
+
+## Releasing
+
+`main` is protected by repository rulesets (`.github/rulesets/`): it requires a pull request, a linear history, GPG-signed commits, and passing status checks (`ci (ubuntu-latest)` + `ci (macos-latest)`). The `required_status_checks` rule has an empty bypass list, so **nobody can push a release commit straight to `main`** — not even an org/repo admin. Releases go through a PR like everything else:
+
+1. On a branch (not `main`), run `nix run .#bump -- <patch|minor|major>`. This updates `build.zig.zon`, `config.toml`, and rolls `CHANGELOG.md`'s `[Unreleased]` section into a versioned one, then makes a `chore: release X.Y.Z` commit.
+2. Push the branch, open a PR, and let CI go green. Merge with **squash** or **rebase** (merge commits are disallowed by `required_linear_history`).
+3. Tag the merged commit on `main` and push the tag:
+   ```
+   git switch main && git pull
+   git tag vX.Y.Z && git push origin vX.Y.Z
+   ```
+
+The tag push (not the merge) triggers the release workflow: CI builds the binaries, cuts the GitHub release, and publishes to FlakeHub. Rulesets target branches only, so the tag push itself isn't gated — just make sure the tag points at the merged commit on `main`.

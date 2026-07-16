@@ -34,6 +34,15 @@ versioning; breaking changes to it bump the major version.
   third-party GitHub Actions to commit SHAs; GitHub-owned `actions/*` stay
   tag-pinned.
 
+### Documentation
+
+- Documented the release flow under branch protection. `main`'s rulesets require
+  a PR and passing status checks with no bypass, so a release commit can no
+  longer be pushed straight to `main`. `nix run .#bump` now prints the
+  branch → PR → merge → tag steps (and warns when run on `main`) instead of the
+  old `git push origin HEAD` one-liner, and `CONTRIBUTING.md` gained a
+  "Releasing" section describing the same flow.
+
 ### Added
 
 - **Opt-in tagged, accessible PDFs (PDF/UA-1)** (#119). Set

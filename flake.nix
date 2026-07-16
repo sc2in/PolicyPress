@@ -65,6 +65,12 @@
                   ./build.zig
                   ./build.zig.zon
                   ./src
+                  # Golden Typst-markup snapshot test: the test lives at the repo
+                  # root (for @embedFile path resolution), the regenerator under
+                  # tools/, and the committed baselines under tests/golden/.
+                  ./golden_test.zig
+                  ./tools
+                  ./tests/golden
                   # logo.png and draft.png are referenced at test time by the
                   # typst pdf-rendering tests (header/title-page logo and the
                   # draft watermark background).

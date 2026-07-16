@@ -17,6 +17,21 @@ versioning; breaking changes to it bump the major version.
 
 ### Added
 
+- **The compliance reports now ship as real, versioned PDFs** — the same Typst
+  engine, fonts, branding, and (when configured) tagged PDF/UA-1 output as the
+  policy PDFs, replacing the print-this-page stopgap. Every build regenerates
+  `SCF_Coverage_Report.pdf`, `SOC_2_Coverage_Report.pdf`, and
+  `Policy_Review_Report.pdf` under stable names beside the policy PDFs (the
+  generation date is on the title page, not in the filename), and the report
+  pages grew a "Download PDF" button next to Print. Coverage uses the same
+  corrected numerator as the website (distinct catalog controls with ≥1
+  mapped published policy; drafts excluded), and the review report carries
+  Current / Due soon / Overdue statuses driven by `review_overdue_days`.
+  Disable with `[extra.policypress] report_pdfs = false`. The GitHub Action's
+  `report_path` output now points at the PDF directory. Includes a JSON mirror
+  of the TSC 2017 catalog (`data/tsc2017.json`, parity-tested against the
+  YAML), golden snapshots of the generated report markup, and veraPDF
+  coverage of the report PDFs in the `pdf-accessibility` gate.
 - **Reports and Guides joined the main navigation**, and both section indexes
   now render as card landings (new `section-cards.html` template with title,
   description, and link per page) instead of the bare default section list.

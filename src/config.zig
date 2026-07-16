@@ -45,6 +45,10 @@ pub const Config = struct {
     classification: []const u8 = "Confidential",
 
     /// Optional Typst `--pdf-standard` value (e.g. "ua-1" for tagged, accessible
+    /// Generate the report PDFs (coverage + policy review) alongside the
+    /// policy PDFs. On by default; disable with
+    /// `[extra.policypress] report_pdfs = false`.
+    report_pdfs: bool = true,
     /// PDFs). Off by default: ua-1 is a hard-fail standard, so it is opt-in via
     /// `[extra.policypress] pdf_standard`. Borrowed from the toml table.
     pdf_standard: ?[]const u8 = null,
@@ -151,6 +155,7 @@ pub const Config = struct {
             365;
         config.classification = e.getString("classification") orelse "Confidential";
         config.pdf_standard = e.getString("pdf_standard");
+        config.report_pdfs = e.getBool("report_pdfs") orelse true;
         config.build_dir = "public";
         config.zola_config = t;
         // PDF redaction is controlled only by --redact/--no-redact (and the

@@ -37,3 +37,28 @@ test "golden: test_policy (draft)" {
 test "golden: test_policy_render (plain)" {
     try checkGolden("test_policy_render.typ", "src/test/test_policy_render.md", .plain);
 }
+
+fn checkReportGolden(comptime baseline: []const u8, kind: anytype) !void {
+    const expected = @embedFile("tests/golden/" ++ baseline);
+    const actual = try golden.renderReportFixture(std.testing.io, std.testing.allocator, kind);
+    defer std.testing.allocator.free(actual);
+    std.testing.expectEqualStrings(expected, actual) catch |err| {
+        std.debug.print(
+            "\ngolden mismatch for {s} — if the change is intentional, run `zig build update-golden` and review the diff.\n",
+            .{baseline},
+        );
+        return err;
+    };
+}
+
+test "golden: SCF coverage report" {
+    try checkReportGolden("report_scf.typ", .scf);
+}
+
+test "golden: SOC 2 coverage report" {
+    try checkReportGolden("report_soc2.typ", .soc2);
+}
+
+test "golden: policy review report" {
+    try checkReportGolden("report_review.typ", .review);
+}

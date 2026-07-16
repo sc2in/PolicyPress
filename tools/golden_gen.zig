@@ -4,9 +4,11 @@
 //! be run by hand — use `zig build update-golden`.
 //!
 //! Usage: golden_gen <fixture.md> [--redact | --draft]
+//!        golden_gen --report <scf|soc2|review>
 
 const std = @import("std");
 const golden = @import("golden");
+const reports = @import("reports");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
@@ -14,10 +16,29 @@ pub fn main(init: std.process.Init) !void {
 
     const argv = try init.minimal.args.toSlice(init.arena.allocator());
     if (argv.len < 2) {
-        std.debug.print("usage: golden_gen <fixture.md> [--redact|--draft]\n", .{});
+        std.debug.print("usage: golden_gen <fixture.md> [--redact|--draft] | --report <scf|soc2|review>\n", .{});
         std.process.exit(2);
     }
     const fixture = argv[1];
+
+    if (std.mem.eql(u8, fixture, "--report")) {
+        if (argv.len < 3) {
+            std.debug.print("usage: golden_gen --report <scf|soc2|review>\n", .{});
+            std.process.exit(2);
+        }
+        const kind = std.meta.stringToEnum(reports.Kind, argv[2]) orelse {
+            std.debug.print("unknown report kind '{s}'\n", .{argv[2]});
+            std.process.exit(2);
+        };
+        const src = try golden.renderReportFixture(io, alloc, kind);
+        defer alloc.free(src);
+        var buf: [4096]u8 = undefined;
+        var out = std.Io.File.stdout().writer(io, &buf);
+        try out.interface.writeAll(src);
+        try out.interface.flush();
+        return;
+    }
+
     var mode: golden.Mode = .plain;
     if (argv.len >= 3) {
         if (std.mem.eql(u8, argv[2], "--redact")) {

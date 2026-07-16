@@ -1055,3 +1055,83 @@ test "diagrams: html without a mermaid block is left unchanged (null)" {
     const alloc = tst.allocator;
     try tst.expect(try diagrams.rewriteHtml(alloc, "<p>no diagrams here</p>") == null);
 }
+
+// ── Report PDFs: data-layer tests (control_report.zig) ────────────────────
+
+test "tsc2017.json mirrors tsc2017.yml (control-ID parity)" {
+    // data/tsc2017.json is a converted mirror of data/tsc2017.yml (the Zig
+    // loader reads only JSON arrays; the web templates read the YAML). Guard
+    // against drift: the JSON's control_id set must equal the YAML's
+    // top-level keys, which are trivially line-scannable.
+    var r = try report.init(io, tst.allocator, "data/tsc2017.json");
+    defer r.deinit();
+    try tst.expect(r.map.count() >= 61);
+    try tst.expect(r.map.contains("CC1.1"));
+    try tst.expect(r.map.contains("A1.1"));
+    try tst.expect(r.map.contains("P8.1"));
+
+    const yml = try std.Io.Dir.cwd().readFileAlloc(io, "data/tsc2017.yml", tst.allocator, .limited(10_000_000));
+    defer tst.allocator.free(yml);
+    var yml_keys: usize = 0;
+    var lines = std.mem.splitScalar(u8, yml, '\n');
+    while (lines.next()) |line| {
+        // Top-level keys sit at column 0 and end with ':' (e.g. "CC1.1:").
+        if (line.len < 2 or line[0] == ' ' or line[0] == '#') continue;
+        if (line[line.len - 1] != ':') continue;
+        yml_keys += 1;
+        try tst.expect(r.map.contains(line[0 .. line.len - 1]));
+    }
+    try tst.expectEqual(yml_keys, r.map.count());
+}
+
+test "coverage: corrected numerator, dedup, draft exclusion, unknown IDs" {
+    var r = try report.init(io, tst.allocator, "tests/report-fixtures/report_catalog_scf.json");
+    defer r.deinit();
+    const cov = try r.coverage(io, "taxonomies.SCF", "tests/report-fixtures/policies");
+
+    try tst.expectEqual(@as(usize, 5), cov.total);
+    // GOV-01 (a+b), GOV-02 (a+c) — GOV-03 only in the draft, HRS-02 only in
+    // the draft, HRS-01 (b). NOT-A-CONTROL must not add anything.
+    try tst.expectEqual(@as(usize, 3), cov.covered);
+
+    // Catalog order preserved.
+    try tst.expectEqualStrings("GOV-01", cov.controls[0].control_id);
+    try tst.expectEqual(@as(usize, 2), cov.controls[0].policies.len);
+    try tst.expectEqualStrings("Alpha Security Policy", cov.controls[0].policies[0]);
+    try tst.expectEqualStrings("Bravo Handling Policy", cov.controls[0].policies[1]);
+
+    // pol_a lists GOV-02 twice — deduplicated.
+    try tst.expectEqualStrings("GOV-02", cov.controls[1].control_id);
+    try tst.expectEqual(@as(usize, 2), cov.controls[1].policies.len);
+
+    // GOV-03 is only tagged by the draft policy: excluded.
+    try tst.expectEqualStrings("GOV-03", cov.controls[2].control_id);
+    try tst.expectEqual(@as(usize, 0), cov.controls[2].policies.len);
+}
+
+test "collectReviewRows: sorted, statuses, missing fields" {
+    const rows = try report.collectReviewRows(
+        io,
+        tst.allocator,
+        "tests/report-fixtures/policies",
+        .{ .year = 2026, .month = 1, .day = 1 },
+    );
+    defer report.freeReviewRows(tst.allocator, rows);
+
+    // Draft excluded; four fixtures remain, sorted by last_reviewed then title.
+    try tst.expectEqual(@as(usize, 4), rows.len);
+    try tst.expectEqualStrings("Bravo Handling Policy", rows[0].title); // 2024-06-01
+    try tst.expectEqualStrings("2.0", rows[2].version); // Alpha, newest of two revisions
+    try tst.expect(rows[0].days_since.? > 365); // overdue
+    // pol_c: no owner, no revisions, 292 days -> due-soon window.
+    const charlie = rows[1];
+    try tst.expect(charlie.owner == null);
+    try tst.expectEqualStrings("", charlie.version);
+    try tst.expect(charlie.days_since.? > 365 - 90 and charlie.days_since.? <= 365);
+    // pol_d: unparseable date sorts first or last by string; days null.
+    var found_unknown = false;
+    for (rows) |row| {
+        if (row.days_since == null) found_unknown = true;
+    }
+    try tst.expect(found_unknown);
+}

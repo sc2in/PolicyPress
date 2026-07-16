@@ -153,6 +153,22 @@ fn compareVersions(x: []const u8, y: []const u8) std.math.Order {
 /// dates) fall back to a numeric version comparison. This keeps the PDF's
 /// version label in agreement with the website and never lets "1.10" lose to
 /// "1.9" under a lexicographic compare.
+/// The most recent object entry of an `extra.major_revisions` array — by date
+/// with a numeric-version tiebreak, the same ordering the site and PDF use —
+/// or null when no entry is an object. Shared by the PDF metadata and the
+/// policy-review report.
+pub fn newestRevision(revisions: []const std.json.Value) ?std.json.ObjectMap {
+    var most: ?std.json.ObjectMap = null;
+    for (revisions) |rev| {
+        const obj = switch (rev) {
+            .object => |o| o,
+            else => continue,
+        };
+        if (most == null or revisionIsNewer(obj, most.?)) most = obj;
+    }
+    return most;
+}
+
 fn revisionIsNewer(new_obj: anytype, cur_obj: anytype) bool {
     const new_date = revisionDate(new_obj);
     const cur_date = revisionDate(cur_obj);
@@ -205,27 +221,7 @@ pub fn get_metadata(a: Allocator, txt: *Array(u8), config: anytype) !FrontMatter
     };
     if (revisions.len == 0) return error.NoRevisionsInFrontMatter;
 
-    // Find the most recent revision by date (with a numeric version tiebreak),
-    // matching the website's date-based selection.
-    var most_recent = revisions[0];
-    for (revisions[1..]) |rev| {
-        const cur_obj = switch (most_recent) {
-            .object => |o| o,
-            else => continue,
-        };
-        const new_obj = switch (rev) {
-            .object => |o| o,
-            else => continue,
-        };
-        if (revisionIsNewer(new_obj, cur_obj)) {
-            most_recent = rev;
-        }
-    }
-
-    const most_recent_obj = switch (most_recent) {
-        .object => |o| o,
-        else => return error.InvalidRevisionFormat,
-    };
+    const most_recent_obj = newestRevision(revisions) orelse return error.InvalidRevisionFormat;
     // zigmark's YAML parser returns quoted numeric scalars (e.g. "1.1") as .float,
     // so accept both .string and numeric variants and normalise to a slice.
     var ver_buf: [32]u8 = undefined;

@@ -52,6 +52,12 @@
     </div>
     {% endif %}
     <div class="report-actions no-print">
+      {# Each report template overrides this with its generated PDF's filename.
+         Filenames are fixed constants in src/control_report.zig (Kind.pdfName)
+         — keep both sides in lock step. Hidden when report_pdfs is disabled. #}
+      {% if config.extra.policypress.report_pdfs | default(value=true) %}
+      {% block report_pdf %}{% endblock report_pdf %}
+      {% endif %}
       <button class="btn btn-sm btn-outline-secondary" onclick="expandAllSections(); window.print();" title="Print or save as PDF">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" style="vertical-align: -1px; margin-right: 4px;">
           <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>

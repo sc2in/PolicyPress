@@ -122,16 +122,6 @@ pub fn build(b: *std.Build) !void {
     }
     pdf_step.dependOn(&pdf_run.step);
 
-    // Shared render helper for the golden Typst-markup snapshots (used by both
-    // golden_test.zig and tools/golden_gen.zig).
-    const golden_mod = b.addModule("golden", .{
-        .root_source_file = b.path("src/golden.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    golden_mod.addImport("config", config_mod);
-    golden_mod.addImport("typst", typst_mod);
-
     const reports_mod = b.addModule("policy_report", .{
         .target = target,
         .optimize = optimize,
@@ -141,6 +131,19 @@ pub fn build(b: *std.Build) !void {
     reports_mod.addImport("tomlz", tomlz.module("tomlz"));
     reports_mod.addImport("config", config_mod);
     reports_mod.addImport("zigmark", zigmark_mod);
+    reports_mod.addImport("utils", utils_mod);
+    reports_mod.addImport("typst", typst_mod);
+
+    // Shared render helper for the golden Typst-markup snapshots (used by both
+    // golden_test.zig and tools/golden_gen.zig).
+    const golden_mod = b.addModule("golden", .{
+        .root_source_file = b.path("src/golden.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    golden_mod.addImport("config", config_mod);
+    golden_mod.addImport("typst", typst_mod);
+    golden_mod.addImport("reports", reports_mod);
 
     const policypress_mod = b.addModule("policypress", .{
         .target = target,
@@ -252,6 +255,7 @@ pub fn build(b: *std.Build) !void {
             .optimize = optimize,
         });
         golden_gen_mod.addImport("golden", golden_mod);
+        golden_gen_mod.addImport("reports", reports_mod);
         const golden_gen = b.addExecutable(.{
             .name = "golden_gen",
             .root_module = golden_gen_mod,
@@ -263,6 +267,9 @@ pub fn build(b: *std.Build) !void {
             .{ .name = "test_policy_redacted.typ", .fixture = "src/test/test_policy.md", .flag = "--redact" },
             .{ .name = "test_policy_draft.typ", .fixture = "src/test/test_policy.md", .flag = "--draft" },
             .{ .name = "test_policy_render.typ", .fixture = "src/test/test_policy_render.md", .flag = null },
+            .{ .name = "report_scf.typ", .fixture = "--report", .flag = "scf" },
+            .{ .name = "report_soc2.typ", .fixture = "--report", .flag = "soc2" },
+            .{ .name = "report_review.typ", .fixture = "--report", .flag = "review" },
         };
 
         const update_golden = b.addUpdateSourceFiles();

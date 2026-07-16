@@ -11,6 +11,7 @@
 const std = @import("std");
 const Config = @import("config").Config;
 const typst = @import("typst");
+const reports = @import("reports");
 
 pub const Mode = enum { plain, redact, draft };
 
@@ -42,4 +43,40 @@ pub fn renderFixture(io: std.Io, alloc: std.mem.Allocator, fixture: []const u8, 
     var rendered = try typst.render(io, alloc, conf, fixture);
     defer rendered.deinit(alloc);
     return alloc.dupe(u8, rendered.source);
+}
+
+/// Render one report kind from the tests/report-fixtures fixtures (catalog
+/// JSONs + policies/) under fully pinned options. The fixtures live outside
+/// src/test because the validation tests walk that whole tree and these
+/// fixtures intentionally include invalid front matter (missing revisions,
+/// unparseable dates). Caller owns the slice.
+pub fn renderReportFixture(io: std.Io, alloc: std.mem.Allocator, kind: reports.Kind) ![]u8 {
+    const opts: reports.render.ReportOpts = .{
+        .title = kind.title(),
+        .org = "Star City Security Consulting",
+        .color = "0e90f3",
+        .logo = null,
+        .footer_left = "Star City Security Consulting \u{00a9} 2026",
+        .classification = "Confidential",
+        .generated = "2026-01-01",
+        .review_overdue_days = 365,
+    };
+    const fixture_policies = "tests/report-fixtures/policies";
+    switch (kind) {
+        .scf, .soc2 => {
+            const catalog_path = if (kind == .scf)
+                "tests/report-fixtures/report_catalog_scf.json"
+            else
+                "tests/report-fixtures/report_catalog_tsc.json";
+            var catalog = try reports.init(io, alloc, catalog_path);
+            defer catalog.deinit();
+            const cov = try catalog.coverage(io, kind.taxonomyKey().?, fixture_policies);
+            return reports.render.renderCoverage(alloc, cov, opts);
+        },
+        .review => {
+            const rows = try reports.collectReviewRows(io, alloc, fixture_policies, .{ .year = 2026, .month = 1, .day = 1 });
+            defer reports.freeReviewRows(alloc, rows);
+            return reports.render.renderReview(alloc, rows, opts);
+        },
+    }
 }

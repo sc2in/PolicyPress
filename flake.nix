@@ -71,6 +71,12 @@
                   ./golden_test.zig
                   ./tools
                   ./tests/golden
+                  # Report-PDF fixtures (catalogs + policies) read at test time
+                  # by the golden report snapshots; the control-report test also
+                  # reads the real data/ catalogs and demo policies.
+                  ./tests/report-fixtures
+                  ./data
+                  ./content/policies
                   # logo.png and draft.png are referenced at test time by the
                   # typst pdf-rendering tests (header/title-page logo and the
                   # draft watermark background).
@@ -112,6 +118,10 @@
                     ./config.toml
                     ./content
                     ./static
+                    # Control catalogs: the build generates the coverage report
+                    # PDFs from these, and veraPDF validates every PDF in the
+                    # output directory, report PDFs included.
+                    ./data
                   ]
                   ++ lib.optional (builtins.pathExists ./build.zig.zon2json-lock) ./build.zig.zon2json-lock
                   ++ lib.optional (builtins.pathExists ./theme.toml) ./theme.toml

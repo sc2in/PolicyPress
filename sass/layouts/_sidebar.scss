@@ -42,6 +42,15 @@
   font-size: $font-size-sm;
 }
 
+// The sidebar tree starts collapsed on small screens (main.js removes .show on
+// load); on lg+ the toggle is hidden, so force the tree visible regardless of
+// the collapse state carried over from a small viewport.
+@include media-breakpoint-up(lg) {
+  #sidebarNav {
+    display: block;
+  }
+}
+
 // Content column: allow flexbox to shrink it below its content's natural width
 // so that wide mermaid diagrams don't push the TOC off screen.
 .policy-content-col {

@@ -1,19 +1,19 @@
 {% macro header(current_section) %}
-<header class="navbar fixed-top navbar-expand-md navbar-light my-auto">
+<header class="navbar fixed-top navbar-expand-lg navbar-light my-auto">
 	<div class="container">
-		<button class="navbar-toggler d-md-none order-0" type="button"
+		<button class="navbar-toggler d-lg-none order-0" type="button"
 			data-bs-toggle="collapse" data-bs-target="#navbarMain"
 			aria-controls="navbarMain" aria-expanded="false"
 			aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		</button>
-		<a class="navbar-brand order-1 order-md-0 me-auto"
+		<a class="navbar-brand order-1 order-lg-0 me-auto"
 			href="{{ config.base_url | safe }}"><img class="brand-logo"
 				alt="{{ config.extra.policypress.organization | default(value=config.title | default(value='PolicyPress')) }} logo"
 				src="{{ get_url(path=config.extra.menu.logo) }}">{{
 			config.title |
 			default(value="PolicyPress") }}</a>
-		<button id="mode" class="btn btn-link order-2 order-md-4" type="button"
+		<button id="mode" class="btn btn-link order-2 order-lg-4" type="button"
 			aria-label="Toggle mode">
 			<span class="toggle-dark"><svg xmlns="http://www.w3.org/2000/svg" width="20"
 					height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -31,7 +31,7 @@
 						x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36"
 						y1="5.64" x2="19.78" y2="4.22"></line></svg></span>
 		</button>
-		<ul class="navbar-nav fork-me order-3 order-md-5">
+		<ul class="navbar-nav fork-me order-3 order-lg-5">
 			{% if config.extra.menu.social %}
 			{% for val in config.extra.menu.social %}
 			<li class="nav-item">
@@ -41,8 +41,8 @@
 			{% endfor %}
 			{% endif %}
 		</ul>
-		<div id="navbarMain" class="collapse navbar-collapse order-4 order-md-1">
-			<ul class="navbar-nav main-nav me-auto order-5 order-md-2">
+		<div id="navbarMain" class="collapse navbar-collapse order-4 order-lg-1">
+			<ul class="navbar-nav main-nav me-auto order-5 order-lg-2">
 				{% if lang == config.default_language %}
 				{% set rootsectionpath = "_index.md" %}
 				{% else %}
@@ -50,16 +50,19 @@
 				{% endif %}
 				{% set mainsec = get_section(path=rootsectionpath) %}
 				{% if mainsec.extra.menu.main %}
-				{% for val in mainsec.extra.menu.main %}
-				<li
-					class="nav-item{% if current_section == val.section %} {{ current_section }} active{% endif %}">
-					<a class="nav-link"
-						href="{{ get_url(path=val.url, trailing_slash=true) | safe }}">{{
-						val.title }}</a>
-				</li>
-				{% endfor %}
+				{% set menu_main = mainsec.extra.menu.main %}
 				{% elif config.extra.menu.main %}
-				{% for val in config.extra.menu.main %}
+				{% set menu_main = config.extra.menu.main %}
+				{% else %}
+				{% set menu_main = false %}
+				{% endif %}
+				{% if menu_main %}
+				{# `weight` is documented as the sort order but is optional; only sort
+				   when every entry carries it (Tera's sort errors on a missing key). #}
+				{% if menu_main | filter(attribute="weight") | length == menu_main | length %}
+				{% set menu_main = menu_main | sort(attribute="weight") %}
+				{% endif %}
+				{% for val in menu_main %}
 				<li
 					class="nav-item{% if current_section == val.section %} {{ current_section }} active{% endif %}">
 					<a class="nav-link"
@@ -79,9 +82,9 @@
 				</li>
 				{% endif %}
 			</ul>
-			<div class="break order-6 d-md-none"></div>
+			<div class="break order-6 d-lg-none"></div>
 			{% if config.build_search_index %}
-			<form class="navbar-form ms-auto order-8 order-md-3" role="search">
+			<form class="navbar-form ms-auto order-8 order-lg-3" role="search">
 				<input id="userinput" class="form-control is-search" type="search"
 					placeholder="Search policies..."
 					aria-label="Search policies..." autocomplete="off"

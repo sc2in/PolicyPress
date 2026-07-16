@@ -57,6 +57,25 @@ versioning; breaking changes to it bump the major version.
   `nix flake check` gate (`checks.pdf-accessibility`) validates the demo PDFs
   against PDF/UA-1 with veraPDF, so a rendering change cannot silently break
   conformance.
+- **The build pre-flight now flags overdue policy reviews** (#119). A policy
+  whose `extra.last_reviewed` is older than `review_overdue_days` (default 365,
+  relative to the build date) is reported as audit-critical: a warning by
+  default, fatal with `--strict`. On a quiet repo the website's own time-based
+  "Review overdue" badge only refreshes on a rebuild, so a PDF could keep
+  asserting a review that was really years stale. An unparseable date is
+  advisory. Configure the window with `[extra.policypress] review_overdue_days`.
+- **Redacted PDFs now carry an in-document "REDACTED" title-page banner**, so a
+  printed redacted copy is self-identifying rather than distinguishable only by
+  filename (draft builds already carry a full-page watermark).
+- **The PDF footer classification is configurable.** It defaults to
+  "Confidential" (the previous hardcoded value); set a site-wide default with
+  `[extra.policypress] classification`, or override per policy with
+  `extra.classification` in front matter.
+- **Policy pages now render the document owner** (`extra.owner`, previously
+  documented but shown nowhere) and, in `--drafts` builds, a Draft badge.
+- The starter workflow now runs a weekly scheduled rebuild so time-based
+  "Review overdue" badges stay current on repositories that rarely push, and
+  prints a GitHub Pages visibility reminder on deploy.
 
 ### Accessibility
 
@@ -108,28 +127,13 @@ versioning; breaking changes to it bump the major version.
   redaction, and compliance mapping in context — so there is a single reference
   policy rather than two overlapping ones. Its taxonomy mappings were merged in
   to preserve coverage.
-
-### Added
-
-- **The build pre-flight now flags overdue policy reviews** (#119). A policy
-  whose `extra.last_reviewed` is older than `review_overdue_days` (default 365,
-  relative to the build date) is reported as audit-critical: a warning by
-  default, fatal with `--strict`. On a quiet repo the website's own time-based
-  "Review overdue" badge only refreshes on a rebuild, so a PDF could keep
-  asserting a review that was really years stale. An unparseable date is
-  advisory. Configure the window with `[extra.policypress] review_overdue_days`.
-- **Redacted PDFs now carry an in-document "REDACTED" title-page banner**, so a
-  printed redacted copy is self-identifying rather than distinguishable only by
-  filename (draft builds already carry a full-page watermark).
-- **The PDF footer classification is configurable.** It defaults to
-  "Confidential" (the previous hardcoded value); set a site-wide default with
-  `[extra.policypress] classification`, or override per policy with
-  `extra.classification` in front matter.
-- **Policy pages now render the document owner** (`extra.owner`, previously
-  documented but shown nowhere) and, in `--drafts` builds, a Draft badge.
-- The starter workflow now runs a weekly scheduled rebuild so time-based
-  "Review overdue" badges stay current on repositories that rarely push, and
-  prints a GitHub Pages visibility reminder on deploy.
+- Bumped `zigmark` to v0.8.0 and `pozeiden` to v0.3.0. Both upstream releases
+  were written as production security & quality hardening rounds *for*
+  PolicyPress, and PolicyPress now inherits their input caps and injection
+  hardening: zigmark's 16 MiB / 128-depth parser caps and escaped-SVG-attribute
+  emission, and pozeiden's 4 MiB input / 1000-node / 2000-edge diagram caps and
+  thread-safe internals. No PolicyPress source changes were required; both APIs
+  are additive.
 
 ### Fixed
 
@@ -144,15 +148,6 @@ versioning; breaking changes to it bump the major version.
   and version from the latest revision — an approval date and a review date are
   not the same fact.
 
-### Changed
-
-- Bumped `zigmark` to v0.8.0 and `pozeiden` to v0.3.0. Both upstream releases
-  were written as production security & quality hardening rounds *for*
-  PolicyPress, and PolicyPress now inherits their input caps and injection
-  hardening: zigmark's 16 MiB / 128-depth parser caps and escaped-SVG-attribute
-  emission, and pozeiden's 4 MiB input / 1000-node / 2000-edge diagram caps and
-  thread-safe internals. No PolicyPress source changes were required; both APIs
-  are additive.
 
 ## [1.4.3] - 2026-07-14
 

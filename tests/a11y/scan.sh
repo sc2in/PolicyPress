@@ -13,9 +13,17 @@ profile="$(mktemp -d)"
 zola_pid=""
 chrome_pid=""
 cleanup() {
+  rc=$?
   [ -n "$zola_pid" ] && kill "$zola_pid" 2>/dev/null || true
   [ -n "$chrome_pid" ] && kill "$chrome_pid" 2>/dev/null || true
-  rm -rf "$profile"
+  # Wait for Chromium to actually exit before removing its profile: while it is
+  # still shutting down it keeps writing to --user-data-dir, so a racing
+  # `rm -rf` fails with "Directory not empty" and — as the last command in an
+  # EXIT trap under `set -e` — would flip a passing scan to a nonzero exit.
+  [ -n "$chrome_pid" ] && wait "$chrome_pid" 2>/dev/null || true
+  [ -n "$zola_pid" ] && wait "$zola_pid" 2>/dev/null || true
+  rm -rf "$profile" 2>/dev/null || true
+  exit "$rc"
 }
 trap cleanup EXIT
 

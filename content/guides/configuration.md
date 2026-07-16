@@ -49,6 +49,7 @@ policy_dir = "policies/"
 | `redact_web` | `[extra.policypress]` | bool | `false` | When `true`, renders a redaction bar over `{%/* redact() */%} … {%/* end */%}` blocks on the website. Does **not** affect PDF generation — use `--redact` on the CLI. |
 | `show_draft_pdfs` | `[extra.policypress]` | bool | `false` | When `true`, links to draft PDFs appear on the policy index page |
 | `report_pdfs` | `[extra.policypress]` | bool | `true` | Generate downloadable PDFs for the compliance reports (SCF/SOC 2 coverage, policy review) alongside the policy PDFs. Coverage reports are skipped with a note when the matching `data/` control catalog is absent. |
+| `audit_bundle` | `[extra.policypress]` | bool | `false` | Write a machine-readable audit bundle next to the PDFs (`audit/manifest.json` with per-PDF sha-256 hashes, `revisions.json`, `coverage.json`/`.csv`) so auditors and evidence collectors can consume the compliance state without scraping the site. Also available as the `--audit-bundle` CLI flag and the action's `audit_bundle` input. |
 
 > [!NOTE]
 > Draft and redact modes can also be set at build time via GitHub Action inputs or CLI flags (`--draft` / `--redact`). Action inputs always override `config.toml`.

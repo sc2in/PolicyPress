@@ -49,6 +49,10 @@ pub const Config = struct {
     /// policy PDFs. On by default; disable with
     /// `[extra.policypress] report_pdfs = false`.
     report_pdfs: bool = true,
+    /// Write the machine-readable audit bundle (manifest + revision index +
+    /// coverage export) next to the PDFs. Opt-in: off by default, enable with
+    /// `[extra.policypress] audit_bundle = true` or `--audit-bundle`.
+    audit_bundle: bool = false,
     /// PDFs). Off by default: ua-1 is a hard-fail standard, so it is opt-in via
     /// `[extra.policypress] pdf_standard`. Borrowed from the toml table.
     pdf_standard: ?[]const u8 = null,
@@ -156,6 +160,7 @@ pub const Config = struct {
         config.classification = e.getString("classification") orelse "Confidential";
         config.pdf_standard = e.getString("pdf_standard");
         config.report_pdfs = e.getBool("report_pdfs") orelse true;
+        config.audit_bundle = e.getBool("audit_bundle") orelse false;
         config.build_dir = "public";
         config.zola_config = t;
         // PDF redaction is controlled only by --redact/--no-redact (and the

@@ -1135,3 +1135,113 @@ test "collectReviewRows: sorted, statuses, missing fields" {
     }
     try tst.expect(found_unknown);
 }
+
+// ── Audit bundle (src/audit.zig) ──────────────────────────────────────────────
+
+const audit = @import("audit.zig");
+
+test "audit bundle: manifest hashes, newest revision, coverage export" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+    conf.date = .{ .year = 2026, .month = 1, .day = 1 };
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const base = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(base);
+
+    // One valid policy (the shared fixture) in a scratch policy dir.
+    const pol_dir = try std.fs.path.join(alloc, &.{ base, "policies" });
+    defer alloc.free(pol_dir);
+    try std.Io.Dir.cwd().createDirPath(io, pol_dir);
+    const src_md = try std.Io.Dir.cwd().readFileAlloc(io, "src/test/test_policy.md", alloc, .limited(1 << 20));
+    defer alloc.free(src_md);
+    {
+        const p = try std.fs.path.join(alloc, &.{ pol_dir, "test_policy.md" });
+        defer alloc.free(p);
+        const f = try std.Io.Dir.cwd().createFile(io, p, .{ .truncate = true });
+        defer f.close(io);
+        try f.writeStreamingAll(io, src_md);
+    }
+
+    // A fake "PDF" under the canonical output name (title Test Policy, newest
+    // revision v1.1) so the manifest has bytes to hash.
+    const pdf_dir = try std.fs.path.join(alloc, &.{ base, "pdfs" });
+    defer alloc.free(pdf_dir);
+    try std.Io.Dir.cwd().createDirPath(io, pdf_dir);
+    const fake_pdf = "fake pdf bytes";
+    {
+        const p = try std.fs.path.join(alloc, &.{ pdf_dir, "Test_Policy_-_v1.1.pdf" });
+        defer alloc.free(p);
+        const f = try std.Io.Dir.cwd().createFile(io, p, .{ .truncate = true });
+        defer f.close(io);
+        try f.writeStreamingAll(io, fake_pdf);
+    }
+
+    alloc.free(conf.policy_dir);
+    conf.policy_dir = try alloc.dupe(u8, pol_dir);
+    conf.build_dir = pdf_dir;
+
+    const audit_dir = try std.fs.path.join(alloc, &.{ base, "audit" });
+    defer alloc.free(audit_dir);
+    try audit.writeBundle(io, alloc, conf, audit_dir, "9.9.9-test");
+
+    // ── manifest.json ────────────────────────────────────────────────────────
+    {
+        const p = try std.fs.path.join(alloc, &.{ audit_dir, "manifest.json" });
+        defer alloc.free(p);
+        const bytes = try std.Io.Dir.cwd().readFileAlloc(io, p, alloc, .limited(1 << 20));
+        defer alloc.free(bytes);
+        const parsed = try std.json.parseFromSlice(std.json.Value, alloc, bytes, .{});
+        defer parsed.deinit();
+        const root = parsed.value.object;
+        try tst.expectEqualStrings("policypress/audit-manifest/v1", root.get("schema").?.string);
+        try tst.expectEqualStrings("9.9.9-test", root.get("policypress_version").?.string);
+        try tst.expectEqualStrings("2026-01-01", root.get("generated_at").?.string);
+        try tst.expectEqual(false, root.get("build").?.object.get("redact").?.bool);
+        const pols = root.get("policies").?.array.items;
+        try tst.expectEqual(@as(usize, 1), pols.len);
+        const pol = pols[0].object;
+        try tst.expectEqualStrings("Test Policy", pol.get("title").?.string);
+        try tst.expectEqualStrings("1.1", pol.get("version").?.string);
+        try tst.expectEqualStrings("Ben Craton", pol.get("approved_by").?.string);
+        try tst.expectEqualStrings("SC2", pol.get("owner").?.string);
+        try tst.expectEqualStrings("pdfs/Test_Policy_-_v1.1.pdf", pol.get("pdf").?.string);
+
+        var digest: [std.crypto.hash.sha2.Sha256.digest_length]u8 = undefined;
+        std.crypto.hash.sha2.Sha256.hash(fake_pdf, &digest, .{});
+        const expected_sha = try std.fmt.allocPrint(alloc, "{x}", .{&digest});
+        defer alloc.free(expected_sha);
+        try tst.expectEqualStrings(expected_sha, pol.get("pdf_sha256").?.string);
+    }
+
+    // ── revisions.json: both revisions of the fixture, flattened ────────────
+    {
+        const p = try std.fs.path.join(alloc, &.{ audit_dir, "revisions.json" });
+        defer alloc.free(p);
+        const bytes = try std.Io.Dir.cwd().readFileAlloc(io, p, alloc, .limited(1 << 20));
+        defer alloc.free(bytes);
+        const parsed = try std.json.parseFromSlice(std.json.Value, alloc, bytes, .{});
+        defer parsed.deinit();
+        const revs = parsed.value.object.get("revisions").?.array.items;
+        try tst.expectEqual(@as(usize, 2), revs.len);
+        try tst.expectEqualStrings("1.1", revs[0].object.get("version").?.string);
+    }
+
+    // ── coverage.json: real catalogs at the repo root; HRS-05 covered ───────
+    {
+        const p = try std.fs.path.join(alloc, &.{ audit_dir, "coverage.json" });
+        defer alloc.free(p);
+        const bytes = try std.Io.Dir.cwd().readFileAlloc(io, p, alloc, .limited(16 << 20));
+        defer alloc.free(bytes);
+        const parsed = try std.json.parseFromSlice(std.json.Value, alloc, bytes, .{});
+        defer parsed.deinit();
+        const fws = parsed.value.object.get("frameworks").?.array.items;
+        try tst.expectEqual(@as(usize, 2), fws.len);
+        const scf = fws[0].object;
+        try tst.expectEqualStrings("SCF", scf.get("id").?.string);
+        try tst.expect(scf.get("covered").?.integer >= 1);
+        try tst.expect(scf.get("total").?.integer >= 1239);
+    }
+}

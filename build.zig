@@ -7,6 +7,7 @@ const tst = std.testing;
 const math = std.math;
 
 const ReportType = @import("src/control_report.zig").Report;
+const zon = @import("build.zig.zon");
 
 pub fn build(b: *std.Build) !void {
     var threaded: std.Io.Threaded = .init(b.allocator, .{});
@@ -152,8 +153,12 @@ pub fn build(b: *std.Build) !void {
     });
     const build_opts = b.addOptions();
     build_opts.addOption([]const u8, "install_prefix", b.install_prefix);
+    // The package version, stamped into the audit-bundle manifest.
+    build_opts.addOption([]const u8, "version", zon.version);
     policypress_mod.addImport("build_options", build_opts.createModule());
     policypress_mod.addImport("clap", clap.module("clap"));
+    // src/audit.zig (same module) parses policy front matter via zigmark.
+    policypress_mod.addImport("zigmark", zigmark_mod);
     policypress_mod.addImport("config", config_mod);
     policypress_mod.addImport("typst", typst_mod);
     policypress_mod.addImport("reports", reports_mod);

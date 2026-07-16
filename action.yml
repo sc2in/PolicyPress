@@ -42,6 +42,14 @@ inputs:
       calls resolve against this origin instead of the production domain.
     required: false
     default: ""
+  audit_bundle:
+    description: >
+      Set to 'true' to also write the machine-readable audit bundle
+      (manifest.json with per-PDF sha-256 hashes, revisions.json, coverage
+      export) into <output_dir>/audit. Applied only to the official PDF run,
+      never the optional draft pass.
+    required: false
+    default: "false"
 
 outputs:
   pdf_path:
@@ -55,6 +63,11 @@ outputs:
       Path to the directory containing the generated report PDFs (coverage +
       policy review). Same directory as pdf_path.
     value: ${{ steps.build.outputs.report_path }}
+  audit_path:
+    description: >-
+      Path to the audit-bundle directory (populated when the audit_bundle
+      input is 'true').
+    value: ${{ steps.build.outputs.audit_path }}
 
 runs:
   using: composite
@@ -195,6 +208,7 @@ runs:
         PP_DRAFT_MODE: ${{ inputs.draft_mode }}
         PP_REDACT_MODE: ${{ inputs.redact_mode }}
         PP_GENERATE_DRAFT_PDFS: ${{ inputs.generate_draft_pdfs }}
+        PP_AUDIT_BUNDLE: ${{ inputs.audit_bundle }}
       run: |
         set -euo pipefail
 
@@ -223,6 +237,11 @@ runs:
         else
           ARGS+=(--no-redact)
         fi
+        # Official run only: the draft pass below must never overwrite the
+        # bundle with draft-flavoured entries.
+        if [ "${PP_AUDIT_BUNDLE}" = "true" ]; then
+          ARGS+=(--audit-bundle)
+        fi
 
         # policypress binary is pre-installed from the release; deps are in the ci shell
         policypress "${ARGS[@]}"
@@ -242,3 +261,4 @@ runs:
         echo "pdf_path=${PP_OUTPUT_DIR}/pdfs"    >> "$GITHUB_OUTPUT"
         echo "site_path=public"                  >> "$GITHUB_OUTPUT"
         echo "report_path=${PP_OUTPUT_DIR}/pdfs"  >> "$GITHUB_OUTPUT"
+        echo "audit_path=${PP_OUTPUT_DIR}/audit"  >> "$GITHUB_OUTPUT"

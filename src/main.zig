@@ -24,6 +24,7 @@ const isDraftPolicy = @import("utils").isDraftPolicy;
 const Typst = @import("typst");
 const reports = @import("reports");
 const writeStamp = @import("utils").writeStamp;
+const audit = @import("audit.zig");
 const diagrams = @import("diagrams.zig");
 
 // ---------------------------------------------------------------------------
@@ -226,6 +227,8 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         \\--redact               Redact content within redaction tags (overrides config.toml).
         \\--no-redact            Do not redact text within redaction tags (overrides config.toml).
         \\--strict               Fail the build on audit-critical policy problems (front matter, raw HTML in bodies).
+        \\--audit-bundle         Write the machine-readable audit bundle (manifest, revisions, coverage) next to the PDFs (overrides config.toml).
+        \\--no-audit-bundle      Do not write the audit bundle (overrides config.toml).
         \\-v, --verbose          Show debug output (typst invocations, file paths).
         \\-q, --quiet            Suppress progress output; show errors only.
         \\    --json             Emit log output as JSON lines (for CI).
@@ -305,6 +308,8 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     if (res.args.@"no-draft" != 0) config.is_draft = false;
     if (res.args.redact != 0) config.redact = true;
     if (res.args.@"no-redact" != 0) config.redact = false;
+    if (res.args.@"audit-bundle" != 0) config.audit_bundle = true;
+    if (res.args.@"no-audit-bundle" != 0) config.audit_bundle = false;
 
     // `--input` re-roots the content directory (and the policy dir beneath it).
     // Config.load derives both from a hardcoded "content"; here we swap that
@@ -493,6 +498,9 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         } else {
             std.log.info("policypress: no .md files found in '{s}'", .{config.policy_dir});
         }
+        // The PDFs from the previous run are still current; the bundle can be
+        // (re)generated from them.
+        try writeAuditBundleIfEnabled(io, alloc, config, output_path);
         return;
     }
     if (skipped > 0) {
@@ -586,6 +594,32 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     }
 
     std.log.info("policypress: {d} policies compiled successfully.", .{rebuild_count});
+
+    // After the PDFs exist, so the manifest can hash them.
+    try writeAuditBundleIfEnabled(io, alloc, config, output_path);
+}
+
+/// Write the audit bundle (#135) into the sibling `audit/` directory of the
+/// PDF output (or `<output>/audit` when the output dir is not named "pdfs").
+/// Official passes only: a `--draft` second pass into the same directory must
+/// not overwrite the bundle with draft-flavoured entries. Redacted official
+/// builds DO produce a bundle — its hashes then describe the published,
+/// redacted PDFs.
+fn writeAuditBundleIfEnabled(io: std.Io, alloc: Allocator, config: Config, output_path: []const u8) !void {
+    if (!config.audit_bundle or config.is_draft) return;
+
+    const audit_dir = blk: {
+        if (std.mem.eql(u8, std.fs.path.basename(output_path), "pdfs")) {
+            if (std.fs.path.dirname(output_path)) |parent| {
+                break :blk try std.fs.path.join(alloc, &.{ parent, "audit" });
+            }
+            break :blk try alloc.dupe(u8, "audit");
+        }
+        break :blk try std.fs.path.join(alloc, &.{ output_path, "audit" });
+    };
+    defer alloc.free(audit_dir);
+
+    try audit.writeBundle(io, alloc, config, audit_dir, build_options.version);
 }
 
 /// Generate the report PDFs (SCF/SOC 2 coverage, policy review) into

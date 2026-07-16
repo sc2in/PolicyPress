@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-07-15
+
 ### Security
 
 - **The PDF colour is now validated as a bare hex value before it is

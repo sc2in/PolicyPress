@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # Consumed by the FlakeHub cache (installed by the composite action);
+      # without it the cache silently degrades and the assurance step below
+      # rebuilds the pdf-accessibility check from scratch instead of hitting
+      # the output CI already built for this commit.
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 

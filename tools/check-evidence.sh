@@ -15,16 +15,24 @@ out="${1:?usage: tools/check-evidence.sh <output-dir>}"
 mkdir -p "$out/logs"
 
 system="$(nix eval --raw --impure --expr 'builtins.currentSystem')"
-mapfile -t checks < <(nix eval --json ".#checks.$system" --apply builtins.attrNames | jq -r '.[]')
+# Capture the eval separately: a failure inside a process substitution would
+# not trip set -e, and an empty check list must be a loud error, not an
+# artifact that silently attests to nothing.
+checks_json="$(nix eval --json ".#checks.$system" --apply builtins.attrNames)"
+mapfile -t checks < <(jq -r '.[]' <<<"$checks_json")
+if [ "${#checks[@]}" -eq 0 ]; then
+  echo "✗ no flake checks found for $system — refusing to write empty evidence" >&2
+  exit 1
+fi
 
 rows=()
 for name in "${checks[@]}"; do
   echo "▸ $name"
   out_path="$(nix build --no-link --print-out-paths ".#checks.$system.$name")"
-  drv="$(nix path-info --derivation ".#checks.$system.$name" 2>/dev/null || echo null)"
+  drv="$(nix path-info --derivation ".#checks.$system.$name" 2>/dev/null || true)"
 
-  log_file="null"
-  if nix log "$drv" > "$out/logs/$name.log" 2>/dev/null && [ -s "$out/logs/$name.log" ]; then
+  log_file=""
+  if [ -n "$drv" ] && nix log "$drv" > "$out/logs/$name.log" 2>/dev/null && [ -s "$out/logs/$name.log" ]; then
     log_file="logs/$name.log"
   else
     # Substituted from a cache without a log — record the absence honestly.
@@ -35,8 +43,10 @@ for name in "${checks[@]}"; do
     --arg name "$name" \
     --arg outPath "$out_path" \
     --arg drv "$drv" \
-    --argjson log "$([ "$log_file" = "null" ] && echo null || jq -n --arg l "$log_file" '$l')" \
-    '{name: $name, status: "pass", outPath: $outPath, drv: $drv, log: $log}')")
+    --arg log "$log_file" \
+    '{name: $name, status: "pass", outPath: $outPath,
+      drv: (if $drv == "" then null else $drv end),
+      log: (if $log == "" then null else $log end)}')")
 done
 
 jq -n \

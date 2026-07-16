@@ -32,11 +32,17 @@ body {
   font-size: 1rem;
 }
 
-@include media-breakpoint-up(md) {
+// The 4rem offset fits the single-row expanded navbar, which now starts at
+// lg (navbar-expand-lg); between md and lg the header is the taller two-row
+// collapsed layout and the 6.5rem rule below must win, so this must not
+// cover that band (it carries !important and would defeat it).
+@include media-breakpoint-up(lg) {
   body {
     padding-top: 4rem !important;
   }
+}
 
+@include media-breakpoint-up(md) {
   h1,
   h2,
   h3,

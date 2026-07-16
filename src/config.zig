@@ -44,7 +44,6 @@ pub const Config = struct {
     /// overrides it. Defaults to "Confidential" (the historical hardcoded value).
     classification: []const u8 = "Confidential",
 
-    /// Optional Typst `--pdf-standard` value (e.g. "ua-1" for tagged, accessible
     /// Generate the report PDFs (coverage + policy review) alongside the
     /// policy PDFs. On by default; disable with
     /// `[extra.policypress] report_pdfs = false`.
@@ -53,6 +52,7 @@ pub const Config = struct {
     /// coverage export) next to the PDFs. Opt-in: off by default, enable with
     /// `[extra.policypress] audit_bundle = true` or `--audit-bundle`.
     audit_bundle: bool = false,
+    /// Optional Typst `--pdf-standard` value (e.g. "ua-1" for tagged, accessible
     /// PDFs). Off by default: ua-1 is a hard-fail standard, so it is opt-in via
     /// `[extra.policypress] pdf_standard`. Borrowed from the toml table.
     pdf_standard: ?[]const u8 = null,
@@ -103,6 +103,8 @@ pub const Config = struct {
         try obj.put(alloc, "redact", .{ .bool = self.redact });
         try obj.put(alloc, "build_dir", .{ .string = self.build_dir });
         try obj.put(alloc, "review_overdue_days", .{ .integer = @intCast(self.review_overdue_days) });
+        try obj.put(alloc, "report_pdfs", .{ .bool = self.report_pdfs });
+        try obj.put(alloc, "audit_bundle", .{ .bool = self.audit_bundle });
         try obj.put(alloc, "classification", .{ .string = self.classification });
         try obj.put(alloc, "pdf_standard", if (self.pdf_standard) |v| .{ .string = v } else .null);
 

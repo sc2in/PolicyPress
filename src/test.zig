@@ -15,6 +15,9 @@ const typst = @import("typst");
 const utils = @import("utils");
 const zigmark = @import("zigmark");
 
+const audit = @import("audit.zig");
+const diagrams = @import("diagrams.zig");
+
 // TODO
 // - [ ] The reports should generate correctly
 
@@ -1030,8 +1033,6 @@ test "executableInPath: nonexistent binary returns false" {
 // The site ships no client-side mermaid bundle; the `<pre class="mermaid">`
 // placeholder Zola emits is rewritten to inline SVG (pozeiden) at build time.
 
-const diagrams = @import("diagrams.zig");
-
 test "diagrams: mermaid placeholder is rewritten to inline svg" {
     const alloc = tst.allocator;
     // Body arrives HTML-escaped (Zola auto-escapes shortcode bodies), e.g. -->.
@@ -1137,8 +1138,6 @@ test "collectReviewRows: sorted, statuses, missing fields" {
 }
 
 // ── Audit bundle (src/audit.zig) ──────────────────────────────────────────────
-
-const audit = @import("audit.zig");
 
 test "audit bundle: manifest hashes, newest revision, coverage export" {
     const alloc = tst.allocator;

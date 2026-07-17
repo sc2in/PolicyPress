@@ -87,7 +87,10 @@ versioning; breaking changes to it bump the major version.
   instead of rebuilding it; and the demo enables `audit_bundle` in
   `config.toml` (not only via the action's input), so local previews
   (`nix run .#serve` / `.#preview`) serve `/audit/` just like the deployed
-  site.
+  site. Those two apps also now generate their PDFs with `--redact` (matching
+  the demo's `redact_mode`): with `redact_web = true` the policy pages link
+  the `__Redacted__` filenames, so the previous non-redacted local build
+  404'd every PDF download link.
 - **Navigation menu `weight` is honored.** It was documented as the sort
   order but entries always rendered in file order; entries are now sorted by
   weight when every entry carries one (file order otherwise, so existing

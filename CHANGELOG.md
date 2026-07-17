@@ -10,17 +10,29 @@ versioning; breaking changes to it bump the major version.
 
 ### Internal
 
-- **CI now produces self-attestation evidence.** Every main-branch and tag run
-  uploads an `attestation-evidence` artifact (90-day retention) containing:
-  a CycloneDX 1.5 SBOM of the Zig dependencies compiled into the binary
-  (`tools/sbom.sh`, generated from the lock file's pinned URLs and SRI
-  hashes); a structured record of every `nix flake check` with captured build
-  logs (`tools/check-evidence.sh`); the veraPDF PDF/UA-1 validation reports
-  (text + JSON — the `pdf-accessibility` check now writes them into its own
-  `$out`, so the published evidence is the CI gate's hermetic output); and
-  the axe-core scan results as JSON (`A11Y_REPORT`, no behaviour change when
-  unset). GitHub Releases additionally ship `sbom.cdx.json` beside
-  `SHA256SUMS.txt`.
+- **CI now produces self-attestation evidence.** Every push to `main`, every
+  release tag, **and every pull request to `main`** uploads an
+  `attestation-evidence` artifact (90-day retention) containing: a CycloneDX
+  1.5 SBOM (`tools/sbom.sh`); a structured record of every `nix flake check`
+  with captured build logs (`tools/check-evidence.sh`); the veraPDF PDF/UA-1
+  validation reports (text + JSON — the `pdf-accessibility` check now writes
+  them into its own `$out`, so the published evidence is the CI gate's
+  hermetic output); and the axe-core scan results as JSON (`A11Y_REPORT`, no
+  behaviour change when unset). Running it on PRs keeps a broken generation
+  step off `main` and lets a reviewer examine the SBOM/reports before merge.
+  GitHub Releases additionally ship `sbom.cdx.json` beside `SHA256SUMS.txt`.
+  - The SBOM covers both the Zig dependencies compiled into the binary (from
+    the lock file's pinned URLs and SRI hashes, with `pkg:github` purls that
+    CVE scanners can resolve) **and the runtime tools it invokes as
+    subprocesses** — typst and zola, at the exact versions on `PATH` (pinned
+    by `flake.lock`) — distinguished by a `policypress:dependency-kind`
+    property and the CycloneDX `dependencies` graph. The build-environment
+    closure (zig, glibc, …) stays out of scope: it is pinned by `flake.lock`
+    and would describe the CI machine, not the artifact users run.
+- Removed a dead `zig2nix` invocation from the devShell `shellHook` that
+  printed "command not found" on every shell entry (no `zig2nix` binary is on
+  `PATH`; the lock regenerator is the zig2nix flake app `zon2json-lock`, run
+  deliberately via `nix run .#update-zon`).
 - Build: the `mvzr`, `clap`, preview-server, and report modules now inherit the
   top-level `-Doptimize` instead of pinning `ReleaseSafe`/`ReleaseFast`, so a
   single build compiles each dependency at one optimize level instead of

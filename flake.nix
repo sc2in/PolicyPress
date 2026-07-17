@@ -4,9 +4,9 @@
   inputs = {
     nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1.*.tar.gz";
     zig2nix.url = "https://flakehub.com/f/Cloudef/zig2nix/0.1.*.tar.gz";
-    flake-parts.url = "github:hercules-ci/flake-parts";
-    git-hooks.url = "github:cachix/git-hooks.nix";
-    treefmt-nix.url = "github:numtide/treefmt-nix";
+    flake-parts.url = "https://flakehub.com/f/hercules-ci/flake-parts/0.1.*.tar.gz";
+    git-hooks.url = "https://flakehub.com/f/cachix/git-hooks.nix/0.1.*.tar.gz";
+    treefmt-nix.url = "https://flakehub.com/f/numtide/treefmt-nix/0.1.*.tar.gz";
   };
 
   outputs =
@@ -20,8 +20,7 @@
       ...
     }:
     flake-parts.lib.mkFlake { inherit inputs; } (
-      { self, ... }:
-      {
+      { self, ... }: {
         imports = [
           git-hooks.flakeModule
           treefmt-nix.flakeModule
@@ -740,13 +739,13 @@
                   chmod +x "$hooks_dir/pre-push"
                 fi
 
-                # Keep zon2json-lock in sync with build.zig.zon
-                if [ -f build.zig.zon ]; then
-                  if [ ! -f build.zig.zon2json-lock ] || [ build.zig.zon -nt build.zig.zon2json-lock ]; then
-                    echo "zig2nix: regenerating build.zig.zon2json-lock..."
-                    zig2nix zon2lock
-                  fi
-                fi
+                # build.zig.zon2json-lock is committed and regenerated
+                # deliberately on a dependency bump with `nix run .#update-zon`.
+                # (There is no `zig2nix` binary on PATH — the lock regenerator
+                # is the zig2nix flake app `zon2json-lock` — so the previous
+                # auto-regenerate-on-entry only ever printed "command not
+                # found"; it is removed rather than left erroring on every
+                # shell entry.)
 
                 echo "PolicyPress development environment"
                 echo ""

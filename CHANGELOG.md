@@ -84,7 +84,10 @@ versioning; breaking changes to it bump the major version.
   can't be evaluated (instead of attesting to nothing) and records a missing
   derivation as JSON null; the docs deploy got the `id-token` permission the
   FlakeHub cache needs, so the assurance step reuses CI's veraPDF output
-  instead of rebuilding it.
+  instead of rebuilding it; and the demo enables `audit_bundle` in
+  `config.toml` (not only via the action's input), so local previews
+  (`nix run .#serve` / `.#preview`) serve `/audit/` just like the deployed
+  site.
 - **Navigation menu `weight` is honored.** It was documented as the sort
   order but entries always rendered in file order; entries are now sorted by
   weight when every entry carries one (file order otherwise, so existing

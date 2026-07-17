@@ -739,13 +739,13 @@
                   chmod +x "$hooks_dir/pre-push"
                 fi
 
-                # Keep zon2json-lock in sync with build.zig.zon
-                if [ -f build.zig.zon ]; then
-                  if [ ! -f build.zig.zon2json-lock ] || [ build.zig.zon -nt build.zig.zon2json-lock ]; then
-                    echo "zig2nix: regenerating build.zig.zon2json-lock..."
-                    zig2nix zon2lock
-                  fi
-                fi
+                # build.zig.zon2json-lock is committed and regenerated
+                # deliberately on a dependency bump with `nix run .#update-zon`.
+                # (There is no `zig2nix` binary on PATH — the lock regenerator
+                # is the zig2nix flake app `zon2json-lock` — so the previous
+                # auto-regenerate-on-entry only ever printed "command not
+                # found"; it is removed rather than left erroring on every
+                # shell entry.)
 
                 echo "PolicyPress development environment"
                 echo ""

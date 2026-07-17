@@ -128,8 +128,41 @@ jobs:
       - name: Accessibility scan (axe-core)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         shell: nix develop --command bash -e {0}
+        env:
+          # Structured results for the attestation-evidence artifact below.
+          A11Y_REPORT: evidence/a11y-report.json
         run: |
           nix shell nixpkgs#chromium nixpkgs#nodejs --command bash tests/a11y/scan.sh
+
+      # Self-attestation evidence: SBOM (CycloneDX from the Zig lock file),
+      # per-check records with logs, the veraPDF PDF/UA-1 reports (the
+      # pdf-accessibility check's own $out — a cache hit, just built above),
+      # and the axe-core JSON written by the scan step.
+      #
+      # Runs on PRs to main as well as on main-branch pushes and tags: this
+      # generation is itself a step that can fail (a broken sbom.sh, a
+      # check-evidence eval error, a veraPDF report that won't produce), so
+      # exercising it on the PR keeps a breakage off main, and the uploaded
+      # artifact lets a reviewer examine the SBOM/reports before merge.
+      - name: Collect attestation evidence
+        if: ${{ success() && matrix.os == 'ubuntu-latest' && (github.ref_type == 'tag' || github.ref_name == 'main' || (github.event_name == 'pull_request' && github.base_ref == 'main')) }}
+        run: |
+          mkdir -p evidence
+          nix develop --command bash -c '
+            set -euo pipefail
+            tools/sbom.sh > evidence/sbom.cdx.json
+            tools/check-evidence.sh evidence
+          '
+          mkdir -p evidence/verapdf
+          cp -rL "$(nix build --no-link --print-out-paths .#checks.x86_64-linux.pdf-accessibility)"/. evidence/verapdf/
+
+      - name: Upload attestation evidence
+        if: ${{ success() && matrix.os == 'ubuntu-latest' && (github.ref_type == 'tag' || github.ref_name == 'main' || (github.event_name == 'pull_request' && github.base_ref == 'main')) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attestation-evidence
+          path: evidence/
+          retention-days: 90
 
       - name: Collect artifacts
         if: ${{ success() && matrix.os == 'ubuntu-latest' && (github.ref_type == 'tag' || github.ref_name == 'main') }}
@@ -188,6 +221,9 @@ jobs:
             # downloads matches the one built here for this exact tag.
             sha256sum policypress-* > SHA256SUMS.txt
             cat SHA256SUMS.txt
+            # SBOM for the released binaries: the Zig dependencies compiled in,
+            # from the lock file (CycloneDX 1.5).
+            tools/sbom.sh > sbom.cdx.json
           '
 
       - name: Create GitHub Release
@@ -196,6 +232,7 @@ jobs:
           files: |
             policypress-*
             SHA256SUMS.txt
+            sbom.cdx.json
           generate_release_notes: true
 
       # The floating major tag (e.g. v1) is a convenience alias consumers pin to.

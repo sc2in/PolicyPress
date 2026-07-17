@@ -69,6 +69,7 @@ async function scan(send, url, mode) {
 
 const { ws, send } = await connect();
 let total = 0;
+const results = [];
 for (const path of PAGES) {
   for (const mode of MODES) {
     let violations;
@@ -77,8 +78,10 @@ for (const path of PAGES) {
     } catch (e) {
       console.error(`ERROR  ${path} (${mode}): ${e.message}`);
       total += 1;
+      results.push({ page: path, mode, error: e.message, violations: null });
       continue;
     }
+    results.push({ page: path, mode, violations });
     if (violations.length === 0) {
       console.log(`ok     ${path} (${mode})`);
     } else {
@@ -91,5 +94,32 @@ for (const path of PAGES) {
   }
 }
 ws.close();
+
+// Structured evidence: when A11Y_REPORT names a path, write the full results
+// there as JSON (consumed by the CI evidence artifact and the demo site's
+// assurance page). No behaviour change when unset.
+if (process.env.A11Y_REPORT) {
+  const { writeFileSync, mkdirSync } = await import("node:fs");
+  const { dirname } = await import("node:path");
+  mkdirSync(dirname(process.env.A11Y_REPORT), { recursive: true });
+  writeFileSync(
+    process.env.A11Y_REPORT,
+    JSON.stringify(
+      {
+        tool: "axe-core (vendored)",
+        ruleset: "wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa, best-practice",
+        pages: PAGES.length,
+        modes: MODES,
+        total_violations: total,
+        pass: total === 0,
+        results,
+      },
+      null,
+      1,
+    ) + "\n",
+  );
+  console.log(`report: ${process.env.A11Y_REPORT}`);
+}
+
 console.log(`\n${total === 0 ? "PASS" : "FAIL"}: ${total} violation type(s) across ${PAGES.length} pages × ${MODES.length} modes.`);
 process.exit(total === 0 ? 0 : 1);

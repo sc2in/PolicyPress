@@ -314,6 +314,12 @@
             # demo policies (config.toml has pdf_standard = "ua-1") and fails if
             # any PDF is non-conformant — a regression gate so a rendering change
             # can't silently break accessibility. Runs headless (no GUI).
+            #
+            # The check's $out carries the validation reports (text + JSON), so
+            # the published attestation evidence is literally the CI gate's own
+            # hermetic output: any workflow can fetch the identical report via
+            # `nix build .#checks.<system>.pdf-accessibility --print-out-paths`
+            # (a cache hit on an already-checked commit).
             checks.pdf-accessibility = (mkPolicypress null).overrideAttrs (old: {
               pname = "policypress-pdf-accessibility";
               src = pdfCheckSrc;
@@ -323,9 +329,14 @@
                 mkdir -p public/pdfs
                 ./zig-out/bin/policypress -c config.toml -o public/pdfs
                 echo "Validating PDF/UA-1 conformance with veraPDF…"
-                verapdf --flavour ua1 --format text public/pdfs/*.pdf
+                mkdir -p "$out"
+                # No pipe: veraPDF's nonzero exit on nonconformance must fail
+                # the check (a `| tee` would mask it without pipefail).
+                verapdf --flavour ua1 --format text public/pdfs/*.pdf > "$out/verapdf-report.txt"
+                cat "$out/verapdf-report.txt"
+                verapdf --flavour ua1 --format json public/pdfs/*.pdf > "$out/verapdf-report.json"
               '';
-              installPhase = "touch $out";
+              installPhase = "true";
               nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ runtimeDeps ++ [ pkgs.verapdf ];
               TYPST_FONT_PATHS = "${typstFonts}/share/fonts";
               TYPST_IGNORE_SYSTEM_FONTS = "true";
@@ -728,13 +739,13 @@
                   chmod +x "$hooks_dir/pre-push"
                 fi
 
-                # Keep zon2json-lock in sync with build.zig.zon
-                if [ -f build.zig.zon ]; then
-                  if [ ! -f build.zig.zon2json-lock ] || [ build.zig.zon -nt build.zig.zon2json-lock ]; then
-                    echo "zig2nix: regenerating build.zig.zon2json-lock..."
-                    zig2nix zon2lock
-                  fi
-                fi
+                # build.zig.zon2json-lock is committed and regenerated
+                # deliberately on a dependency bump with `nix run .#update-zon`.
+                # (There is no `zig2nix` binary on PATH — the lock regenerator
+                # is the zig2nix flake app `zon2json-lock` — so the previous
+                # auto-regenerate-on-entry only ever printed "command not
+                # found"; it is removed rather than left erroring on every
+                # shell entry.)
 
                 echo "PolicyPress development environment"
                 echo ""

@@ -8,7 +8,7 @@
 
 Compliance policy management for small and mid-size teams — write policies in Markdown, version them in Git, publish a branded static site, and generate audit-ready PDFs, all from a single GitHub Action.
 
-PolicyPress is built on [Zola](https://www.getzola.org/) and [Typst](https://typst.app/). You host it yourself in your own Git repository — PolicyPress is the theme and toolchain, not the content, so your policies never leave your infrastructure. Consultants and MSPs can just as easily run it on behalf of their clients.
+PolicyPress is built on [Zola](https://www.getzola.org/) and [Typst](https://typst.app/). You host it yourself in your own Git repository — PolicyPress is the theme and toolchain, not the content, so your policies never leave your infrastructure. Organizations that run several instances — a nonprofit with multiple programs, or a small business with a few brands or entities — keep one shared toolchain and a separate, owned policy repository per entity.
 
 ## See it in action
 

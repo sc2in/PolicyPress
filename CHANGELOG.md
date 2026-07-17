@@ -105,6 +105,16 @@ versioning; breaking changes to it bump the major version.
     quick-action cards collapse to one column on narrow phones, and dashboard
     stat tiles stack full-width instead of an asymmetric 8/12 column.
 
+### Documentation
+
+- **Two new persona guides**: *Editing Without Git* (#10) — maintain policies
+  entirely from the browser via the GitHub web editor, github.dev, or an
+  optional Sveltia CMS setup, with the approval-metadata discipline spelled
+  out; and *Running Multiple PolicyPress Instances* — one central toolchain
+  with one owned repo per entity or program from the template, exact theme
+  pins with a rollout ritual, per-entity branding, audit bundles that roll up
+  to a single central oversight dashboard, and the ownership/access model.
+
 ## [1.5.0] - 2026-07-15
 
 ### Security

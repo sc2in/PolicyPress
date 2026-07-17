@@ -85,14 +85,17 @@ else
 fi
 
 echo "▸ Building redacted PDFs to a scratch dir…"
-./zig-out/bin/policypress -c config.toml -o "$tmp_pdfs" --redact >/dev/null 2>&1 \
+# --no-audit-bundle: the demo config enables the audit bundle, but this leg
+# checks that the PDF output dir holds PDFs only (below); the bundle is
+# generated and scanned in its own leg further down.
+./zig-out/bin/policypress -c config.toml -o "$tmp_pdfs" --redact --no-audit-bundle >/dev/null 2>&1 \
   || { echo "  ✗ policypress --redact failed"; exit 1; }
 
 echo "▸ Checking stale PDFs are swept on rebuild…"
 # A PDF that matches no current policy (e.g. from a renamed/deleted source) must
 # be removed on the next build so it can't linger at a guessable URL.
 touch "$tmp_pdfs/ZZZ_Stale_Removed_Policy_-_v9.9.pdf"
-./zig-out/bin/policypress -c config.toml -o "$tmp_pdfs" --redact >/dev/null 2>&1 \
+./zig-out/bin/policypress -c config.toml -o "$tmp_pdfs" --redact --no-audit-bundle >/dev/null 2>&1 \
   || { echo "  ✗ rebuild failed"; exit 1; }
 if [ -e "$tmp_pdfs/ZZZ_Stale_Removed_Policy_-_v9.9.pdf" ]; then
   echo "  ✗ stale PDF was not removed on rebuild"

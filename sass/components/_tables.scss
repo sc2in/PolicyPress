@@ -4,6 +4,23 @@ table {
   margin: 3rem 0;
 }
 
+// On narrow screens a wide markdown table (version history, control matrices)
+// otherwise overflows the page with no scroll affordance.
+@include media-breakpoint-down(md) {
+  main table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+// Generic horizontal-scroll wrapper for non-<table> grids (e.g. the
+// policy-review date table, which is a CSS display:table of <div>s).
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 // Split-color framework badges — label|count pill
 // Visually distinguishes the framework name from the coverage count
 // so "SCF | 6" reads as "6 SCF controls", not "version 6".

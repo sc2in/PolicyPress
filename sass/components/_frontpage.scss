@@ -216,6 +216,10 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
+      @media (max-width: 576px) {
+        grid-template-columns: 1fr;
+      }
+
       .quick-action-card {
         background: var(--pp-card-bg);
         padding: 1.75rem;
@@ -285,15 +289,36 @@
       justify-content: center;
       gap: 4rem;
 
+      // The three nowrap stat columns overflow narrow viewports; stack them.
+      @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+      }
+
       .stat-item {
         text-align: center;
         width: 33%;
+
+        @media (max-width: 768px) {
+          width: 100%;
+        }
 
         .stat-number {
           font-size: 2.5rem;
           font-weight: 700;
           margin-bottom: 0.5rem;
           white-space: nowrap;
+
+          // A long stat (e.g. "Framework-ready") overflows narrow viewports
+          // at this size; let it wrap instead of forcing a horizontal scroll.
+          @media (max-width: 991px) {
+            white-space: normal;
+          }
+
+          @media (max-width: 768px) {
+            font-size: 2rem;
+          }
         }
 
         .stat-label {
@@ -302,6 +327,10 @@
           text-transform: uppercase;
           letter-spacing: 0.5px;
           white-space: nowrap;
+
+          @media (max-width: 991px) {
+            white-space: normal;
+          }
         }
       }
     }

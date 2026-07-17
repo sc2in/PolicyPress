@@ -94,6 +94,13 @@ a.btn:focus {
 
 body {
   padding-top: 3.5625rem;
+
+  // Below the navbar expansion breakpoint the fixed header stacks into two
+  // rows (toggler/brand + social), so the single-row offset clips the top of
+  // the page content (e.g. the sidebar's ☰ Menu button).
+  @include media-breakpoint-down(lg) {
+    padding-top: 6.5rem;
+  }
 }
 
 .docs-sidebar {
@@ -401,8 +408,8 @@ h6:hover > .zola-anchor {
 }
 
 // In-prose links get an underline so they are distinguishable from body text by
-// more than colour (WCAG 1.4.1). Excludes the heading anchor icon, buttons, and
-// badge-like links which are distinguished by shape/placement.
-.content a[href]:not(.zola-anchor):not(.btn):not(.badge) {
+// more than colour (WCAG 1.4.1). Excludes the heading anchor icon, buttons,
+// badge-like links, and card links which are distinguished by shape/placement.
+.content a[href]:not(.zola-anchor):not(.btn):not(.badge):not(.section-card) {
   text-decoration: underline;
 }

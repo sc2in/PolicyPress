@@ -229,18 +229,32 @@ icon = "fas fa-file-alt"
 weight = 10
 
 [[extra.menu.main]]
+title = "Reports"
+section = "reports"
+url = "/reports/"
+icon = "fas fa-chart-bar"
+weight = 20
+
+[[extra.menu.main]]
+title = "Guides"
+section = "guides"
+url = "/guides/"
+icon = "fas fa-book-open"
+weight = 30
+
+[[extra.menu.main]]
 title = "Team"
 section = "team"
 url = "/team/"
 icon = "fas fa-users"
-weight = 20
+weight = 40
 
 [[extra.menu.main]]
 title = "News"
 section = "news"
 url = "/news/"
 icon = "fas fa-newspaper"
-weight = 30
+weight = 50
 
 [extra.policyteam]
 [[extra.policyteam.members]]

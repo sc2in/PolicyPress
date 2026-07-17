@@ -1,8 +1,12 @@
 .navbar-form {
   position: relative;
 
-  @include media-breakpoint-up(md) {
-    width: 20rem;
+  // In the expanded navbar the search sits on one line with the nav items;
+  // give it a generous basis but let it shrink so five nav items plus the
+  // search never overflow the container.
+  @include media-breakpoint-up(lg) {
+    flex: 0 1 20rem;
+    min-width: 8rem;
   }
 }
 

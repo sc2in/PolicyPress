@@ -2,7 +2,7 @@
 title = "SOC 2 Report"
 description = "SOC 2 Type II Policy Coverage Report"
 template = "TSC2017/list.html"
-weight = 1
+weight = 2
 [extra]
 +++
 

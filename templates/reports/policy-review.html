@@ -8,6 +8,7 @@
 {% set_global policies = policies | concat(with=subsection.pages) %}
 {% endfor %}
 
+<div class="table-scroll">
 <div class="policy-review-date-table">
       <div class="row">
         <div class="header">Policy</div>
@@ -39,4 +40,5 @@
       </div>
       {% endfor %}
     </div>
+</div>
 {% endblock report_content %}

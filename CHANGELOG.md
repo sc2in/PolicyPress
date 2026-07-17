@@ -15,6 +15,36 @@ versioning; breaking changes to it bump the major version.
   single build compiles each dependency at one optimize level instead of
   several (#138).
 
+### Added
+
+- **Reports and Guides joined the main navigation**, and both section indexes
+  now render as card landings (new `section-cards.html` template with title,
+  description, and link per page) instead of the bare default section list.
+  Report pages carry explicit weights so the landing orders SCF → SOC 2 →
+  Last Reviewed.
+
+### Fixed
+
+- **Navigation menu `weight` is honored.** It was documented as the sort
+  order but entries always rendered in file order; entries are now sorted by
+  weight when every entry carries one (file order otherwise, so existing
+  configs without weights keep working).
+- **Mobile and tablet layout fixes** across the site:
+  - The navbar now expands at the `lg` breakpoint instead of `md`, and the
+    search box shrinks instead of holding a fixed 20rem — five nav items plus
+    search no longer overflow the header between 768px and 991px.
+  - The docs sidebar starts collapsed behind its ☰ Menu button on small
+    screens (it rendered fully expanded above the content, forcing a long
+    scroll to reach the page; without JS it stays expanded).
+  - Page content is offset below the taller two-row fixed header on small
+    screens, so the sidebar toggle is no longer clipped underneath it.
+  - Wide markdown tables scroll horizontally on phones instead of overflowing
+    the page; the policy-review table wraps its columns cleanly.
+  - The homepage statistics band stacks on phones and lets long stats wrap
+    (previously `white-space: nowrap` clipped "Framework-ready" offscreen),
+    quick-action cards collapse to one column on narrow phones, and dashboard
+    stat tiles stack full-width instead of an asymmetric 8/12 column.
+
 ## [1.5.0] - 2026-07-15
 
 ### Security

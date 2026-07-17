@@ -58,6 +58,19 @@ document.addEventListener("click", function (e) {
   }
 });
 
+// On small screens the docs sidebar renders above the page content, so an
+// expanded tree forces a long scroll before the content. Start it collapsed
+// there (progressive enhancement: without JS it stays expanded, and on lg+
+// the toggle is hidden and CSS keeps the sidebar visible).
+(function collapseSidebarOnMobile() {
+  var sidebarNav = document.getElementById("sidebarNav");
+  if (!sidebarNav) return;
+  if (window.matchMedia("(min-width: 992px)").matches) return;
+  sidebarNav.classList.remove("show");
+  var toggle = document.querySelector('[data-bs-target="#sidebarNav"]');
+  if (toggle) toggle.setAttribute("aria-expanded", "false");
+})();
+
 // Sidebar desktop collapse toggle.
 var sidebarCol = document.getElementById("sidebar-col");
 var sidebarToggle = document.getElementById("sidebar-toggle");

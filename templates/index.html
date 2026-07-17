@@ -279,20 +279,20 @@ description=description, is_home=true) }}
       {# ---- Stat tiles ---- #}
       {% if policies | length > 0 %}
       <div class="row g-3 mb-4">
-        <div class="col-8 col-lg-4">
+        <div class="col-12 col-sm-6 col-lg-4">
           <div class="card h-100 text-center"><div class="card-body">
             <div class="h2 mb-0 fw-bold text-nowrap">{{ policies | length }}</div>
             <div class="text-muted small text-uppercase text-nowrap">Policies</div>
           </div></div>
         </div>
-        <div class="col-8 col-lg-4">
+        <div class="col-12 col-sm-6 col-lg-4">
           <div class="card h-100 text-center"><div class="card-body">
             <div class="h2 mb-0 fw-bold text-nowrap {% if overdue_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ overdue_count }}</div>
             <div class="text-muted small text-uppercase text-nowrap">Reviews overdue</div>
           </div></div>
         </div>
         {% if scf_pct >= 0 %}
-        <div class="col-8 col-lg-4">
+        <div class="col-12 col-sm-6 col-lg-4">
           <div class="card h-100 text-center"><div class="card-body">
             <div class="h2 mb-0 fw-bold text-nowrap">{{ scf_pct }}%</div>
             <div class="text-muted small text-uppercase text-nowrap">SCF coverage</div>
@@ -300,7 +300,7 @@ description=description, is_home=true) }}
         </div>
         {% endif %}
         {% if tsc_pct >= 0 %}
-        <div class="col-8 col-lg-4">
+        <div class="col-12 col-sm-6 col-lg-4">
           <div class="card h-100 text-center"><div class="card-body">
             <div class="h2 mb-0 fw-bold text-nowrap">{{ tsc_pct }}%</div>
             <div class="text-muted small text-uppercase text-nowrap">SOC 2 coverage</div>

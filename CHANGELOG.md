@@ -17,6 +17,17 @@ versioning; breaking changes to it bump the major version.
 
 ### Added
 
+- **Opt-in machine-readable audit bundle** (#135). `--audit-bundle` (or
+  `[extra.policypress] audit_bundle = true`, or the action's `audit_bundle`
+  input) writes an `audit/` directory beside the PDFs: `manifest.json` (one
+  entry per published policy — title, version, review date, owner, approver,
+  classification, PDF filename, and sha-256 of both the PDF bytes and the
+  Markdown source), `revisions.json` (every policy's revision history,
+  flattened), and `coverage.json`/`coverage.csv` (structured SCF + SOC 2
+  control coverage with the same corrected numerator as the website and the
+  report PDFs). Deterministically sorted; produced only by official (non
+  draft) passes; the default build output is unchanged. The redaction leak
+  check now also scans the bundle. New action output: `audit_path`.
 - **The compliance reports now ship as real, versioned PDFs** — the same Typst
   engine, fonts, branding, and (when configured) tagged PDF/UA-1 output as the
   policy PDFs, replacing the print-this-page stopgap. Every build regenerates

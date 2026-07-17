@@ -21,8 +21,9 @@ fail=0
 tmp_pdfs="$(mktemp -d)"
 tmp_content=""      # populated by the raw-HTML divergence check below
 tmp_html_out=""
+tmp_audit_out=""    # populated by the audit-bundle check below
 site_out="public"
-trap 'rm -rf "$tmp_pdfs" "$tmp_content" "$tmp_html_out"' EXIT
+trap 'rm -rf "$tmp_pdfs" "$tmp_content" "$tmp_html_out" "$tmp_audit_out"' EXIT
 
 # Sentinel strings that live inside {% redact() %} blocks in the demo content.
 # Each MUST be absent from every published artifact.
@@ -112,6 +113,36 @@ if [ -n "$strays" ]; then
 else
   echo "  ✓ only PDFs in the output dir"
 fi
+
+echo "▸ Building the audit bundle (redacted) and scanning it…"
+# Revision descriptions and titles flow into the bundle; prove nothing
+# redacted leaks there, and that all four files exist and look structured.
+tmp_audit_out="$(mktemp -d)"
+./zig-out/bin/policypress -c config.toml -o "$tmp_audit_out/pdfs" --redact --audit-bundle >/dev/null 2>&1 \
+  || { echo "  ✗ policypress --redact --audit-bundle failed"; exit 1; }
+for f in manifest.json revisions.json coverage.json coverage.csv; do
+  if [ ! -s "$tmp_audit_out/audit/$f" ]; then
+    echo "  ✗ audit bundle file missing or empty: $f"
+    fail=1
+  fi
+done
+if ! grep -q '"schema": "policypress/audit-manifest/v1"' "$tmp_audit_out/audit/manifest.json" 2>/dev/null; then
+  echo "  ✗ manifest.json lacks its schema marker"
+  fail=1
+fi
+if ! grep -q '"pdf_sha256"' "$tmp_audit_out/audit/manifest.json" 2>/dev/null; then
+  echo "  ✗ manifest.json lacks PDF hashes"
+  fail=1
+fi
+audit_leak=0
+for s in "${sentinels[@]}"; do
+  if grep -rqF "$s" "$tmp_audit_out/audit"; then
+    echo "  ✗ LEAK: '$s' found in the audit bundle"
+    fail=1
+    audit_leak=1
+  fi
+done
+[ "$audit_leak" -eq 0 ] && echo "  ✓ audit bundle present, structured, no sentinels"
 
 if command -v pdftotext >/dev/null 2>&1; then
   echo "▸ Scanning redacted PDFs' text layer…"

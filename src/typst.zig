@@ -44,6 +44,41 @@ pub const std_options: std.Options = .{
 
 const log = std.log.scoped(.typst);
 
+/// Options for the shared document setup (metadata, page layout, fonts, show
+/// rules). Subset of `DocOpts`; also used directly by the report PDFs.
+pub const SetupOpts = struct {
+    title: []const u8,
+    /// Running page header, e.g. "Policy Name vX.Y" or the report title.
+    header_title: []const u8,
+    author: []const u8,
+    /// Root-absolute Typst path to the logo ("/static/logo.png"), or null to omit.
+    logo: ?[]const u8,
+    /// Root-absolute Typst path to draft.png, or null when not a draft build.
+    draft_bg: ?[]const u8 = null,
+    footer_left: []const u8,
+    /// Classification shown centred in the footer (e.g. "Confidential").
+    footer_center: []const u8,
+};
+
+/// Options for the shared title page. Subset of `DocOpts`, generalised for
+/// non-policy documents: reports have no version and show a "Generated" date
+/// instead of "Last Reviewed".
+pub const TitleOpts = struct {
+    title: []const u8,
+    /// Version shown under the title as "Version vX.Y"; null omits the line.
+    version: ?[]const u8,
+    /// Six-digit hex colour (no `#` prefix) for the title-page rule.
+    color: []const u8,
+    author: []const u8,
+    logo: ?[]const u8,
+    draft_bg: ?[]const u8 = null,
+    /// Bottom-of-page date line: label ("Last Reviewed: ", "Generated: ")
+    /// followed by the value.
+    date_label: []const u8,
+    date_value: []const u8,
+    redact: bool = false,
+};
+
 /// Options for the policypress-specific Typst preamble.
 const DocOpts = struct {
     /// Full title shown on the title page (may include "(Redacted)"/"(Draft)" suffixes).
@@ -94,6 +129,21 @@ pub fn compile(
     var rendered = try render(io, alloc, config, input_file);
     defer rendered.deinit(alloc);
 
+    try compileSource(io, env, alloc, config, rendered.source, std.fs.path.basename(input_file), rendered.pdf_name);
+}
+
+/// Compile a complete Typst source string to `<config.build_dir>/<pdf_name>`.
+/// `work_hint` only flavours the temporary work-file name for debuggability.
+/// Shared by the per-policy `compile` and the report PDFs.
+pub fn compileSource(
+    io: std.Io,
+    env: *EnvMap,
+    alloc: Allocator,
+    config: Config,
+    source: []const u8,
+    work_hint: []const u8,
+    pdf_name: []const u8,
+) !void {
     // ── Write the .typ within --root ─────────────────────────────────────────
     // typst rejects source files outside --root, so the system temp directory
     // is not usable. Write a hidden file at the site root and delete it after
@@ -106,7 +156,7 @@ pub fn compile(
         while (attempt < 16) : (attempt += 1) {
             var typ_id: u64 = undefined;
             io.random(std.mem.asBytes(&typ_id));
-            const typ_name = try std.fmt.allocPrint(alloc, ".pp_{x}_{s}.typ", .{ typ_id, std.fs.path.basename(input_file) });
+            const typ_name = try std.fmt.allocPrint(alloc, ".pp_{x}_{s}.typ", .{ typ_id, work_hint });
             defer alloc.free(typ_name);
             const abs = try std.fs.path.join(alloc, &.{ config.root, typ_name });
             const f = std.Io.Dir.createFileAbsolute(io, abs, .{ .exclusive = true }) catch |e| {
@@ -124,7 +174,7 @@ pub fn compile(
         typ_file.close(io);
         std.Io.Dir.deleteFileAbsolute(io, typ_abs) catch {};
     }
-    try typ_file.writeStreamingAll(io, rendered.source);
+    try typ_file.writeStreamingAll(io, source);
 
     // Verify output directory is still accessible before invoking typst.
     std.Io.Dir.cwd().access(io, config.build_dir, .{}) catch |e| {
@@ -132,7 +182,7 @@ pub fn compile(
         return e;
     };
 
-    const out_path = try std.fs.path.join(alloc, &.{ config.build_dir, rendered.pdf_name });
+    const out_path = try std.fs.path.join(alloc, &.{ config.build_dir, pdf_name });
     defer alloc.free(out_path);
 
     try runTypst(io, env, alloc, typ_abs, out_path, config.root, config.pdf_standard);
@@ -216,16 +266,7 @@ pub fn render(
 
     // ── 5. Build Typst source ────────────────────────────────────────────────
 
-    // The colour is interpolated raw into `rgb("#…")` in the preamble, so
-    // validate it is a bare hex colour: a stray `"` or `)` in `pdf_color` would
-    // otherwise break out of the call and inject arbitrary Typst (which can
-    // read files within --root). Fall back to black on anything unexpected.
-    const color = blk: {
-        const c = if (config.color.len > 0 and config.color[0] == '#') config.color[1..] else config.color;
-        if (isHexColor(c)) break :blk c;
-        log.warn("pdf_color '{s}' is not a valid hex colour (expected 3/4/6/8 hex digits); using 000000\n", .{config.color});
-        break :blk "000000";
-    };
+    const color = validatedColor(config);
 
     const footer_left = try std.fmt.allocPrint(
         alloc,
@@ -257,15 +298,7 @@ pub fn render(
         break :blk config.classification;
     };
 
-    // Logo as a root-absolute Typst path ("/static/logo.png"): Typst resolves
-    // leading-`/` paths against --root, independent of the .typ location.
-    // Skip the logo if the file is absent.
-    const logo: ?[]u8 = blk: {
-        if (!std.mem.startsWith(u8, config.logo_path, config.root)) break :blk null;
-        std.Io.Dir.accessAbsolute(io, config.logo_path, .{}) catch break :blk null;
-        const tail = std.mem.trimStart(u8, config.logo_path[config.root.len..], "/");
-        break :blk try std.fmt.allocPrint(alloc, "/{s}", .{tail});
-    };
+    const logo: ?[]u8 = try resolveLogoPath(io, alloc, config);
     defer if (logo) |l| alloc.free(l);
 
     // Draft watermark: keep the pandoc pipeline's draft.png behaviour
@@ -311,6 +344,28 @@ pub fn render(
     errdefer alloc.free(out);
 
     return .{ .source = typ_src, .pdf_name = out };
+}
+
+/// The configured `pdf_color` validated as a bare hex colour (leading `#`
+/// stripped). The colour is interpolated raw into `rgb("#…")` in the preamble,
+/// so a stray `"` or `)` in `pdf_color` would otherwise break out of the call
+/// and inject arbitrary Typst (which can read files within --root). Falls back
+/// to black (with a warning) on anything unexpected.
+pub fn validatedColor(config: Config) []const u8 {
+    const c = if (config.color.len > 0 and config.color[0] == '#') config.color[1..] else config.color;
+    if (isHexColor(c)) return c;
+    log.warn("pdf_color '{s}' is not a valid hex colour (expected 3/4/6/8 hex digits); using 000000\n", .{config.color});
+    return "000000";
+}
+
+/// The logo as a root-absolute Typst path ("/static/logo.png"): Typst resolves
+/// leading-`/` paths against --root, independent of the .typ location. Null
+/// (skip the logo) when the file is absent or outside the root. Caller frees.
+pub fn resolveLogoPath(io: std.Io, alloc: Allocator, config: Config) !?[]u8 {
+    if (!std.mem.startsWith(u8, config.logo_path, config.root)) return null;
+    std.Io.Dir.accessAbsolute(io, config.logo_path, .{}) catch return null;
+    const tail = std.mem.trimStart(u8, config.logo_path[config.root.len..], "/");
+    return try std.fmt.allocPrint(alloc, "/{s}", .{tail});
 }
 
 // ── Mermaid rendering (pozeiden) ──────────────────────────────────────────────
@@ -370,7 +425,7 @@ pub fn resolveDraftPng(io: std.Io, a: Allocator, config: Config) !?[]u8 {
 // ── Typst escape helpers ──────────────────────────────────────────────────────
 
 /// Write `s` with Typst markup-mode special characters escaped.
-fn writeEscaped(writer: anytype, s: []const u8) !void {
+pub fn writeEscaped(writer: anytype, s: []const u8) !void {
     for (s) |c| {
         switch (c) {
             '\\' => try writer.writeAll("\\\\"),
@@ -410,7 +465,7 @@ test "isHexColor accepts hex triples/sextets and rejects injection" {
 
 /// Write `s` inside a Typst string literal (double-quoted). Only `"` and `\`
 /// need escaping in this context.
-fn writeStringLit(writer: anytype, s: []const u8) !void {
+pub fn writeStringLit(writer: anytype, s: []const u8) !void {
     for (s) |c| {
         switch (c) {
             '"' => try writer.writeAll("\\\""),
@@ -423,6 +478,33 @@ fn writeStringLit(writer: anytype, s: []const u8) !void {
 // ── Preamble ──────────────────────────────────────────────────────────────────
 
 fn writePreamble(writer: anytype, opts: DocOpts) !void {
+    try writeDocSetup(writer, .{
+        .title = opts.title,
+        .header_title = opts.header_title,
+        .author = opts.author,
+        .logo = opts.logo,
+        .draft_bg = opts.draft_bg,
+        .footer_left = opts.footer_left,
+        .footer_center = opts.footer_center,
+    });
+    try writeTitlePage(writer, .{
+        .title = opts.title,
+        .version = opts.version,
+        .color = opts.color,
+        .author = opts.author,
+        .logo = opts.logo,
+        .draft_bg = opts.draft_bg,
+        .date_label = "Last Reviewed: ",
+        .date_value = opts.last_reviewed,
+        .redact = opts.redact,
+    });
+    try writeOutline(writer);
+}
+
+/// Shared document setup: metadata, image-alt fallback, page layout with
+/// running header/footer, fonts, and show rules. Byte-identical to the policy
+/// preamble's first section; reused by the report PDFs.
+pub fn writeDocSetup(writer: anytype, opts: SetupOpts) !void {
     // ── Document metadata ────────────────────────────────────────────────────
     try writer.writeAll("#set document(\n  title: \"");
     try writeStringLit(writer, opts.title);
@@ -545,7 +627,12 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
             "  stroke: rgb(\"#999999\"),\n" ++
             ")\n\n",
     );
+}
 
+/// Shared title page: coloured rule, org, logo bottom-left, and a date line.
+/// The title is emitted as a real level-1 heading so body `==` headings are
+/// consecutive (a PDF/UA-1 requirement); see the inline comment.
+pub fn writeTitlePage(writer: anytype, opts: TitleOpts) !void {
     // ── Title page ───────────────────────────────────────────────────────────
     // White background (eisvogel default), coloured rule, logo bottom-left.
     try writer.writeAll("// ── Title page ─────────────────────────────────────────────────────────\n");
@@ -578,9 +665,11 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
     try writer.writeAll("]]\n\n");
 
     // Version
-    try writer.writeAll("  #v(0.5cm)\n  #text(size: 18pt)[Version v");
-    try writeEscaped(writer, opts.version);
-    try writer.writeAll("]\n\n");
+    if (opts.version) |version| {
+        try writer.writeAll("  #v(0.5cm)\n  #text(size: 18pt)[Version v");
+        try writeEscaped(writer, version);
+        try writer.writeAll("]\n\n");
+    }
 
     // Coloured rule
     try writer.print(
@@ -603,11 +692,15 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
         try writer.writeAll("\", width: 6cm)\n\n");
     }
 
-    // Last reviewed date
-    try writer.writeAll("  #text(size: 11pt)[Last Reviewed: ");
-    try writeEscaped(writer, opts.last_reviewed);
+    // Date line (policies: "Last Reviewed: <date>"; reports: "Generated: <date>").
+    try writer.writeAll("  #text(size: 11pt)[");
+    try writeEscaped(writer, opts.date_label);
+    try writeEscaped(writer, opts.date_value);
     try writer.writeAll("]\n]\n\n");
+}
 
+/// Shared table of contents.
+pub fn writeOutline(writer: anytype) !void {
     // ── Table of contents ────────────────────────────────────────────────────
     try writer.writeAll(
         "#outline(\n" ++
@@ -670,7 +763,7 @@ fn writeVersionHistory(writer: anytype, fm: *zigmark.Frontmatter) !void {
 /// font install. TYPST_FONT_PATHS from the environment (e.g. the flake
 /// devshell) still contributes additional families; typst's embedded fonts are
 /// the final fallback.
-fn runTypst(
+pub fn runTypst(
     io: std.Io,
     env: *EnvMap,
     a: Allocator,

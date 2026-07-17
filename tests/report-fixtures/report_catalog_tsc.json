@@ -1,0 +1,20 @@
+[
+  {
+    "domain": "CC1",
+    "control_id": "CC1.1",
+    "control": "Integrity and Ethics",
+    "description": "The entity demonstrates a commitment to integrity and ethical values."
+  },
+  {
+    "domain": "CC1",
+    "control_id": "CC1.2",
+    "control": "Board Independence",
+    "description": "The board of directors demonstrates independence from management."
+  },
+  {
+    "domain": "CC2",
+    "control_id": "CC2.1",
+    "control": "Use of Information Systems",
+    "description": "The entity uses relevant, quality information."
+  }
+]

@@ -51,7 +51,9 @@ outputs:
     description: Path to the directory containing the built static site.
     value: ${{ steps.build.outputs.site_path }}
   report_path:
-    description: Path to the directory containing compliance reports.
+    description: >-
+      Path to the directory containing the generated report PDFs (coverage +
+      policy review). Same directory as pdf_path.
     value: ${{ steps.build.outputs.report_path }}
 
 runs:
@@ -239,4 +241,4 @@ runs:
 
         echo "pdf_path=${PP_OUTPUT_DIR}/pdfs"    >> "$GITHUB_OUTPUT"
         echo "site_path=public"                  >> "$GITHUB_OUTPUT"
-        echo "report_path=${PP_OUTPUT_DIR}/reports" >> "$GITHUB_OUTPUT"
+        echo "report_path=${PP_OUTPUT_DIR}/pdfs"  >> "$GITHUB_OUTPUT"

@@ -96,10 +96,10 @@ versioning; breaking changes to it bump the major version.
 - **Two new persona guides**: *Editing Without Git* (#10) — maintain policies
   entirely from the browser via the GitHub web editor, github.dev, or an
   optional Sveltia CMS setup, with the approval-metadata discipline spelled
-  out; and *Running PolicyPress for Multiple Clients* — the consultant/MSP
-  playbook (one repo per client from the template, exact theme pins with an
-  upgrade ritual, per-client branding, audit bundles as the engagement
-  handoff artifact, and the access/offboarding model).
+  out; and *Running Multiple PolicyPress Instances* — one central toolchain
+  with one owned repo per entity or program from the template, exact theme
+  pins with a rollout ritual, per-entity branding, audit bundles that roll up
+  to a single central oversight dashboard, and the ownership/access model.
 
 ## [1.5.0] - 2026-07-15
 

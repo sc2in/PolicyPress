@@ -420,6 +420,82 @@
                 meta.description = "Run policypress with all runtime dependencies in PATH";
               };
 
+            # Attestation-evidence generators, exposed as flake apps so they run
+            # identically in CI and locally (`nix run .#sbom`, `.#check-evidence`,
+            # `.#a11y-scan`) with their tools pinned by this flake rather than a
+            # floating `nixpkgs#…` reference. Each is a thin wrapper: it puts the
+            # required tools on PATH (keeping the ambient PATH so an outer `nix`
+            # stays reachable for check-evidence) and runs the script in tools/,
+            # which remains the source of truth and directly runnable.
+            apps.sbom = {
+              type = "app";
+              program = "${pkgs.writeShellScript "policypress-sbom" ''
+                export PATH="${
+                  lib.makeBinPath (
+                    [
+                      pkgs.jq
+                      pkgs.git
+                    ]
+                    ++ runtimeDeps
+                  )
+                }:$PATH"
+                cd "$(git rev-parse --show-toplevel)"
+                exec bash tools/sbom.sh "$@"
+              ''}";
+              meta.description = "Generate the CycloneDX SBOM (tools/sbom.sh)";
+            };
+
+            apps.check-evidence = {
+              type = "app";
+              program = "${pkgs.writeShellScript "policypress-check-evidence" ''
+                export PATH="${
+                  lib.makeBinPath [
+                    pkgs.jq
+                    pkgs.git
+                  ]
+                }:$PATH"
+                cd "$(git rev-parse --show-toplevel)"
+                exec bash tools/check-evidence.sh "$@"
+              ''}";
+              meta.description = "Record flake-check evidence (tools/check-evidence.sh)";
+            };
+
+            apps.a11y-scan = {
+              type = "app";
+              program = "${pkgs.writeShellScript "policypress-a11y-scan" ''
+                export PATH="${
+                  lib.makeBinPath (
+                    [
+                      pkgs.chromium
+                      pkgs.nodejs
+                      pkgs.curl
+                      pkgs.coreutils
+                    ]
+                    ++ runtimeDeps
+                  )
+                }:$PATH"
+                cd "$(git rev-parse --show-toplevel)"
+                exec bash tests/a11y/scan.sh "$@"
+              ''}";
+              meta.description = "axe-core WCAG scan of the served site (tests/a11y/scan.sh)";
+            };
+
+            apps.check-release = {
+              type = "app";
+              program = "${pkgs.writeShellScript "policypress-check-release" ''
+                export PATH="${
+                  lib.makeBinPath [
+                    pkgs.git
+                    pkgs.gnugrep
+                    pkgs.coreutils
+                  ]
+                }:$PATH"
+                cd "$(git rev-parse --show-toplevel)"
+                exec bash tools/check-release.sh "$@"
+              ''}";
+              meta.description = "Release-tag guards: CHANGELOG + version stamp (tools/check-release.sh)";
+            };
+
             apps.serve =
               let
                 app = pkgs.writeShellApplication {

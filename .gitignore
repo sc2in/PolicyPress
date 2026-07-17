@@ -32,3 +32,6 @@ sbom.cdx.json
 sbom.spdx.json
 sbom.csv
 http_cache.sqlite
+
+# CI attestation evidence (generated; uploaded as an artifact, never committed)
+evidence/

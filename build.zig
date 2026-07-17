@@ -145,6 +145,16 @@ pub fn build(b: *std.Build) !void {
     golden_mod.addImport("typst", typst_mod);
     golden_mod.addImport("reports", reports_mod);
 
+    const reports_mod = b.addModule("policy_report", .{
+        .target = target,
+        .optimize = optimize,
+        .root_source_file = b.path("src/control_report.zig"),
+    });
+    reports_mod.addImport("clap", clap.module("clap"));
+    reports_mod.addImport("tomlz", tomlz.module("tomlz"));
+    reports_mod.addImport("config", config_mod);
+    reports_mod.addImport("zigmark", zigmark_mod);
+
     const policypress_mod = b.addModule("policypress", .{
         .target = target,
         .optimize = optimize,

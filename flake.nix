@@ -4,9 +4,9 @@
   inputs = {
     nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1.*.tar.gz";
     zig2nix.url = "https://flakehub.com/f/Cloudef/zig2nix/0.1.*.tar.gz";
-    flake-parts.url = "github:hercules-ci/flake-parts";
-    git-hooks.url = "github:cachix/git-hooks.nix";
-    treefmt-nix.url = "github:numtide/treefmt-nix";
+    flake-parts.url = "https://flakehub.com/f/hercules-ci/flake-parts/0.1.*.tar.gz";
+    git-hooks.url = "https://flakehub.com/f/cachix/git-hooks.nix/0.1.*.tar.gz";
+    treefmt-nix.url = "https://flakehub.com/f/numtide/treefmt-nix/0.1.*.tar.gz";
   };
 
   outputs =
@@ -20,8 +20,7 @@
       ...
     }:
     flake-parts.lib.mkFlake { inherit inputs; } (
-      { self, ... }:
-      {
+      { self, ... }: {
         imports = [
           git-hooks.flakeModule
           treefmt-nix.flakeModule

@@ -19,11 +19,12 @@ const build_options = @import("build_options");
 const clap = @import("clap");
 const Config = @import("config").Config;
 const Date = @import("utils").Date;
-const stampIsNewer = @import("utils").stampIsNewer;
 const isDraftPolicy = @import("utils").isDraftPolicy;
-const Typst = @import("typst");
 const reports = @import("reports");
+const stampIsNewer = @import("utils").stampIsNewer;
+const Typst = @import("typst");
 const writeStamp = @import("utils").writeStamp;
+
 const audit = @import("audit.zig");
 const diagrams = @import("diagrams.zig");
 

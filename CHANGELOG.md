@@ -66,6 +66,17 @@ versioning; breaking changes to it bump the major version.
   of the TSC 2017 catalog (`data/tsc2017.json`, parity-tested against the
   YAML), golden snapshots of the generated report markup, and veraPDF
   coverage of the report PDFs in the `pdf-accessibility` gate.
+- **The demo site publishes its own evidence on a new Assurance page**
+  (`/reports/assurance/`): the live audit bundle (`/audit/`), the binary's
+  CycloneDX SBOM, and the veraPDF PDF/UA-1 + axe-core reports — assembled on
+  every deploy from the CI gates' own outputs (`/assurance/`), with an
+  explicit note that this is verifiable automated evidence, not a
+  certification. The demo build now runs with `audit_bundle: "true"`. Also
+  fixed a real WCAG AA contrast failure it surfaced: the baked-in
+  github-dark highlight palette renders code comments at ≈3.1:1; a CSS
+  override lifts them to ≈4.6:1. PR previews build the same `/audit/` and
+  `/assurance/` artifacts as production, so the page's evidence links
+  resolve on the preview rather than 404ing before merge.
 - **Reports and Guides joined the main navigation**, and both section indexes
   now render as card landings (new `section-cards.html` template with title,
   description, and link per page) instead of the bare default section list.

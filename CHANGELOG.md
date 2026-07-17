@@ -10,17 +10,29 @@ versioning; breaking changes to it bump the major version.
 
 ### Internal
 
-- **CI now produces self-attestation evidence.** Every main-branch and tag run
-  uploads an `attestation-evidence` artifact (90-day retention) containing:
-  a CycloneDX 1.5 SBOM of the Zig dependencies compiled into the binary
-  (`tools/sbom.sh`, generated from the lock file's pinned URLs and SRI
-  hashes); a structured record of every `nix flake check` with captured build
-  logs (`tools/check-evidence.sh`); the veraPDF PDF/UA-1 validation reports
-  (text + JSON — the `pdf-accessibility` check now writes them into its own
-  `$out`, so the published evidence is the CI gate's hermetic output); and
-  the axe-core scan results as JSON (`A11Y_REPORT`, no behaviour change when
-  unset). GitHub Releases additionally ship `sbom.cdx.json` beside
-  `SHA256SUMS.txt`.
+- **CI now produces self-attestation evidence.** Every push to `main`, every
+  release tag, **and every pull request to `main`** uploads an
+  `attestation-evidence` artifact (90-day retention) containing: a CycloneDX
+  1.5 SBOM (`tools/sbom.sh`); a structured record of every `nix flake check`
+  with captured build logs (`tools/check-evidence.sh`); the veraPDF PDF/UA-1
+  validation reports (text + JSON — the `pdf-accessibility` check now writes
+  them into its own `$out`, so the published evidence is the CI gate's
+  hermetic output); and the axe-core scan results as JSON (`A11Y_REPORT`, no
+  behaviour change when unset). Running it on PRs keeps a broken generation
+  step off `main` and lets a reviewer examine the SBOM/reports before merge.
+  GitHub Releases additionally ship `sbom.cdx.json` beside `SHA256SUMS.txt`.
+  - The SBOM covers both the Zig dependencies compiled into the binary (from
+    the lock file's pinned URLs and SRI hashes, with `pkg:github` purls that
+    CVE scanners can resolve) **and the runtime tools it invokes as
+    subprocesses** — typst and zola, at the exact versions on `PATH` (pinned
+    by `flake.lock`) — distinguished by a `policypress:dependency-kind`
+    property and the CycloneDX `dependencies` graph. The build-environment
+    closure (zig, glibc, …) stays out of scope: it is pinned by `flake.lock`
+    and would describe the CI machine, not the artifact users run.
+- Removed a dead `zig2nix` invocation from the devShell `shellHook` that
+  printed "command not found" on every shell entry (no `zig2nix` binary is on
+  `PATH`; the lock regenerator is the zig2nix flake app `zon2json-lock`, run
+  deliberately via `nix run .#update-zon`).
 - Build: the `mvzr`, `clap`, preview-server, and report modules now inherit the
   top-level `-Doptimize` instead of pinning `ReleaseSafe`/`ReleaseFast`, so a
   single build compiles each dependency at one optimize level instead of
@@ -62,7 +74,9 @@ versioning; breaking changes to it bump the major version.
   certification. The demo build now runs with `audit_bundle: "true"`. Also
   fixed a real WCAG AA contrast failure it surfaced: the baked-in
   github-dark highlight palette renders code comments at ≈3.1:1; a CSS
-  override lifts them to ≈4.6:1.
+  override lifts them to ≈4.6:1. PR previews build the same `/audit/` and
+  `/assurance/` artifacts as production, so the page's evidence links
+  resolve on the preview rather than 404ing before merge.
 - **Reports and Guides joined the main navigation**, and both section indexes
   now render as card landings (new `section-cards.html` template with title,
   description, and link per page) instead of the bare default section list.
@@ -116,10 +130,10 @@ versioning; breaking changes to it bump the major version.
 - **Two new persona guides**: *Editing Without Git* (#10) — maintain policies
   entirely from the browser via the GitHub web editor, github.dev, or an
   optional Sveltia CMS setup, with the approval-metadata discipline spelled
-  out; and *Running PolicyPress for Multiple Clients* — the consultant/MSP
-  playbook (one repo per client from the template, exact theme pins with an
-  upgrade ritual, per-client branding, audit bundles as the engagement
-  handoff artifact, and the access/offboarding model).
+  out; and *Running Multiple PolicyPress Instances* — one central toolchain
+  with one owned repo per entity or program from the template, exact theme
+  pins with a rollout ritual, per-entity branding, audit bundles that roll up
+  to a single central oversight dashboard, and the ownership/access model.
 
 ## [1.5.0] - 2026-07-15
 

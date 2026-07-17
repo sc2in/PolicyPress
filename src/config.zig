@@ -6,9 +6,10 @@ const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
-const zigmark = @import("zigmark");
+
 const toml = @import("tomlz");
 const u = @import("utils");
+const zigmark = @import("zigmark");
 
 pub const std_options: std.Options = .{
     .log_level = .warn,

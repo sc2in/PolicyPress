@@ -32,9 +32,10 @@ jobs:
           config_path: config.toml
           redact_mode: "true"
           generate_draft_pdfs: "true"
-          # The audit bundle itself is enabled in the demo's config.toml
-          # (audit_bundle = true), so local previews serve /audit/ too; the
-          # explicit input documents the consumer-facing switch.
+          # The demo publishes its own audit bundle at /audit/ — the assurance
+          # page links it as live evidence. It is also enabled in the demo's
+          # config.toml (audit_bundle = true) so local previews serve /audit/;
+          # the explicit input documents the consumer-facing switch.
           audit_bundle: "true"
 
       # Assemble /assurance/: the SBOM, the veraPDF PDF/UA-1 reports (the

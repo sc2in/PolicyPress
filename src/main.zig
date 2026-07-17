@@ -702,6 +702,86 @@ fn compileReports(io: std.Io, env: *EnvMap, alloc: Allocator, config: Config) !v
     }
 }
 
+/// Generate the report PDFs (SCF/SOC 2 coverage, policy review) into
+/// `config.build_dir` under stable, undated filenames (`reports.Kind.pdfName`;
+/// the build date is inside the document). Skipped in draft passes — the
+/// official pass owns these files, and a `--draft` second pass into the same
+/// directory must not overwrite them with draft-flavoured copies. Redacted
+/// passes DO generate them: reports carry only published-policy titles (no
+/// redactable spans), and on a site whose official build is redacted (like the
+/// demo) that pass is the only source. A missing control catalog skips that
+/// coverage report with a note, so consumer sites without `data/` stay green.
+fn compileReports(io: std.Io, env: *EnvMap, alloc: Allocator, config: Config) !void {
+    if (!config.report_pdfs or config.is_draft) return;
+
+    const generated = try std.fmt.allocPrint(alloc, "{d:0>4}-{d:0>2}-{d:0>2}", .{
+        config.date.year, config.date.month, config.date.day,
+    });
+    defer alloc.free(generated);
+
+    const footer_left = try std.fmt.allocPrint(alloc, "{s} \u{00a9} {d}", .{ config.org, config.current_year });
+    defer alloc.free(footer_left);
+
+    const logo = try Typst.resolveLogoPath(io, alloc, config);
+    defer if (logo) |l| alloc.free(l);
+
+    var generated_count: usize = 0;
+
+    inline for (comptime std.enums.values(reports.Kind)) |kind| {
+        const opts: reports.render.ReportOpts = .{
+            .title = kind.title(),
+            .org = config.org,
+            .color = Typst.validatedColor(config),
+            .logo = logo,
+            .footer_left = footer_left,
+            .classification = config.classification,
+            .generated = generated,
+            .review_overdue_days = config.review_overdue_days,
+        };
+
+        const source: ?[]u8 = blk: {
+            if (kind.catalogFile()) |catalog_rel| {
+                const catalog_path = try std.fs.path.join(alloc, &.{ config.root, catalog_rel });
+                defer alloc.free(catalog_path);
+                std.Io.Dir.cwd().access(io, catalog_path, .{}) catch {
+                    std.log.info(
+                        "policypress: control catalog '{s}' not found; skipping the {s}",
+                        .{ catalog_rel, kind.title() },
+                    );
+                    break :blk null;
+                };
+                var catalog = reports.init(io, alloc, catalog_path) catch |err| {
+                    std.log.warn(
+                        "policypress: could not load '{s}' ({s}); skipping the {s}",
+                        .{ catalog_rel, @errorName(err), kind.title() },
+                    );
+                    break :blk null;
+                };
+                defer catalog.deinit();
+                const cov = try catalog.coverage(io, kind.taxonomyKey().?, config.policy_dir);
+                break :blk try reports.render.renderCoverage(alloc, cov, opts);
+            } else {
+                const rows = try reports.collectReviewRows(io, alloc, config.policy_dir, config.date);
+                defer reports.freeReviewRows(alloc, rows);
+                break :blk try reports.render.renderReview(alloc, rows, opts);
+            }
+        };
+
+        if (source) |src| {
+            defer alloc.free(src);
+            Typst.compileSource(io, env, alloc, config, src, kind.pdfName(), kind.pdfName()) catch |err| {
+                std.log.err("policypress: {s} failed: {s}", .{ kind.title(), describeCompileError(err) });
+                return error.CompilationFailed;
+            };
+            generated_count += 1;
+        }
+    }
+
+    if (generated_count > 0) {
+        std.log.info("policypress: {d} report PDF(s) generated.", .{generated_count});
+    }
+}
+
 /// Remove PDFs in the output directory that no longer correspond to any current
 /// policy — a renamed, retitled, deleted, or newly-drafted policy would
 /// otherwise leave its old PDF behind at a guessable URL. A PDF is kept if it

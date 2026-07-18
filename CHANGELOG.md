@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-07-18
+
 ### Internal
 
 - **The SBOM now lists the `mitex` Typst package** as a `typst-package`

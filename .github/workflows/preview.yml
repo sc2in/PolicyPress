@@ -16,6 +16,10 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      # Consumed by the FlakeHub cache (via the composite action) so the
+      # pdf-accessibility check the assurance step reuses is a cache hit
+      # instead of a from-scratch veraPDF rebuild.
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -39,6 +43,26 @@ jobs:
           redact_mode: "true"
           generate_draft_pdfs: "true"
           base_url: ${{ steps.preview_url.outputs.url }}
+          # Mirror the production deploy (deploy-docs.yml) so the preview is
+          # faithful — the assurance page links /audit/ and /assurance/.
+          audit_bundle: "true"
+
+      # Assemble /assurance/ exactly as deploy-docs does: the SBOM, the veraPDF
+      # PDF/UA-1 reports (the pdf-accessibility check's own $out — a cache hit),
+      # and a fresh axe-core scan as JSON. Without this the assurance page's
+      # evidence links 404 on the preview. The a11y scan uses `zola serve` and
+      # does not touch the freshly built public/.
+      - name: Assemble assurance evidence
+        run: |
+          mkdir -p public/assurance
+          nix develop --command bash -c '
+            set -euo pipefail
+            tools/sbom.sh > public/assurance/sbom.cdx.json
+          '
+          cp -L "$(nix build --no-link --print-out-paths .#checks.x86_64-linux.pdf-accessibility)"/verapdf-report.* public/assurance/
+          chmod u+w public/assurance/verapdf-report.*
+          A11Y_REPORT=public/assurance/a11y-report.json \
+            nix develop --command bash -c 'nix shell nixpkgs#chromium nixpkgs#nodejs --command bash tests/a11y/scan.sh'
 
       - name: Deploy preview to Cloudflare Pages
         id: deploy

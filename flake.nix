@@ -511,11 +511,15 @@
                     export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
                     mkdir -p static/pdfs
 
-                    # Run regular and draft compilations in parallel on startup.
-                    # The random-suffixed temp filenames in policypress prevent the
-                    # two processes from colliding on intermediate .typ sources.
-                    policypress -o static/pdfs &
-                    policypress -o static/pdfs --draft &
+                    # Run the official and draft compilations in parallel on
+                    # startup. Both pass --redact to match the demo's deployment
+                    # (deploy-docs.yml sets redact_mode = true): with
+                    # redact_web = true the policy pages link the "__Redacted__"
+                    # filenames, so a non-redacted local build 404s every PDF
+                    # link. The random-suffixed temp filenames in policypress
+                    # prevent the two processes from colliding on .typ sources.
+                    policypress -o static/pdfs --redact &
+                    policypress -o static/pdfs --redact --draft &
                     wait
 
                     zola serve &
@@ -523,7 +527,7 @@
                     trap 'kill "$ZOLA_PID" 2>/dev/null' EXIT INT TERM
 
                     watchexec -w content -e md -- sh -c \
-                      'policypress -o static/pdfs & policypress -o static/pdfs --draft & wait'
+                      'policypress -o static/pdfs --redact & policypress -o static/pdfs --redact --draft & wait'
                     wait
                   '';
                 };
@@ -547,8 +551,10 @@
                   text = ''
                     export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
                     zola build --base-url "http://0.0.0.0:1111"
-                    policypress -o static/pdfs
-                    policypress -o static/pdfs --draft
+                    # --redact matches the demo deployment (redact_mode = true);
+                    # with redact_web = true the pages link "__Redacted__" PDFs.
+                    policypress -o static/pdfs --redact
+                    policypress -o static/pdfs --redact --draft
                     zola serve
                   '';
                 };

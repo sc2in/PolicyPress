@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # Consumed by the FlakeHub cache (installed by the composite action);
+      # without it the cache silently degrades and the assurance step below
+      # rebuilds the pdf-accessibility check from scratch instead of hitting
+      # the output CI already built for this commit.
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -27,6 +32,29 @@ jobs:
           config_path: config.toml
           redact_mode: "true"
           generate_draft_pdfs: "true"
+          # The demo publishes its own audit bundle at /audit/ — the assurance
+          # page links it as live evidence. It is also enabled in the demo's
+          # config.toml (audit_bundle = true) so local previews serve /audit/;
+          # the explicit input documents the consumer-facing switch.
+          audit_bundle: "true"
+
+      # Assemble /assurance/: the SBOM, the veraPDF PDF/UA-1 reports (the
+      # pdf-accessibility flake check's own $out — a cache hit on this
+      # commit, CI already built it), and a fresh axe-core scan as JSON.
+      # GitHub artifacts require a login; the site is the anonymous-access
+      # surface for this evidence. The a11y scan uses `zola serve` and does
+      # not touch the freshly built public/.
+      - name: Assemble assurance evidence
+        run: |
+          mkdir -p public/assurance
+          nix develop --command bash -c '
+            set -euo pipefail
+            tools/sbom.sh > public/assurance/sbom.cdx.json
+          '
+          cp -L "$(nix build --no-link --print-out-paths .#checks.x86_64-linux.pdf-accessibility)"/verapdf-report.* public/assurance/
+          chmod u+w public/assurance/verapdf-report.*
+          A11Y_REPORT=public/assurance/a11y-report.json \
+            nix develop --command bash -c 'nix shell nixpkgs#chromium nixpkgs#nodejs --command bash tests/a11y/scan.sh'
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v4

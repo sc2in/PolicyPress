@@ -74,6 +74,17 @@ versioning; breaking changes to it bump the major version.
   of the TSC 2017 catalog (`data/tsc2017.json`, parity-tested against the
   YAML), golden snapshots of the generated report markup, and veraPDF
   coverage of the report PDFs in the `pdf-accessibility` gate.
+- **The demo site publishes its own evidence on a new Assurance page**
+  (`/reports/assurance/`): the live audit bundle (`/audit/`), the binary's
+  CycloneDX SBOM, and the veraPDF PDF/UA-1 + axe-core reports — assembled on
+  every deploy from the CI gates' own outputs (`/assurance/`), with an
+  explicit note that this is verifiable automated evidence, not a
+  certification. The demo build now runs with `audit_bundle: "true"`. Also
+  fixed a real WCAG AA contrast failure it surfaced: the baked-in
+  github-dark highlight palette renders code comments at ≈3.1:1; a CSS
+  override lifts them to ≈4.6:1. PR previews build the same `/audit/` and
+  `/assurance/` artifacts as production, so the page's evidence links
+  resolve on the preview rather than 404ing before merge.
 - **Reports and Guides joined the main navigation**, and both section indexes
   now render as card landings (new `section-cards.html` template with title,
   description, and link per page) instead of the bare default section list.
@@ -82,6 +93,26 @@ versioning; breaking changes to it bump the major version.
 
 ### Fixed
 
+- **Fixes from the batch self-review**: the two-row header offset now
+  actually applies on tablet widths (a pre-existing `4rem !important` rule
+  overrode it between 768–991px); the homepage "Reviews overdue" tile and
+  badges follow `review_overdue_days` instead of a hardcoded year, so the
+  dashboard, build pre-flight, and Policy Review PDF agree on "overdue";
+  audit-bundle files are written via temp-file + rename (a crash can no
+  longer leave a truncated manifest) and a frontmatter-string lifetime
+  hazard in the coverage export was removed; a coverage report whose control
+  catalog was removed is now swept like any orphaned PDF instead of served
+  stale forever; `tools/check-evidence.sh` fails loudly when the check list
+  can't be evaluated (instead of attesting to nothing) and records a missing
+  derivation as JSON null; the docs deploy got the `id-token` permission the
+  FlakeHub cache needs, so the assurance step reuses CI's veraPDF output
+  instead of rebuilding it; and the demo enables `audit_bundle` in
+  `config.toml` (not only via the action's input), so local previews
+  (`nix run .#serve` / `.#preview`) serve `/audit/` just like the deployed
+  site. Those two apps also now generate their PDFs with `--redact` (matching
+  the demo's `redact_mode`): with `redact_web = true` the policy pages link
+  the `__Redacted__` filenames, so the previous non-redacted local build
+  404'd every PDF download link.
 - **Navigation menu `weight` is honored.** It was documented as the sort
   order but entries always rendered in file order; entries are now sorted by
   weight when every entry carries one (file order otherwise, so existing
@@ -101,6 +132,16 @@ versioning; breaking changes to it bump the major version.
     (previously `white-space: nowrap` clipped "Framework-ready" offscreen),
     quick-action cards collapse to one column on narrow phones, and dashboard
     stat tiles stack full-width instead of an asymmetric 8/12 column.
+
+### Documentation
+
+- **Two new persona guides**: *Editing Without Git* (#10) — maintain policies
+  entirely from the browser via the GitHub web editor, github.dev, or an
+  optional Sveltia CMS setup, with the approval-metadata discipline spelled
+  out; and *Running Multiple PolicyPress Instances* — one central toolchain
+  with one owned repo per entity or program from the template, exact theme
+  pins with a rollout ritual, per-entity branding, audit bundles that roll up
+  to a single central oversight dashboard, and the ownership/access model.
 
 ## [1.5.0] - 2026-07-15
 

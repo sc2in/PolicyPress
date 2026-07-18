@@ -23,6 +23,7 @@ const PAGES = [
   "/policies/example-security-policy/",
   "/reports/scf/",
   "/reports/soc2/",
+  "/reports/assurance/",
   "/guides/",
   "/guides/installation/",
   "/team/",

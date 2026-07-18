@@ -235,14 +235,20 @@ description=description, is_home=true) }}
       {% endfor %}
       {% endif %}
 
-      {# ---- Review-status counts (1yr = 31557600s, 9mo = 23668200s) ---- #}
+      {# ---- Review-status counts ---- #}
+      {# Overdue window follows [extra.policypress] review_overdue_days so the
+         dashboard, the build pre-flight, and the Policy Review PDF all agree
+         on what "overdue" means. "Due soon" = within 90 days of the deadline
+         (same tier as the review report). #}
+      {% set overdue_secs = config.extra.policypress.review_overdue_days | default(value=365) * 86400 %}
+      {% set due_soon_secs = overdue_secs - 7776000 %}
       {% set today = now() | date(format="%s") | int %}
       {% set_global overdue_count = 0 %}
       {% for policy in policies %}
       {% if policy.extra.last_reviewed %}
       {% set lr_ts = policy.extra.last_reviewed | date(format="%s") | int %}
       {% set diff = today - lr_ts %}
-      {% if diff > 31557600 %}{% set_global overdue_count = overdue_count + 1 %}{% endif %}
+      {% if diff > overdue_secs %}{% set_global overdue_count = overdue_count + 1 %}{% endif %}
       {% endif %}
       {% endfor %}
 
@@ -337,9 +343,9 @@ description=description, is_home=true) }}
                 {% if policy.extra.last_reviewed %}
                 {% set lr_ts = policy.extra.last_reviewed | date(format="%s") | int %}
                 {% set diff = today - lr_ts %}
-                {% if diff > 31557600 %}
+                {% if diff > overdue_secs %}
                 <span class="badge bg-danger">Overdue</span>
-                {% elif diff > 23668200 %}
+                {% elif diff > due_soon_secs %}
                 <span class="badge bg-warning text-dark">Due soon</span>
                 {% else %}
                 <span class="badge bg-success-subtle text-success-emphasis">Current</span>

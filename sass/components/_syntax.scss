@@ -128,3 +128,12 @@
   text-decoration: underline;
   color: #032f62;
 }
+
+// Zola's baked-in github-dark highlight palette colours code comments
+// #6A737D, which fails WCAG AA (≈3.1:1) against the #24292E code
+// background. The colours arrive as inline styles so they cannot be themed
+// normally; override that exact colour with the same hue at ≈4.6:1.
+.giallo span[style*="#6A737D"],
+.giallo span[style*="#6a737d"] {
+  color: #8b949e !important;
+}

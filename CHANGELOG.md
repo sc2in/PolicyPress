@@ -85,6 +85,26 @@ versioning; breaking changes to it bump the major version.
 
 ### Fixed
 
+- **Fixes from the batch self-review**: the two-row header offset now
+  actually applies on tablet widths (a pre-existing `4rem !important` rule
+  overrode it between 768–991px); the homepage "Reviews overdue" tile and
+  badges follow `review_overdue_days` instead of a hardcoded year, so the
+  dashboard, build pre-flight, and Policy Review PDF agree on "overdue";
+  audit-bundle files are written via temp-file + rename (a crash can no
+  longer leave a truncated manifest) and a frontmatter-string lifetime
+  hazard in the coverage export was removed; a coverage report whose control
+  catalog was removed is now swept like any orphaned PDF instead of served
+  stale forever; `tools/check-evidence.sh` fails loudly when the check list
+  can't be evaluated (instead of attesting to nothing) and records a missing
+  derivation as JSON null; the docs deploy got the `id-token` permission the
+  FlakeHub cache needs, so the assurance step reuses CI's veraPDF output
+  instead of rebuilding it; and the demo enables `audit_bundle` in
+  `config.toml` (not only via the action's input), so local previews
+  (`nix run .#serve` / `.#preview`) serve `/audit/` just like the deployed
+  site. Those two apps also now generate their PDFs with `--redact` (matching
+  the demo's `redact_mode`): with `redact_web = true` the policy pages link
+  the `__Redacted__` filenames, so the previous non-redacted local build
+  404'd every PDF download link.
 - **Navigation menu `weight` is honored.** It was documented as the sort
   order but entries always rendered in file order; entries are now sorted by
   weight when every entry carries one (file order otherwise, so existing

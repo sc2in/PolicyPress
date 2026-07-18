@@ -19,12 +19,11 @@ const build_options = @import("build_options");
 const clap = @import("clap");
 const Config = @import("config").Config;
 const Date = @import("utils").Date;
-const isDraftPolicy = @import("utils").isDraftPolicy;
-const reports = @import("reports");
 const stampIsNewer = @import("utils").stampIsNewer;
+const isDraftPolicy = @import("utils").isDraftPolicy;
 const Typst = @import("typst");
+const reports = @import("reports");
 const writeStamp = @import("utils").writeStamp;
-
 const audit = @import("audit.zig");
 const diagrams = @import("diagrams.zig");
 
@@ -734,12 +733,22 @@ fn sweepStalePdfs(
     };
     // The report PDFs live beside the policy PDFs under stable names; keep
     // them whenever report generation is enabled (they are produced by the
-    // official pass, which may not be this run's variant).
+    // official pass, which may not be this run's variant). Mirror the
+    // generation conditions: a coverage report whose control catalog was
+    // removed can never be regenerated, so its stale PDF must be swept like
+    // any orphaned policy PDF.
     if (config.report_pdfs) {
         inline for (comptime std.enums.values(reports.Kind)) |kind| {
-            const name = try alloc.dupe(u8, kind.pdfName());
-            const gop = try keep.getOrPut(name);
-            if (gop.found_existing) alloc.free(name);
+            const generatable = if (kind.catalogFile()) |catalog_rel| blk: {
+                const catalog_path = try std.fs.path.join(alloc, &.{ config.root, catalog_rel });
+                defer alloc.free(catalog_path);
+                break :blk if (std.Io.Dir.cwd().access(io, catalog_path, .{})) |_| true else |_| false;
+            } else true;
+            if (generatable) {
+                const name = try alloc.dupe(u8, kind.pdfName());
+                const gop = try keep.getOrPut(name);
+                if (gop.found_existing) alloc.free(name);
+            }
         }
     }
 

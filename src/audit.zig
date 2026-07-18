@@ -125,10 +125,10 @@ pub fn writeBundle(
         var entry: std.json.ObjectMap = .empty;
         try entry.put(a, "source", .{ .string = try a.dupe(u8, path) });
         try entry.put(a, "title", .{ .string = try a.dupe(u8, title) });
-        try entry.put(a, "version", jsonString(a, if (newest) |o| valueString(a, o.get("version")) else null));
-        try entry.put(a, "last_reviewed", jsonString(a, stringAt(fm, "extra.last_reviewed")));
-        try entry.put(a, "owner", jsonString(a, stringAt(fm, "extra.owner")));
-        try entry.put(a, "approved_by", jsonString(a, if (newest) |o| valueString(a, o.get("approved_by")) else null));
+        try entry.put(a, "version", try jsonString(a, if (newest) |o| valueString(a, o.get("version")) else null));
+        try entry.put(a, "last_reviewed", try jsonString(a, stringAt(fm, "extra.last_reviewed")));
+        try entry.put(a, "owner", try jsonString(a, stringAt(fm, "extra.owner")));
+        try entry.put(a, "approved_by", try jsonString(a, if (newest) |o| valueString(a, o.get("approved_by")) else null));
         try entry.put(a, "classification", .{ .string = try a.dupe(u8, stringAt(fm, "extra.classification") orelse config.classification) });
         try entry.put(a, "pdf", .{ .string = try std.fmt.allocPrint(a, "{s}/{s}", .{ pdf_prefix, pdf_name }) });
         try entry.put(a, "pdf_sha256", .{ .string = pdf_sha });
@@ -146,7 +146,7 @@ pub fn writeBundle(
                 try row.put(a, "policy", .{ .string = try a.dupe(u8, path) });
                 try row.put(a, "title", .{ .string = try a.dupe(u8, title) });
                 inline for (.{ "version", "date", "description", "revised_by", "approved_by" }) |field| {
-                    try row.put(a, field, jsonString(a, valueString(a, obj.get(field))));
+                    try row.put(a, field, try jsonString(a, valueString(a, obj.get(field))));
                 }
                 try revision_rows.append(.{ .object = row });
             };
@@ -198,8 +198,12 @@ pub fn writeBundle(
             if (!accessible) {
                 log.info("audit bundle: control catalog '{s}' not found; skipping {s} coverage", .{ catalog_rel, framework_id });
             } else {
+                // No deinit: the JSON tree below borrows catalog/coverage
+                // strings, which must stay alive until writeJson stringifies
+                // the whole document after this loop. The catalog's arena is
+                // backed by the bundle arena `a`, which reclaims everything
+                // when writeBundle returns.
                 var catalog = try reports.init(io, a, catalog_path);
-                defer catalog.deinit();
                 const cov = try catalog.coverage(io, kind.taxonomyKey().?, config.policy_dir);
 
                 var controls = std.json.Array.init(a);
@@ -245,7 +249,7 @@ pub fn writeBundle(
         try writeJson(io, a, audit_dir, "coverage.json", .{ .object = root });
 
         const csv_bytes = try csv.toOwnedSlice();
-        try writeFileAtomic(io, audit_dir, "coverage.csv", csv_bytes);
+        try writeFile(io, a, audit_dir, "coverage.csv", csv_bytes);
     }
 
     log.info("audit bundle written to '{s}' ({d} policies).", .{ audit_dir, manifest_policies.items.len });
@@ -273,26 +277,25 @@ fn stringAt(fm: zigmark.Frontmatter, key: []const u8) ?[]const u8 {
 }
 
 /// A frontmatter value normalised to a string (YAML numeric scalars like a
-/// quoted "1.1" come back as floats in some parses), or null. Always
-/// duplicated into `a`: quoted YAML scalars are freshly allocated strings
-/// owned by the Frontmatter, which is deinited per policy while the JSON tree
-/// is stringified afterwards.
+/// quoted "1.1" come back as floats in some parses), or null. The returned
+/// slice may be borrowed from the Frontmatter; `jsonString` duplicates it.
 fn valueString(a: Allocator, v: ?std.json.Value) ?[]const u8 {
     const val = v orelse return null;
     return switch (val) {
-        .string => |s| a.dupe(u8, s) catch null,
+        .string => |s| s,
         .float => |f| std.fmt.allocPrint(a, "{d}", .{f}) catch null,
         .integer => |n| std.fmt.allocPrint(a, "{d}", .{n}) catch null,
         else => null,
     };
 }
 
-/// Wrap an (already `a`-owned or duplicated) string, or JSON null.
-fn jsonString(a: Allocator, s: ?[]const u8) std.json.Value {
-    if (s) |str| {
-        if (a.dupe(u8, str)) |copy| return .{ .string = copy } else |_| return .null;
-    }
-    return .null;
+/// Wrap a string as a JSON value, duplicated into `a` (frontmatter strings
+/// are freed per policy while the JSON tree is stringified afterwards), or
+/// JSON null. Allocation failure is an error — a silently nulled
+/// `approved_by` would misreport the compliance state.
+fn jsonString(a: Allocator, s: ?[]const u8) !std.json.Value {
+    const str = s orelse return .null;
+    return .{ .string = try a.dupe(u8, str) };
 }
 
 /// Quote a CSV field when it contains a comma, quote, or newline (RFC 4180).
@@ -310,13 +313,19 @@ fn writeCsvField(w: *std.Io.Writer, field: []const u8) !void {
 fn writeJson(io: std.Io, a: Allocator, dir: []const u8, name: []const u8, value: std.json.Value) !void {
     const out = try std.json.Stringify.valueAlloc(a, value, .{ .whitespace = .indent_1 });
     const with_nl = try std.fmt.allocPrint(a, "{s}\n", .{out});
-    try writeFileAtomic(io, dir, name, with_nl);
+    try writeFile(io, a, dir, name, with_nl);
 }
 
-fn writeFileAtomic(io: std.Io, dir: []const u8, name: []const u8, bytes: []const u8) !void {
-    const path = try std.fs.path.join(std.heap.page_allocator, &.{ dir, name });
-    defer std.heap.page_allocator.free(path);
-    const f = try std.Io.Dir.cwd().createFile(io, path, .{ .truncate = true });
-    defer f.close(io);
-    try f.writeStreamingAll(io, bytes);
+/// Write via a temp file + rename so a crash or full disk mid-write can never
+/// leave a truncated bundle file behind — a manifest with holes would
+/// under-report the compliance state while still looking present.
+fn writeFile(io: std.Io, a: Allocator, dir: []const u8, name: []const u8, bytes: []const u8) !void {
+    const tmp_path = try std.fs.path.join(a, &.{ dir, ".tmp.audit" });
+    const final_path = try std.fs.path.join(a, &.{ dir, name });
+    {
+        const f = try std.Io.Dir.cwd().createFile(io, tmp_path, .{ .truncate = true });
+        defer f.close(io);
+        try f.writeStreamingAll(io, bytes);
+    }
+    try std.Io.Dir.cwd().rename(tmp_path, std.Io.Dir.cwd(), final_path, io);
 }

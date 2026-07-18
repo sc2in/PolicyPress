@@ -212,6 +212,12 @@ lead = "Security Policy Center for Our Business"
 # and never skip a level), so enabling it can turn a previously-fine policy into
 # a build error. See the "Accessible (tagged) PDFs" guide before turning it on.
 pdf_standard = "ua-1"
+# Publish the machine-readable audit bundle (audit/manifest.json with per-PDF
+# hashes, revisions.json, coverage export) beside the PDFs. Enabled here so
+# the demo's assurance page has live evidence to link — and so local previews
+# (`nix run .#serve` / `.#preview`) serve /audit/ the same way the deployed
+# site does.
+audit_bundle = true
 # scf_controls = "data/scf.yml"         # optional: override default SCF control data path
 # tsc2017_controls = "data/tsc2017.yml" # optional: override default TSC2017 control data path
 

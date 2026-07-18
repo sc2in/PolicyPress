@@ -476,7 +476,8 @@ fn firstRawHtmlInInlines(inlines: []const zigmark.AST.Inline) ?RawHtmlRef {
         .link => |l| if (firstRawHtmlInInlines(l.children.items)) |f| return f,
         // Leaf inlines. `autolink` is deliberately treated as non-HTML:
         // `<user@host>` / `<https://…>` are autolinks, which the PDF renders.
-        .text, .code_span, .image, .autolink, .footnote_reference, .hard_break, .soft_break => {},
+        // `math` carries a TeX string, never raw HTML.
+        .text, .code_span, .image, .autolink, .footnote_reference, .hard_break, .soft_break, .math => {},
     };
     return null;
 }

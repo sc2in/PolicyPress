@@ -165,7 +165,11 @@
             };
 
             runtimeDeps = with pkgs; [
-              typst
+              # typst with the mitex package vendored into its offline package
+              # cache, so `@preview/mitex` resolves in the hermetic build (opt-in
+              # policy math renders TeX via mitex). Keep the mitex version here in
+              # lock-step with the `#import "@preview/mitex:X"` line in src/typst.zig.
+              (typst.withPackages (p: [ p.mitex ]))
               zola
             ];
 

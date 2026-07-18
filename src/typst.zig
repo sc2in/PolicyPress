@@ -102,6 +102,10 @@ const DocOpts = struct {
     /// to the title page so a printed redacted PDF is self-identifying, not just
     /// distinguishable by filename.
     redact: bool = false,
+    /// Whether the body contains TeX math (opt-in via per-policy `extra.math`,
+    /// and the doc actually has math). When true the preamble imports mitex and
+    /// sets a document-wide equation alt-text fallback for PDF/UA-1.
+    math: bool = false,
 };
 
 /// A fully rendered policy: the Typst source and the sanitised PDF filename.
@@ -259,10 +263,29 @@ pub fn render(
 
     // ── 4. Parse Markdown → AST ──────────────────────────────────────────────
 
+    // Opt-in TeX math: a per-policy `extra.math: true` enables it, mirroring the
+    // web KaTeX gate (templates/macros/math.html reads `page.extra.math`). Off by
+    // default, so zigmark's output — and every existing golden — is unchanged.
+    // In YAML front matter the zigmark parser types an unquoted `true` as a
+    // string (only TOML yields a native bool), so accept either representation.
+    const math_on: bool = blk: {
+        if (raw_fm.get("extra.math")) |v| break :blk switch (v) {
+            .bool => |b| b,
+            .string => |s| std.mem.eql(u8, s, "true"),
+            else => false,
+        };
+        break :blk false;
+    };
+
     var parser = zigmark.Parser.init();
+    parser.math = math_on;
     defer parser.deinit(alloc);
     var doc = try parser.parseMarkdown(alloc, contents.items);
     defer doc.deinit(alloc);
+
+    // Only pull in mitex when math is both enabled and actually present, so a
+    // policy that opts in but writes no `$…$` still produces a mitex-free PDF.
+    const has_math = math_on and zigmark.docHasMath(&doc);
 
     // ── 5. Build Typst source ────────────────────────────────────────────────
 
@@ -329,6 +352,7 @@ pub fn render(
         .version = fm.most_recent_version,
         .last_reviewed = fm.last_reviewed,
         .redact = config.redact,
+        .math = has_math,
     });
     try zigmark.renderTypstWithMermaid(alloc, &aw.writer, doc, &renderMermaid);
     try writeVersionHistory(&aw.writer, &raw_fm);
@@ -487,6 +511,21 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
         .footer_left = opts.footer_left,
         .footer_center = opts.footer_center,
     });
+
+    // Opt-in TeX math. zigmark's Typst renderer emits `#mi(…)`/`#mitex(…)` but
+    // deliberately does not import mitex, so the consumer's preamble must. We
+    // also set a document-wide equation alt-text fallback: typst's PDF/UA-1 mode
+    // hard-fails on any equation lacking alt text and zigmark emits none — this
+    // mirrors the `#set image(alt:)` fallback in writeDocSetup. Emitted here, not
+    // in writeDocSetup, so the report PDFs (which share writeDocSetup, have no
+    // math) stay mitex-free. The mitex version is pinned in lock-step with
+    // flake.nix's `typst.withPackages [ mitex ]` (offline package cache).
+    if (opts.math) {
+        try writer.writeAll(
+            "#import \"@preview/mitex:0.2.7\": mi, mitex\n" ++
+                "#set math.equation(alt: \"Mathematical formula\")\n\n",
+        );
+    }
     try writeTitlePage(writer, .{
         .title = opts.title,
         .version = opts.version,

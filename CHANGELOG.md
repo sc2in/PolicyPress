@@ -48,6 +48,20 @@ versioning; breaking changes to it bump the major version.
 
 ### Added
 
+- **TeX math now renders in policy PDFs** (#140). Set `extra.math = true` in a
+  policy's front matter — the same opt-in that already enables KaTeX on the
+  website — and `$…$`/`$$…$$` math renders in the PDF via the Typst `mitex`
+  package instead of appearing as literal dollar-text. Off by default, so
+  every non-math policy's PDF is byte-identical. The `mitex` package is
+  vendored into the offline Typst build, so no network access is needed at
+  build time. Tagged (PDF/UA-1) builds stay conformant: the preamble sets a
+  document-wide equation alt-text fallback, which typst's UA-1 mode requires.
+- **Markdown image alt text now carries into tagged PDFs** (#136). A Markdown
+  image's alt text (`![description](…)`) becomes the Typst `image(alt: …)`
+  argument, so images satisfy PDF/UA-1's alt-text requirement with a real
+  description rather than only the document-wide "Diagram" fallback (kept for
+  images with no alt source, such as rendered mermaid diagrams). Comes with the
+  zigmark v0.9.0 upgrade.
 - **Opt-in machine-readable audit bundle** (#135). `--audit-bundle` (or
   `[extra.policypress] audit_bundle = true`, or the action's `audit_bundle`
   input) writes an `audit/` directory beside the PDFs: `manifest.json` (one
@@ -93,6 +107,11 @@ versioning; breaking changes to it bump the major version.
 
 ### Fixed
 
+- **A trailing `# comment` after a front-matter value no longer breaks the
+  build.** YAML like `last_reviewed: 2025-01-01  # last audit` or a commented
+  revision date previously failed the whole policy with a parse error; the
+  zigmark v0.9.0 upgrade (which pins the sc2in/zig-yaml 0.3.1 "comment
+  terminates a plain scalar" fix) parses it cleanly.
 - **Fixes from the batch self-review**: the two-row header offset now
   actually applies on tablet widths (a pre-existing `4rem !important` rule
   overrode it between 768–991px); the homepage "Reviews overdue" tile and

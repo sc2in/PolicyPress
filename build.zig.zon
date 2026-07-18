@@ -42,8 +42,8 @@
         // Switch to git+https URLs with hashes before publishing to FlakeHub.
         // .zetta = .{ .path = "../zetta" },
         .zigmark = .{
-            .url = "git+https://github.com/sc2in/zigmark?ref=v0.8.0#3bf2c1c9dee118a32f25344710eac4fb97d1bf94",
-            .hash = "zigmark-0.8.0-cwOiyAuwCgAwb2OCEWY8nA3F2tvEssKQiaTDVQMPptuN",
+            .url = "git+https://github.com/sc2in/zigmark?ref=v0.9.0#a95adc24948bbd0e389732b983445129b3ea4a33",
+            .hash = "zigmark-0.9.0-cwOiyCYHCwBM0yjOubWrly5CN2jUOalRJUdyLVLVQJJ6",
         },
         .tomlz = .{
             .url = "git+https://github.com/sc2in/tomlz.git#ecd64e239768b573ec58286d0db1842991433e99",

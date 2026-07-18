@@ -38,6 +38,10 @@ test "golden: test_policy_render (plain)" {
     try checkGolden("test_policy_render.typ", "src/test/test_policy_render.md", .plain);
 }
 
+test "golden: test_policy_math (plain)" {
+    try checkGolden("test_policy_math.typ", "src/test/test_policy_math.md", .plain);
+}
+
 fn checkReportGolden(comptime baseline: []const u8, kind: anytype) !void {
     const expected = @embedFile("tests/golden/" ++ baseline);
     const actual = try golden.renderReportFixture(std.testing.io, std.testing.allocator, kind);

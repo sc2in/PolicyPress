@@ -232,6 +232,41 @@ test "typst source: mermaid renders as inline svg via pozeiden" {
     try tst.expect(std.mem.indexOf(u8, rendered.source, "```mermaid") == null);
 }
 
+test "typst source: opt-in math emits mitex import and calls" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    var rendered = try typst.render(io, alloc, conf, "src/test/test_policy_math.md");
+    defer rendered.deinit(alloc);
+
+    // The consumer preamble must import mitex (zigmark emits `#mi`/`#mitex`
+    // calls but never the import).
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "#import \"@preview/mitex:0.2.7\": mi, mitex") != null);
+    // zigmark v0.10.0 carries per-equation alt text (the TeX source), which
+    // typst's PDF/UA-1 mode requires — no document-wide fallback needed.
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "#set math.equation(alt:") == null);
+    // Inline `$…$` → `#mi("…", alt: "…")`, display `$$…$$` → `#mitex("…", alt: "…")`.
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "#mi(\"R > 15\", alt: \"R > 15\")") != null);
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "#mitex(") != null);
+    // #136: a Markdown image's alt text becomes the Typst `image(alt:)` arg.
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "alt: \"Risk scoring matrix\"") != null);
+    // Root-absolute image path is rewritten to its static/ location for --root.
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "image(\"/static/diagram.png\"") != null);
+}
+
+test "typst source: math stays off without extra.math opt-in" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+
+    // test_policy_render.md does not set extra.math, so no mitex import appears
+    // even though math would be inert; guards the opt-in gate against drift.
+    var rendered = try typst.render(io, alloc, conf, "src/test/test_policy_render.md");
+    defer rendered.deinit(alloc);
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "@preview/mitex") == null);
+}
+
 test "typst source: redaction produces solid bars" {
     const alloc = tst.allocator;
     var conf = try config.load(io, alloc, TestConfig);
@@ -504,6 +539,35 @@ test "missing frontmatter: no revisions → NoRevisionsInFrontMatter" {
         error.NoRevisionsInFrontMatter,
         utils.get_metadata(alloc, &arr, .{ .redact = false, .is_draft = false }),
     );
+}
+
+test "frontmatter: trailing YAML comment after a scalar parses (zig-yaml 0.3.1)" {
+    // Regression for the sc2in/zig-yaml fix bundled in zigmark v0.9.0: a
+    // trailing `# comment` after a plain scalar in a block sequence entry
+    // previously failed the whole document with ParseFailure. A policy author
+    // annotating a revision date with a comment must not break the build.
+    const alloc = tst.allocator;
+    const md = makePolicyMd(
+        \\title: "Test Policy"
+        \\description: "Test"
+        \\extra:
+        \\  last_reviewed: "2024-01-01"  # last audit
+        \\  major_revisions:
+        \\  - date: "2024-01-01"  # when
+        \\    description: "Initial"
+        \\    revised_by: "Author"
+        \\    approved_by: "Approver"
+        \\    version: "1.0"
+        ,
+    );
+    var arr = Array(u8).empty;
+    defer arr.deinit(alloc);
+    try arr.appendSlice(alloc, md);
+    // Parses cleanly (no ParseFailure) and the commented values are intact.
+    var fm = try utils.get_metadata(alloc, &arr, .{ .redact = false, .is_draft = false });
+    defer fm.deinit(alloc);
+    try tst.expectEqualStrings("2024-01-01", fm.last_reviewed);
+    try tst.expectEqualStrings("1.0", fm.most_recent_version);
 }
 
 test "missing frontmatter: description → NoDescriptionInFrontMatter" {

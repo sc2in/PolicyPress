@@ -10,6 +10,10 @@
 #     zola), with the exact version of the binary on PATH (pinned by
 #     flake.lock). These are not linked into the binary but a CVE in either
 #     affects the output pipeline, so an SBOM consumer needs to see them.
+#   - typst-package: Typst universe packages vendored into typst's offline
+#     package cache and loaded at compile time (mitex, which renders TeX math).
+#     Runs inside typst and shapes the PDF output, so a CVE in it is in scope
+#     too; modelled as a dependency of typst in the graph.
 #
 # The build toolchain itself (zig, glibc, the JVM veraPDF pulls in, …) is
 # pinned by flake.lock and published on FlakeHub; a full build-environment
@@ -43,12 +47,20 @@ tool_version() {
 TYPST_VERSION="$(tool_version typst)"
 ZOLA_VERSION="$(tool_version zola)"
 
+# mitex has no CLI to query, but the `@preview/mitex:<version>` import in the
+# Typst preamble is the authority for which version is loaded — and CI's
+# pdf-accessibility gate compiles the demo's math, so a mismatch with the
+# vendored package fails the build. Read the version from there.
+MITEX_VERSION="$(sed -n 's/.*@preview\/mitex:\([0-9][0-9.]*\).*/\1/p' src/typst.zig | head -1)"
+MITEX_VERSION="${MITEX_VERSION:-unknown}"
+
 jq -n \
   --arg version "$VERSION" \
   --arg commit "$COMMIT" \
   --arg timestamp "$TIMESTAMP" \
   --arg typst "$TYPST_VERSION" \
   --arg zola "$ZOLA_VERSION" \
+  --arg mitex "$MITEX_VERSION" \
   --slurpfile lock "$LOCK" \
   '
   # Compiled-in Zig deps. A lock key looks like "name-1.2.3-<fingerprint>";
@@ -97,7 +109,26 @@ jq -n \
         ]
       });
 
-  (zig_components + tool_components) as $all
+  # Typst universe packages vendored into the offline typst cache and loaded at
+  # compile time (mitex renders TeX math). Depended on by typst, not the root.
+  def package_components:
+    [
+      {
+        type: "library",
+        "bom-ref": ("mitex@" + $mitex),
+        name: "mitex",
+        version: $mitex,
+        purl: ("pkg:generic/mitex@" + $mitex),
+        externalReferences: [ { type: "website", url: "https://typst.app/universe/package/mitex" } ],
+        properties: [
+          { name: "policypress:dependency-kind", value: "typst-package" },
+          { name: "typst:package-spec", value: ("@preview/mitex:" + $mitex) },
+          { name: "nixpkgs:pinned-by", value: "flake.lock" }
+        ]
+      }
+    ];
+
+  (zig_components + tool_components + package_components) as $all
   | ("policypress@" + $version) as $root
   | {
       bomFormat: "CycloneDX",
@@ -118,12 +149,15 @@ jq -n \
         },
         properties: [
           { name: "policypress:git-commit", value: $commit },
-          { name: "policypress:sbom-scope", value: "compiled-in-zig-deps + runtime-tools" }
+          { name: "policypress:sbom-scope", value: "compiled-in-zig-deps + runtime-tools + typst-packages" }
         ]
       },
       components: $all,
       dependencies: [
-        { ref: $root, dependsOn: ($all | map(.["bom-ref"])) }
+        # Root depends on the zig deps and the subprocess tools; mitex is a
+        # dependency of typst, not of policypress directly.
+        { ref: $root, dependsOn: (($all | map(.["bom-ref"])) - [("mitex@" + $mitex)]) },
+        { ref: ("typst@" + $typst), dependsOn: [ ("mitex@" + $mitex) ] }
       ]
     }
   '

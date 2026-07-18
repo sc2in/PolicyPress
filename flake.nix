@@ -165,7 +165,11 @@
             };
 
             runtimeDeps = with pkgs; [
-              typst
+              # typst with the mitex package vendored into its offline package
+              # cache, so `@preview/mitex` resolves in the hermetic build (opt-in
+              # policy math renders TeX via mitex). Keep the mitex version here in
+              # lock-step with the `#import "@preview/mitex:X"` line in src/typst.zig.
+              (typst.withPackages (p: [ p.mitex ]))
               zola
             ];
 
@@ -799,11 +803,23 @@
                   zig2nix.outputs.packages.${system}."zls-0_16_0"
                   (pkgs.writeShellScriptBin "update-zon" ''
                     set -euo pipefail
-                    echo "Updating build.zig.zon dependencies..."
-                    zig fetch --save .
-                    echo "Regenerating build.zig.zon2json-lock..."
-                    zig2nix zon2lock
-                    echo "Done."
+                    # Regenerate build.zig.zon2json-lock after a dependency bump.
+                    #
+                    # To bump a dep, first edit its URL in build.zig.zon and
+                    # refresh that dep's hash (a bare `zig fetch --save .` hangs
+                    # here, so update the one dep by name):
+                    #   zig fetch --save=<name> "git+https://…?ref=vX.Y.Z#<commit>"
+                    # then run `update-zon`.
+                    echo "Fetching the full dependency graph…"
+                    zig build --fetch
+                    echo "Regenerating build.zig.zon2json-lock…"
+                    # zig2nix has no plain `zig2nix` binary on PATH; its CLI is
+                    # the flake app, pinned here so this never hits the network.
+                    ${zig2nix.apps.${system}.default.program} zon2lock
+                    # zon2lock omits the trailing newline that the end-of-file-fixer
+                    # pre-commit hook requires; add exactly one.
+                    [ -n "$(tail -c1 build.zig.zon2json-lock)" ] && printf '\n' >> build.zig.zon2json-lock
+                    echo "Done. Review with: git diff build.zig.zon2json-lock"
                   '')
                 ];
 
@@ -822,12 +838,11 @@
                 fi
 
                 # build.zig.zon2json-lock is committed and regenerated
-                # deliberately on a dependency bump with `nix run .#update-zon`.
-                # (There is no `zig2nix` binary on PATH — the lock regenerator
-                # is the zig2nix flake app `zon2json-lock` — so the previous
-                # auto-regenerate-on-entry only ever printed "command not
-                # found"; it is removed rather than left erroring on every
-                # shell entry.)
+                # deliberately on a dependency bump by running `update-zon`
+                # inside this dev shell (it wraps `zig build --fetch` + the
+                # pinned zig2nix `zon2lock` app; there is no plain `zig2nix`
+                # binary on PATH). Not auto-run on shell entry — a stale lock
+                # after a bump would otherwise need network the sandbox lacks.
 
                 echo "PolicyPress development environment"
                 echo ""
@@ -840,6 +855,7 @@
                 echo "  nix run .#release      - cross-compile release builds"
                 echo "  nix flake check        - run formatting check + tests"
                 echo "  om ci                  - run full CI locally"
+                echo "  update-zon             - regenerate the zon lock after a dep bump"
               '';
             };
           };

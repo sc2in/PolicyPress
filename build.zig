@@ -272,6 +272,7 @@ pub fn build(b: *std.Build) !void {
             .{ .name = "test_policy_redacted.typ", .fixture = "src/test/test_policy.md", .flag = "--redact" },
             .{ .name = "test_policy_draft.typ", .fixture = "src/test/test_policy.md", .flag = "--draft" },
             .{ .name = "test_policy_render.typ", .fixture = "src/test/test_policy_render.md", .flag = null },
+            .{ .name = "test_policy_math.typ", .fixture = "src/test/test_policy_math.md", .flag = null },
             .{ .name = "report_scf.typ", .fixture = "--report", .flag = "scf" },
             .{ .name = "report_soc2.typ", .fixture = "--report", .flag = "soc2" },
             .{ .name = "report_review.typ", .fixture = "--report", .flag = "review" },

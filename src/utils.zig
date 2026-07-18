@@ -326,6 +326,81 @@ test "replace_zola_at" {
     try tst.expectEqualStrings(expected, arr.items);
 }
 
+/// For the PDF pipeline only: rewrite a Markdown image whose destination is a
+/// site-root-absolute path (`![alt](/x)`) to its on-disk location under
+/// `static/` (`![alt](/static/x)`).
+///
+/// Zola serves `static/x` at the web root `/x`, so that is how authors
+/// reference images. But the Typst compiler resolves paths against the project
+/// root (`--root`), where the file actually lives under `static/`. Without this
+/// rewrite an authored image renders on the website but 404s in the PDF.
+///
+/// External URLs (`http://`, `https://`), protocol-relative `//…`, data URIs,
+/// and paths already under `/static/` are left untouched. Deterministic — no
+/// filesystem access, so a genuinely missing image surfaces as a clear Typst
+/// compile error rather than being silently dropped.
+pub fn rewrite_image_paths(alloc: Allocator, txt: *Array(u8)) !void {
+    const img: mvzr.Regex = mvzr.compile("!\\[.*?\\]\\(/.*?\\)").?;
+    if (!img.isMatch(txt.items)) return;
+
+    var out = Array(u8).empty;
+    errdefer out.deinit(alloc);
+
+    var last: usize = 0;
+    var iter = img.iterator(txt.items);
+    while (iter.next()) |match| {
+        try out.appendSlice(alloc, txt.items[last..match.start]);
+
+        // match.slice is "![alt](/dest)"; split at the final "](".
+        const open = std.mem.lastIndexOf(u8, match.slice, "](").?;
+        const prefix = match.slice[0 .. open + 2]; // "![alt]("
+        const dest = match.slice[open + 2 .. match.slice.len - 1]; // "/dest"
+
+        try out.appendSlice(alloc, prefix);
+        if (std.mem.startsWith(u8, dest, "/") and
+            !std.mem.startsWith(u8, dest, "//") and
+            !std.mem.startsWith(u8, dest, "/static/"))
+        {
+            try out.appendSlice(alloc, "/static");
+        }
+        try out.appendSlice(alloc, dest);
+        try out.appendSlice(alloc, ")");
+
+        last = match.start + match.slice.len;
+    }
+    try out.appendSlice(alloc, txt.items[last..]);
+
+    txt.deinit(alloc);
+    txt.* = out;
+}
+
+test "rewrite_image_paths" {
+    const allocator = tst.allocator;
+
+    var arr = Array(u8).empty;
+    defer arr.deinit(allocator);
+    try arr.appendSlice(allocator,
+        \\![a diagram](/diagram.png)
+        \\![nested](/img/flow.svg)
+        \\![already static](/static/logo.png)
+        \\![external](https://example.com/x.png)
+        \\![protocol relative](//cdn/x.png)
+        \\a [normal link](/some-page) stays
+    );
+
+    try rewrite_image_paths(allocator, &arr);
+
+    const expected =
+        \\![a diagram](/static/diagram.png)
+        \\![nested](/static/img/flow.svg)
+        \\![already static](/static/logo.png)
+        \\![external](https://example.com/x.png)
+        \\![protocol relative](//cdn/x.png)
+        \\a [normal link](/some-page) stays
+    ;
+    try tst.expectEqualStrings(expected, arr.items);
+}
+
 /// Finds and replaces custom Mermaid code blocks in the markdown with a standardized code block format.
 pub fn replace_mermaid(alloc: Allocator, txt: *Array(u8)) !void {
     const mermaid: mvzr.Regex = mvzr.compile("\\{%\\s*mermaid\\(\\)\\s*%\\}.+?\\{%\\s*end\\s*%\\}").?;

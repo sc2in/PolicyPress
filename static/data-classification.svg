@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 170" width="600" height="170" font-family="sans-serif">
+  <rect x="0" y="0" width="600" height="170" fill="#ffffff"/>
+  <text x="300" y="26" text-anchor="middle" font-size="17" font-weight="700" fill="#1a2733">Data Classification Tiers</text>
+
+  <!-- Public -->
+  <rect x="20" y="52" width="176" height="86" rx="8" fill="#e6f2fb" stroke="#0e90f3" stroke-width="1.5"/>
+  <text x="108" y="86" text-anchor="middle" font-size="15" font-weight="700" fill="#0b3a5b">Public</text>
+  <text x="108" y="110" text-anchor="middle" font-size="11" fill="#33475b">Standard controls</text>
+
+  <!-- Internal -->
+  <rect x="212" y="52" width="176" height="86" rx="8" fill="#0e90f3" stroke="#0b6fbf" stroke-width="1.5"/>
+  <text x="300" y="86" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">Internal</text>
+  <text x="300" y="110" text-anchor="middle" font-size="11" fill="#eaf4fd">Access controls</text>
+
+  <!-- Confidential -->
+  <rect x="404" y="52" width="176" height="86" rx="8" fill="#0b3a5b" stroke="#082a43" stroke-width="1.5"/>
+  <text x="492" y="82" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">Confidential</text>
+  <text x="492" y="104" text-anchor="middle" font-size="11" fill="#cfe2f2">Encryption +</text>
+  <text x="492" y="120" text-anchor="middle" font-size="11" fill="#cfe2f2">strict access</text>
+
+  <!-- increasing-protection arrow -->
+  <line x1="20" y1="153" x2="580" y2="153" stroke="#8aa0b2" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="20" y="167" font-size="10" fill="#5a6b7a">lower sensitivity</text>
+  <text x="580" y="167" text-anchor="end" font-size="10" fill="#5a6b7a">higher sensitivity</text>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#8aa0b2"/>
+    </marker>
+  </defs>
+</svg>

@@ -82,6 +82,8 @@ All access to information systems must be authorized and based on the principle 
 | Internal | Information for internal use only | Internal memos, policies | Access controls required |
 | Confidential | Sensitive information requiring protection | {% redact() %}Customer data, financial records, trade secrets{% end %} | Encryption required, strict access controls |
 
+![Data classification tiers: Public with standard controls, Internal with access controls, and Confidential requiring encryption and strict access, ordered from lower to higher sensitivity](/data-classification.svg)
+
 ### 3. Encryption Standards
 
 All sensitive data must be encrypted both at rest and in transit:

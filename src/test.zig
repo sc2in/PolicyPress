@@ -250,6 +250,8 @@ test "typst source: opt-in math emits mitex import and calls" {
     try tst.expect(std.mem.indexOf(u8, rendered.source, "#mitex(") != null);
     // #136: a Markdown image's alt text becomes the Typst `image(alt:)` arg.
     try tst.expect(std.mem.indexOf(u8, rendered.source, "alt: \"Risk scoring matrix\"") != null);
+    // Root-absolute image path is rewritten to its static/ location for --root.
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "image(\"/static/diagram.png\"") != null);
 }
 
 test "typst source: math stays off without extra.math opt-in" {

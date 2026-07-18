@@ -245,6 +245,10 @@ pub fn render(
 
     try u.replace_org(alloc, &contents, config.org);
     try u.replace_zola_at(alloc, &contents, config.base_url);
+    // Root-absolute image paths (`/x`, Zola-served from `static/`) must point at
+    // `/static/x` for the Typst `--root`, or the image 404s in the PDF. Runs
+    // after replace_zola_at so `@/…` links (now full URLs) are already skipped.
+    try u.rewrite_image_paths(alloc, &contents);
     try u.replace_admonitions(alloc, &contents);
     try u.replace_mermaid(alloc, &contents);
     // `u.redact` masks redacted spans with solid `█` bars directly (only the

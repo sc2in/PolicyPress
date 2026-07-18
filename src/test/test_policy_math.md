@@ -35,4 +35,4 @@ Any residual score above $R > 15$ requires documented mitigation.
 
 ## Reference diagram
 
-![Risk scoring matrix](/static/diagram.png)
+![Risk scoring matrix](/diagram.png)

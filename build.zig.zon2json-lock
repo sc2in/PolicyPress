@@ -1,8 +1,8 @@
 {
-  "zigmark-0.9.0-cwOiyCYHCwBM0yjOubWrly5CN2jUOalRJUdyLVLVQJJ6": {
+  "zigmark-0.10.0-cwOiyOMRCwDf1Z62LEuDj6DCDL1M-vzAFdh969E6Rpl_": {
     "name": "zigmark",
-    "url": "git+https://github.com/sc2in/zigmark?ref=v0.9.0#a95adc24948bbd0e389732b983445129b3ea4a33",
-    "hash": "sha256-aJyVKWvfRAvATYgZo6S0M4vAQmehbqvSrzm9LOBmckM="
+    "url": "git+https://github.com/sc2in/zigmark?ref=v0.10.0#23d12b74dfe586c36f7a7cfd5350719c067cc2a6",
+    "hash": "sha256-pOMqX6x9EAfu8JyoWH6L4j26wtBX+86n6qjRn8P2MI0="
   },
   "tomlz-0.3.0-H2E6w3VKAgCSZQFKG-VugLEn3cjOWshGqwGzAVABNm--": {
     "name": "tomlz",

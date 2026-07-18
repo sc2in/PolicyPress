@@ -270,16 +270,10 @@ pub fn render(
     // Opt-in TeX math: a per-policy `extra.math: true` enables it, mirroring the
     // web KaTeX gate (templates/macros/math.html reads `page.extra.math`). Off by
     // default, so zigmark's output — and every existing golden — is unchanged.
-    // In YAML front matter the zigmark parser types an unquoted `true` as a
-    // string (only TOML yields a native bool), so accept either representation.
-    const math_on: bool = blk: {
-        if (raw_fm.get("extra.math")) |v| break :blk switch (v) {
-            .bool => |b| b,
-            .string => |s| std.mem.eql(u8, s, "true"),
-            else => false,
-        };
-        break :blk false;
-    };
+    const math_on: bool = if (raw_fm.get("extra.math")) |v|
+        v == .bool and v.bool
+    else
+        false;
 
     var parser = zigmark.Parser.init();
     parser.math = math_on;
@@ -516,19 +510,15 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
         .footer_center = opts.footer_center,
     });
 
-    // Opt-in TeX math. zigmark's Typst renderer emits `#mi(…)`/`#mitex(…)` but
-    // deliberately does not import mitex, so the consumer's preamble must. We
-    // also set a document-wide equation alt-text fallback: typst's PDF/UA-1 mode
-    // hard-fails on any equation lacking alt text and zigmark emits none — this
-    // mirrors the `#set image(alt:)` fallback in writeDocSetup. Emitted here, not
-    // in writeDocSetup, so the report PDFs (which share writeDocSetup, have no
-    // math) stay mitex-free. The mitex version is pinned in lock-step with
-    // flake.nix's `typst.withPackages [ mitex ]` (offline package cache).
+    // Opt-in TeX math. zigmark's Typst renderer emits `#mi(…, alt: …)` /
+    // `#mitex(…, alt: …)` (per-equation alt text, which typst's PDF/UA-1 mode
+    // requires) but deliberately does not import mitex, so the consumer's
+    // preamble must. Emitted here, not in writeDocSetup, so the report PDFs
+    // (which share writeDocSetup and have no math) stay mitex-free. The mitex
+    // version is pinned in lock-step with flake.nix's `typst.withPackages
+    // [ mitex ]` (offline package cache).
     if (opts.math) {
-        try writer.writeAll(
-            "#import \"@preview/mitex:0.2.7\": mi, mitex\n" ++
-                "#set math.equation(alt: \"Mathematical formula\")\n\n",
-        );
+        try writer.writeAll("#import \"@preview/mitex:0.2.7\": mi, mitex\n\n");
     }
     try writeTitlePage(writer, .{
         .title = opts.title,

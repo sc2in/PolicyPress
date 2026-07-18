@@ -65,7 +65,6 @@
 )
 
 #import "@preview/mitex:0.2.7": mi, mitex
-#set math.equation(alt: "Mathematical formula")
 
 // ── Title page ─────────────────────────────────────────────────────────
 #page(
@@ -101,11 +100,11 @@
 This policy verifies that opt-in TeX math renders in the PDF via mitex.
 
 == Risk formula
-The composite risk score is #mi("Risk = Threat \\times Vulnerability"), evaluated per asset. The full model is:
+The composite risk score is #mi("Risk = Threat \\times Vulnerability", alt: "Risk = Threat \\times Vulnerability"), evaluated per asset. The full model is:
 
-#mitex("Risk = Threat \\times Vulnerability \\times Impact")
+#mitex("Risk = Threat \\times Vulnerability \\times Impact", alt: "Risk = Threat \\times Vulnerability \\times Impact")
 
-Any residual score above #mi("R > 15") requires documented mitigation.
+Any residual score above #mi("R > 15", alt: "R > 15") requires documented mitigation.
 
 == Reference diagram
 #figure(image("/static/diagram.png", alt: "Risk scoring matrix"), caption: [Risk scoring matrix])

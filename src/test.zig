@@ -241,12 +241,13 @@ test "typst source: opt-in math emits mitex import and calls" {
     defer rendered.deinit(alloc);
 
     // The consumer preamble must import mitex (zigmark emits `#mi`/`#mitex`
-    // calls but never the import) and set the equation alt-text fallback that
-    // typst's PDF/UA-1 mode requires.
+    // calls but never the import).
     try tst.expect(std.mem.indexOf(u8, rendered.source, "#import \"@preview/mitex:0.2.7\": mi, mitex") != null);
-    try tst.expect(std.mem.indexOf(u8, rendered.source, "#set math.equation(alt:") != null);
-    // Inline `$…$` → `#mi(`, display `$$…$$` → `#mitex(`.
-    try tst.expect(std.mem.indexOf(u8, rendered.source, "#mi(") != null);
+    // zigmark v0.10.0 carries per-equation alt text (the TeX source), which
+    // typst's PDF/UA-1 mode requires — no document-wide fallback needed.
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "#set math.equation(alt:") == null);
+    // Inline `$…$` → `#mi("…", alt: "…")`, display `$$…$$` → `#mitex("…", alt: "…")`.
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "#mi(\"R > 15\", alt: \"R > 15\")") != null);
     try tst.expect(std.mem.indexOf(u8, rendered.source, "#mitex(") != null);
     // #136: a Markdown image's alt text becomes the Typst `image(alt:)` arg.
     try tst.expect(std.mem.indexOf(u8, rendered.source, "alt: \"Risk scoring matrix\"") != null);

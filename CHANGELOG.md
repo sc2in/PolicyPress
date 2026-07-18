@@ -10,6 +10,13 @@ versioning; breaking changes to it bump the major version.
 
 ### Internal
 
+- **The SBOM now lists the `mitex` Typst package** as a `typst-package`
+  component, modelled as a dependency of `typst` in the CycloneDX graph. It is
+  vendored into the offline Typst cache and runs at compile time to render
+  math, so a CVE in it affects the PDF output — the same rationale that already
+  puts typst/zola in the SBOM. Version is read from the `@preview/mitex:`
+  import in `src/typst.zig` (which CI's math build forces to match the vendored
+  package).
 - **CI now produces self-attestation evidence.** Every push to `main`, every
   release tag, **and every pull request to `main`** uploads an
   `attestation-evidence` artifact (90-day retention) containing: a CycloneDX

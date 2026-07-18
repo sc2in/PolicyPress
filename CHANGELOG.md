@@ -33,6 +33,14 @@ versioning; breaking changes to it bump the major version.
   printed "command not found" on every shell entry (no `zig2nix` binary is on
   `PATH`; the lock regenerator is the zig2nix flake app `zon2json-lock`, run
   deliberately via `nix run .#update-zon`).
+- **CI logic moved out of the workflow YAML into flake apps and a shared
+  script**, so it runs identically locally and in CI with pinned tools:
+  `nix run .#sbom`, `.#check-evidence`, and `.#a11y-scan` (the last pins
+  chromium/node/zola instead of a floating `nixpkgs#…` reference), plus
+  `tools/check-release.sh` (the tag CHANGELOG + version-stamp guards, also
+  `nix run .#check-release`). The redundant "Redaction leak check" workflow
+  step was dropped — it duplicated the `redaction-leak` flake check that
+  `om ci run` already runs.
 - Build: the `mvzr`, `clap`, preview-server, and report modules now inherit the
   top-level `-Doptimize` instead of pinning `ReleaseSafe`/`ReleaseFast`, so a
   single build compiles each dependency at one optimize level instead of

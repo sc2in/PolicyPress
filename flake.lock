@@ -150,8 +150,25 @@
         "flake-parts": "flake-parts",
         "git-hooks": "git-hooks",
         "nixpkgs": "nixpkgs_2",
+        "scf-api": "scf-api",
         "treefmt-nix": "treefmt-nix",
         "zig2nix": "zig2nix"
+      }
+    },
+    "scf-api": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1784513143,
+        "narHash": "sha256-RsdYs7N9eN+0CvxK4tWqG9wuSvaCZFUnWBV9xGNjnl8=",
+        "owner": "sc2in",
+        "repo": "scf",
+        "rev": "2a731aa33f74ba964d8de1ff1789f10a775466df",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sc2in",
+        "repo": "scf",
+        "type": "github"
       }
     },
     "systems": {

@@ -1151,7 +1151,7 @@ test "tsc2017.json mirrors tsc2017.yml (control-ID parity)" {
 
 test "scf.json mirrors scf.yml (control-ID parity)" {
     // Both files are generated together by tools/gen-scf-catalog.py from the
-    // pinned scf-api input (the Zig loader reads only JSON arrays; the web
+    // pinned scf input (the Zig loader reads only JSON arrays; the web
     // templates read the YAML). Guard against drift: the JSON's control_id
     // set must equal the YAML's `control_id:` entries, whose values are
     // always double-quoted by the generator.

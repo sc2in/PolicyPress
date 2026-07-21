@@ -11,8 +11,8 @@ versioning; breaking changes to it bump the major version.
 ### Changed
 
 - **The SCF control catalog is now generated, not hand-copied.**
-  `data/scf.{json,yml}` regenerate from the pinned `scf-api` flake input
-  (`github:sc2in/scf-api`, SC2's validated Secure Controls Framework
+  `data/scf.{json,yml}` regenerate from the pinned `scf` flake input
+  (`github:sc2in/scf`, SC2's validated Secure Controls Framework
   pipeline) via `tools/gen-scf-catalog.py` / `nix run .#gen-scf-catalog`.
   The catalog jumps from the hand-committed 2025-vintage 1,239 controls to
   the full SCF 2026.1.1 set of 1,468. A new `scf-catalog-fresh` flake check

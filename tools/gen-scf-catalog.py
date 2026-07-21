@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Generate data/scf.{json,yml} from an sc2in/scf checkout.
 
-Usage: gen-scf-catalog.py <scf-api-dir> [<output-dir>]
+Usage: gen-scf-catalog.py <scf-dir> [<output-dir>]
 
-Resolves the dataset version from <scf-api-dir>/.scf-version and reads
+Resolves the dataset version from <scf-dir>/.scf-version and reads
 data/scf-<version>.json. Emits the flat catalog PolicyPress consumes:
 - data/scf.json — bare array of {domain, control_id, control} objects
   (src/control_report.zig reads only JSON arrays)
@@ -12,7 +12,7 @@ data/scf-<version>.json. Emits the flat catalog PolicyPress consumes:
 
 Stdlib only. Deterministic output (workbook order, no timestamps) so the
 committed artifacts diff cleanly and checks.scf-catalog-fresh can drift-
-check them against the pinned scf-api input.
+check them against the pinned scf input.
 """
 
 import json
@@ -24,12 +24,12 @@ def main() -> int:
     if len(sys.argv) < 2:
         print(__doc__, file=sys.stderr)
         return 2
-    scf_api = Path(sys.argv[1])
+    scf_dir = Path(sys.argv[1])
     out_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(__file__).resolve().parent.parent / "data"
 
-    version = (scf_api / ".scf-version").read_text().strip()
+    version = (scf_dir / ".scf-version").read_text().strip()
     dashed = version.replace(".", "-")
-    catalog = json.loads((scf_api / "data" / f"scf-{dashed}.json").read_text())
+    catalog = json.loads((scf_dir / "data" / f"scf-{dashed}.json").read_text())
     families = catalog["families"]
 
     rows = [

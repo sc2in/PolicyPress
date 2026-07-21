@@ -10,7 +10,7 @@
     # The Secure Controls Framework dataset (https://securecontrolsframework.com,
     # CC BY-ND 4.0) — SC2's validated canonical pipeline. Source of truth for
     # the flat control catalog in data/scf.{json,yml}.
-    scf-api = {
+    scf = {
       url = "github:sc2in/scf";
       flake = false;
     };
@@ -288,7 +288,7 @@
 
             checks.formatting = config.treefmt.build.check self;
 
-            # data/scf.{json,yml} must never drift from the pinned scf-api
+            # data/scf.{json,yml} must never drift from the pinned scf
             # input (the praxis-facts-fresh analog).
             checks.scf-catalog-fresh =
               pkgs.runCommand "scf-catalog-fresh"
@@ -296,10 +296,10 @@
                   nativeBuildInputs = [ pkgs.python3 ];
                 }
                 ''
-                  python3 ${./tools/gen-scf-catalog.py} ${inputs.scf-api} $TMPDIR/data
+                  python3 ${./tools/gen-scf-catalog.py} ${inputs.scf} $TMPDIR/data
                   for f in scf.json scf.yml; do
                     if ! diff -q $TMPDIR/data/$f ${./data}/$f; then
-                      echo "data/$f has drifted from the pinned scf-api input." >&2
+                      echo "data/$f has drifted from the pinned scf input." >&2
                       echo "Regenerate: nix run .#gen-scf-catalog" >&2
                       exit 1
                     fi
@@ -467,9 +467,9 @@
                   ]
                 }:$PATH"
                 cd "$(git rev-parse --show-toplevel)"
-                exec python3 tools/gen-scf-catalog.py ${inputs.scf-api} data
+                exec python3 tools/gen-scf-catalog.py ${inputs.scf} data
               ''}";
-              meta.description = "Regenerate data/scf.{json,yml} from the pinned scf-api input";
+              meta.description = "Regenerate data/scf.{json,yml} from the pinned scf input";
             };
 
             apps.sbom = {

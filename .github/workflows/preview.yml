@@ -21,7 +21,7 @@ jobs:
       # instead of a from-scratch veraPDF rebuild.
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Configure permissions
         # Unprivileged user namespaces for bubblewrap (zig2nix's zig-hook);
@@ -73,7 +73,7 @@ jobs:
           command: pages deploy public --project-name=policypress --branch=pr-${{ github.event.pull_request.number }} --commit-dirty=true
 
       - name: Post preview URL to PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
             const marker = '<!-- policypress-preview -->';
@@ -135,7 +135,7 @@ jobs:
           done
 
       - name: Update PR comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
             const marker = '<!-- policypress-preview -->';

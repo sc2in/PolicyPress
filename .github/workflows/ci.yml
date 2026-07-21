@@ -37,7 +37,7 @@ jobs:
       # that flake.nix's apps.release also consumes. Only used on tags.
       targets: ${{ steps.decide.outputs.targets }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
       - id: decide
@@ -76,7 +76,7 @@ jobs:
       id-token: "write"
       contents: "read"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           # Full history + tags so the release-tag CHANGELOG guard can diff
           # against the previous tag.
@@ -165,7 +165,7 @@ jobs:
 
       - name: Upload attestation evidence
         if: ${{ success() && matrix.os == 'ubuntu-latest' && (github.ref_type == 'tag' || github.ref_name == 'main' || (github.event_name == 'pull_request' && github.base_ref == 'main')) }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: attestation-evidence
           path: evidence/
@@ -179,7 +179,7 @@ jobs:
 
       - name: Upload artifacts
         if: ${{ success() && matrix.os == 'ubuntu-latest' && (github.ref_type == 'tag' || github.ref_name == 'main') }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: policypress
           path: artifacts/
@@ -203,7 +203,7 @@ jobs:
       id-token: "write"
       contents: "read"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Install Nix
         uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3
@@ -230,7 +230,7 @@ jobs:
           '
 
       - name: Upload ${{ matrix.target }} binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-bin-${{ matrix.target }}
           path: policypress-${{ matrix.target }}*
@@ -253,19 +253,19 @@ jobs:
       id-token: "write"
       contents: "write"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
 
       - name: Download release binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: release-bin-*
           path: dist
           merge-multiple: true
 
       - name: Download attestation evidence (for the SBOM)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: attestation-evidence
           path: evidence

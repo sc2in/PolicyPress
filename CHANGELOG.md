@@ -32,6 +32,10 @@ versioning; breaking changes to it bump the major version.
   pass), so a tag whose tests fail no longer publishes to FlakeHub. The
   standalone FlakeHub workflow remains as a manual (`workflow_dispatch`)
   re-publish escape hatch.
+- **All first-party GitHub Actions are now pinned to commit SHAs** (with a
+  `# vX.Y.Z` comment), matching the third-party actions that were already
+  pinned. `actions/checkout` is unified on v4. Removes the mutable-tag
+  supply-chain risk of floating `@v4`/`@v5`/`@v7` references.
 
 ## [1.6.0] - 2026-07-18
 

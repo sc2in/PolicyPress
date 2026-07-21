@@ -8,6 +8,30 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Added
+
+- **GitHub Releases now include an `aarch64-windows` binary.** The release
+  cross-compilation target list is now a single source of truth
+  (`release-targets.json`) shared by `nix run .#release` and CI, which resolves
+  a prior drift where the flake app built six targets but CI shipped only five
+  (omitting `aarch64-windows`).
+
+### Internal
+
+- **CI cost/time reductions.** Pushing to a branch with an open PR no longer
+  runs CI twice (the `push` trigger is scoped to `main` + tags; `pull_request`
+  covers feature branches). The macOS matrix leg is skipped on docs-only PRs
+  (`*.md` / `docs/`) and the `omnix` install is gated to the Linux path that
+  actually uses it.
+- **Release binaries cross-compile in parallel.** The release job fanned a
+  sequential per-target loop into a matrix (one runner per target) plus a
+  gather/publish job, cutting release wall-clock substantially. The publish
+  job reuses the SBOM the CI job already produced instead of regenerating it.
+- **FlakeHub publishing is gated on CI.** Tag publishing moved into the
+  release-publish job (which runs only after CI and every cross-compile leg
+  pass), so a tag whose tests fail no longer publishes to FlakeHub. The
+  standalone FlakeHub workflow remains as a manual (`workflow_dispatch`)
+  re-publish escape hatch.
 ### Changed
 
 - **The SCF control catalog is now generated, not hand-copied.**

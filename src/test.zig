@@ -301,7 +301,7 @@ test "report generation" {
     // const rep = try f.report(io, "content/policies");
     // var j = try std.json.parseFromSlice(std.json.Value, tst.allocator, rep, .{});
     // defer j.deinit();
-    // try tst.expect(j.value.object.count() >= 1239); // test for number of controls read as of 10/2/2025
+    // try tst.expect(j.value.object.count() >= 1468); // number of controls in the SCF 2026.1.1 catalog
     // try tst.expect(j.value.object.get("HRS-05").?.bool);
     // try tst.expect(j.value.object.get("HRS-05.1").?.bool);
     // try tst.expect(j.value.object.get("HRS-05.2").?.bool);
@@ -1149,6 +1149,32 @@ test "tsc2017.json mirrors tsc2017.yml (control-ID parity)" {
     try tst.expectEqual(yml_keys, r.map.count());
 }
 
+test "scf.json mirrors scf.yml (control-ID parity)" {
+    // Both files are generated together by tools/gen-scf-catalog.py from the
+    // pinned scf input (the Zig loader reads only JSON arrays; the web
+    // templates read the YAML). Guard against drift: the JSON's control_id
+    // set must equal the YAML's `control_id:` entries, whose values are
+    // always double-quoted by the generator.
+    var r = try report.init(io, tst.allocator, "data/scf.json");
+    defer r.deinit();
+    try tst.expect(r.map.count() >= 1468);
+    try tst.expect(r.map.contains("GOV-01"));
+    try tst.expect(r.map.contains("WEB-14"));
+
+    const yml = try std.Io.Dir.cwd().readFileAlloc(io, "data/scf.yml", tst.allocator, .limited(10_000_000));
+    defer tst.allocator.free(yml);
+    var yml_keys: usize = 0;
+    var lines = std.mem.splitScalar(u8, yml, '\n');
+    const prefix = "  control_id: \"";
+    while (lines.next()) |line| {
+        if (!std.mem.startsWith(u8, line, prefix)) continue;
+        if (line.len < prefix.len + 2 or line[line.len - 1] != '"') continue;
+        yml_keys += 1;
+        try tst.expect(r.map.contains(line[prefix.len .. line.len - 1]));
+    }
+    try tst.expectEqual(yml_keys, r.map.count());
+}
+
 test "coverage: corrected numerator, dedup, draft exclusion, unknown IDs" {
     var r = try report.init(io, tst.allocator, "tests/report-fixtures/report_catalog_scf.json");
     defer r.deinit();
@@ -1305,6 +1331,6 @@ test "audit bundle: manifest hashes, newest revision, coverage export" {
         const scf = fws[0].object;
         try tst.expectEqualStrings("SCF", scf.get("id").?.string);
         try tst.expect(scf.get("covered").?.integer >= 1);
-        try tst.expect(scf.get("total").?.integer >= 1239);
+        try tst.expect(scf.get("total").?.integer >= 1468);
     }
 }

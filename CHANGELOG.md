@@ -32,6 +32,26 @@ versioning; breaking changes to it bump the major version.
   pass), so a tag whose tests fail no longer publishes to FlakeHub. The
   standalone FlakeHub workflow remains as a manual (`workflow_dispatch`)
   re-publish escape hatch.
+### Changed
+
+- **The SCF control catalog is now generated, not hand-copied.**
+  `data/scf.{json,yml}` regenerate from the pinned `scf` flake input
+  (`github:sc2in/scf`, SC2's validated Secure Controls Framework
+  pipeline) via `tools/gen-scf-catalog.py` / `nix run .#gen-scf-catalog`.
+  The catalog jumps from the hand-committed 2025-vintage 1,239 controls to
+  the full SCF 2026.1.1 set of 1,468. A new `scf-catalog-fresh` flake check
+  fails CI whenever the committed catalog drifts from the pinned input, and
+  a `scf.json`↔`scf.yml` control-ID parity test guards the two generated
+  files against each other. Coverage-report floors raised accordingly.
+  (`data/tsc2017.*` is AICPA content with separate provenance — untouched.)
+### Removed
+
+- **Dropped `x86_64-darwin` (Intel macOS) from the flake's supported systems**,
+  following nixpkgs retiring it as a supported platform. `nix build`,
+  `nix develop`, and `nix flake check` no longer evaluate for Intel-Mac hosts;
+  CI runs on `aarch64-darwin` (`macos-latest` is Apple Silicon). The
+  cross-compiled `x86_64-macos` release binary is unaffected — it is still
+  built and shipped, since it cross-compiles from any host.
 
 ## [1.6.0] - 2026-07-18
 

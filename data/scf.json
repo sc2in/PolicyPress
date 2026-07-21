@@ -2,7 +2,7 @@
   {
     "domain": "Cybersecurity & Data Protection Governance",
     "control_id": "GOV-01",
-    "control": "Cybersecurity & Data Protection Governance Program "
+    "control": "Security, Compliance & Resilience Program (SCRP)"
   },
   {
     "domain": "Cybersecurity & Data Protection Governance",
@@ -16,8 +16,13 @@
   },
   {
     "domain": "Cybersecurity & Data Protection Governance",
+    "control_id": "GOV-01.3",
+    "control": "Commitment To Continual Improvements"
+  },
+  {
+    "domain": "Cybersecurity & Data Protection Governance",
     "control_id": "GOV-02",
-    "control": "Publishing Cybersecurity & Data Protection Documentation "
+    "control": "Publishing Security, Compliance & Resilience Documentation"
   },
   {
     "domain": "Cybersecurity & Data Protection Governance",
@@ -27,12 +32,12 @@
   {
     "domain": "Cybersecurity & Data Protection Governance",
     "control_id": "GOV-03",
-    "control": "Periodic Review & Update of Cybersecurity & Data Protection Program"
+    "control": "Periodic Review & Update of Security, Compliance & Resilience Program"
   },
   {
     "domain": "Cybersecurity & Data Protection Governance",
     "control_id": "GOV-04",
-    "control": "Assigned Cybersecurity & Data Protection Responsibilities "
+    "control": "Assigned Security, Compliance & Resilience Responsibilities"
   },
   {
     "domain": "Cybersecurity & Data Protection Governance",
@@ -47,7 +52,7 @@
   {
     "domain": "Cybersecurity & Data Protection Governance",
     "control_id": "GOV-05",
-    "control": "Measures of Performance "
+    "control": "Measures of Performance"
   },
   {
     "domain": "Cybersecurity & Data Protection Governance",
@@ -62,12 +67,12 @@
   {
     "domain": "Cybersecurity & Data Protection Governance",
     "control_id": "GOV-06",
-    "control": "Contacts With Authorities "
+    "control": "Contacts With Authorities"
   },
   {
     "domain": "Cybersecurity & Data Protection Governance",
     "control_id": "GOV-07",
-    "control": "Contacts With Groups & Associations "
+    "control": "Contacts With Groups & Associations"
   },
   {
     "domain": "Cybersecurity & Data Protection Governance",
@@ -102,12 +107,12 @@
   {
     "domain": "Cybersecurity & Data Protection Governance",
     "control_id": "GOV-14",
-    "control": "Business As Usual (BAU) Secure Practices"
+    "control": "Business As Usual (BAU) Security, Compliance & Resilience Practices"
   },
   {
     "domain": "Cybersecurity & Data Protection Governance",
     "control_id": "GOV-15",
-    "control": "Operationalizing Cybersecurity & Data Protection Practices"
+    "control": "Operationalizing Security, Compliance & Resilience Capabilities"
   },
   {
     "domain": "Cybersecurity & Data Protection Governance",
@@ -127,7 +132,7 @@
   {
     "domain": "Cybersecurity & Data Protection Governance",
     "control_id": "GOV-15.4",
-    "control": "Authorize Systems, Applications & Services"
+    "control": "Authorize Technology Assets, Applications and/or Services (TAAS)"
   },
   {
     "domain": "Cybersecurity & Data Protection Governance",
@@ -152,347 +157,822 @@
   {
     "domain": "Cybersecurity & Data Protection Governance",
     "control_id": "GOV-17",
-    "control": "Cybersecurity & Data Privacy Status Reporting"
+    "control": "Security, Compliance & Resilience Status Reporting"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Cybersecurity & Data Protection Governance",
+    "control_id": "GOV-18",
+    "control": "Quality Management System (QMS)"
+  },
+  {
+    "domain": "Cybersecurity & Data Protection Governance",
+    "control_id": "GOV-19",
+    "control": "Assurance"
+  },
+  {
+    "domain": "Cybersecurity & Data Protection Governance",
+    "control_id": "GOV-19.1",
+    "control": "Assurance Levels (AL)"
+  },
+  {
+    "domain": "Cybersecurity & Data Protection Governance",
+    "control_id": "GOV-19.2",
+    "control": "Assessment Objectives (AO)"
+  },
+  {
+    "domain": "Cybersecurity & Data Protection Governance",
+    "control_id": "GOV-20",
+    "control": "Mergers, Acquisitions & Divestitures (MA&D)"
+  },
+  {
+    "domain": "Cybersecurity & Data Protection Governance",
+    "control_id": "GOV-20.1",
+    "control": "Virtual Data Room (VDR)"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-01",
     "control": "Artificial Intelligence (AI) & Autonomous Technologies Governance"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-01.1",
     "control": "AI & Autonomous Technologies-Related Legal Requirements Definition"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-01.2",
     "control": "Trustworthy AI & Autonomous Technologies"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-01.3",
     "control": "AI & Autonomous Technologies Value Sustainment"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-01.4",
+    "control": "AI Model & Agent Inventory & Lifecycle Management"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-02",
     "control": "Situational Awareness of AI & Autonomous Technologies"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-02.1",
     "control": "AI & Autonomous Technologies Risk Mapping"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-02.2",
     "control": "AI & Autonomous Technologies Internal Controls"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-02.3",
+    "control": "Adequate Protections For AI & Autonomous Technologies"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-02.4",
+    "control": "AI Threat Modeling & Risk Assessment"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-03",
     "control": "AI & Autonomous Technologies Context Definition"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-03.1",
     "control": "AI & Autonomous Technologies Mission and Goals Definition"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-03.2",
+    "control": "Model & AI Agent Documentation"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-04",
     "control": "AI & Autonomous Technologies Business Case"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-04.1",
     "control": "AI & Autonomous Technologies Potential Benefits Analysis"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-04.2",
     "control": "AI & Autonomous Technologies Potential Costs Analysis"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-04.3",
     "control": "AI & Autonomous Technologies Targeted Application Scope"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-04.4",
     "control": "AI & Autonomous Technologies Cost / Benefit Mapping"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-05",
     "control": "AI & Autonomous Technologies Training"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-06",
     "control": "AI & Autonomous Technologies Fairness & Bias"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-07",
     "control": "AI & Autonomous Technologies Risk Management Decisions"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-07.1",
-    "control": "AI & Autonomous Technologies Impact Characterization"
+    "control": "AI & Autonomous Technologies Impact Assessment"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-07.2",
     "control": "AI & Autonomous Technologies Likelihood & Impact Risk Analysis"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-07.3",
     "control": "AI & Autonomous Technologies Continuous Improvements"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-08",
     "control": "Assigned Responsibilities for AI & Autonomous Technologies"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-09",
     "control": "AI & Autonomous Technologies Risk Profiling"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
-    "control_id": "AAT-10",
-    "control": "Artificial Intelligence Test, Evaluation, Validation & Verification (AI TEVV) "
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-09.1",
+    "control": "AI & Autonomous Technologies High Risk Designations"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-10",
+    "control": "Artificial Intelligence Test, Evaluation, Validation & Verification (AI TEVV)"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.1",
     "control": "AI TEVV Trustworthiness Assessment"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.2",
     "control": "AI TEVV Tools"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.3",
     "control": "AI TEVV Trustworthiness Demonstration"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.4",
     "control": "AI TEVV Safety Demonstration"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.5",
-    "control": "AI TEVV Resiliency Assessment"
+    "control": "AI TEVV Security & Resiliency Assessment"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.6",
     "control": "AI TEVV Transparency & Accountability Assessment"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.7",
     "control": "AI TEVV Privacy Assessment"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.8",
     "control": "AI TEVV Fairness & Bias Assessment"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.9",
     "control": "AI & Autonomous Technologies Model Validation"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.10",
     "control": "AI TEVV Results Evaluation"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.11",
     "control": "AI TEVV Effectiveness"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.12",
     "control": "AI TEVV Comparable Deployment Settings"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.13",
     "control": "AI TEVV Post-Deployment Monitoring"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-10.14",
     "control": "Updating AI & Autonomous Technologies"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-10.15",
+    "control": "AI TEVV Reporting"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-10.16",
+    "control": "AI TEVV Empirically Validated Methods"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-10.17",
+    "control": "AI TEVV Benchmarking Content Provenance"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-10.18",
+    "control": "AI TEVV Model Collapse Mitigations"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-10.19",
+    "control": "AI TEVV Third-Party Risk Management"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-11",
     "control": "Robust Stakeholder Engagement for AI & Autonomous Technologies"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-11.1",
     "control": "AI & Autonomous Technologies Stakeholder Feedback Integration"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-11.2",
     "control": "AI & Autonomous Technologies Ongoing Assessments"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-11.3",
     "control": "AI & Autonomous Technologies End User Feedback"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-11.4",
     "control": "AI & Autonomous Technologies Incident & Error Reporting"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-12",
     "control": "AI & Autonomous Technologies Intellectual Property Infringement Protections"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-12.1",
     "control": "Data Source Identification"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-12.2",
     "control": "Data Source Integrity"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-12.3",
+    "control": "Data Source Lineage & Origin Disclosure"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-12.4",
+    "control": "Digital Content Modification Logging"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-13",
     "control": "AI & Autonomous Technologies Stakeholder Diversity"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-13.1",
     "control": "AI & Autonomous Technologies Stakeholder Competencies"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-14",
     "control": "AI & Autonomous Technologies Requirements Definitions"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-14.1",
     "control": "AI & Autonomous Technologies Implementation Tasks Definition"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-14.2",
     "control": "AI & Autonomous Technologies Knowledge Limits"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-15",
     "control": "AI & Autonomous Technologies Viability Decisions"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-15.1",
     "control": "AI & Autonomous Technologies Negative Residual Risks"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-15.2",
     "control": "Responsibility To Supersede, Deactivate and/or Disengage AI & Autonomous Technologies"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-16",
     "control": "AI & Autonomous Technologies Production Monitoring"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-16.1",
     "control": "AI & Autonomous Technologies Measurement Approaches"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-16.2",
     "control": "Measuring AI & Autonomous Technologies Effectiveness"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-16.3",
     "control": "Unmeasurable AI & Autonomous Technologies Risks"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-16.4",
     "control": "Efficacy of AI & Autonomous Technologies Measurement"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-16.5",
     "control": "AI & Autonomous Technologies Domain Expert Reviews"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-16.6",
     "control": "AI & Autonomous Technologies Performance Changes"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-16.7",
     "control": "Pre-Trained AI & Autonomous Technologies Models"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-16.8",
+    "control": "AI & Autonomous Technologies Event Logging"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-16.9",
+    "control": "Serious Incident Reporting For AI & Autonomous Technologies"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-16.10",
+    "control": "Serious Incident Root Cause Analysis (RCA) For AI & Autonomous Technologies"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-16.11",
+    "control": "Anomaly Detection & Human Oversight"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-16.12",
+    "control": "Human-in-the-Loop & Escalation"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-16.13",
+    "control": "Emergent Behavior & Collusion Protections"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-16.14",
+    "control": "Multi-Agent Trust & Communication Validation"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-17",
     "control": "AI & Autonomous Technologies Harm Prevention"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-17.1",
     "control": "AI & Autonomous Technologies Human Subject Protections"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-17.2",
     "control": "AI & Autonomous Technologies Environmental Impact & Sustainability"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-17.3",
     "control": "Previously Unknown AI & Autonomous Technologies Threats & Risks"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-17.4",
+    "control": "Novel Risk Assessment Methods & Technologies"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-17.5",
+    "control": "Fine Tuning Risk Mitigation"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-18",
     "control": "AI & Autonomous Technologies Risk Tracking Approaches"
   },
   {
-    "domain": "Artificial & Autonomous Technologies",
+    "domain": "Artificial Intelligence & Autonomous Technologies",
     "control_id": "AAT-18.1",
     "control": "AI & Autonomous Technologies Risk Response"
   },
   {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-19",
+    "control": "AI & Autonomous Technologies Conformity"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-19.1",
+    "control": "Manipulative or Deceptive Techniques"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-19.2",
+    "control": "Materially Distorting Behaviors"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-19.3",
+    "control": "Social Scoring"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-19.4",
+    "control": "Detrimental or Unfavorable Treatment"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-19.5",
+    "control": "Risk and Criminal Profiling"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-19.6",
+    "control": "Populating Facial Recognition Databases"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-19.7",
+    "control": "Emotion Inference"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-19.8",
+    "control": "Biometric Categorization"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-20",
+    "control": "AI & Autonomous Technologies Development Practices"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-20.1",
+    "control": "AI & Autonomous Technologies Transparency"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-20.2",
+    "control": "AI & Autonomous Technologies Implementation Documentation"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-20.3",
+    "control": "AI & Autonomous Technologies Human Domain Knowledge Reliance"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-21",
+    "control": "AI & Autonomous Technologies Registration"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-22",
+    "control": "AI & Autonomous Technologies Deployment"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-22.1",
+    "control": "AI & Autonomous Technologies Human Oversight"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-22.2",
+    "control": "AI & Autonomous Technologies Oversight Measures"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-22.3",
+    "control": "AI & Autonomous Technologies Separate Verification"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-22.4",
+    "control": "AI & Autonomous Technologies Oversight Functions Competency"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-22.5",
+    "control": "AI & Autonomous Technologies Data Relevance"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-22.6",
+    "control": "AI & Autonomous Technologies Irregularity Reporting"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-22.7",
+    "control": "AI & Autonomous Technologies Use Notification To Employees"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-22.8",
+    "control": "AI & Autonomous Technologies Use Notification To Users"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-23",
+    "control": "AI & Autonomous Technologies Output Marking"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-24",
+    "control": "Real World Testing of AI & Autonomous Technologies"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-25",
+    "control": "AI & Autonomous Technologies System Value Chain"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-25.1",
+    "control": "AI & Autonomous Technologies System Value Chain Fallbacks"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-26",
+    "control": "AI & Autonomous Technologies Testing Techniques"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-26.1",
+    "control": "Generative Artificial Intelligence (GAI) Identification"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-26.2",
+    "control": "AI & Autonomous Technologies Capabilities Testing"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-26.3",
+    "control": "Real-World Testing"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-26.4",
+    "control": "Documenting Testing Guidance"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-27",
+    "control": "AI & Autonomous Technologies Output Filtering"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-27.1",
+    "control": "Human Moderation"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-28",
+    "control": "AI Model Resilience"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-28.1",
+    "control": "Model Pollution"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-28.2",
+    "control": "Cascading Hallucination Defense"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-28.3",
+    "control": "Resource Exhaustion & DoS Resilience"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29",
+    "control": "AI Agent Governance"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.1",
+    "control": "Infrastructure Hardening & Isolation"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.2",
+    "control": "AI Agent Limitations"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.3",
+    "control": "Tool & API Invocation Controls"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.4",
+    "control": "Orchestration Protocol Safeguards"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.5",
+    "control": "Data Pipeline & Input Integrity"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.6",
+    "control": "Privileged Role & Delegation Boundaries"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.7",
+    "control": "AI Agent Data Access Restrictions"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.8",
+    "control": "Data Extraction"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.9",
+    "control": "AI Agent Identity & Impersonation Defense"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.10",
+    "control": "AI Agent Logic Integrity"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.11",
+    "control": "Sandboxing AI Agents"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.12",
+    "control": "Prompt Injection Defense"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.13",
+    "control": "Agent Kill Switch / User Control"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.14",
+    "control": "Adversarial & Red Team Testing"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.15",
+    "control": "Self-Modification Controls"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.16",
+    "control": "Purging AI Agent Data"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.17",
+    "control": "Delegation and Chaining Control"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.18",
+    "control": "Behavioral Drift Detection"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.19",
+    "control": "AI Agent Action Authentication & Authorization"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.20",
+    "control": "Transparency & Audit"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.21",
+    "control": "Explainability"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.22",
+    "control": "Ethics, Fairness & Bias Detection"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-29.23",
+    "control": "Agent Output Integrity & Verification"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-30",
+    "control": "Agentic Output Traceability & Repudiation"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-30.1",
+    "control": "AI Agent Logging"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-30.2",
+    "control": "Session Management"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-31",
+    "control": "Human-in-the-Loop Workload & Manipulation"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-32",
+    "control": "Robotic Process Automation (RPA)"
+  },
+  {
+    "domain": "Artificial Intelligence & Autonomous Technologies",
+    "control_id": "AAT-32.1",
+    "control": "Business Process Task Enumeration"
+  },
+  {
     "domain": "Asset Management",
     "control_id": "AST-01",
-    "control": "Asset Governance "
+    "control": "Asset Governance"
   },
   {
     "domain": "Asset Management",
@@ -516,8 +996,13 @@
   },
   {
     "domain": "Asset Management",
+    "control_id": "AST-01.5",
+    "control": "Authorized To Connect"
+  },
+  {
+    "domain": "Asset Management",
     "control_id": "AST-02",
-    "control": "Asset Inventories "
+    "control": "Asset Inventories"
   },
   {
     "domain": "Asset Management",
@@ -532,7 +1017,7 @@
   {
     "domain": "Asset Management",
     "control_id": "AST-02.3",
-    "control": "Component Duplication Avoidance "
+    "control": "Component Duplication Avoidance"
   },
   {
     "domain": "Asset Management",
@@ -622,7 +1107,7 @@
   {
     "domain": "Asset Management",
     "control_id": "AST-06",
-    "control": "Unattended End-User Equipment "
+    "control": "Unattended End-User Equipment"
   },
   {
     "domain": "Asset Management",
@@ -642,17 +1127,17 @@
   {
     "domain": "Asset Management",
     "control_id": "AST-09",
-    "control": "Secure Disposal, Destruction or Re-Use of Equipment "
+    "control": "Secure Disposal, Destruction or Re-Use of Equipment"
   },
   {
     "domain": "Asset Management",
     "control_id": "AST-10",
-    "control": "Return of Assets "
+    "control": "Return of Assets"
   },
   {
     "domain": "Asset Management",
     "control_id": "AST-11",
-    "control": "Removal of Assets "
+    "control": "Removal of Assets"
   },
   {
     "domain": "Asset Management",
@@ -687,12 +1172,12 @@
   {
     "domain": "Asset Management",
     "control_id": "AST-15.1",
-    "control": "Inspection of Systems, Components & Devices "
+    "control": "Technology Asset Inspections"
   },
   {
     "domain": "Asset Management",
     "control_id": "AST-16",
-    "control": "Bring Your Own Device (BYOD) Usage "
+    "control": "Bring Your Own Device (BYOD) Usage"
   },
   {
     "domain": "Asset Management",
@@ -785,6 +1270,21 @@
     "control": "Categorize Artificial Intelligence (AI)-Related Technologies"
   },
   {
+    "domain": "Asset Management",
+    "control_id": "AST-31.2",
+    "control": "High-Risk Asset Categorization"
+  },
+  {
+    "domain": "Asset Management",
+    "control_id": "AST-31.3",
+    "control": "Asset Attributes"
+  },
+  {
+    "domain": "Asset Management",
+    "control_id": "AST-32",
+    "control": "Automated Network Asset Discovery"
+  },
+  {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-01",
     "control": "Business Continuity Management System (BCMS)"
@@ -792,7 +1292,7 @@
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-01.1",
-    "control": "Coordinate with Related Plans "
+    "control": "Coordinate with Related Plans"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
@@ -821,8 +1321,13 @@
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
+    "control_id": "BCD-01.7",
+    "control": "Business Continuity & Disaster Recovery (BC/DR) Plans"
+  },
+  {
+    "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-02",
-    "control": "Identify Critical Assets "
+    "control": "Identify Critical Assets"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
@@ -837,7 +1342,7 @@
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-02.3",
-    "control": "Resume Essential Missions & Business Functions "
+    "control": "Resume Essential Missions & Business Functions"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
@@ -862,12 +1367,12 @@
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-04",
-    "control": "Contingency Plan Testing & Exercises "
+    "control": "Contingency Plan Testing & Exercises"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-04.1",
-    "control": "Coordinated Testing with Related Plans "
+    "control": "Coordinated Testing with Related Plans"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
@@ -886,8 +1391,18 @@
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
+    "control_id": "BCD-06.1",
+    "control": "Contingency Planning Components"
+  },
+  {
+    "domain": "Business Continuity & Disaster Recovery",
+    "control_id": "BCD-06.2",
+    "control": "Contingency Plan Update Notifications"
+  },
+  {
+    "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-07",
-    "control": "Alternative Security Measures "
+    "control": "Alternative Security Measures"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
@@ -897,12 +1412,12 @@
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-08.1",
-    "control": "Separation from Primary Site "
+    "control": "Separation from Primary Storage Site"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-08.2",
-    "control": "Accessibility "
+    "control": "Primary Storage Site Accessibility"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
@@ -912,12 +1427,12 @@
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-09.1",
-    "control": "Separation from Primary Site"
+    "control": "Separation from Primary Processing Site"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-09.2",
-    "control": "Accessibility"
+    "control": "Alternate Processing Site Accessibility"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
@@ -952,7 +1467,7 @@
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-10.3",
-    "control": "Provider Contingency Plan "
+    "control": "Provider Contingency Plan"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
@@ -967,17 +1482,17 @@
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-11.1",
-    "control": "Testing for Reliability & Integrity "
+    "control": "Testing for Reliability & Integrity"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-11.2",
-    "control": "Separate Storage for Critical Information "
+    "control": "Separate Storage for Critical Information"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-11.3",
-    "control": "Information System Imaging"
+    "control": "Recovery Images"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
@@ -1017,7 +1532,7 @@
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-12",
-    "control": "Information System Recovery & Reconstitution"
+    "control": "Technology Assets, Applications and/or Services (TAAS) Recovery & Reconstitution"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
@@ -1042,7 +1557,7 @@
   {
     "domain": "Business Continuity & Disaster Recovery",
     "control_id": "BCD-13",
-    "control": "Backup & Restoration Hardware Protection "
+    "control": "Backup & Restoration Hardware Protection"
   },
   {
     "domain": "Business Continuity & Disaster Recovery",
@@ -1067,7 +1582,7 @@
   {
     "domain": "Capacity & Performance Planning",
     "control_id": "CAP-01",
-    "control": "Capacity & Performance Management "
+    "control": "Capacity & Performance Management"
   },
   {
     "domain": "Capacity & Performance Planning",
@@ -1077,7 +1592,7 @@
   {
     "domain": "Capacity & Performance Planning",
     "control_id": "CAP-03",
-    "control": "Capacity Planning "
+    "control": "Capacity Planning"
   },
   {
     "domain": "Capacity & Performance Planning",
@@ -1097,12 +1612,12 @@
   {
     "domain": "Change Management",
     "control_id": "CHG-01",
-    "control": "Change Management Program "
+    "control": "Change Management Program"
   },
   {
     "domain": "Change Management",
     "control_id": "CHG-02",
-    "control": "Configuration Change Control "
+    "control": "Configuration Change Control"
   },
   {
     "domain": "Change Management",
@@ -1112,12 +1627,12 @@
   {
     "domain": "Change Management",
     "control_id": "CHG-02.2",
-    "control": "Test, Validate & Document Changes "
+    "control": "Test, Validate & Document Changes"
   },
   {
     "domain": "Change Management",
     "control_id": "CHG-02.3",
-    "control": "Cybersecurity & Data Privacy Representative for Asset Lifecycle Changes"
+    "control": "Security, Compliance & Resilience Representative for Asset Lifecycle Changes"
   },
   {
     "domain": "Change Management",
@@ -1132,7 +1647,7 @@
   {
     "domain": "Change Management",
     "control_id": "CHG-03",
-    "control": "Security Impact Analysis for Changes "
+    "control": "Security Impact Analysis for Changes"
   },
   {
     "domain": "Change Management",
@@ -1142,12 +1657,12 @@
   {
     "domain": "Change Management",
     "control_id": "CHG-04.1",
-    "control": "Automated Access Enforcement / Auditing "
+    "control": "Automated Access Enforcement / Auditing"
   },
   {
     "domain": "Change Management",
     "control_id": "CHG-04.2",
-    "control": "Signed Components "
+    "control": "Signed Components"
   },
   {
     "domain": "Change Management",
@@ -1167,7 +1682,7 @@
   {
     "domain": "Change Management",
     "control_id": "CHG-05",
-    "control": "Stakeholder Notification of Changes "
+    "control": "Stakeholder Notification of Changes"
   },
   {
     "domain": "Change Management",
@@ -1178,6 +1693,21 @@
     "domain": "Change Management",
     "control_id": "CHG-06.1",
     "control": "Report Verification Results"
+  },
+  {
+    "domain": "Change Management",
+    "control_id": "CHG-07",
+    "control": "Emergency Changes"
+  },
+  {
+    "domain": "Change Management",
+    "control_id": "CHG-07.1",
+    "control": "Documenting Emergency Changes"
+  },
+  {
+    "domain": "Change Management",
+    "control_id": "CHG-08",
+    "control": "Dual Approval For High-Impact Environments"
   },
   {
     "domain": "Cloud Security",
@@ -1197,7 +1727,7 @@
   {
     "domain": "Cloud Security",
     "control_id": "CLD-02",
-    "control": "Cloud Security Architecture "
+    "control": "Cloud Security Architecture"
   },
   {
     "domain": "Cloud Security",
@@ -1207,17 +1737,22 @@
   {
     "domain": "Cloud Security",
     "control_id": "CLD-04",
-    "control": "Application & Program Interface (API) Security "
+    "control": "Application Programming Interface (API) Security"
+  },
+  {
+    "domain": "Cloud Security",
+    "control_id": "CLD-04.1",
+    "control": "API Gateway"
   },
   {
     "domain": "Cloud Security",
     "control_id": "CLD-05",
-    "control": "Virtual Machine Images "
+    "control": "Virtual Machine Images"
   },
   {
     "domain": "Cloud Security",
     "control_id": "CLD-06",
-    "control": "Multi-Tenant Environments "
+    "control": "Multi-Tenant Environments"
   },
   {
     "domain": "Cloud Security",
@@ -1247,7 +1782,7 @@
   {
     "domain": "Cloud Security",
     "control_id": "CLD-08",
-    "control": "Standardized Virtualization Formats "
+    "control": "Standardized Virtualization Formats"
   },
   {
     "domain": "Cloud Security",
@@ -1272,27 +1807,32 @@
   {
     "domain": "Cloud Security",
     "control_id": "CLD-13",
-    "control": "Hosted Systems, Applications & Services"
+    "control": "Hosted Assets, Applications & Services"
   },
   {
     "domain": "Cloud Security",
     "control_id": "CLD-13.1",
-    "control": "Authorized Individuals For Hosted Systems, Applications & Services"
+    "control": "Authorized Individuals For Hosted Assets, Applications & Services"
   },
   {
     "domain": "Cloud Security",
     "control_id": "CLD-13.2",
-    "control": "Sensitive/Regulated Data On Hosted Systems, Applications & Services"
+    "control": "Sensitive / Regulated Data On Hosted Assets, Applications & Services"
   },
   {
     "domain": "Cloud Security",
     "control_id": "CLD-14",
-    "control": "Prohibition On Unverified Hosted Systems, Applications & Services"
+    "control": "Prohibition On Unverified Hosted Assets, Applications & Services"
+  },
+  {
+    "domain": "Cloud Security",
+    "control_id": "CLD-15",
+    "control": "Software Defined Storage (SDS)"
   },
   {
     "domain": "Compliance",
     "control_id": "CPL-01",
-    "control": "Statutory, Regulatory & Contractual Compliance "
+    "control": "Statutory, Regulatory & Contractual Compliance"
   },
   {
     "domain": "Compliance",
@@ -1306,8 +1846,38 @@
   },
   {
     "domain": "Compliance",
+    "control_id": "CPL-01.3",
+    "control": "Ability To Demonstrate Conformity"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-01.4",
+    "control": "Conformity Assessment"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-01.5",
+    "control": "Declaration of Conformity"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-01.6",
+    "control": "Assessment Team Subject Matter Expertise"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-01.7",
+    "control": "Designated Certifying Official"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-01.8",
+    "control": "Conformity Attestations"
+  },
+  {
+    "domain": "Compliance",
     "control_id": "CPL-02",
-    "control": "Cybersecurity & Data Protection Controls Oversight "
+    "control": "Security, Compliance & Resilience Controls Oversight"
   },
   {
     "domain": "Compliance",
@@ -1316,23 +1886,58 @@
   },
   {
     "domain": "Compliance",
+    "control_id": "CPL-02.2",
+    "control": "Periodic Audits"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-02.3",
+    "control": "Corrective Action"
+  },
+  {
+    "domain": "Compliance",
     "control_id": "CPL-03",
-    "control": "Cybersecurity & Data Protection Assessments "
+    "control": "Security, Compliance & Resilience Assessments"
   },
   {
     "domain": "Compliance",
     "control_id": "CPL-03.1",
-    "control": "Independent Assessors "
+    "control": "Independent Assessors"
   },
   {
     "domain": "Compliance",
     "control_id": "CPL-03.2",
-    "control": "Functional Review Of Cybersecurity & Data Protection Controls "
+    "control": "Functional Review Of Security, Compliance & Resilience Controls"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-03.3",
+    "control": "Assessor Access"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-03.4",
+    "control": "Assessment Methods"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-03.5",
+    "control": "Assessment Rigor"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-03.6",
+    "control": "Evidence Request List (ERL)"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-03.7",
+    "control": "Evidence Sampling"
   },
   {
     "domain": "Compliance",
     "control_id": "CPL-04",
-    "control": "Audit Activities "
+    "control": "Audit Activities"
   },
   {
     "domain": "Compliance",
@@ -1355,6 +1960,76 @@
     "control": "Government Surveillance"
   },
   {
+    "domain": "Compliance",
+    "control_id": "CPL-07",
+    "control": "Grievances"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-07.1",
+    "control": "Grievance Response"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-08",
+    "control": "Localized Representation"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-08.1",
+    "control": "Representative Powers"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-09",
+    "control": "Control Reciprocity"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-10",
+    "control": "Control Inheritance"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-11",
+    "control": "Dual Use Technology"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-11.1",
+    "control": "USML or CCL Identification"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-11.2",
+    "control": "Export-Controlled Access Restrictions"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-11.3",
+    "control": "Export Activities Documentation"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-12",
+    "control": "Statement of Applicability (SOA)"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-13",
+    "control": "Work Products"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-13.1",
+    "control": "Defensible Evidence of Due Diligence"
+  },
+  {
+    "domain": "Compliance",
+    "control_id": "CPL-13.2",
+    "control": "Defensible Evidence of Due Care"
+  },
+  {
     "domain": "Configuration Management",
     "control_id": "CFG-01",
     "control": "Configuration Management Program"
@@ -1367,7 +2042,7 @@
   {
     "domain": "Configuration Management",
     "control_id": "CFG-02",
-    "control": "System Hardening Through Baseline Configurations "
+    "control": "Secure Baseline Configurations"
   },
   {
     "domain": "Configuration Management",
@@ -1377,12 +2052,12 @@
   {
     "domain": "Configuration Management",
     "control_id": "CFG-02.2",
-    "control": "Automated Central Management & Verification "
+    "control": "Automated Central Management & Verification"
   },
   {
     "domain": "Configuration Management",
     "control_id": "CFG-02.3",
-    "control": "Retention Of Previous Configurations "
+    "control": "Retention Of Previous Configurations"
   },
   {
     "domain": "Configuration Management",
@@ -1392,7 +2067,7 @@
   {
     "domain": "Configuration Management",
     "control_id": "CFG-02.5",
-    "control": "Configure Systems, Components or Services for High-Risk Areas "
+    "control": "Configure Technology Assets, Applications and/or Services (TAAS) for High-Risk Areas"
   },
   {
     "domain": "Configuration Management",
@@ -1402,12 +2077,12 @@
   {
     "domain": "Configuration Management",
     "control_id": "CFG-02.7",
-    "control": "Approved Configuration Deviations "
+    "control": "Approved Configuration Deviations"
   },
   {
     "domain": "Configuration Management",
     "control_id": "CFG-02.8",
-    "control": "Respond To Unauthorized Changes "
+    "control": "Respond To Unauthorized Changes"
   },
   {
     "domain": "Configuration Management",
@@ -1442,7 +2117,7 @@
   {
     "domain": "Configuration Management",
     "control_id": "CFG-04",
-    "control": "Software Usage Restrictions "
+    "control": "Software Usage Restrictions"
   },
   {
     "domain": "Configuration Management",
@@ -1452,7 +2127,7 @@
   {
     "domain": "Configuration Management",
     "control_id": "CFG-04.2",
-    "control": "Unsupported Internet Browsers & Email Clients "
+    "control": "Unsupported Internet Browsers & Email Clients"
   },
   {
     "domain": "Configuration Management",
@@ -1507,27 +2182,27 @@
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-01.2",
-    "control": "Automated Tools for Real-Time Analysis "
+    "control": "Automated Tools for Real-Time Analysis"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-01.3",
-    "control": "Inbound & Outbound Communications Traffic "
+    "control": "Inbound & Outbound Communications Traffic"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-01.4",
-    "control": "System Generated Alerts "
+    "control": "System Generated Alerts"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-01.5",
-    "control": "Wireless Intrusion Detection System (WIDS)"
+    "control": "Wireless Network Monitoring"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-01.6",
-    "control": "Host-Based Devices "
+    "control": "Host-Based Devices"
   },
   {
     "domain": "Continuous Monitoring",
@@ -1537,17 +2212,17 @@
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-01.8",
-    "control": "Reviews & Updates "
+    "control": "Security Event Monitoring"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-01.9",
-    "control": "Proxy Logging "
+    "control": "Proxy Logging"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-01.10",
-    "control": "Deactivated Account Activity "
+    "control": "Deactivated Account Activity"
   },
   {
     "domain": "Continuous Monitoring",
@@ -1631,13 +2306,18 @@
   },
   {
     "domain": "Continuous Monitoring",
+    "control_id": "MON-02.9",
+    "control": "Inventory of Technology Asset Event Logging"
+  },
+  {
+    "domain": "Continuous Monitoring",
     "control_id": "MON-03",
     "control": "Content of Event Logs"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-03.1",
-    "control": "Sensitive Audit Information"
+    "control": "Sensitive Event Log Information"
   },
   {
     "domain": "Continuous Monitoring",
@@ -1647,12 +2327,12 @@
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-03.3",
-    "control": "Privileged Functions Logging "
+    "control": "Privileged Functions Logging"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-03.4",
-    "control": "Verbosity Logging for Boundary Devices "
+    "control": "Verbosity Logging for Boundary Devices"
   },
   {
     "domain": "Continuous Monitoring",
@@ -1662,7 +2342,7 @@
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-03.6",
-    "control": "Centralized Management of Planned Audit Record Content"
+    "control": "Centralized Management of Event Log Content"
   },
   {
     "domain": "Continuous Monitoring",
@@ -1672,7 +2352,7 @@
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-04",
-    "control": "Event Log Storage Capacity "
+    "control": "Event Log Storage Capacity"
   },
   {
     "domain": "Continuous Monitoring",
@@ -1687,12 +2367,12 @@
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-05.2",
-    "control": "Event Log Storage Capacity Alerting "
+    "control": "Event Log Storage Capacity Alerting"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-06",
-    "control": "Monitoring Reporting "
+    "control": "Monitoring Reporting"
   },
   {
     "domain": "Continuous Monitoring",
@@ -1707,7 +2387,7 @@
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-07",
-    "control": "Time Stamps "
+    "control": "Time Stamps"
   },
   {
     "domain": "Continuous Monitoring",
@@ -1717,17 +2397,17 @@
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-08",
-    "control": "Protection of Event Logs "
+    "control": "Protection of Event Logs"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-08.1",
-    "control": "Event Log Backup on Separate Physical Systems / Components "
+    "control": "Event Log Backup on Separate Physical Systems / Components"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-08.2",
-    "control": "Access by Subset of Privileged Users "
+    "control": "Access by Subset of Privileged Users"
   },
   {
     "domain": "Continuous Monitoring",
@@ -1777,17 +2457,17 @@
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-12",
-    "control": "Session Audit "
+    "control": "Session Audit"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-13",
-    "control": "Alternate Event Logging Capability "
+    "control": "Alternate Event Logging Capability"
   },
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-14",
-    "control": "Cross-Organizational Monitoring "
+    "control": "Cross-Organizational Monitoring"
   },
   {
     "domain": "Continuous Monitoring",
@@ -1797,7 +2477,7 @@
   {
     "domain": "Continuous Monitoring",
     "control_id": "MON-15",
-    "control": "Covert Channel Analysis "
+    "control": "Covert Channel Analysis"
   },
   {
     "domain": "Continuous Monitoring",
@@ -1825,679 +2505,709 @@
     "control": "Account Creation and Modification Logging"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Continuous Monitoring",
+    "control_id": "MON-17",
+    "control": "Event Log Analysis & Triage"
+  },
+  {
+    "domain": "Continuous Monitoring",
+    "control_id": "MON-17.1",
+    "control": "Event Log Review Escalation Matrix"
+  },
+  {
+    "domain": "Continuous Monitoring",
+    "control_id": "MON-18",
+    "control": "File Activity Monitoring (FAM)"
+  },
+  {
+    "domain": "Continuous Monitoring",
+    "control_id": "MON-19",
+    "control": "Write Once Read Many (WORM) Event Log Generation"
+  },
+  {
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-01",
-    "control": "Use of Cryptographic Controls "
+    "control": "Use of Cryptographic Controls"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-01.1",
-    "control": "Alternate Physical Protection "
+    "control": "Alternate Physical Protection"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-01.2",
     "control": "Export-Controlled Cryptography"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-01.3",
     "control": "Pre/Post Transmission Handling"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-01.4",
     "control": "Conceal / Randomize Communications"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-01.5",
     "control": "Cryptographic Cipher Suites and Protocols Inventory"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-02",
-    "control": "Cryptographic Module Authentication"
+    "control": "Automated Authentication Through Cryptographic Modules"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-03",
-    "control": "Transmission Confidentiality "
+    "control": "Transmission Confidentiality"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-04",
-    "control": "Transmission Integrity "
+    "control": "Transmission Integrity"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-05",
-    "control": "Encrypting Data At Rest "
+    "control": "Encrypting Data At Rest"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-05.1",
     "control": "Storage Media"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-05.2",
     "control": "Offline Storage"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-05.3",
     "control": "Database Encryption"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-06",
     "control": "Non-Console Administrative Access"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-07",
-    "control": "Wireless Access Authentication & Encryption "
+    "control": "Wireless Access Authentication & Encryption"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-08",
-    "control": "Public Key Infrastructure (PKI) "
+    "control": "Public Key Infrastructure (PKI)"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-08.1",
     "control": "Availability"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-09",
-    "control": "Cryptographic Key Management "
+    "control": "Cryptographic Key Management"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-09.1",
     "control": "Symmetric Keys"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-09.2",
     "control": "Asymmetric Keys"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-09.3",
     "control": "Cryptographic Key Loss or Change"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-09.4",
     "control": "Control & Distribution of Cryptographic Keys"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-09.5",
-    "control": "Assigned Owners "
+    "control": "Assigned Owners"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-09.6",
     "control": "Third-Party Cryptographic Keys"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-09.7",
     "control": "External System Cryptographic Key Control"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-10",
-    "control": "Transmission of Cybersecurity & Data Privacy Attributes "
+    "control": "Transmission of Cybersecurity & Data Protection Attributes"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-11",
     "control": "Certificate Authorities"
   },
   {
-    "domain": "Cryptographic Protections ",
+    "domain": "Cryptographic Protections",
     "control_id": "CRY-12",
     "control": "Certificate Monitoring"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Cryptographic Protections",
+    "control_id": "CRY-13",
+    "control": "Cryptographic Hash"
+  },
+  {
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-01",
-    "control": "Data Protection "
+    "control": "Data Protection"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-01.1",
-    "control": "Data Stewardship "
+    "control": "Data Stewardship"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-01.2",
     "control": "Sensitive / Regulated Data Protection"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-01.3",
     "control": "Sensitive / Regulated Media Records"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-01.4",
-    "control": "Defining Access Authorizations for Sensitive/Regulated Data"
+    "control": "Defining Access Authorizations for Sensitive / Regulated Data"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-02",
-    "control": "Data & Asset Classification "
+    "control": "Data & Asset Classification"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-02.1",
     "control": "Highest Classification Level"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-03",
-    "control": "Media Access "
+    "control": "Media Access"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-03.1",
     "control": "Disclosure of Information"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-03.2",
-    "control": "Masking Displayed Data "
+    "control": "Masking Displayed Data"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-03.3",
     "control": "Controlled Release"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-04",
-    "control": "Media Marking "
+    "control": "Media Marking"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-04.1",
     "control": "Automated Marking"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05",
-    "control": "Cybersecurity & Data Privacy Attributes"
+    "control": "Cybersecurity & Data Protection Attributes"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05.1",
     "control": "Dynamic Attribute Association"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05.2",
     "control": "Attribute Value Changes By Authorized Individuals"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05.3",
     "control": "Maintenance of Attribute Associations By System"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05.4",
     "control": "Association of Attributes By Authorized Individuals"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05.5",
     "control": "Attribute Displays for Output Devices"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05.6",
     "control": "Data Subject Attribute Associations"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05.7",
     "control": "Consistent Attribute Interpretation"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05.8",
     "control": "Identity Association Techniques & Technologies"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05.9",
     "control": "Attribute Reassignment"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05.10",
     "control": "Attribute Configuration By Authorized Individuals"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-05.11",
     "control": "Audit Changes"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-06",
     "control": "Media Storage"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-06.1",
     "control": "Physically Secure All Media"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-06.2",
     "control": "Sensitive Data Inventories"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-06.3",
-    "control": "Periodic Scans for Sensitive Data"
+    "control": "Periodic Scans for Sensitive / Regulated Data"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-06.4",
     "control": "Making Sensitive Data Unreadable In Storage"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-06.5",
     "control": "Storing Authentication Data"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-07",
-    "control": "Media Transportation "
+    "control": "Media Transportation"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-07.1",
     "control": "Custodians"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-07.2",
     "control": "Encrypting Data In Storage Media"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-08",
     "control": "Physical Media Disposal"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-09",
     "control": "System Media Sanitization"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-09.1",
     "control": "System Media Sanitization Documentation"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-09.2",
     "control": "Equipment Testing"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-09.3",
     "control": "Sanitization of Personal Data (PD)"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-09.4",
     "control": "First Time Use Sanitization"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-09.5",
     "control": "Dual Authorization for Sensitive Data Destruction"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-10",
     "control": "Media Use"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-10.1",
-    "control": "Limitations on Use "
+    "control": "Limitations on Use"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-10.2",
     "control": "Prohibit Use Without Owner"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-11",
-    "control": "Data Reclassification "
+    "control": "Data Reclassification"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-12",
     "control": "Removable Media Security"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-13",
-    "control": "Use of External Information Systems "
+    "control": "Use of External Technology Assets, Applications and/or Services (TAAS)"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-13.1",
-    "control": "Limits of Authorized Use "
+    "control": "Limits of Authorized Use"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-13.2",
     "control": "Portable Storage Devices"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-13.3",
-    "control": "Protecting Sensitive Data on External Systems"
+    "control": "Protecting Sensitive / Regulated Data on External Technology Assets, Applications and/or Services (TAAS)"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-13.4",
-    "control": "Non-Organizationally Owned Systems / Components / Devices"
+    "control": "Non-Organizationally Owned Technology Assets, Applications and/or Services (TAAS)"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-14",
-    "control": "Information Sharing "
+    "control": "Information Sharing"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-14.1",
     "control": "Information Search & Retrieval"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-14.2",
     "control": "Transfer Authorizations"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-14.3",
     "control": "Data Access Mapping"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-15",
     "control": "Publicly Accessible Content"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-16",
     "control": "Data Mining Protection"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-17",
-    "control": "Ad-Hoc Transfers "
+    "control": "Ad-Hoc Transfers"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-18",
-    "control": "Media & Data Retention "
+    "control": "Media & Data Retention"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-18.1",
-    "control": "Minimize Sensitive & Regulated Data"
+    "control": "Minimize Sensitive / Regulated Data"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-18.2",
-    "control": "Limit Personal Data (PD) Elements In Testing, Training & Research"
+    "control": "Limit Sensitive / Regulated Data In Testing, Training & Research"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-18.3",
     "control": "Temporary Files Containing Personal Data (PD)"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-19",
     "control": "Geographic Location of Data"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-20",
-    "control": "Archived Data Sets "
+    "control": "Archived Data Sets"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-21",
     "control": "Information Disposal"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-22",
     "control": "Data Quality Operations"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-22.1",
     "control": "Updating & Correcting Personal Data (PD)"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-22.2",
     "control": "Data Tags"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-22.3",
     "control": "Primary Source Personal Data (PD) Collection"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-23",
     "control": "De-Identification (Anonymization)"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-23.1",
     "control": "De-Identify Dataset Upon Collection"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-23.2",
     "control": "Archiving"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-23.3",
     "control": "Release"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-23.4",
     "control": "Removal, Masking, Encryption, Hashing or Replacement of Direct Identifiers"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-23.5",
     "control": "Statistical Disclosure Control"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-23.6",
     "control": "Differential Data Privacy"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-23.7",
     "control": "Automated De-Identification of Sensitive Data"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-23.8",
     "control": "Motivated Intruder"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-23.9",
     "control": "Code Names"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-24",
     "control": "Information Location"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-24.1",
     "control": "Automated Tools to Support Information Location"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-25",
     "control": "Transfer of Sensitive and/or Regulated Data"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-25.1",
     "control": "Transfer Activity Limits"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-26",
     "control": "Data Localization"
   },
   {
-    "domain": "Data Classification & Handling ",
+    "domain": "Data Classification & Handling",
     "control_id": "DCH-27",
     "control": "Data Rights Management (DRM)"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-01",
-    "control": "Embedded Technology Security Program "
+    "control": "Embedded Technology Security Program"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-02",
-    "control": "Internet of Things (IOT) "
+    "control": "Internet of Things (IOT)"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-03",
-    "control": "Operational Technology (OT) "
+    "control": "Operational Technology (OT)"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-04",
     "control": "Interface Security"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-05",
     "control": "Embedded Technology Configuration Monitoring"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-06",
     "control": "Prevent Alterations"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-07",
     "control": "Embedded Technology Maintenance"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-08",
     "control": "Resilience To Outages"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-09",
     "control": "Power Level Monitoring"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-10",
     "control": "Embedded Technology Reviews"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-11",
     "control": "Message Queuing Telemetry Transport (MQTT) Security"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-12",
     "control": "Restrict Communications"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-13",
     "control": "Authorized Communications"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-14",
     "control": "Operating Environment Certification"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-15",
     "control": "Safety Assessment"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-16",
     "control": "Certificate-Based Authentication"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-17",
     "control": "Chip-To-Cloud Security"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-18",
     "control": "Real-Time Operating System (RTOS) Security"
   },
   {
-    "domain": "Embedded Technology ",
+    "domain": "Embedded Technology",
     "control_id": "EMB-19",
     "control": "Safe Operations"
   },
   {
     "domain": "Endpoint Security",
     "control_id": "END-01",
-    "control": "Endpoint Security "
+    "control": "Endpoint Device Management (EDM)"
+  },
+  {
+    "domain": "Endpoint Security",
+    "control_id": "END-01.1",
+    "control": "Unified Endpoint Device Management (UEDM)"
   },
   {
     "domain": "Endpoint Security",
     "control_id": "END-02",
-    "control": "Endpoint Protection Measures "
+    "control": "Endpoint Protection Measures"
   },
   {
     "domain": "Endpoint Security",
     "control_id": "END-03",
-    "control": "Prohibit Installation Without Privileged Status "
+    "control": "Prohibit Installation Without Privileged Status"
   },
   {
     "domain": "Endpoint Security",
@@ -2512,7 +3222,7 @@
   {
     "domain": "Endpoint Security",
     "control_id": "END-04",
-    "control": "Malicious Code Protection (Anti-Malware) "
+    "control": "Malicious Code Protection (Anti-Malware)"
   },
   {
     "domain": "Endpoint Security",
@@ -2552,17 +3262,17 @@
   {
     "domain": "Endpoint Security",
     "control_id": "END-05",
-    "control": "Software Firewall "
+    "control": "Software Firewall"
   },
   {
     "domain": "Endpoint Security",
     "control_id": "END-06",
-    "control": "Endpoint File Integrity Monitoring (FIM) "
+    "control": "Endpoint File Integrity Monitoring (FIM)"
   },
   {
     "domain": "Endpoint Security",
     "control_id": "END-06.1",
-    "control": "Integrity Checks "
+    "control": "Integrity Checks"
   },
   {
     "domain": "Endpoint Security",
@@ -2596,13 +3306,18 @@
   },
   {
     "domain": "Endpoint Security",
+    "control_id": "END-06.8",
+    "control": "Extended Detection & Response (XDR)"
+  },
+  {
+    "domain": "Endpoint Security",
     "control_id": "END-07",
-    "control": "Host Intrusion Detection and Prevention Systems (HIDS / HIPS) "
+    "control": "Host Intrusion Detection and Prevention Systems (HIDS / HIPS)"
   },
   {
     "domain": "Endpoint Security",
     "control_id": "END-08",
-    "control": "Phishing & Spam Protection "
+    "control": "Phishing & Spam Protection"
   },
   {
     "domain": "Endpoint Security",
@@ -2632,7 +3347,7 @@
   {
     "domain": "Endpoint Security",
     "control_id": "END-12",
-    "control": "Port & Input / Output (I/O) Device Access "
+    "control": "Port & Input / Output (I/O) Device Access"
   },
   {
     "domain": "Endpoint Security",
@@ -2662,7 +3377,7 @@
   {
     "domain": "Endpoint Security",
     "control_id": "END-14",
-    "control": "Collaborative Computing Devices "
+    "control": "Collaborative Computing Devices"
   },
   {
     "domain": "Endpoint Security",
@@ -2697,7 +3412,7 @@
   {
     "domain": "Endpoint Security",
     "control_id": "END-15",
-    "control": "Hypervisor Access "
+    "control": "Hypervisor Access"
   },
   {
     "domain": "Endpoint Security",
@@ -2716,8 +3431,13 @@
   },
   {
     "domain": "Human Resources Security",
+    "control_id": "HRS-01.1",
+    "control": "Onboarding, Transferring & Offboarding Personnel"
+  },
+  {
+    "domain": "Human Resources Security",
     "control_id": "HRS-02",
-    "control": "Position Categorization "
+    "control": "Position Categorization"
   },
   {
     "domain": "Human Resources Security",
@@ -2732,12 +3452,12 @@
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-03",
-    "control": "Defined Roles & Responsibilities "
+    "control": "Defined Roles & Responsibilities"
   },
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-03.1",
-    "control": "User Awareness "
+    "control": "User Awareness"
   },
   {
     "domain": "Human Resources Security",
@@ -2747,7 +3467,7 @@
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-04",
-    "control": "Personnel Screening "
+    "control": "Personnel Screening"
   },
   {
     "domain": "Human Resources Security",
@@ -2772,7 +3492,7 @@
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-05",
-    "control": "Terms of Employment "
+    "control": "Terms of Employment"
   },
   {
     "domain": "Human Resources Security",
@@ -2787,12 +3507,12 @@
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-05.3",
-    "control": "Use of Communications Technology"
+    "control": "Technology Use Restrictions"
   },
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-05.4",
-    "control": "Use of Critical Technologies "
+    "control": "Use of Critical Technologies"
   },
   {
     "domain": "Human Resources Security",
@@ -2812,7 +3532,7 @@
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-06",
-    "control": "Access Agreements "
+    "control": "Access Agreements"
   },
   {
     "domain": "Human Resources Security",
@@ -2822,7 +3542,7 @@
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-06.2",
-    "control": "Post-Employment Obligations"
+    "control": "Post-Employment Requirements Awareness"
   },
   {
     "domain": "Human Resources Security",
@@ -2836,13 +3556,23 @@
   },
   {
     "domain": "Human Resources Security",
+    "control_id": "HRS-07.2",
+    "control": "Updating Disciplinary Processes"
+  },
+  {
+    "domain": "Human Resources Security",
+    "control_id": "HRS-07.3",
+    "control": "Preventative Access Restriction"
+  },
+  {
+    "domain": "Human Resources Security",
     "control_id": "HRS-08",
     "control": "Personnel Transfer"
   },
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-09",
-    "control": "Personnel Termination "
+    "control": "Personnel Termination"
   },
   {
     "domain": "Human Resources Security",
@@ -2857,7 +3587,7 @@
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-09.3",
-    "control": "Post-Employment Requirements "
+    "control": "Post-Employment Requirements Notification"
   },
   {
     "domain": "Human Resources Security",
@@ -2867,7 +3597,7 @@
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-10",
-    "control": "Third-Party Personnel Security"
+    "control": "Third-Party Personnel"
   },
   {
     "domain": "Human Resources Security",
@@ -2877,7 +3607,7 @@
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-12",
-    "control": "Incompatible Roles "
+    "control": "Incompatible Roles"
   },
   {
     "domain": "Human Resources Security",
@@ -2897,12 +3627,12 @@
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-13.2",
-    "control": "Identify Vital Cybersecurity & Data Privacy Staff"
+    "control": "Identify Vital Security, Compliance & Resilience Staff"
   },
   {
     "domain": "Human Resources Security",
     "control_id": "HRS-13.3",
-    "control": "Establish Redundancy for Vital Cybersecurity & Data Privacy Staff"
+    "control": "Establish Redundancy for Vital Security, Compliance & Resilience Staff"
   },
   {
     "domain": "Human Resources Security",
@@ -2910,9 +3640,24 @@
     "control": "Perform Succession Planning"
   },
   {
+    "domain": "Human Resources Security",
+    "control_id": "HRS-14",
+    "control": "Identifying Authorized Work Locations"
+  },
+  {
+    "domain": "Human Resources Security",
+    "control_id": "HRS-14.1",
+    "control": "Communicating Authorized Work Locations"
+  },
+  {
+    "domain": "Human Resources Security",
+    "control_id": "HRS-15",
+    "control": "Reporting Suspicious Activities"
+  },
+  {
     "domain": "Identification & Authentication",
     "control_id": "IAC-01",
-    "control": "Identity & Access Management (IAM) "
+    "control": "Identity & Access Management (IAM)"
   },
   {
     "domain": "Identification & Authentication",
@@ -2932,12 +3677,12 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-02",
-    "control": "Identification & Authentication for Organizational Users "
+    "control": "Identification & Authentication for Organizational Users"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-02.1",
-    "control": "Group Authentication "
+    "control": "Group Authentication"
   },
   {
     "domain": "Identification & Authentication",
@@ -2947,22 +3692,22 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-02.3",
-    "control": "Acceptance of PIV Credentials "
+    "control": "Acceptance of PIV Credentials"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-02.4",
-    "control": "Out-of-Band Authentication (OOBA) "
+    "control": "Out-of-Band Authentication (OOBA)"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-03",
-    "control": "Identification & Authentication for Non-Organizational Users "
+    "control": "Identification & Authentication for Non-Organizational Users"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-03.1",
-    "control": "Acceptance of PIV Credentials from Other Organizations "
+    "control": "Acceptance of PIV Credentials from Other Organizations"
   },
   {
     "domain": "Identification & Authentication",
@@ -3002,7 +3747,7 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-05",
-    "control": "Identification & Authentication for Third Party Systems & Services"
+    "control": "Identification & Authentication for Third-Party Technology Assets, Applications and/or Services (TAAS)"
   },
   {
     "domain": "Identification & Authentication",
@@ -3027,22 +3772,27 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-06.2",
-    "control": "Network Access to Non-Privileged Accounts "
+    "control": "Network Access to Non-Privileged Accounts"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-06.3",
-    "control": "Local Access to Privileged Accounts "
+    "control": "Local Access to Privileged Accounts"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-06.4",
-    "control": "Out-of-Band Multi-Factor Authentication "
+    "control": "Out-of-Band Multi-Factor Authentication"
+  },
+  {
+    "domain": "Identification & Authentication",
+    "control_id": "IAC-06.5",
+    "control": "Alternative Multi-Factor Authentication"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-07",
-    "control": "User Provisioning & De-Provisioning "
+    "control": "User Provisioning & De-Provisioning"
   },
   {
     "domain": "Identification & Authentication",
@@ -3057,7 +3807,7 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-08",
-    "control": "Role-Based Access Control (RBAC) "
+    "control": "Role-Based Access Control (RBAC)"
   },
   {
     "domain": "Identification & Authentication",
@@ -3067,7 +3817,7 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-09.1",
-    "control": "User Identity (ID) Management "
+    "control": "User Identity (ID) Management"
   },
   {
     "domain": "Identification & Authentication",
@@ -3102,7 +3852,7 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-10.1",
-    "control": "Password-Based Authentication "
+    "control": "Password-Based Authentication"
   },
   {
     "domain": "Identification & Authentication",
@@ -3142,7 +3892,7 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-10.9",
-    "control": "Multiple Information System Accounts"
+    "control": "Multiple System Accounts"
   },
   {
     "domain": "Identification & Authentication",
@@ -3161,13 +3911,23 @@
   },
   {
     "domain": "Identification & Authentication",
+    "control_id": "IAC-10.13",
+    "control": "Events Requiring Authenticator Change"
+  },
+  {
+    "domain": "Identification & Authentication",
+    "control_id": "IAC-10.14",
+    "control": "Passkeys"
+  },
+  {
+    "domain": "Identification & Authentication",
     "control_id": "IAC-11",
     "control": "Authenticator Feedback"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-12",
-    "control": "Cryptographic Module Authentication "
+    "control": "Cryptographic Module Authentication"
   },
   {
     "domain": "Identification & Authentication",
@@ -3177,7 +3937,7 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-13",
-    "control": "Adaptive Identification & Authentication "
+    "control": "Adaptive Identification & Authentication"
   },
   {
     "domain": "Identification & Authentication",
@@ -3197,17 +3957,17 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-14",
-    "control": "Re-Authentication "
+    "control": "Re-Authentication"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-15",
-    "control": "Account Management "
+    "control": "Account Management"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-15.1",
-    "control": "Automated System Account Management (Directory Services) "
+    "control": "Automated System Account Management (Directory Services)"
   },
   {
     "domain": "Identification & Authentication",
@@ -3252,17 +4012,32 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-16",
-    "control": "Privileged Account Management (PAM) "
+    "control": "Privileged Account Management (PAM)"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-16.1",
-    "control": "Privileged Account Inventories "
+    "control": "Privileged Account Inventories"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-16.2",
-    "control": "Privileged Account Separation "
+    "control": "Privileged Account Separation"
+  },
+  {
+    "domain": "Identification & Authentication",
+    "control_id": "IAC-16.3",
+    "control": "Privileged Command Execution"
+  },
+  {
+    "domain": "Identification & Authentication",
+    "control_id": "IAC-16.4",
+    "control": "Dedicated Privileged Account"
+  },
+  {
+    "domain": "Identification & Authentication",
+    "control_id": "IAC-16.5",
+    "control": "Manual Override"
   },
   {
     "domain": "Identification & Authentication",
@@ -3277,7 +4052,7 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-19",
-    "control": "Credential Sharing "
+    "control": "Credential Sharing"
   },
   {
     "domain": "Identification & Authentication",
@@ -3322,32 +4097,32 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-21",
-    "control": "Least Privilege "
+    "control": "Least Privilege"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-21.1",
-    "control": "Authorize Access to Security Functions "
+    "control": "Authorize Access to Security Functions"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-21.2",
-    "control": "Non-Privileged Access for Non-Security Functions "
+    "control": "Non-Privileged Access for Non-Security Functions"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-21.3",
-    "control": "Privileged Accounts "
+    "control": "Management Approval For Privileged Accounts"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-21.4",
-    "control": "Auditing Use of Privileged Functions "
+    "control": "Auditing Use of Privileged Functions"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-21.5",
-    "control": "Prohibit Non-Privileged Users from Executing Privileged Functions "
+    "control": "Prohibit Non-Privileged Users from Executing Privileged Functions"
   },
   {
     "domain": "Identification & Authentication",
@@ -3362,7 +4137,7 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-22",
-    "control": "Account Lockout "
+    "control": "Account Lockout"
   },
   {
     "domain": "Identification & Authentication",
@@ -3372,17 +4147,17 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-24",
-    "control": "Session Lock "
+    "control": "Session Lock"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-24.1",
-    "control": "Pattern-Hiding Displays "
+    "control": "Pattern-Hiding Displays"
   },
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-25",
-    "control": "Session Termination "
+    "control": "Session Termination"
   },
   {
     "domain": "Identification & Authentication",
@@ -3432,7 +4207,22 @@
   {
     "domain": "Identification & Authentication",
     "control_id": "IAC-29",
-    "control": "Attribute-Based Access Control (ABAC) "
+    "control": "Attribute-Based Access Control (ABAC)"
+  },
+  {
+    "domain": "Identification & Authentication",
+    "control_id": "IAC-29.1",
+    "control": "Real-Time Access Decisions"
+  },
+  {
+    "domain": "Identification & Authentication",
+    "control_id": "IAC-29.2",
+    "control": "Access Profile Rules"
+  },
+  {
+    "domain": "Identification & Authentication",
+    "control_id": "IAC-30",
+    "control": "Mutual Authentication (MA)"
   },
   {
     "domain": "Incident Response",
@@ -3442,7 +4232,7 @@
   {
     "domain": "Incident Response",
     "control_id": "IRO-02",
-    "control": "Incident Handling "
+    "control": "Incident Handling"
   },
   {
     "domain": "Incident Response",
@@ -3472,7 +4262,7 @@
   {
     "domain": "Incident Response",
     "control_id": "IRO-02.6",
-    "control": "Automatic Disabling of System"
+    "control": "Automatic Disabling of Technology Assets, Applications and/or Services (TAAS)"
   },
   {
     "domain": "Incident Response",
@@ -3482,7 +4272,7 @@
   {
     "domain": "Incident Response",
     "control_id": "IRO-04",
-    "control": "Incident Response Plan (IRP) "
+    "control": "Incident Response Plan (IRP)"
   },
   {
     "domain": "Incident Response",
@@ -3502,7 +4292,7 @@
   {
     "domain": "Incident Response",
     "control_id": "IRO-05",
-    "control": "Incident Response Training "
+    "control": "Incident Response Training"
   },
   {
     "domain": "Incident Response",
@@ -3522,7 +4312,7 @@
   {
     "domain": "Incident Response",
     "control_id": "IRO-06.1",
-    "control": "Coordination with Related Plans "
+    "control": "Coordination with Related Plans"
   },
   {
     "domain": "Incident Response",
@@ -3536,6 +4326,11 @@
   },
   {
     "domain": "Incident Response",
+    "control_id": "IRO-08.1",
+    "control": "Licensed Forensic Investigators"
+  },
+  {
+    "domain": "Incident Response",
     "control_id": "IRO-09",
     "control": "Situational Awareness For Incidents"
   },
@@ -3546,8 +4341,23 @@
   },
   {
     "domain": "Incident Response",
+    "control_id": "IRO-09.2",
+    "control": "Recurring Incident Analysis"
+  },
+  {
+    "domain": "Incident Response",
+    "control_id": "IRO-09.3",
+    "control": "Incident Tracking Repository"
+  },
+  {
+    "domain": "Incident Response",
+    "control_id": "IRO-09.4",
+    "control": "Incident Pattern Analysis"
+  },
+  {
+    "domain": "Incident Response",
     "control_id": "IRO-10",
-    "control": "Incident Stakeholder Reporting "
+    "control": "Incident Stakeholder Reporting"
   },
   {
     "domain": "Incident Response",
@@ -3557,7 +4367,7 @@
   {
     "domain": "Incident Response",
     "control_id": "IRO-10.2",
-    "control": "Cyber Incident Reporting for Sensitive Data"
+    "control": "Cyber Incident Reporting for Sensitive / Regulated Data"
   },
   {
     "domain": "Incident Response",
@@ -3571,13 +4381,18 @@
   },
   {
     "domain": "Incident Response",
+    "control_id": "IRO-10.5",
+    "control": "Serious Incident Reporting"
+  },
+  {
+    "domain": "Incident Response",
     "control_id": "IRO-11",
-    "control": "Incident Reporting Assistance "
+    "control": "Incident Reporting Assistance"
   },
   {
     "domain": "Incident Response",
     "control_id": "IRO-11.1",
-    "control": "Automation Support of Availability of Information / Support "
+    "control": "Automation Support of Availability of Information / Support"
   },
   {
     "domain": "Incident Response",
@@ -3587,27 +4402,27 @@
   {
     "domain": "Incident Response",
     "control_id": "IRO-12",
-    "control": "Information Spillage Response"
+    "control": "Sensitive / Regulated Data Spill Response"
   },
   {
     "domain": "Incident Response",
     "control_id": "IRO-12.1",
-    "control": "Responsible Personnel"
+    "control": "Sensitive / Regulated Data Spill Responsible Personnel"
   },
   {
     "domain": "Incident Response",
     "control_id": "IRO-12.2",
-    "control": "Training"
+    "control": "Sensitive / Regulated Data Spill Training"
   },
   {
     "domain": "Incident Response",
     "control_id": "IRO-12.3",
-    "control": "Post-Spill Operations"
+    "control": "Post-Sensitive / Regulated Data Spill Operations"
   },
   {
     "domain": "Incident Response",
     "control_id": "IRO-12.4",
-    "control": "Exposure to Unauthorized Personnel"
+    "control": "Sensitive / Regulated Data Exposure to Unauthorized Personnel"
   },
   {
     "domain": "Incident Response",
@@ -3617,7 +4432,7 @@
   {
     "domain": "Incident Response",
     "control_id": "IRO-14",
-    "control": "Regulatory & Law Enforcement Contacts "
+    "control": "Regulatory & Law Enforcement Contacts"
   },
   {
     "domain": "Incident Response",
@@ -3630,89 +4445,89 @@
     "control": "Public Relations & Reputation Repair"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-01",
     "control": "Information Assurance (IA) Operations"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-01.1",
     "control": "Assessment Boundaries"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-02",
-    "control": "Assessments "
+    "control": "Assessments"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-02.1",
     "control": "Assessor Independence"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-02.2",
     "control": "Specialized Assessments"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-02.3",
-    "control": "Third-Party Assessments"
+    "control": "Third-Party Assessment Reciprocity"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-02.4",
     "control": "Security Assessment Report (SAR)"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-03",
-    "control": "System Security & Privacy Plan (SSPP)"
+    "control": "Applied Security, Compliance and Resilience Controls Documentation"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-03.1",
     "control": "Plan / Coordinate with Other Organizational Entities"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-03.2",
     "control": "Adequate Security for Sensitive / Regulated Data In Support of Contracts"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-04",
     "control": "Threat Analysis & Flaw Remediation During Development"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-05",
-    "control": "Plan of Action & Milestones (POA&M)"
+    "control": "Capabilities Deficiency Tracking"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-05.1",
-    "control": "Plan of Action & Milestones (POA&M) Automation"
+    "control": "Deficiency Tracking Automation"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-06",
     "control": "Technical Verification"
   },
   {
-    "domain": "Information Assurance ",
+    "domain": "Information Assurance",
     "control_id": "IAO-07",
-    "control": "Security Authorization "
+    "control": "Security Authorization"
   },
   {
     "domain": "Maintenance",
     "control_id": "MNT-01",
-    "control": "Maintenance Operations "
+    "control": "Maintenance Operations"
   },
   {
     "domain": "Maintenance",
     "control_id": "MNT-02",
-    "control": "Controlled Maintenance "
+    "control": "Controlled Maintenance"
   },
   {
     "domain": "Maintenance",
@@ -3747,17 +4562,17 @@
   {
     "domain": "Maintenance",
     "control_id": "MNT-04.1",
-    "control": "Inspect Tools "
+    "control": "Inspect Tools"
   },
   {
     "domain": "Maintenance",
     "control_id": "MNT-04.2",
-    "control": "Inspect Media "
+    "control": "Inspect Media"
   },
   {
     "domain": "Maintenance",
     "control_id": "MNT-04.3",
-    "control": "Prevent Unauthorized Removal "
+    "control": "Prevent Unauthorized Removal"
   },
   {
     "domain": "Maintenance",
@@ -3812,7 +4627,7 @@
   {
     "domain": "Maintenance",
     "control_id": "MNT-06.1",
-    "control": "Maintenance Personnel Without Appropriate Access "
+    "control": "Maintenance Personnel Without Appropriate Access"
   },
   {
     "domain": "Maintenance",
@@ -3847,7 +4662,7 @@
   {
     "domain": "Mobile Device Management",
     "control_id": "MDM-01",
-    "control": "Centralized Management Of Mobile Devices "
+    "control": "Centralized Management Of Mobile Devices"
   },
   {
     "domain": "Mobile Device Management",
@@ -3857,7 +4672,7 @@
   {
     "domain": "Mobile Device Management",
     "control_id": "MDM-03",
-    "control": "Full Device & Container-Based Encryption "
+    "control": "Full Device & Container-Based Encryption"
   },
   {
     "domain": "Mobile Device Management",
@@ -3872,12 +4687,12 @@
   {
     "domain": "Mobile Device Management",
     "control_id": "MDM-06",
-    "control": "Personally-Owned Mobile Devices "
+    "control": "Personally-Owned Mobile Devices"
   },
   {
     "domain": "Mobile Device Management",
     "control_id": "MDM-07",
-    "control": "Organization-Owned Mobile Devices "
+    "control": "Organization-Owned Mobile Devices"
   },
   {
     "domain": "Mobile Device Management",
@@ -3897,7 +4712,7 @@
   {
     "domain": "Mobile Device Management",
     "control_id": "MDM-11",
-    "control": "Restricting Access To Authorized Devices"
+    "control": "Restricting Access To Authorized Technology Assets, Applications and/or Services (TAAS)"
   },
   {
     "domain": "Network Security",
@@ -3912,7 +4727,7 @@
   {
     "domain": "Network Security",
     "control_id": "NET-02",
-    "control": "Layered Network Defenses "
+    "control": "Layered Network Defenses"
   },
   {
     "domain": "Network Security",
@@ -3932,7 +4747,7 @@
   {
     "domain": "Network Security",
     "control_id": "NET-03",
-    "control": "Boundary Protection "
+    "control": "Boundary Protection"
   },
   {
     "domain": "Network Security",
@@ -3942,7 +4757,7 @@
   {
     "domain": "Network Security",
     "control_id": "NET-03.2",
-    "control": "External Telecommunications Services "
+    "control": "External Telecommunications Services"
   },
   {
     "domain": "Network Security",
@@ -3967,7 +4782,7 @@
   {
     "domain": "Network Security",
     "control_id": "NET-03.7",
-    "control": "Isolation of Information System Components"
+    "control": "Isolation of System Components"
   },
   {
     "domain": "Network Security",
@@ -3977,7 +4792,7 @@
   {
     "domain": "Network Security",
     "control_id": "NET-04",
-    "control": "Data Flow Enforcement \u2013 Access Control Lists (ACLs)"
+    "control": "Data Flow Enforcement – Access Control Lists (ACLs)"
   },
   {
     "domain": "Network Security",
@@ -3987,7 +4802,7 @@
   {
     "domain": "Network Security",
     "control_id": "NET-04.2",
-    "control": "Object Security Attributes "
+    "control": "Object Security Attributes"
   },
   {
     "domain": "Network Security",
@@ -4002,7 +4817,7 @@
   {
     "domain": "Network Security",
     "control_id": "NET-04.5",
-    "control": "Metadata "
+    "control": "Metadata"
   },
   {
     "domain": "Network Security",
@@ -4122,7 +4937,7 @@
   {
     "domain": "Network Security",
     "control_id": "NET-08.2",
-    "control": "Wireless Intrusion Detection / Prevention Systems (WIDS / WIPS)"
+    "control": "Wireless Intrusion Detection / Prevention Systems (WIDS / WIPS) Deployment"
   },
   {
     "domain": "Network Security",
@@ -4137,7 +4952,7 @@
   {
     "domain": "Network Security",
     "control_id": "NET-09",
-    "control": "Session Integrity "
+    "control": "Session Integrity"
   },
   {
     "domain": "Network Security",
@@ -4152,7 +4967,7 @@
   {
     "domain": "Network Security",
     "control_id": "NET-10",
-    "control": "Domain Name Service (DNS) Resolution "
+    "control": "Domain Name Service (DNS) Resolution"
   },
   {
     "domain": "Network Security",
@@ -4177,12 +4992,12 @@
   {
     "domain": "Network Security",
     "control_id": "NET-11",
-    "control": "Out-of-Band Channels "
+    "control": "Out-of-Band Channels"
   },
   {
     "domain": "Network Security",
     "control_id": "NET-12",
-    "control": "Safeguarding Data Over Open Networks "
+    "control": "Safeguarding Data Over Open Networks"
   },
   {
     "domain": "Network Security",
@@ -4202,12 +5017,12 @@
   {
     "domain": "Network Security",
     "control_id": "NET-14",
-    "control": "Remote Access "
+    "control": "Remote Access"
   },
   {
     "domain": "Network Security",
     "control_id": "NET-14.1",
-    "control": "Automated Monitoring & Control "
+    "control": "Automated Monitoring & Control"
   },
   {
     "domain": "Network Security",
@@ -4237,17 +5052,17 @@
   {
     "domain": "Network Security",
     "control_id": "NET-14.7",
-    "control": "Endpoint Security Validation "
+    "control": "Endpoint Security Validation"
   },
   {
     "domain": "Network Security",
     "control_id": "NET-14.8",
-    "control": "Expeditious Disconnect / Disable Capability "
+    "control": "Expeditious Disconnect / Disable Capability"
   },
   {
     "domain": "Network Security",
     "control_id": "NET-15",
-    "control": "Wireless Networking "
+    "control": "Wireless Networking"
   },
   {
     "domain": "Network Security",
@@ -4282,7 +5097,7 @@
   {
     "domain": "Network Security",
     "control_id": "NET-17",
-    "control": "Data Loss Prevention (DLP) "
+    "control": "Data Loss Prevention (DLP)"
   },
   {
     "domain": "Network Security",
@@ -4390,182 +5205,182 @@
     "control": "User Threat Reporting"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-01",
     "control": "Physical & Environmental Protections"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-01.1",
-    "control": "Site Security Plan (SitePlan)"
+    "control": "Physical Security Plan (PSP)"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-01.2",
     "control": "Zone-Based Physical Security"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-02",
-    "control": "Physical Access Authorizations "
+    "control": "Physical Access Authorizations"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-02.1",
     "control": "Role-Based Physical Access"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-02.2",
     "control": "Dual Authorization for Physical Access"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-03",
-    "control": "Physical Access Control "
+    "control": "Physical Access Control"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-03.1",
     "control": "Controlled Ingress & Egress Points"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-03.2",
     "control": "Lockable Physical Casings"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-03.3",
-    "control": "Physical Access Logs "
+    "control": "Physical Access Logs"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-03.4",
-    "control": "Access To Information Systems"
+    "control": "Access To Critical Systems"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-04",
     "control": "Physical Security of Offices, Rooms & Facilities"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-04.1",
     "control": "Working in Secure Areas"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-04.2",
     "control": "Searches"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-04.3",
     "control": "Temporary Storage"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-05",
     "control": "Monitoring Physical Access"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-05.1",
-    "control": "Intrusion Alarms / Surveillance Equipment "
+    "control": "Intrusion Alarms / Surveillance Equipment"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-05.2",
-    "control": "Monitoring Physical Access To Information Systems"
+    "control": "Monitoring Physical Access To Critical Systems"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-06",
     "control": "Visitor Control"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-06.1",
     "control": "Distinguish Visitors from On-Site Personnel"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-06.2",
     "control": "Identification Requirement"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-06.3",
     "control": "Restrict Unescorted Access"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-06.4",
     "control": "Automated Records Management & Review"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-06.5",
     "control": "Minimize Visitor Personal Data (PD)"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-06.6",
     "control": "Visitor Access Revocation"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-07",
-    "control": "Supporting Utilities "
+    "control": "Supporting Utilities"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-07.1",
     "control": "Automatic Voltage Controls"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-07.2",
     "control": "Emergency Shutoff"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-07.3",
     "control": "Emergency Power"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-07.4",
     "control": "Emergency Lighting"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-07.5",
     "control": "Water Damage Protection"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-07.6",
     "control": "Automation Support for Water Damage Protection"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-07.7",
     "control": "Redundant Cabling"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-08",
     "control": "Fire Protection"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-08.1",
     "control": "Fire Detection Devices"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-08.2",
     "control": "Fire Suppression Devices"
   },
@@ -4575,69 +5390,74 @@
     "control": "Automatic Fire Suppression"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-09",
     "control": "Temperature & Humidity Controls"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-09.1",
     "control": "Monitoring with Alarms / Notifications"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-10",
-    "control": "Delivery & Removal "
+    "control": "Delivery & Removal"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-11",
     "control": "Alternate Work Site"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-12",
-    "control": "Equipment Siting & Protection "
+    "control": "Equipment Siting & Protection"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-12.1",
     "control": "Transmission Medium Security"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-12.2",
     "control": "Access Control for Output Devices"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-13",
     "control": "Information Leakage Due To Electromagnetic Signals Emanations"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-14",
     "control": "Asset Monitoring and Tracking"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-15",
     "control": "Electromagnetic Pulse (EMP) Protection"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-16",
     "control": "Component Marking"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-17",
-    "control": "Proximity Sensor "
+    "control": "Proximity Sensor"
   },
   {
-    "domain": "Physical & Environmental Security ",
+    "domain": "Physical & Environmental Security",
     "control_id": "PES-18",
     "control": "On-Site Client Segregation"
+  },
+  {
+    "domain": "Physical & Environmental Security",
+    "control_id": "PES-19",
+    "control": "Physical Access Device Inventories"
   },
   {
     "domain": "Data Privacy",
@@ -4657,7 +5477,7 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-01.3",
-    "control": "Dissemination of Data Privacy Program Information "
+    "control": "Dissemination of Data Privacy Program Information"
   },
   {
     "domain": "Data Privacy",
@@ -4672,12 +5492,32 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-01.6",
-    "control": "Security of Personal Data"
+    "control": "Security of Personal Data (PD)"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-01.7",
-    "control": "Limiting Personal Data Disclosures"
+    "control": "Limiting Personal Data (PD) Disclosures"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-01.8",
+    "control": "Data Fiduciary"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-01.9",
+    "control": "Personal Data (PD) Process Manager"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-01.10",
+    "control": "Financial Incentives For Personal Data (PD)"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-01.11",
+    "control": "Reasonable Data Privacy Practices"
   },
   {
     "domain": "Data Privacy",
@@ -4697,7 +5537,7 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-02.3",
-    "control": "Computer Matching Agreements (CMA) "
+    "control": "Computer Matching Agreements (CMA)"
   },
   {
     "domain": "Data Privacy",
@@ -4721,6 +5561,41 @@
   },
   {
     "domain": "Data Privacy",
+    "control_id": "PRI-02.8",
+    "control": "Purpose Compatibility"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-02.9",
+    "control": "Privacy Notice Formatting"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-02.10",
+    "control": "Symmetry In Choice"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-02.11",
+    "control": "Choice Architecture"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-02.12",
+    "control": "Choice Architecture Testing"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-02.13",
+    "control": "Notice of Right To Limit"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-02.14",
+    "control": "Alternative Means To Deliver Privacy Notice"
+  },
+  {
+    "domain": "Data Privacy",
     "control_id": "PRI-03",
     "control": "Choice & Consent"
   },
@@ -4737,7 +5612,7 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-03.3",
-    "control": "Prohibition Of Selling or Sharing Personal Data"
+    "control": "Prohibition of Selling, Processing and/or Sharing Personal Data (PD)"
   },
   {
     "domain": "Data Privacy",
@@ -4766,13 +5641,38 @@
   },
   {
     "domain": "Data Privacy",
+    "control_id": "PRI-03.9",
+    "control": "Continued Use of Personal Data (PD)"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-03.10",
+    "control": "Cease Processing, Storing and/or Sharing Personal Data (PD)"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-03.11",
+    "control": "Communicating Processing Changes"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-03.12",
+    "control": "Data Subject Opt-In Consent"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-03.13",
+    "control": "Parent or Guardian Opt-In Consent For Minors"
+  },
+  {
+    "domain": "Data Privacy",
     "control_id": "PRI-04",
     "control": "Restrict Collection To Identified Purpose"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-04.1",
-    "control": "Authority To Collect, Use, Maintain & Share Personal Data"
+    "control": "Authority To Collect, Process, Store & Share Personal Data (PD)"
   },
   {
     "domain": "Data Privacy",
@@ -4787,32 +5687,37 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-04.4",
-    "control": "Acquired Personal Data"
+    "control": "Acquired Personal Data (PD)"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-04.5",
-    "control": "Validate Collected Personal Data"
+    "control": "Validate Collected Personal Data (PD)"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-04.6",
-    "control": "Re-Validate Collected Personal Data"
+    "control": "Re-Validate Collected Personal Data (PD)"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-04.7",
+    "control": "Personal Data (PD) Collection Methods"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-05",
-    "control": "Personal Data Retention & Disposal"
+    "control": "Personal Data (PD) Retention & Disposal"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-05.1",
-    "control": "Internal Use of Personal Data For Testing, Training and Research"
+    "control": "Internal Use of Personal Data (PD) For Testing, Training and Research"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-05.2",
-    "control": "Personal Data Accuracy & Integrity"
+    "control": "Personal Data (PD) Accuracy & Integrity"
   },
   {
     "domain": "Data Privacy",
@@ -4822,32 +5727,37 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-05.4",
-    "control": "Usage Restrictions of Sensitive Personal Data"
+    "control": "Usage Restrictions of Personal Data (PD)"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-05.5",
-    "control": "Inventory of Personal Data"
+    "control": "Inventory of Personal Data (PD)"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-05.6",
-    "control": "Personal Data Inventory Automation Support"
+    "control": "Personal Data (PD) Inventory Automation Support"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-05.7",
-    "control": "Personal Data Categories"
+    "control": "Personal Data (PD) Categories"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-05.8",
+    "control": "Personal Data (PD) Formats"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-06",
-    "control": "Data Subject Access"
+    "control": "Data Subject Empowerment"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-06.1",
-    "control": "Correcting Inaccurate Personal Data"
+    "control": "Correcting Inaccurate Personal Data (PD)"
   },
   {
     "domain": "Data Privacy",
@@ -4877,7 +5787,12 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-06.7",
-    "control": "Personal Data Exportability"
+    "control": "Personal Data (PD) Exports"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-06.8",
+    "control": "Data Subject Authentication"
   },
   {
     "domain": "Data Privacy",
@@ -4887,12 +5802,12 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-07.1",
-    "control": "Data Privacy Requirements for Contractors & Service Providers "
+    "control": "Data Privacy Requirements for Contractors & Service Providers"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-07.2",
-    "control": "Joint Processing of Personal Data"
+    "control": "Joint Processing of Personal Data (PD)"
   },
   {
     "domain": "Data Privacy",
@@ -4902,17 +5817,22 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-07.4",
-    "control": "Reject Unauthorized Disclosure Requests"
+    "control": "Reject Unauthenticated or Untrustworthy Disclosure Requests"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-07.5",
+    "control": "Justification To Reject Disclosure Requests"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-08",
-    "control": "Testing, Training & Monitoring"
+    "control": "Personal Data (PD) Control Testing, Training & Monitoring"
   },
   {
     "domain": "Data Privacy",
     "control_id": "PRI-09",
-    "control": "Personal Data Lineage"
+    "control": "Personal Data (PD) Lineage"
   },
   {
     "domain": "Data Privacy",
@@ -4922,7 +5842,7 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-10.1",
-    "control": "Automation"
+    "control": "Data Quality Automation"
   },
   {
     "domain": "Data Privacy",
@@ -4937,7 +5857,12 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-12",
-    "control": "Updating Personal Data (PD)"
+    "control": "Updating Personal Data (PD) Process"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-12.1",
+    "control": "Enabling Data Subjects To Update Personal Data (PD)"
   },
   {
     "domain": "Data Privacy",
@@ -4947,7 +5872,7 @@
   {
     "domain": "Data Privacy",
     "control_id": "PRI-14",
-    "control": "Data Privacy Records & Reporting"
+    "control": "Documenting Data Processing Activities"
   },
   {
     "domain": "Data Privacy",
@@ -4986,13 +5911,68 @@
   },
   {
     "domain": "Data Privacy",
+    "control_id": "PRI-17.3",
+    "control": "Data Subject Communications Documentation"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-17.4",
+    "control": "Data Subject Communications Metrics"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-17.5",
+    "control": "Data Subject Communications Disclosure"
+  },
+  {
+    "domain": "Data Privacy",
     "control_id": "PRI-18",
     "control": "Data Controller Communications"
   },
   {
+    "domain": "Data Privacy",
+    "control_id": "PRI-19",
+    "control": "Automated Decision-Making Technology (ADMT) For Data Subject Actions"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-19.1",
+    "control": "Automated Decision-Making Technology (ADMT) Use Notification"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-19.2",
+    "control": "Automated Decision-Making Technology (ADMT) Opt-Out Consent"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-19.3",
+    "control": "Automated Decision-Making Technology (ADMT) Transparency"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-20",
+    "control": "Data Brokers"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-21",
+    "control": "Notice of Right To Opt-Out"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-21.1",
+    "control": "Opt-Out Links"
+  },
+  {
+    "domain": "Data Privacy",
+    "control_id": "PRI-21.2",
+    "control": "Alternative Out-Out Link"
+  },
+  {
     "domain": "Project & Resource Management",
     "control_id": "PRM-01",
-    "control": "Cybersecurity & Data Privacy Portfolio Management"
+    "control": "Security, Compliance & Resilience Protection Portfolio Management"
   },
   {
     "domain": "Project & Resource Management",
@@ -5007,27 +5987,32 @@
   {
     "domain": "Project & Resource Management",
     "control_id": "PRM-02",
-    "control": "Cybersecurity & Data Privacy Resource Management"
+    "control": "Security, Compliance & Resilience Resource Management"
+  },
+  {
+    "domain": "Project & Resource Management",
+    "control_id": "PRM-02.1",
+    "control": "Prioritization To Address Evolving Risks & Threats"
   },
   {
     "domain": "Project & Resource Management",
     "control_id": "PRM-03",
-    "control": "Allocation of Resources "
+    "control": "Allocation of Resources"
   },
   {
     "domain": "Project & Resource Management",
     "control_id": "PRM-04",
-    "control": "Cybersecurity & Data Privacy In Project Management "
+    "control": "Security, Compliance & Resilience In Project Management"
   },
   {
     "domain": "Project & Resource Management",
     "control_id": "PRM-05",
-    "control": "Cybersecurity & Data Privacy Requirements Definition"
+    "control": "Security, Compliance & Resilience Requirements Definition"
   },
   {
     "domain": "Project & Resource Management",
     "control_id": "PRM-06",
-    "control": "Business Process Definition "
+    "control": "Business Process Definition"
   },
   {
     "domain": "Project & Resource Management",
@@ -5042,7 +6027,7 @@
   {
     "domain": "Risk Management",
     "control_id": "RSK-01",
-    "control": "Risk Management Program "
+    "control": "Risk Management Program"
   },
   {
     "domain": "Risk Management",
@@ -5052,7 +6037,7 @@
   {
     "domain": "Risk Management",
     "control_id": "RSK-01.2",
-    "control": "Risk Management Resourcing "
+    "control": "Risk Management Resourcing"
   },
   {
     "domain": "Risk Management",
@@ -5072,7 +6057,7 @@
   {
     "domain": "Risk Management",
     "control_id": "RSK-02",
-    "control": "Risk-Based Security Categorization "
+    "control": "Risk-Based Security Categorization"
   },
   {
     "domain": "Risk Management",
@@ -5092,7 +6077,7 @@
   {
     "domain": "Risk Management",
     "control_id": "RSK-04",
-    "control": "Risk Assessment "
+    "control": "Risk Assessment"
   },
   {
     "domain": "Risk Management",
@@ -5101,13 +6086,28 @@
   },
   {
     "domain": "Risk Management",
+    "control_id": "RSK-04.2",
+    "control": "Risk Assessment Methodology"
+  },
+  {
+    "domain": "Risk Management",
+    "control_id": "RSK-04.3",
+    "control": "Instances Requiring A Risk Assessment"
+  },
+  {
+    "domain": "Risk Management",
+    "control_id": "RSK-04.4",
+    "control": "Risk Assessment Stakeholder Involvement"
+  },
+  {
+    "domain": "Risk Management",
     "control_id": "RSK-05",
-    "control": "Risk Ranking "
+    "control": "Risk Ranking"
   },
   {
     "domain": "Risk Management",
     "control_id": "RSK-06",
-    "control": "Risk Remediation "
+    "control": "Risk Remediation"
   },
   {
     "domain": "Risk Management",
@@ -5121,13 +6121,23 @@
   },
   {
     "domain": "Risk Management",
+    "control_id": "RSK-06.3",
+    "control": "Risk Treatment Options"
+  },
+  {
+    "domain": "Risk Management",
+    "control_id": "RSK-06.4",
+    "control": "Risk Treatment Plan (RTP)"
+  },
+  {
+    "domain": "Risk Management",
     "control_id": "RSK-07",
     "control": "Risk Assessment Update"
   },
   {
     "domain": "Risk Management",
     "control_id": "RSK-08",
-    "control": "Business Impact Analysis (BIA) "
+    "control": "Business Impact Analysis (BIA)"
   },
   {
     "domain": "Risk Management",
@@ -5147,7 +6157,7 @@
   {
     "domain": "Risk Management",
     "control_id": "RSK-10",
-    "control": "Data Protection Impact Assessment (DPIA) "
+    "control": "Data Protection Impact Assessment (DPIA)"
   },
   {
     "domain": "Risk Management",
@@ -5160,219 +6170,244 @@
     "control": "Risk Culture"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Risk Management",
+    "control_id": "RSK-13",
+    "control": "Executive Leadership Approval For Managing Material Risk"
+  },
+  {
+    "domain": "Risk Management",
+    "control_id": "RSK-13.1",
+    "control": "Documented Alternatives"
+  },
+  {
+    "domain": "Risk Management",
+    "control_id": "RSK-13.2",
+    "control": "Documented Justification For Material Risk Management Decisions"
+  },
+  {
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-01",
-    "control": "Secure Engineering Principles "
+    "control": "Secure Engineering Principles"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-01.1",
-    "control": "Centralized Management of Cybersecurity & Data Privacy Controls"
+    "control": "Centralized Management of Security, Compliance & Resilience Controls"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-01.2",
     "control": "Achieving Resilience Requirements"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
-    "control_id": "SEA-02",
-    "control": "Alignment With Enterprise Architecture "
+    "domain": "Secure Engineering & Architecture",
+    "control_id": "SEA-01.3",
+    "control": "Resilience Capabilities"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
+    "control_id": "SEA-02",
+    "control": "Alignment With Enterprise Architecture"
+  },
+  {
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-02.1",
     "control": "Standardized Terminology"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-02.2",
     "control": "Outsourcing Non-Essential Functions or Services"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-02.3",
     "control": "Technical Debt Reviews"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-03",
     "control": "Defense-In-Depth (DiD) Architecture"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-03.1",
-    "control": "System Partitioning "
+    "control": "System Partitioning"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-03.2",
     "control": "Application Partitioning"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-04",
-    "control": "Process Isolation "
+    "control": "Process Isolation"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-04.1",
     "control": "Security Function Isolation"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-04.2",
     "control": "Hardware Separation"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-04.3",
     "control": "Thread Separation"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-04.4",
     "control": "System Privileges Isolation"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-05",
-    "control": "Information In Shared Resources "
+    "control": "Information In Shared Resources"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-06",
     "control": "Prevent Program Execution"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-07",
-    "control": "Predictable Failure Analysis "
+    "control": "Predictable Failure Analysis"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-07.1",
     "control": "Technology Lifecycle Management"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-07.2",
     "control": "Fail Secure"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-07.3",
     "control": "Fail Safe"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-08",
-    "control": "Non-Persistence "
+    "control": "Non-Persistence"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-08.1",
     "control": "Refresh from Trusted Sources"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-09",
-    "control": "Information Output Filtering "
+    "control": "Information Output Filtering"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-09.1",
     "control": "Limit Personal Data (PD) Dissemination"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-10",
-    "control": "Memory Protection "
+    "control": "Memory Protection"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-11",
-    "control": "Honeypots "
+    "control": "Honeypots"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-12",
-    "control": "Honeyclients "
+    "control": "Honeyclients"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-13",
-    "control": "Heterogeneity "
+    "control": "Heterogeneity"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-13.1",
-    "control": "Virtualization Techniques "
+    "control": "Virtualization Techniques"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-14",
-    "control": "Concealment & Misdirection "
+    "control": "Concealment & Misdirection"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-14.1",
     "control": "Randomness"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-14.2",
     "control": "Change Processing & Storage Locations"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-15",
-    "control": "Distributed Processing & Storage "
+    "control": "Distributed Processing & Storage"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-16",
-    "control": "Non-Modifiable Executable Programs "
+    "control": "Non-Modifiable Executable Programs"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-17",
-    "control": "Secure Log-On Procedures "
+    "control": "Secure Log-On Procedures"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-18",
     "control": "System Use Notification (Logon Banner)"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-18.1",
     "control": "Standardized Microsoft Windows Banner"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-18.2",
     "control": "Truncated Banner"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-19",
     "control": "Previous Logon Notification"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-20",
     "control": "Clock Synchronization"
   },
   {
-    "domain": "Secure Engineering & Architecture ",
+    "domain": "Secure Engineering & Architecture",
     "control_id": "SEA-21",
     "control": "Application Container"
   },
   {
+    "domain": "Secure Engineering & Architecture",
+    "control_id": "SEA-22",
+    "control": "Privileged Environments"
+  },
+  {
     "domain": "Security Operations",
     "control_id": "OPS-01",
-    "control": "Operations Security "
+    "control": "Operations Security"
   },
   {
     "domain": "Security Operations",
@@ -5382,12 +6417,12 @@
   {
     "domain": "Security Operations",
     "control_id": "OPS-02",
-    "control": "Security Concept Of Operations (CONOPS) "
+    "control": "Security Concept Of Operations (CONOPS)"
   },
   {
     "domain": "Security Operations",
     "control_id": "OPS-03",
-    "control": "Service Delivery\n(Business Process Support) "
+    "control": "Service Delivery\n(Business Process Support)"
   },
   {
     "domain": "Security Operations",
@@ -5410,79 +6445,89 @@
     "control": "Shadow Information Technology Detection"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-01",
-    "control": "Cybersecurity & Data Privacy-Minded Workforce "
+    "control": "Security, Compliance & Resilience-Minded Workforce"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
+    "control_id": "SAT-01.1",
+    "control": "Maintaining Workforce Development Relevancy"
+  },
+  {
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-02",
-    "control": "Cybersecurity & Data Privacy Awareness Training"
+    "control": "Security, Compliance & Resilience Awareness Training"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-02.1",
     "control": "Simulated Cyber Attack Scenario Training"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-02.2",
     "control": "Social Engineering & Mining"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-03",
-    "control": "Role-Based Cybersecurity & Data Privacy Training "
+    "control": "Role-Based Security, Compliance & Resilience Training"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-03.1",
-    "control": "Practical Exercises "
+    "control": "Practical Exercises"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-03.2",
     "control": "Suspicious Communications & Anomalous System Behavior"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-03.3",
-    "control": "Sensitive Information Storage, Handling & Processing"
+    "control": "Sensitive / Regulated Data Storage, Handling & Processing"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-03.4",
-    "control": "Vendor Cybersecurity & Data Privacy Training"
+    "control": "Vendor Security, Compliance & Resilience Training"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-03.5",
     "control": "Privileged Users"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-03.6",
     "control": "Cyber Threat Environment"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-03.7",
-    "control": "Continuing Professional Education (CPE) - Cybersecurity & Data Privacy Personnel"
+    "control": "Continuing Professional Education (CPE) - Security, Compliance & Resilience Personnel"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-03.8",
     "control": "Continuing Professional Education (CPE) - DevOps Personnel"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-03.9",
     "control": "Counterintelligence Training"
   },
   {
-    "domain": "Security Awareness & Training ",
+    "domain": "Security Awareness & Training",
     "control_id": "SAT-04",
-    "control": "Cybersecurity & Data Privacy Training Records "
+    "control": "Security, Compliance & Resilience Training Records"
+  },
+  {
+    "domain": "Security Awareness & Training",
+    "control_id": "SAT-05",
+    "control": "Security, Compliance & Resilience Knowledge Sharing"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5497,12 +6542,12 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-01.2",
-    "control": "Integrity Mechanisms for Software / Firmware Updates "
+    "control": "Integrity Mechanisms for Software / Firmware Updates"
   },
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-01.3",
-    "control": "Malware Testing Prior to Release "
+    "control": "Malware Testing Prior to Release"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5512,7 +6557,7 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-02",
-    "control": "Minimum Viable Product (MVP) Security Requirements "
+    "control": "Minimum Viable Product (MVP) Security Requirements"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5547,12 +6592,47 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-02.7",
-    "control": "Cybersecurity & Data Privacy Representatives For Product Changes"
+    "control": "Security, Compliance & Resilience Representatives For Product Changes"
+  },
+  {
+    "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-02.8",
+    "control": "Minimizing Attack Surfaces"
+  },
+  {
+    "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-02.9",
+    "control": "Ongoing Product Security Support"
+  },
+  {
+    "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-02.10",
+    "control": "Product Testing & Reviews"
+  },
+  {
+    "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-02.11",
+    "control": "Disclosure of Vulnerabilities"
+  },
+  {
+    "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-02.12",
+    "control": "Products With Digital Elements"
+  },
+  {
+    "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-02.13",
+    "control": "Reporting Exploitable Vulnerabilities"
+  },
+  {
+    "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-02.14",
+    "control": "Logging Syntax"
   },
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-03",
-    "control": "Commercial Off-The-Shelf (COTS) Security Solutions "
+    "control": "Commercial Off-The-Shelf (COTS) Security Solutions"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5567,7 +6647,7 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-04.1",
-    "control": "Functional Properties "
+    "control": "Functional Properties"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5577,7 +6657,7 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-05",
-    "control": "Developer Architecture & Design "
+    "control": "Developer Architecture & Design"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5592,12 +6672,12 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-06",
-    "control": "Secure Coding "
+    "control": "Secure Software Development Practices (SSDP)"
   },
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-06.1",
-    "control": "Criticality Analysis"
+    "control": "Criticality Analysis During Development"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5621,13 +6701,18 @@
   },
   {
     "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-06.6",
+    "control": "Software Design Root Cause Analysis"
+  },
+  {
+    "domain": "Technology Development & Acquisition",
     "control_id": "TDA-07",
-    "control": "Secure Development Environments "
+    "control": "Secure Development Environments"
   },
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-08",
-    "control": "Separation of Development, Testing and Operational Environments "
+    "control": "Separation of Development, Testing and Operational Environments"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5637,7 +6722,7 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-09",
-    "control": "Cybersecurity & Data Privacy Testing Throughout Development "
+    "control": "Security, Compliance & Resilience Testing Throughout Development"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5652,7 +6737,7 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-09.3",
-    "control": "Dynamic Code Analysis "
+    "control": "Dynamic Code Analysis"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5677,7 +6762,7 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-10",
-    "control": "Use of Live Data "
+    "control": "Use of Live Data"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5702,17 +6787,17 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-12",
-    "control": "Customized Development of Critical Components "
+    "control": "Customized Development of Critical Components"
   },
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-13",
-    "control": "Developer Screening "
+    "control": "Developer Screening"
   },
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-14",
-    "control": "Developer Configuration Management "
+    "control": "Developer Configuration Management"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5732,12 +6817,12 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-16",
-    "control": "Developer-Provided Training "
+    "control": "Developer-Provided Training"
   },
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-17",
-    "control": "Unsupported Systems "
+    "control": "Unsupported Technology Assets, Applications and/or Services (TAAS)"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5747,17 +6832,17 @@
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-18",
-    "control": "Input Data Validation "
+    "control": "Input Data Validation"
   },
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-19",
-    "control": "Error Handling "
+    "control": "Error Handling"
   },
   {
     "domain": "Technology Development & Acquisition",
     "control_id": "TDA-20",
-    "control": "Access to Program Source Code "
+    "control": "Access to Program Source Code"
   },
   {
     "domain": "Technology Development & Acquisition",
@@ -5775,144 +6860,179 @@
     "control": "Software Escrow"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-20.4",
+    "control": "Approved Code"
+  },
+  {
+    "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-21",
+    "control": "Product Conformity Governance"
+  },
+  {
+    "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-22",
+    "control": "Technical Documentation Artifacts"
+  },
+  {
+    "domain": "Technology Development & Acquisition",
+    "control_id": "TDA-22.1",
+    "control": "Product-Specific Risk Assessment Artifacts"
+  },
+  {
+    "domain": "Third-Party Management",
     "control_id": "TPM-01",
-    "control": "Third-Party Management "
+    "control": "Third-Party Management"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-01.1",
-    "control": "Third-Party Inventories "
+    "control": "Third-Party Inventories"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-02",
     "control": "Third-Party Criticality Assessments"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-03",
-    "control": "Supply Chain Protection"
+    "control": "Supply Chain Risk Management (SCRM)"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-03.1",
     "control": "Acquisition Strategies, Tools & Methods"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-03.2",
     "control": "Limit Potential Harm"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-03.3",
     "control": "Processes To Address Weaknesses or Deficiencies"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-03.4",
     "control": "Adequate Supply"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-04",
-    "control": "Third-Party Services "
+    "control": "Third-Party Services"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-04.1",
     "control": "Third-Party Risk Assessments & Approvals"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-04.2",
     "control": "External Connectivity Requirements - Identification of Ports, Protocols & Services"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-04.3",
     "control": "Conflict of Interests"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-04.4",
     "control": "Third-Party Processing, Storage and Service Locations"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-05",
     "control": "Third-Party Contract Requirements"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-05.1",
     "control": "Security Compromise Notification Agreements"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-05.2",
     "control": "Contract Flow-Down Requirements"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-05.3",
     "control": "Third-Party Authentication Practices"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-05.4",
     "control": "Responsible, Accountable, Supportive, Consulted & Informed (RASCI) Matrix"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-05.5",
     "control": "Third-Party Scope Review"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-05.6",
     "control": "First-Party Declaration (1PD)"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-05.7",
     "control": "Break Clauses"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-05.8",
     "control": "Third-Party Attestation (3PA)"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-06",
-    "control": "Third-Party Personnel Security "
+    "control": "Third-Party Personnel Security"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-07",
-    "control": "Monitoring for Third-Party Information Disclosure "
+    "control": "Monitoring for Third-Party Information Disclosure"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-08",
     "control": "Review of Third-Party Services"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-09",
-    "control": "Third-Party Deficiency Remediation "
+    "control": "Third-Party Deficiency Remediation"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-10",
     "control": "Managing Changes To Third-Party Services"
   },
   {
-    "domain": "Third-Party Management ",
+    "domain": "Third-Party Management",
     "control_id": "TPM-11",
     "control": "Third-Party Incident Response & Recovery Capabilities"
+  },
+  {
+    "domain": "Third-Party Management",
+    "control_id": "TPM-12",
+    "control": "Foreign Ownership, Control or Influence (FOCI)"
+  },
+  {
+    "domain": "Third-Party Management",
+    "control_id": "TPM-12.1",
+    "control": "Ownership Change Monitoring"
+  },
+  {
+    "domain": "Third-Party Management",
+    "control_id": "TPM-12.2",
+    "control": "Ownership Change Provisions"
   },
   {
     "domain": "Threat Management",
@@ -5937,7 +7057,7 @@
   {
     "domain": "Threat Management",
     "control_id": "THR-04",
-    "control": "Insider Threat Program "
+    "control": "Insider Threat Program"
   },
   {
     "domain": "Threat Management",
@@ -5948,6 +7068,11 @@
     "domain": "Threat Management",
     "control_id": "THR-06",
     "control": "Vulnerability Disclosure Program (VDP)"
+  },
+  {
+    "domain": "Threat Management",
+    "control_id": "THR-06.1",
+    "control": "Security Disclosure Contact Information"
   },
   {
     "domain": "Threat Management",
@@ -5975,222 +7100,242 @@
     "control": "Behavioral Baselining"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-01",
     "control": "Vulnerability & Patch Management Program (VPMP)"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-01.1",
     "control": "Attack Surface Scope"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-02",
-    "control": "Vulnerability Remediation Process "
+    "control": "Vulnerability Remediation Process"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-03",
-    "control": "Vulnerability Ranking "
+    "control": "Vulnerability Ranking"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-03.1",
     "control": "Vulnerability Exploitation Analysis"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-04",
     "control": "Continuous Vulnerability Remediation Activities"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-04.1",
     "control": "Stable Versions"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-04.2",
     "control": "Flaw Remediation with Personal Data (PD)"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
+    "control_id": "VPM-04.3",
+    "control": "Deferred Patching Decisions"
+  },
+  {
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-05",
     "control": "Software & Firmware Patching"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-05.1",
     "control": "Centralized Management of Flaw Remediation Processes"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-05.2",
     "control": "Automated Remediation Status"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-05.3",
     "control": "Time To Remediate / Benchmarks For Corrective Action"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-05.4",
     "control": "Automated Software & Firmware Updates"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-05.5",
     "control": "Removal of Previous Versions"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
-    "control_id": "VPM-06",
-    "control": "Vulnerability Scanning "
+    "domain": "Vulnerability & Patch Management",
+    "control_id": "VPM-05.6",
+    "control": "Pre-Deployment Patch Testing"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
+    "control_id": "VPM-05.7",
+    "control": "Out-of-Cycle Patching"
+  },
+  {
+    "domain": "Vulnerability & Patch Management",
+    "control_id": "VPM-05.8",
+    "control": "Software Patch Integrity"
+  },
+  {
+    "domain": "Vulnerability & Patch Management",
+    "control_id": "VPM-06",
+    "control": "Vulnerability Scanning"
+  },
+  {
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-06.1",
     "control": "Update Tool Capability"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-06.2",
-    "control": "Breadth / Depth of Coverage "
+    "control": "Breadth / Depth of Coverage"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-06.3",
     "control": "Privileged Access"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-06.4",
     "control": "Trend Analysis"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-06.5",
-    "control": "Review Historical event logs"
+    "control": "Review Historical Event logs"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-06.6",
     "control": "External Vulnerability Assessment Scans"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-06.7",
     "control": "Internal Vulnerability Assessment Scans"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-06.8",
     "control": "Acceptable Discoverable Information"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-06.9",
     "control": "Correlate Scanning Information"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-07",
-    "control": "Penetration Testing "
+    "control": "Penetration Testing"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-07.1",
     "control": "Independent Penetration Agent or Team"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-08",
-    "control": "Technical Surveillance Countermeasures Security "
+    "control": "Technical Surveillance Countermeasures Security"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-09",
     "control": "Reviewing Vulnerability Scanner Usage"
   },
   {
-    "domain": "Vulnerability & Patch Management ",
+    "domain": "Vulnerability & Patch Management",
     "control_id": "VPM-10",
     "control": "Red Team Exercises"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-01",
     "control": "Web Security"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-01.1",
     "control": "Unauthorized Code"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-02",
     "control": "Use of Demilitarized Zones (DMZ)"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-03",
     "control": "Web Application Firewall (WAF)"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-04",
     "control": "Client-Facing Web Services"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-05",
     "control": "Cookie Management"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-06",
     "control": "Strong Customer Authentication (SCA)"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-07",
     "control": "Web Security Standard"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-08",
     "control": "Web Application Framework"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-09",
     "control": "Validation & Sanitization"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-10",
     "control": "Secure Web Traffic"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-11",
     "control": "Output Encoding"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-12",
     "control": "Web Browser Security"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-13",
     "control": "Website Change Detection"
   },
   {
-    "domain": "Web Security ",
+    "domain": "Web Security",
     "control_id": "WEB-14",
     "control": "Publicly Accessible Content Reviews"
   }

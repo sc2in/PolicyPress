@@ -7,6 +7,13 @@
     flake-parts.url = "https://flakehub.com/f/hercules-ci/flake-parts/0.1.*.tar.gz";
     git-hooks.url = "https://flakehub.com/f/cachix/git-hooks.nix/0.1.*.tar.gz";
     treefmt-nix.url = "https://flakehub.com/f/numtide/treefmt-nix/0.1.*.tar.gz";
+    # The Secure Controls Framework dataset (https://securecontrolsframework.com,
+    # CC BY-ND 4.0) — SC2's validated canonical pipeline. Source of truth for
+    # the flat control catalog in data/scf.{json,yml}.
+    scf = {
+      url = "github:sc2in/scf";
+      flake = false;
+    };
   };
 
   outputs =
@@ -280,6 +287,25 @@
 
             checks.formatting = config.treefmt.build.check self;
 
+            # data/scf.{json,yml} must never drift from the pinned scf
+            # input (the praxis-facts-fresh analog).
+            checks.scf-catalog-fresh =
+              pkgs.runCommand "scf-catalog-fresh"
+                {
+                  nativeBuildInputs = [ pkgs.python3 ];
+                }
+                ''
+                  python3 ${./tools/gen-scf-catalog.py} ${inputs.scf} $TMPDIR/data
+                  for f in scf.json scf.yml; do
+                    if ! diff -q $TMPDIR/data/$f ${./data}/$f; then
+                      echo "data/$f has drifted from the pinned scf input." >&2
+                      echo "Regenerate: nix run .#gen-scf-catalog" >&2
+                      exit 1
+                    fi
+                  done
+                  touch $out
+                '';
+
             checks.test =
               # The pdf-rendering tests spawn `typst compile` in the sandbox;
               # mermaid diagrams render in-process via pozeiden (pure Zig), so
@@ -430,6 +456,21 @@
             # required tools on PATH (keeping the ambient PATH so an outer `nix`
             # stays reachable for check-evidence) and runs the script in tools/,
             # which remains the source of truth and directly runnable.
+            apps.gen-scf-catalog = {
+              type = "app";
+              program = "${pkgs.writeShellScript "policypress-gen-scf-catalog" ''
+                export PATH="${
+                  lib.makeBinPath [
+                    pkgs.python3
+                    pkgs.git
+                  ]
+                }:$PATH"
+                cd "$(git rev-parse --show-toplevel)"
+                exec python3 tools/gen-scf-catalog.py ${inputs.scf} data
+              ''}";
+              meta.description = "Regenerate data/scf.{json,yml} from the pinned scf input";
+            };
+
             apps.sbom = {
               type = "app";
               program = "${pkgs.writeShellScript "policypress-sbom" ''

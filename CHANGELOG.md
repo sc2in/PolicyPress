@@ -8,6 +8,15 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Removed
+
+- **Dropped `x86_64-darwin` (Intel macOS) from the flake's supported systems**,
+  following nixpkgs retiring it as a supported platform. `nix build`,
+  `nix develop`, and `nix flake check` no longer evaluate for Intel-Mac hosts;
+  CI runs on `aarch64-darwin` (`macos-latest` is Apple Silicon). The
+  cross-compiled `x86_64-macos` release binary is unaffected — it is still
+  built and shipped, since it cross-compiles from any host.
+
 ## [1.6.0] - 2026-07-18
 
 ### Internal

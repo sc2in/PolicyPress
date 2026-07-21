@@ -33,6 +33,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       os: ${{ steps.decide.outputs.os }}
+      # Release cross-compilation targets, read from the single source of truth
+      # that flake.nix's apps.release also consumes. Only used on tags.
+      targets: ${{ steps.decide.outputs.targets }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,6 +61,7 @@ jobs:
           else
             echo 'os=["ubuntu-latest"]' >> "$GITHUB_OUTPUT"
           fi
+          echo "targets=$(jq -c '.targets' release-targets.json)" >> "$GITHUB_OUTPUT"
 
   ci:
     needs: changes
@@ -181,21 +185,25 @@ jobs:
           path: artifacts/
           retention-days: 7
 
-  # Release job: runs only on release tags and holds the write scope the build/
-  # test job deliberately lacks. The pushed tag is authoritative — the version
-  # must already be stamped (`nix run .#bump <ver>` before tagging), so nothing
-  # here rewrites or force-moves vX.Y.Z after the publish triggers have fired.
-  release:
-    needs: [ci]
+  # Release build: runs only on tags, once per target, in parallel. Each leg
+  # cross-compiles one target and uploads its binary as an artifact for the
+  # publish job to gather. The target list comes from release-targets.json (via
+  # the `changes` job), the same file flake.nix's apps.release reads, so a local
+  # `nix run .#release` and the shipped GitHub Release can never drift apart.
+  # These legs hold no write scope — only the publish job below does.
+  release-build:
+    needs: [changes, ci]
     if: ${{ github.ref_type == 'tag' }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        target: ${{ fromJson(needs.changes.outputs.targets) }}
     permissions:
       id-token: "write"
-      contents: "write"
+      contents: "read"
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install Nix
         uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3
@@ -209,34 +217,90 @@ jobs:
       - name: Configure permissions
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
 
-      - name: Build release binaries
+      - name: Build ${{ matrix.target }}
         run: |
           nix develop --command bash -c '
             set -euo pipefail
-            for target in x86_64-linux aarch64-linux x86_64-macos aarch64-macos x86_64-windows; do
-              echo "▸ Building $target..."
-              zig build -Doptimize=ReleaseSafe -Dtarget="$target"
-              ext=""
-              [[ "$target" == *windows* ]] && ext=".exe"
-              cp "zig-out/bin/policypress${ext}" "policypress-${target}${ext}"
-            done
-            # Publish checksums so the composite action can verify the binary it
-            # downloads matches the one built here for this exact tag.
-            sha256sum policypress-* > SHA256SUMS.txt
-            cat SHA256SUMS.txt
-            # SBOM for the released binaries: the Zig dependencies compiled in,
-            # from the lock file (CycloneDX 1.5).
-            tools/sbom.sh > sbom.cdx.json
+            target="${{ matrix.target }}"
+            echo "▸ Building $target..."
+            zig build -Doptimize=ReleaseSafe -Dtarget="$target"
+            ext=""
+            [[ "$target" == *windows* ]] && ext=".exe"
+            cp "zig-out/bin/policypress${ext}" "policypress-${target}${ext}"
           '
+
+      - name: Upload ${{ matrix.target }} binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-bin-${{ matrix.target }}
+          path: policypress-${{ matrix.target }}*
+          retention-days: 1
+
+  # Release publish: gathers the per-target binaries, assembles checksums + the
+  # SBOM (reusing the one the ci job already generated, not regenerating it),
+  # cuts the GitHub Release, and publishes to FlakeHub. This is the only job
+  # with write scope, and it runs strictly after ci + every release-build leg —
+  # so a failing test or a broken cross-compile blocks the FlakeHub publish too
+  # (which used to fire in its own workflow regardless of CI).
+  #
+  # The pushed tag is authoritative — the version must already be stamped
+  # (`nix run .#bump <ver>` before tagging), so nothing here rewrites vX.Y.Z.
+  release-publish:
+    needs: [release-build]
+    if: ${{ github.ref_type == 'tag' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+      contents: "write"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download release binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-bin-*
+          path: dist
+          merge-multiple: true
+
+      - name: Download attestation evidence (for the SBOM)
+        uses: actions/download-artifact@v4
+        with:
+          name: attestation-evidence
+          path: evidence
+
+      - name: Assemble release assets
+        run: |
+          set -euo pipefail
+          # Reuse the SBOM the ci job already built for this exact commit
+          # instead of regenerating it here (CycloneDX 1.5, from the Zig lock).
+          cp evidence/sbom.cdx.json dist/sbom.cdx.json
+          cd dist
+          # Checksums let the composite action verify the binary it downloads
+          # matches the one built here for this exact tag.
+          sha256sum policypress-* > SHA256SUMS.txt
+          cat SHA256SUMS.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           files: |
-            policypress-*
-            SHA256SUMS.txt
-            sbom.cdx.json
+            dist/policypress-*
+            dist/SHA256SUMS.txt
+            dist/sbom.cdx.json
           generate_release_notes: true
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3
+
+      - name: Publish to FlakeHub
+        uses: DeterminateSystems/flakehub-push@71f57208810a5d299fc6545350981de98fdbc860 # v6
+        with:
+          visibility: "public"
+          name: "sc2in/PolicyPress"
+          tag: "${{ github.ref_name }}"
+          include-output-paths: false
 
       # The floating major tag (e.g. v1) is a convenience alias consumers pin to.
       # Moving it is safe: `v1` does not match the trigger pattern

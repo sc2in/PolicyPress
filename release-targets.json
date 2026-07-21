@@ -1,0 +1,11 @@
+{
+  "comment": "Single source of truth for release cross-compilation targets. Consumed by flake.nix (apps.release) and .github/workflows/ci.yml (the release matrix). Keep in sync by editing only this file.",
+  "targets": [
+    "x86_64-linux",
+    "aarch64-linux",
+    "x86_64-macos",
+    "aarch64-macos",
+    "x86_64-windows",
+    "aarch64-windows"
+  ]
+}

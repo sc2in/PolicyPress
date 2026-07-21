@@ -608,18 +608,14 @@
 
             apps.release =
               let
+                # Single source of truth, shared with the CI release matrix
+                # (.github/workflows/ci.yml reads the same file via jq).
+                releaseTargets = (builtins.fromJSON (builtins.readFile ./release-targets.json)).targets;
                 app = pkgs.writeShellApplication {
                   name = "policypress-release";
                   meta.description = "Cross-compile policypress for all supported targets";
                   text = ''
-                    targets=(
-                      x86_64-linux
-                      x86_64-windows
-                      x86_64-macos
-                      aarch64-macos
-                      aarch64-linux
-                      aarch64-windows
-                    )
+                    targets=(${lib.concatStringsSep " " releaseTargets})
                     for t in "''${targets[@]}"; do
                       echo "▸ Building $t..."
                       zig build -Doptimize=ReleaseSafe -Dtarget="$t"

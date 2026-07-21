@@ -1,8 +1,9 @@
 name: "Publish tags to FlakeHub"
+# Automatic tag publishing now happens in ci.yml's `release-publish` job, which
+# runs only after CI and every release-build leg pass — so a broken tag no
+# longer publishes to FlakeHub. This workflow is kept as a manual escape hatch
+# for (re)publishing an existing tag out of band.
 on:
-  push:
-    tags:
-      - "v?[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
     inputs:
       tag:

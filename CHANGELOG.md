@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-07-21
+
 ### Added
 
 - **GitHub Releases now include an `aarch64-windows` binary.** The release

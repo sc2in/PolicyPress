@@ -9,8 +9,8 @@ extra:
   major_revisions:
     - date: 2000-01-01
       description: Initial version.
-      revised_by: Ben Craton
-      approved_by: Ben Craton
+      revised_by: Ada Byrne
+      approved_by: Ada Byrne
       version: "1.0"
 ---
 

@@ -11,3 +11,5 @@ class = "team-section"
 +++
 
 Our dedicated team of security professionals brings decades of combined experience in cybersecurity, compliance, and policy development. We're committed to helping organizations build robust security frameworks.
+
+*The profiles below are fictional demo personas shipped with PolicyPress — replace them with your real security and compliance team.*

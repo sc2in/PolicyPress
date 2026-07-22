@@ -27,23 +27,23 @@ taxonomies:
     - DCH-01
 extra:
   math: true
-  owner: Security Team
+  owner: Ada Byrne
   last_reviewed: 2026-01-15
   major_revisions:
     - date: 2026-01-15
       description: Added cloud security requirements and updated incident response procedures.
-      revised_by: Jane Smith
-      approved_by: John Doe, CISO
+      revised_by: Elena Fischer
+      approved_by: Ada Byrne
       version: "2.1"
     - date: 2025-06-01
       description: Updated encryption standards to align with NIST recommendations.
-      revised_by: Jane Smith
-      approved_by: John Doe, CISO
+      revised_by: Chidi Diallo
+      approved_by: Ada Byrne
       version: "2.0"
     - date: 2024-01-15
       description: Initial policy creation and approval.
-      revised_by: Jane Smith
-      approved_by: John Doe, CISO
+      revised_by: Chidi Diallo
+      approved_by: Ada Byrne
       version: "1.0"
 ---
 
@@ -265,8 +265,8 @@ This policy shall be reviewed annually or whenever significant changes occur to:
 
 This policy has been reviewed and approved by:
 
-- John Doe, Chief Information Security Officer
-- Jane Smith, Chief Technology Officer
+- Ada Byrne, Chief Information Security Officer
+- Chidi Diallo, Compliance & GRC Manager
 - Board of Directors
 
 ---

@@ -115,6 +115,52 @@ description=description) }}
   </div>
   {% endif %}
 
+  {# Contributions: auto-derived from policy/news front matter, so nothing here is
+     maintained by hand. A person appears wherever their name is used as owner,
+     reviser, approver, or news author; drop them from the roster and the reverse
+     links simply stop — no broken links, no churn. #}
+  {% set member_name = page.title %}
+  {% set_global contrib_items = "" %}
+  {% set policies_section = get_section(path="policies/_index.md") %}
+  {% for p in policies_section.pages %}
+    {% set_global roles = [] %}
+    {% if p.extra.owner and p.extra.owner == member_name %}
+      {% set_global roles = roles | concat(with="Owner") %}
+    {% endif %}
+    {% if p.extra.major_revisions %}
+      {% set_global is_approver = false %}
+      {% set_global is_reviser = false %}
+      {% for r in p.extra.major_revisions %}
+        {% if r.approved_by and r.approved_by == member_name %}{% set_global is_approver = true %}{% endif %}
+        {% if r.revised_by and r.revised_by == member_name %}{% set_global is_reviser = true %}{% endif %}
+      {% endfor %}
+      {% if is_approver %}{% set_global roles = roles | concat(with="Approver") %}{% endif %}
+      {% if is_reviser %}{% set_global roles = roles | concat(with="Reviser") %}{% endif %}
+    {% endif %}
+    {% if roles | length > 0 %}
+      {% set_global roles_str = roles | join(sep=", ") %}
+      {% set_global contrib_items = contrib_items ~ "<li><a href='" ~ p.permalink ~ "'>" ~ p.title ~ "</a> <span class='contrib-role'>" ~ roles_str ~ "</span></li>" %}
+    {% endif %}
+  {% endfor %}
+  {% set news_section = get_section(path="news/_index.md") %}
+  {% for n in news_section.pages %}
+    {% set_global is_author = false %}
+    {% if n.authors %}
+      {% for a in n.authors %}{% if a == member_name %}{% set_global is_author = true %}{% endif %}{% endfor %}
+    {% endif %}
+    {% if is_author %}
+      {% set_global contrib_items = contrib_items ~ "<li><a href='" ~ n.permalink ~ "'>" ~ n.title ~ "</a> <span class='contrib-role'>Author</span></li>" %}
+    {% endif %}
+  {% endfor %}
+  {% if contrib_items != "" %}
+  <div class="member-contributions">
+    <h3>Contributions</h3>
+    <ul class="contributions-list">
+      {{ contrib_items | safe }}
+    </ul>
+  </div>
+  {% endif %}
+
   <!-- Navigation back to team list -->
   <div class="member-navigation">
     <a href="{{ get_url(path='team/') | safe }}" class="btn btn-outline-primary">

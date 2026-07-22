@@ -1294,7 +1294,7 @@ test "audit bundle: manifest hashes, newest revision, coverage export" {
         const pol = pols[0].object;
         try tst.expectEqualStrings("Test Policy", pol.get("title").?.string);
         try tst.expectEqualStrings("1.1", pol.get("version").?.string);
-        try tst.expectEqualStrings("Ben Craton", pol.get("approved_by").?.string);
+        try tst.expectEqualStrings("Ada Byrne", pol.get("approved_by").?.string);
         try tst.expectEqualStrings("SC2", pol.get("owner").?.string);
         try tst.expectEqualStrings("pdfs/Test_Policy_-_v1.1.pdf", pol.get("pdf").?.string);
 

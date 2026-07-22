@@ -1,0 +1,19 @@
+{# Render a person's name, linked to their team profile when they are on the byline
+   roster (config.extra.policyteam.members), otherwise as plain text.
+
+   `members` must be passed in by the caller (Tera macros cannot see `config`):
+       {% import 'macros/people.html' as macros_people %}
+       {{ macros_people::person_link(name=version.approved_by, members=config.extra.policyteam.members) }}
+
+   Names that are not on the roster (roles like "CEO", historical or external
+   contributors) simply render as text, so nobody has to be kept on the roster forever. #}
+{% macro person_link(name, members) -%}
+{%- set roster = members | default(value=[]) -%}
+{%- set match = roster | filter(attribute="name", value=name) -%}
+{%- if match | length > 0 -%}
+{%- set m = match | first -%}
+<a href="{{ get_url(path='@/' ~ m.page) | safe }}">{{ name }}</a>
+{%- else -%}
+{{ name }}
+{%- endif -%}
+{%- endmacro person_link %}

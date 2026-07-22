@@ -8,8 +8,8 @@ extra:
   major_revisions:
     - date: 2025-12-15
       description: Initial version.
-      revised_by: Ben Craton
-      approved_by: Ben Craton
+      revised_by: Ada Byrne
+      approved_by: Ada Byrne
       version: "1.0"
 ---
 

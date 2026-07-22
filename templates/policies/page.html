@@ -71,7 +71,7 @@ reverse %}
           <i class="fas fa-calendar-check" aria-hidden="true"></i>
           Last reviewed on {{ page.extra.last_reviewed | date(format="%B %d, %Y") }}
           {% if current_version.approved_by %}
-          <span class="policy-approval">&middot; Approved by {{ current_version.approved_by }} (v{{ current_version.version }})</span>
+          <span class="policy-approval">&middot; Approved by {{ macros_people::person_link(name=current_version.approved_by, members=config.extra.policyteam.members) }} (v{{ current_version.version }})</span>
           {% endif %}
           {% if review_overdue %}
           <span class="badge bg-warning text-dark ms-2">
@@ -87,7 +87,7 @@ reverse %}
         {% if page.extra.owner %}
         <div class="policy-meta policy-owner">
           <i class="fas fa-user-shield" aria-hidden="true"></i>
-          Owner: {{ page.extra.owner }}
+          Owner: {{ macros_people::person_link(name=page.extra.owner, members=config.extra.policyteam.members) }}
         </div>
         {% endif %}
         {% if page.description %}

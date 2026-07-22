@@ -46,12 +46,12 @@ taxonomies:
     - CC6.3
 
 extra:
-  owner: "Alice Bueler"
+  owner: "Ada Byrne"
   last_reviewed: 2026-04-15
   major_revisions:
     - date: 2026-04-15
       description: "Initial draft."
-      revised_by: "Alice Bueler"
+      revised_by: "Ada Byrne"
       approved_by: ""
       version: "0.1"
 ---
@@ -136,7 +136,7 @@ extra:
   major_revisions:
     - date: 2026-04-15
       description: "Initial policy approved."
-      revised_by: "Alice Bueler"
+      revised_by: "Ada Byrne"
       approved_by: "CISO"
       version: "1.0"
 ```

@@ -116,6 +116,6 @@ This content is redacted in auditor builds.
   [1.0],
   [2025-06-24],
   [Initial version.],
-  [Ben Craton],
-  [Ben Craton],
+  [Ada Byrne],
+  [Ada Byrne],
 )

@@ -8,6 +8,41 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Added
+
+- **Policy revisers, approvers, and owners now link to their team profiles, and
+  each profile links back.** A revision table's *Revised by* / *Approved by*
+  entries, the policy header's owner and approver, and news bylines all resolve a
+  name to its team page when it is on the byline roster
+  (`config.extra.policyteam.members`). Each team profile gained a **Contributions**
+  section listing the policies and news it owns, revised, approved, or authored.
+  Both directions are derived from front matter every build, so a name that isn't
+  on the roster (a role like "CEO", or a former contributor) renders as plain
+  text — no broken links and nothing to maintain by hand. A new `person_link`
+  macro (`templates/macros/people.html`) centralizes the lookup.
+
+### Changed
+
+- **The demo Team section is now a five-person security & compliance team** — a
+  CISO, a Compliance/GRC manager, a security engineer, an IT/infrastructure lead,
+  and a data protection officer — following the A.B./C.D./E.F. initials scheme,
+  with fresh photos and clearly-labelled fictional demo bios. The scattered
+  example names (Alice Beuler, Charlie Brown, Jane Smith, John Doe, and a
+  misspelled "Alice Bueler" in the guides) are reconciled onto this roster across
+  the example policies, news posts, and guides, and two new release-note news
+  posts (1.5, 1.6) were added.
+- The byline roster (`config.extra.policyteam.members`) is slimmed to `name` +
+  `page` — the only fields any template consumes — removing the previously
+  duplicated and drift-prone `title`/`email`/`phone`/`image` fields.
+
+### Fixed
+
+- The news section-listing byline now reads the real `page.authors`; its previous
+  branch referenced an undeclared `authors` taxonomy and rendered no author at
+  all. Also removed a never-included `contributors.html` partial, an empty
+  leftover `templates/pdf/policy.tex`, and a dead debug comment in
+  `src/control_report.zig`.
+
 ## [1.6.1] - 2026-07-21
 
 ### Added

@@ -19,12 +19,12 @@ taxonomies:
     - P4.1
     - P6.1
 extra:
-  owner: People Operations
+  owner: Iris Jain
   last_reviewed: 2026-01-01
   major_revisions:
     - date: 2026-01-01
       description: Initial policy.
-      revised_by: People Operations
+      revised_by: Iris Jain
       approved_by: CEO
       version: "1.0"
 ---

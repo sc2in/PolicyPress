@@ -238,6 +238,44 @@
     }
   }
 
+  .member-contributions {
+    margin-bottom: 2rem;
+
+    h3 {
+      color: var(--bs-heading-color);
+      margin-bottom: 1rem;
+    }
+
+    .contributions-list {
+      list-style: none;
+      padding: 0;
+
+      li {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        background: var(--pp-quick-action-bg);
+        color: var(--bs-body-color);
+        padding: 0.5rem 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: var(--pp-radius-sm);
+        border-left: 4px solid $primary;
+      }
+
+      .contrib-role {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--bs-body-color);
+        background: var(--bs-tertiary-bg);
+        padding: 0.15rem 0.6rem;
+        border-radius: var(--pp-radius-pill);
+        white-space: nowrap;
+      }
+    }
+  }
+
   .member-navigation {
     text-align: center;
     padding-top: 2rem;

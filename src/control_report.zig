@@ -524,7 +524,6 @@ pub fn main(pctx: std.process.Init) !void {
         path,
     );
     defer rep.deinit();
-    // std.debug.print("Getting reports from {s}\n", .{config.policy_dir});
     const r = try rep.report(io, config.policy_dir);
 
     try stdout.print("{s}", .{r});

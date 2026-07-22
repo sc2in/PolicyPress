@@ -262,14 +262,30 @@ url = "/news/"
 icon = "fas fa-newspaper"
 weight = 50
 
+# Byline roster: maps an author/reviser/approver/owner name to a team profile page.
+# Only `name` and `page` are consumed by the templates (see templates/macros/people.html);
+# everything else about a person lives on their profile in content/team/. Names that are
+# not listed here render as plain text, so historical contributors need no upkeep.
 [extra.policyteam]
 [[extra.policyteam.members]]
-name = "Alice Beuler"
-title = "Chief Security Officer"
-email = "abeuler@sc2.in"
-phone = "+91 123 456 7890"
-image = "logo.svg"
-page = "team/abeuler.md"
+name = "Ada Byrne"
+page = "team/abyrne.md"
+
+[[extra.policyteam.members]]
+name = "Chidi Diallo"
+page = "team/cdiallo.md"
+
+[[extra.policyteam.members]]
+name = "Elena Fischer"
+page = "team/efischer.md"
+
+[[extra.policyteam.members]]
+name = "Grace Hoffman"
+page = "team/ghoffman.md"
+
+[[extra.policyteam.members]]
+name = "Iris Jain"
+page = "team/ijain.md"
 
 
 # Homepage configuration

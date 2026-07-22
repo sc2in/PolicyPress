@@ -122,6 +122,6 @@ Any residual score above #mi("R > 15", alt: "R > 15") requires documented mitiga
   [1.0],
   [2025-06-24],
   [Initial version.],
-  [Ben Craton],
-  [Ben Craton],
+  [Ada Byrne],
+  [Ada Byrne],
 )

@@ -22,7 +22,7 @@ extra:
   major_revisions:
     - date: 2026-01-01
       description: Initial version.
-      revised_by: Alice Bueler
+      revised_by: Ada Byrne
       approved_by: CEO
       version: "1.0"
 ---
@@ -53,7 +53,7 @@ taxonomies:
   TSC2017: [CC1.1, CC6.1]
   SCF: [GOV-01, IAC-01]
 extra:
-  owner: Alice Bueler     # person ultimately responsible for this policy
+  owner: Ada Byrne     # person ultimately responsible for this policy
   math: true              # enable LaTeX math rendering on this page
 ```
 

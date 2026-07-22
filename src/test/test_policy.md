@@ -21,13 +21,13 @@ extra:
   major_revisions:
     - date: 2025-06-24
       description: Demo revision.
-      revised_by: Ben Craton
-      approved_by: Ben Craton
+      revised_by: Ada Byrne
+      approved_by: Ada Byrne
       version: "1.1"
     - date: 2024-02-11
       description: Initial version.
-      revised_by: Ben Craton
-      approved_by: Ben Craton
+      revised_by: Ada Byrne
+      approved_by: Ada Byrne
       version: "1.0"
 ---
 

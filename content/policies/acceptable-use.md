@@ -18,13 +18,13 @@ taxonomies:
     - CC6.3
     - CC9.1
 extra:
-  owner: IT / Security
+  owner: Grace Hoffman
   last_reviewed: 2026-01-01
   major_revisions:
     - date: 2026-01-01
       description: Initial policy.
-      revised_by: IT / Security
-      approved_by: CEO
+      revised_by: Grace Hoffman
+      approved_by: Ada Byrne
       version: "1.0"
 ---
 

@@ -1,3 +1,4 @@
+{% import 'macros/people.html' as macros_people -%}
 <div class="revisions">
   <h3>Revisions</h3>
   <div class="table-responsive">
@@ -22,10 +23,10 @@
         {{version.description | default(value="")}}
       </td>
       <td>
-        {{version.revised_by | default(value="")}}
+        {% if version.revised_by %}{{ macros_people::person_link(name=version.revised_by, members=config.extra.policyteam.members) }}{% endif %}
       </td>
       <td>
-        {{version.approved_by | default(value="")}}
+        {% if version.approved_by %}{{ macros_people::person_link(name=version.approved_by, members=config.extra.policyteam.members) }}{% endif %}
       </td>
   </tr>
     {% endfor %}

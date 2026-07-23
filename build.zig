@@ -108,6 +108,16 @@ pub fn build(b: *std.Build) !void {
         _ = b.step("preview", "Serve the zola output (Not available on Windows. run `zola preview` instead.)");
     }
 
+    // Plain data contract for the PDF control-coverage annex (#165). A leaf
+    // module (std only) so both typst (consumer) and controls (producer) can
+    // import it without a cycle — the same trick B3 used for the footnote
+    // resolver value.
+    const control_annex_mod = b.addModule("control_annex", .{
+        .root_source_file = b.path("src/control_annex.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     // Typst PDF engine: markdown → zigmark → Typst markup (mermaid via
     // pozeiden) → `typst compile`.
     const typst_mod = b.addModule("typst_engine", .{
@@ -121,6 +131,7 @@ pub fn build(b: *std.Build) !void {
     typst_mod.addImport("zigmark", zigmark_mod);
     typst_mod.addImport("pozeiden", pozeiden_mod);
     typst_mod.addImport("praxis_join", praxis_join_mod);
+    typst_mod.addImport("control_annex", control_annex_mod);
     const typst_exe = b.addExecutable(.{
         .root_module = typst_mod,
         .name = "pdf_engine",
@@ -163,6 +174,7 @@ pub fn build(b: *std.Build) !void {
     controls_mod.addImport("config", config_mod);
     controls_mod.addImport("utils", utils_mod);
     controls_mod.addImport("mvzr", mvzr.module("mvzr"));
+    controls_mod.addImport("control_annex", control_annex_mod);
 
     // Shared render helper for the golden Typst-markup snapshots (used by both
     // golden_test.zig and tools/golden_gen.zig).
@@ -195,6 +207,7 @@ pub fn build(b: *std.Build) !void {
     policypress_mod.addImport("utils", utils_mod);
     policypress_mod.addImport("praxis_join", praxis_join_mod);
     policypress_mod.addImport("controls", controls_mod);
+    policypress_mod.addImport("control_annex", control_annex_mod);
     // Build-time mermaid rendering for the site (src/diagrams.zig, `render-diagrams`).
     policypress_mod.addImport("pozeiden", pozeiden_mod);
     const policypress_exe = b.addExecutable(.{

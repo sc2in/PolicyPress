@@ -62,12 +62,16 @@ pub fn renderControlFixture(io: std.Io, alloc: std.mem.Allocator) ![]u8 {
         io,
         alloc,
         "src/test/controls_catalog.json",
+        "src/test/controls_tsc_catalog.json",
         "src/test/controls_join.json",
         &.{fixture},
     );
     defer cj.deinit();
 
-    var rendered = try typst.renderWithControls(io, alloc, conf, fixture, cj.resolver());
+    // Pass BOTH the footnote resolver (inline control(...) refs) and the annex
+    // provider (frontmatter framework tags + scope exclusions), so the baseline
+    // exercises the full #164+#165 render path.
+    var rendered = try typst.renderWithControls(io, alloc, conf, fixture, cj.resolver(), cj.annexProvider());
     defer rendered.deinit(alloc);
     return alloc.dupe(u8, rendered.source);
 }

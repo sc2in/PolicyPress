@@ -12,6 +12,9 @@ taxonomies:
 extra:
   owner: Security Team
   last_reviewed: 2025-12-01
+  scope_exclusions:
+    - id: GOV-03
+      reason: "Periodic review is handled by the parent entity's governance program."
   major_revisions:
     - date: 2025-12-01
       description: Second revision.

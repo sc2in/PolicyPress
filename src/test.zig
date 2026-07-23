@@ -198,7 +198,7 @@ test "pdf rendering" {
     // test_policy.md contains a mermaid diagram: unlike the pandoc pipeline
     // (which needed Chrome for mermaid-filter), pozeiden renders it in-process
     // so the full pipeline works even inside the Nix sandbox.
-    typst.compile(io, &env, tst.allocator, conf, "src/test/test_policy.md", null) catch |e| {
+    typst.compile(io, &env, tst.allocator, conf, "src/test/test_policy.md", null, null) catch |e| {
         std.debug.print("Test Policy Typst Call Failed! \nConfig:{f}\n", .{conf});
         return e;
     };
@@ -1241,9 +1241,16 @@ test "coverage: corrected numerator, dedup, draft exclusion, unknown IDs" {
     try tst.expectEqualStrings("GOV-02", cov.controls[1].control_id);
     try tst.expectEqual(@as(usize, 2), cov.controls[1].policies.len);
 
-    // GOV-03 is only tagged by the draft policy: excluded.
+    // GOV-03 is only tagged by the draft policy: uncovered. It is also declared
+    // out of scope by Alpha (extra.scope_exclusions), so it is in the third
+    // state — excluded but not covered. The exclusion never inflates `covered`.
     try tst.expectEqualStrings("GOV-03", cov.controls[2].control_id);
     try tst.expectEqual(@as(usize, 0), cov.controls[2].policies.len);
+    try tst.expectEqual(@as(usize, 1), cov.excluded);
+    try tst.expectEqual(@as(usize, 1), cov.controls[2].excluded_by.len);
+    try tst.expectEqualStrings("Alpha Security Policy", cov.controls[2].excluded_by[0]);
+    // A covered control carries no exclusion.
+    try tst.expectEqual(@as(usize, 0), cov.controls[0].excluded_by.len);
 }
 
 test "collectReviewRows: sorted, statuses, missing fields" {
@@ -1378,6 +1385,28 @@ test "audit bundle: manifest hashes, newest revision, coverage export" {
         try tst.expectEqualStrings("SCF", scf.get("id").?.string);
         try tst.expect(scf.get("covered").?.integer >= 1);
         try tst.expect(scf.get("total").?.integer >= 1468);
+
+        // Additive per-control excluded_by (#165), schema string unchanged. The
+        // fixture policy declares PES-01 out of scope, so that control's
+        // excluded_by lists the policy title; a covered control (HRS-05) has an
+        // empty excluded_by. Every control carries the key (additive schema).
+        var saw_pes01 = false;
+        var saw_hrs05 = false;
+        for (scf.get("controls").?.array.items) |cv| {
+            const c = cv.object;
+            const cid = c.get("control_id").?.string;
+            const excl = c.get("excluded_by").?.array.items;
+            if (std.mem.eql(u8, cid, "PES-01")) {
+                saw_pes01 = true;
+                try tst.expectEqual(@as(usize, 1), excl.len);
+                try tst.expectEqualStrings("Test Policy", excl[0].string);
+            } else if (std.mem.eql(u8, cid, "HRS-05")) {
+                saw_hrs05 = true;
+                try tst.expectEqual(@as(usize, 0), excl.len);
+            }
+        }
+        try tst.expect(saw_pes01);
+        try tst.expect(saw_hrs05);
     }
 }
 
@@ -1454,6 +1483,7 @@ fn fixtureControlJoin(alloc: Allocator) !controls.ControlJoin {
         io,
         alloc,
         "src/test/controls_catalog.json",
+        "src/test/controls_tsc_catalog.json",
         "src/test/controls_join.json",
         &.{"src/test/test_policy_controls.md"},
     );
@@ -1511,6 +1541,7 @@ test "controls: resolveFootnote — no praxis join omits the spine clause" {
         io,
         alloc,
         "src/test/controls_catalog.json",
+        null, // no TSC catalog
         null, // no join configured
         &.{"src/test/test_policy_controls.md"},
     );
@@ -1529,6 +1560,7 @@ test "controls: resolveFootnote — no catalog omits the title clause" {
         io,
         alloc,
         null, // no catalog
+        null, // no TSC catalog
         "src/test/controls_join.json",
         &.{"src/test/test_policy_controls.md"},
     );
@@ -1623,4 +1655,144 @@ test "controls: reviewControlRefs — a control-shaped dangling raw ref is criti
     defer alloc.free(p);
 
     try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+}
+
+test "controls: annexProvider resolves catalog titles (praxis-agnostic)" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    const prov = cj.annexProvider();
+
+    // SCF: title from the catalog. The annex carries no praxis-spine column —
+    // spine membership is an optional overlay (web badges + join.json), not
+    // part of this core table.
+    const iac = prov.lookup(.scf, "IAC-01");
+    try tst.expectEqualStrings("Identity & Access Management", iac.title.?);
+    const dch = prov.lookup(.scf, "DCH-01");
+    try tst.expectEqualStrings("Data Protection", dch.title.?);
+
+    // TSC 2017: title from the TSC catalog.
+    const cc = prov.lookup(.tsc2017, "CC1.1");
+    try tst.expectEqualStrings("Integrity and Ethics", cc.title.?);
+
+    // Unknown id → null title (annex shows the id alone).
+    try tst.expect(prov.lookup(.scf, "ZZZ-99").title == null);
+}
+
+test "controls: reviewControlRefs — a scope exclusion missing a reason is critical" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // NET-02 is a valid catalog id not covered by the library policy, so the
+    // only problem is the missing reason (isolates the rule from the advisory).
+    const md =
+        \\---
+        \\title: "No Reason"
+        \\extra:
+        \\  scope_exclusions:
+        \\    - id: NET-02
+        \\---
+        \\Body.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "no_reason.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "no_reason.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+}
+
+test "controls: reviewControlRefs — an unknown scope-exclusion id is critical" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // GOV-99 is well-formed but not in the fixture catalog.
+    const md =
+        \\---
+        \\title: "Unknown Exclusion"
+        \\extra:
+        \\  scope_exclusions:
+        \\    - id: GOV-99
+        \\      reason: "x"
+        \\---
+        \\Body.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "unknown_excl.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "unknown_excl.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+}
+
+test "controls: reviewControlRefs — same-policy cover+exclude is critical" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // DCH-01 is both claimed (taxonomies.SCF) and disclaimed (scope_exclusions).
+    const md =
+        \\---
+        \\title: "Contradiction"
+        \\taxonomies:
+        \\  SCF:
+        \\    - DCH-01
+        \\extra:
+        \\  scope_exclusions:
+        \\    - id: DCH-01
+        \\      reason: "x"
+        \\---
+        \\Body.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "contradiction.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "contradiction.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+}
+
+test "controls: reviewControlRefs — excluding a control another policy covers is advisory" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // IAC-01 is covered by the library policy ("Access Control Test Policy") but
+    // declared out of scope here — a legitimate governance tension, so advisory
+    // (not critical). The exclusion is otherwise well-formed.
+    const md =
+        \\---
+        \\title: "Excludes A Covered Control"
+        \\extra:
+        \\  scope_exclusions:
+        \\    - id: IAC-01
+        \\      reason: "Handled by the parent entity."
+        \\---
+        \\Body.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "cross_conflict.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "cross_conflict.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.advisory, cj.reviewControlRefs(io, alloc, p));
 }

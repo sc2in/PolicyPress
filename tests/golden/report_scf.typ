@@ -95,6 +95,8 @@
 
 Coverage means a published policy lists the control in its front-matter taxonomy. Draft policies are excluded, matching the website.
 
+*1* control(s) are declared out of scope by a published policy; an exclusion is a documented decision not to apply a control and is counted separately from coverage.
+
 = Governance
 
 2 of 3 controls covered.
@@ -107,7 +109,7 @@ Coverage means a published policy lists the control in its front-matter taxonomy
   ),
   [GOV-01], [Security Governance Program], [Alpha Security Policy; Bravo Handling Policy],
   [GOV-02], [Publishing \*Security\* \[Documentation\] \#with \$pecials], [Alpha Security Policy; Charlie \*Escaping\* \[Policy\] \#1],
-  [GOV-03], [Periodic Review], [—],
+  [GOV-03], [Periodic Review], [out of scope: Alpha Security Policy],
 )
 
 = Human Resources

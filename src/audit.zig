@@ -184,7 +184,7 @@ pub fn writeBundle(
     {
         var frameworks = std.json.Array.init(a);
         var csv: std.Io.Writer.Allocating = .init(a);
-        try csv.writer.writeAll("framework,control_id,domain,control,covered,policies\n");
+        try csv.writer.writeAll("framework,control_id,domain,control,covered,policies,excluded_by\n");
 
         inline for (.{ reports.Kind.scf, reports.Kind.soc2 }) |kind| {
             const framework_id = switch (kind) {
@@ -216,9 +216,15 @@ pub fn writeBundle(
                     var pols = std.json.Array.init(a);
                     for (c.policies) |p| try pols.append(.{ .string = p });
                     try obj.put(a, "policies", .{ .array = pols });
+                    // Additive per-control field (#165). The schema string is
+                    // unchanged (praxis exact-matches …/v1 and ignores unknown
+                    // keys); an exclusion is neither coverage nor a silent gap.
+                    var excl = std.json.Array.init(a);
+                    for (c.excluded_by) |p| try excl.append(.{ .string = p });
+                    try obj.put(a, "excluded_by", .{ .array = excl });
                     try controls.append(.{ .object = obj });
 
-                    // CSV row (policies ;-joined).
+                    // CSV row (policies and exclusions each ;-joined).
                     try writeCsvField(&csv.writer, framework_id);
                     try csv.writer.writeByte(',');
                     try writeCsvField(&csv.writer, c.control_id);
@@ -229,6 +235,9 @@ pub fn writeBundle(
                     try csv.writer.writeAll(if (c.policies.len > 0) ",true," else ",false,");
                     const joined = try std.mem.join(a, "; ", c.policies);
                     try writeCsvField(&csv.writer, joined);
+                    try csv.writer.writeByte(',');
+                    const excl_joined = try std.mem.join(a, "; ", c.excluded_by);
+                    try writeCsvField(&csv.writer, excl_joined);
                     try csv.writer.writeByte('\n');
                 }
 

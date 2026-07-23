@@ -219,6 +219,11 @@ pub const ControlCoverage = struct {
     /// Titles of policies whose taxonomy lists this control, sorted. Empty
     /// when the control is uncovered.
     policies: []const []const u8,
+    /// Titles of policies that declare this control out of scope
+    /// (`extra.scope_exclusions`), sorted. Empty when nothing excludes it.
+    /// An exclusion is a *third* state: it is neither coverage nor a silent
+    /// gap, so it never contributes to the `covered` numerator.
+    excluded_by: []const []const u8 = &.{},
 };
 
 /// Structured coverage of one catalog: every control in catalog order plus the
@@ -228,6 +233,10 @@ pub const Coverage = struct {
     controls: []ControlCoverage,
     total: usize,
     covered: usize,
+    /// Distinct controls declared out of scope by ≥1 published policy. Counted
+    /// separately from `covered`: an exclusion is a documented decision, not
+    /// coverage.
+    excluded: usize = 0,
 };
 
 /// Compute structured coverage: walk `policy_root` (skipping drafts, matching
@@ -242,6 +251,10 @@ pub fn coverage(self: *Self, io: std.Io, taxonomy_key: []const u8, policy_root: 
     // One policy-title list per catalog control, indexed like self.map.
     const lists = try a.alloc(Array([]const u8), self.map.count());
     for (lists) |*l| l.* = .empty;
+
+    // Parallel list of the policies that declare each control out of scope.
+    const excl_lists = try a.alloc(Array([]const u8), self.map.count());
+    for (excl_lists) |*l| l.* = .empty;
 
     var pr = try std.Io.Dir.cwd().openDir(io, policy_root, .{
         .access_sub_paths = true,
@@ -283,34 +296,62 @@ pub fn coverage(self: *Self, io: std.Io, taxonomy_key: []const u8, policy_root: 
             break :blk try a.dupe(u8, path);
         };
 
-        const controls = fm.get(taxonomy_key) orelse continue;
-        if (controls != .array) continue;
-        for (controls.array.items) |control| {
-            if (control != .string) continue;
-            const idx = self.map.getIndex(control.string) orelse continue;
-            // A policy listing the same control twice still counts once.
-            const list = &lists[idx];
-            if (list.items.len > 0 and std.mem.eql(u8, list.items[list.items.len - 1], policy_title)) continue;
-            try list.append(a, policy_title);
+        if (fm.get(taxonomy_key)) |controls| {
+            if (controls == .array) for (controls.array.items) |control| {
+                if (control != .string) continue;
+                const idx = self.map.getIndex(control.string) orelse continue;
+                // A policy listing the same control twice still counts once.
+                const list = &lists[idx];
+                if (list.items.len > 0 and std.mem.eql(u8, list.items[list.items.len - 1], policy_title)) continue;
+                try list.append(a, policy_title);
+            };
+        }
+
+        // Declared scope exclusions (`extra.scope_exclusions: [{ id, reason }]`).
+        // Framework-agnostic ids: only those present in *this* catalog land here,
+        // so an SCF exclusion never shows up in the TSC 2017 coverage. Unknown
+        // ids are ignored (validation flags them separately). Never touches the
+        // coverage numerator — an exclusion is a distinct third state.
+        if (fm.get("extra.scope_exclusions")) |exclusions| {
+            if (exclusions == .array) for (exclusions.array.items) |ex| {
+                if (ex != .object) continue;
+                const id_v = ex.object.get("id") orelse continue;
+                if (id_v != .string) continue;
+                const idx = self.map.getIndex(id_v.string) orelse continue;
+                const list = &excl_lists[idx];
+                // Dedup a policy that lists the same exclusion twice.
+                var seen = false;
+                for (list.items) |existing| {
+                    if (std.mem.eql(u8, existing, policy_title)) {
+                        seen = true;
+                        break;
+                    }
+                }
+                if (!seen) try list.append(a, policy_title);
+            };
         }
     }
 
     var out = try a.alloc(ControlCoverage, self.map.count());
     var covered: usize = 0;
+    var excluded: usize = 0;
     var it = self.map.iterator();
     var i: usize = 0;
     while (it.next()) |entry| : (i += 1) {
         std.mem.sort([]const u8, lists[i].items, {}, lessThanConstString);
+        std.mem.sort([]const u8, excl_lists[i].items, {}, lessThanConstString);
         if (lists[i].items.len > 0) covered += 1;
+        if (excl_lists[i].items.len > 0) excluded += 1;
         out[i] = .{
             .domain = entry.value_ptr.domain,
             .control_id = entry.value_ptr.control_id,
             .control = entry.value_ptr.control,
             .policies = lists[i].items,
+            .excluded_by = excl_lists[i].items,
         };
     }
 
-    return .{ .controls = out, .total = out.len, .covered = covered };
+    return .{ .controls = out, .total = out.len, .covered = covered, .excluded = excluded };
 }
 
 fn lessThanString(_: void, lhs: []u8, rhs: []u8) bool {

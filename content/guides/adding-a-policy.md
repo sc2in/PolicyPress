@@ -68,6 +68,7 @@ extra:
 | `extra.owner` | no | The individual responsible for the policy. Shown in the revision table |
 | `extra.last_reviewed` | yes | ISO date (`YYYY-MM-DD`) of the last formal review. A warning shows if this is more than a year ago |
 | `extra.major_revisions` | yes | At least one entry is required. See below |
+| `extra.scope_exclusions` | no | Controls this policy formally declares out of scope. A list of `{ id, reason }` entries. See "Declaring controls out of scope" below |
 
 ### Revision entries
 
@@ -90,6 +91,39 @@ Tagging controls links this policy to the SCF and SOC 2 coverage reports. Values
 **TSC2017** uses SOC 2 Trust Services Criteria identifiers (e.g. `CC6.1`, `A1.2`). See the SOC 2 report page.
 
 Any taxonomy declared in `config.toml` will show up in the Framework Coverage section on the policy page, even without a dedicated report.
+
+> **Unknown or malformed control IDs now fail `--strict` builds.** A control tagged in `taxonomies.SCF` (or referenced inline, or excluded — see below) that is not in the SCF catalog, or that does not match the `AA-00` / `AA-00.0` shape, is an audit-critical error. Regular builds log a warning; `policypress build --strict` (used in CI) aborts.
+
+## Declaring controls out of scope
+
+Sometimes the right answer for a control is "we deliberately do not do this". Use `extra.scope_exclusions` to record that decision so it is auditable rather than looking like an oversight:
+
+```yaml
+extra:
+  scope_exclusions:
+    - id: PES-01
+      reason: "We operate no physical facilities; all infrastructure is colocated with certified providers."
+    - id: PES-04
+      reason: "No offices or server rooms require physical access control; staff work remotely."
+```
+
+Each entry needs an `id` (a valid SCF control ID) and a non-empty `reason`.
+
+An exclusion is **not** coverage — it is a distinct third state:
+
+- The policy page shows a **Declared Out of Scope** card listing each excluded control and its reason.
+- The SCF coverage report shows the control as *"Declared out of scope by \<policy\>"* instead of *"No policies mapped"* — but the exclusion never counts toward the coverage percentage.
+- The policy PDF gains a **Control Coverage** annex with a *Declared out of scope* subsection.
+- The audit bundle's `coverage.json` records the excluding policy titles under `excluded_by`.
+
+Validation (audit-critical, so it fails `--strict`):
+
+| Rule | Severity |
+|---|---|
+| `id` malformed or not in the SCF catalog | critical |
+| Missing or empty `reason` | critical |
+| The same policy lists an ID in both `taxonomies.SCF` and `scope_exclusions` | critical |
+| A control excluded here is covered by *another* published policy | advisory (a governance tension to reconcile, not a build failure) |
 
 ## Writing the policy content
 

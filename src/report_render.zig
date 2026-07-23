@@ -78,6 +78,18 @@ pub fn renderCoverage(alloc: Allocator, cov: report.Coverage, opts: ReportOpts) 
         "Coverage means a published policy lists the control in its front-matter " ++
             "taxonomy. Draft policies are excluded, matching the website.\n",
     );
+    // Scope exclusions are a distinct third state: a documented "we do not do
+    // this", counted apart from coverage. Emitted only when present, so reports
+    // with no exclusions (e.g. SOC 2, whose criteria are never excluded by the
+    // SCF-id exclusion list) stay byte-identical.
+    if (cov.excluded > 0) {
+        try w.print(
+            "\n*{d}* control(s) are declared out of scope by a published policy; " ++
+                "an exclusion is a documented decision not to apply a control and is " ++
+                "counted separately from coverage.\n",
+            .{cov.excluded},
+        );
+    }
 
     // ── Per-domain sections (catalog order; domains are contiguous runs) ────
     var i: usize = 0;
@@ -109,11 +121,24 @@ pub fn renderCoverage(alloc: Allocator, cov: report.Coverage, opts: ReportOpts) 
             try w.writeAll("], [");
             try typst.writeEscaped(w, std.mem.trim(u8, c.control, " "));
             try w.writeAll("], [");
-            if (c.policies.len == 0) {
+            if (c.policies.len == 0 and c.excluded_by.len == 0) {
                 try w.writeAll("\u{2014}");
-            } else for (c.policies, 0..) |p, pi| {
-                if (pi > 0) try w.writeAll("; ");
-                try typst.writeEscaped(w, p);
+            } else {
+                for (c.policies, 0..) |p, pi| {
+                    if (pi > 0) try w.writeAll("; ");
+                    try typst.writeEscaped(w, p);
+                }
+                // Distinct marker for a declared-out-of-scope control, appended
+                // after any covering policies (a control can, in a governance
+                // conflict, be both covered and excluded).
+                if (c.excluded_by.len > 0) {
+                    if (c.policies.len > 0) try w.writeAll("; ");
+                    try w.writeAll("out of scope: ");
+                    for (c.excluded_by, 0..) |p, pi| {
+                        if (pi > 0) try w.writeAll(", ");
+                        try typst.writeEscaped(w, p);
+                    }
+                }
             }
             try w.writeAll("],\n");
         }

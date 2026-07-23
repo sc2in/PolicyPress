@@ -18,6 +18,9 @@ taxonomies:
 extra:
   owner: SC2
   last_reviewed: 2025-02-24
+  scope_exclusions:
+    - id: PES-01
+      reason: "We operate no physical facilities; all infrastructure is colocated with certified providers."
   major_revisions:
     - date: 2025-06-24
       description: Demo revision.

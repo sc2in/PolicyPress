@@ -162,3 +162,74 @@ a.control-ref {
 .control-item[id] {
   scroll-margin-top: 1rem;
 }
+
+// "Declared Out of Scope" card on a policy page. Sits just after Framework
+// Coverage but is deliberately styled apart — an exclusion is a documented "we
+// do not do this", never coverage. A warning-toned left rule (not colour
+// alone: the "Declared Out of Scope" label carries the meaning) keeps the two
+// sections from reading as one.
+.scope-exclusions {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--bs-border-color);
+  border-left: 3px solid var(--bs-warning);
+  border-radius: var(--bs-border-radius);
+  background: var(--bs-tertiary-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.scope-exclusions-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--bs-secondary-color);
+}
+
+.scope-exclusions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scope-exclusion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.scope-exclusion-id {
+  flex: 0 0 auto;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.2rem;
+  background: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
+  text-decoration: none;
+  font-family: $font-family-monospace;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+a.scope-exclusion-id {
+  color: var(--bs-link-color);
+  transition: var(--pp-transition);
+
+  &:hover,
+  &:focus {
+    background: var(--bs-primary-bg-subtle);
+    color: var(--bs-link-hover-color);
+    text-decoration: none;
+  }
+}
+
+.scope-exclusion-reason {
+  flex: 1 1 12rem;
+  color: var(--bs-body-color);
+  font-size: 0.9rem;
+}

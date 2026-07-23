@@ -1,0 +1,25 @@
+{#- "Declared Out of Scope" card for a policy page. Renders the policy's
+    extra.scope_exclusions ({ id, reason }) — each id linked to the SCF report
+    anchor (like the satisfies tags) when a report page is configured, plus the
+    stated reason. Deliberately styled apart from Framework Coverage: an
+    exclusion is a documented "we do not do this", never coverage. -#}
+{%- set pp = config.extra.policypress -%}
+{%- set scf_report = pp.scf_report_page | default(value="") -%}
+{%- set exclusions = page.extra.scope_exclusions | default(value=[]) -%}
+{%- if exclusions | length > 0 -%}
+<div class="scope-exclusions">
+  <span class="scope-exclusions-label">Declared Out of Scope</span>
+  <ul class="scope-exclusions-list">
+    {% for ex in exclusions %}
+    <li class="scope-exclusion">
+      {%- if scf_report -%}
+      <a class="scope-exclusion-id" href="{{ get_url(path=scf_report) | safe }}#{{ ex.id }}">{{ ex.id }}</a>
+      {%- else -%}
+      <span class="scope-exclusion-id">{{ ex.id }}</span>
+      {%- endif -%}
+      <span class="scope-exclusion-reason">{{ ex.reason }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{%- endif -%}

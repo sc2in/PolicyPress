@@ -116,3 +116,41 @@ All data is classified and protected #footnote[DCH-01 — Data Protection. praxi
   [Ada Byrne],
   [Ada Byrne],
 )
+
+#pagebreak()
+= Control Coverage
+
+== SCF
+
+#table(
+  columns: (auto, 1fr),
+  align: (left, left),
+  table.header(
+    [*ID*], [*Control*],
+  ),
+  [IAC-01], [Identity & Access Management],
+  [DCH-01], [Data Protection],
+)
+
+== TSC 2017
+
+#table(
+  columns: (auto, 1fr),
+  align: (left, left),
+  table.header(
+    [*ID*], [*Criterion*],
+  ),
+  [CC1.1], [Integrity and Ethics],
+  [CC6.1], [Logical Access Controls],
+)
+
+== Declared out of scope
+
+#table(
+  columns: (auto, 1fr),
+  align: (left, left),
+  table.header(
+    [*ID*], [*Reason*],
+  ),
+  [NET-02], [All network defenses are operated by our colocation provider under a shared-responsibility model.],
+)

@@ -1,0 +1,12 @@
+[
+  {
+    "domain": "CC1",
+    "control_id": "CC1.1",
+    "control": "Integrity and Ethics"
+  },
+  {
+    "domain": "CC6",
+    "control_id": "CC6.1",
+    "control": "Logical Access Controls"
+  }
+]

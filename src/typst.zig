@@ -29,6 +29,7 @@ const u = @import("utils");
 const zigmark = @import("zigmark");
 const pozeiden = @import("pozeiden");
 const fonts = @import("fonts.zig");
+const annex = @import("control_annex");
 
 const EnvMap = std.process.Environ.Map;
 
@@ -133,8 +134,12 @@ pub fn compile(
     /// footnote references undefined. Read-only, so it is safe to copy into each
     /// concurrent compile task.
     resolver: ?zigmark.footnotes.Resolver,
+    /// Control-coverage annex provider (from `controls.ControlJoin`), or null to
+    /// omit the annex entirely (byte-identical to the pre-#165 output). Also
+    /// read-only and copy-safe across the compile tasks.
+    annex_provider: ?annex.Provider,
 ) !void {
-    var rendered = try renderWithControls(io, alloc, config, input_file, resolver);
+    var rendered = try renderWithControls(io, alloc, config, input_file, resolver, annex_provider);
     defer rendered.deinit(alloc);
 
     try compileSource(io, env, alloc, config, rendered.source, std.fs.path.basename(input_file), rendered.pdf_name);
@@ -229,7 +234,7 @@ pub fn render(
     config: Config,
     input_file: []const u8,
 ) !Rendered {
-    return renderWithControls(io, alloc, config, input_file, null);
+    return renderWithControls(io, alloc, config, input_file, null, null);
 }
 
 /// As `render`, but when `resolver` is non-null every undefined footnote
@@ -244,6 +249,7 @@ pub fn renderWithControls(
     config: Config,
     input_file: []const u8,
     resolver: ?zigmark.footnotes.Resolver,
+    annex_provider: ?annex.Provider,
 ) !Rendered {
     log.debug("Processing markdown file: {s}\n", .{input_file});
 
@@ -392,6 +398,11 @@ pub fn renderWithControls(
     });
     try zigmark.renderTypstWithMermaid(alloc, &aw.writer, doc, &renderMermaid);
     try writeVersionHistory(&aw.writer, &raw_fm);
+    // Control Coverage annex: frontmatter framework tags + scope exclusions have
+    // no in-text anchor, so they render as an end-of-document annex rather than
+    // as (anchorless) footnotes. Emitted only when a provider is supplied — the
+    // golden default path (null) stays byte-identical.
+    if (annex_provider) |p| try writeControlAnnex(&aw.writer, &raw_fm, p);
 
     const typ_src = try aw.toOwnedSlice();
     errdefer alloc.free(typ_src);
@@ -825,6 +836,130 @@ fn writeVersionHistory(writer: anytype, fm: *zigmark.Frontmatter) !void {
     try writer.writeAll(")\n");
 }
 
+// ── Control Coverage annex ──────────────────────────────────────────────────
+
+/// The frontmatter array under `key`, or null when it is absent or not a list.
+fn annexArray(fm: *zigmark.Frontmatter, key: []const u8) ?[]std.json.Value {
+    const v = fm.get(key) orelse return null;
+    return switch (v) {
+        .array => |a| a.items,
+        else => null,
+    };
+}
+
+/// Count the `.string` entries in a frontmatter array (the tagged ids).
+fn countStrings(items: ?[]std.json.Value) usize {
+    var n: usize = 0;
+    if (items) |list| for (list) |it| {
+        if (it == .string) n += 1;
+    };
+    return n;
+}
+
+/// Count well-formed scope-exclusion entries (`{ id: str, reason: str }`).
+fn countExclusions(items: ?[]std.json.Value) usize {
+    var n: usize = 0;
+    if (items) |list| for (list) |it| {
+        if (it != .object) continue;
+        const id = it.object.get("id") orelse continue;
+        if (id != .string) continue;
+        n += 1;
+    };
+    return n;
+}
+
+/// Append a "Control Coverage" annex: one table per tagged framework present in
+/// the frontmatter (SCF and TSC 2017 both show ID | Control/Criterion) plus a
+/// "Declared out of scope" subsection listing each `extra.scope_exclusions` id
+/// with its reason. Titles come from `provider`; the tag lists come straight
+/// from `fm`. Praxis-spine status is intentionally absent — it's an optional
+/// overlay (web badges + join.json), not part of this core table. Emits nothing
+/// when the policy has no framework tags and no exclusions (output stays
+/// byte-identical to a policy without an annex).
+fn writeControlAnnex(writer: anytype, fm: *zigmark.Frontmatter, provider: annex.Provider) !void {
+    const scf = annexArray(fm, "taxonomies.SCF");
+    const tsc = annexArray(fm, "taxonomies.TSC2017");
+    const exclusions = annexArray(fm, "extra.scope_exclusions");
+
+    const scf_n = countStrings(scf);
+    const tsc_n = countStrings(tsc);
+    const excl_n = countExclusions(exclusions);
+    if (scf_n == 0 and tsc_n == 0 and excl_n == 0) return;
+
+    try writer.writeAll("\n#pagebreak()\n= Control Coverage\n\n");
+
+    if (scf_n > 0) {
+        try writer.writeAll("== SCF\n\n");
+        try writer.writeAll(
+            "#table(\n" ++
+                "  columns: (auto, 1fr),\n" ++
+                "  align: (left, left),\n" ++
+                "  table.header(\n" ++
+                "    [*ID*], [*Control*],\n" ++
+                "  ),\n",
+        );
+        for (scf.?) |item| {
+            if (item != .string) continue;
+            const id = item.string;
+            const info = provider.lookup(.scf, id);
+            try writer.writeAll("  [");
+            try writeEscaped(writer, id);
+            try writer.writeAll("], [");
+            if (info.title) |t| try writeEscaped(writer, t) else try writer.writeAll("\u{2014}");
+            try writer.writeAll("],\n");
+        }
+        try writer.writeAll(")\n\n");
+    }
+
+    if (tsc_n > 0) {
+        try writer.writeAll("== TSC 2017\n\n");
+        try writer.writeAll(
+            "#table(\n" ++
+                "  columns: (auto, 1fr),\n" ++
+                "  align: (left, left),\n" ++
+                "  table.header(\n" ++
+                "    [*ID*], [*Criterion*],\n" ++
+                "  ),\n",
+        );
+        for (tsc.?) |item| {
+            if (item != .string) continue;
+            const id = item.string;
+            const info = provider.lookup(.tsc2017, id);
+            try writer.writeAll("  [");
+            try writeEscaped(writer, id);
+            try writer.writeAll("], [");
+            if (info.title) |t| try writeEscaped(writer, t) else try writer.writeAll("\u{2014}");
+            try writer.writeAll("],\n");
+        }
+        try writer.writeAll(")\n\n");
+    }
+
+    if (excl_n > 0) {
+        try writer.writeAll("== Declared out of scope\n\n");
+        try writer.writeAll(
+            "#table(\n" ++
+                "  columns: (auto, 1fr),\n" ++
+                "  align: (left, left),\n" ++
+                "  table.header(\n" ++
+                "    [*ID*], [*Reason*],\n" ++
+                "  ),\n",
+        );
+        for (exclusions.?) |item| {
+            if (item != .object) continue;
+            const id_v = item.object.get("id") orelse continue;
+            if (id_v != .string) continue;
+            try writer.writeAll("  [");
+            try writeEscaped(writer, id_v.string);
+            try writer.writeAll("], [");
+            if (item.object.get("reason")) |r| {
+                if (r == .string) try writeEscaped(writer, r.string);
+            }
+            try writer.writeAll("],\n");
+        }
+        try writer.writeAll(")\n");
+    }
+}
+
 // ── typst subprocess ──────────────────────────────────────────────────────────
 
 /// Spawn `typst compile --root <root> --font-path <bundled> <input.typ>
@@ -1010,6 +1145,7 @@ pub fn main(init: std.process.Init) !void {
 
     if (res.args.input) |w| {
         log.info("Input File: {s}\n", .{w});
-        try compile(io, env, alloc, config, w);
+        // Standalone CLI: no control join, so no footnote resolver and no annex.
+        try compile(io, env, alloc, config, w, null, null);
     } else return error.InputFileNotProvided;
 }

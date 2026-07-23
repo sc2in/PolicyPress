@@ -26,6 +26,13 @@
 {% if praxis_path %}{% set praxis = load_data(path=praxis_path, required=false) %}{% endif %}
 {% set has_praxis = praxis and praxis.ids %}
 
+{# Policy pages, for the out-of-scope third state below: a control with no
+   covering policy may still be *deliberately* excluded by one. Fetched once;
+   the per-control scan of extra.scope_exclusions is a bounded nested loop. #}
+{% set_global policy_pages = [] %}
+{% set policy_section = get_section(path="policies/_index.md") %}
+{% if policy_section %}{% set_global policy_pages = policy_section.pages %}{% endif %}
+
 {# Coverage = distinct data-file control_ids with >=1 mapped policy, over the
    total number of distinct control_ids. Counting `tax.items | length` (taxonomy
    terms used) over `data | length` (data rows) mismatched both ends: a typo'd
@@ -114,7 +121,25 @@
         {% endfor %}
       </ul>
       {% else %}
+      {# Third state: uncovered, but a policy may declare it out of scope. #}
+      {% set_global excluding_pages = [] %}
+      {% for pp_page in policy_pages %}
+        {% if pp_page.extra.scope_exclusions %}
+          {% for ex in pp_page.extra.scope_exclusions %}
+            {% if ex.id == control.control_id %}
+              {% set_global excluding_pages = excluding_pages | concat(with=pp_page) %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+      {% if excluding_pages | length > 0 %}
+      <div class="declared-out-of-scope">
+        Declared out of scope by
+        {% for ep in excluding_pages %}<a href="{{ ep.permalink | safe }}">{{ ep.title }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+      </div>
+      {% else %}
       <div class="no-policies">No policies mapped to {{ control.control_id }}</div>
+      {% endif %}
       {% endif %}
     </div>
     {% endfor %}

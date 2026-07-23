@@ -27,6 +27,7 @@ const writeStamp = @import("utils").writeStamp;
 const audit = @import("audit.zig");
 const diagrams = @import("diagrams.zig");
 const controls = @import("controls");
+const control_annex = @import("control_annex");
 const zigmark = @import("zigmark");
 
 // ---------------------------------------------------------------------------
@@ -459,6 +460,14 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         std.Io.Dir.cwd().access(io, scf_catalog_path, .{}) catch break :blk false;
         break :blk true;
     };
+    // TSC 2017 catalog — only the control-coverage annex reads it (to title
+    // tagged criteria). Absent on sites without SOC 2 data; degrades gracefully.
+    const tsc_catalog_path = try std.fs.path.join(alloc, &.{ config.root, reports.Kind.soc2.catalogFile().? });
+    defer alloc.free(tsc_catalog_path);
+    const tsc_exists = blk: {
+        std.Io.Dir.cwd().access(io, tsc_catalog_path, .{}) catch break :blk false;
+        break :blk true;
+    };
     const join_path: ?[]const u8 = if (config.praxis_join) |rel|
         try std.fs.path.join(alloc, &.{ config.root, rel })
     else
@@ -473,11 +482,13 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         io,
         alloc,
         if (scf_exists) scf_catalog_path else null,
+        if (tsc_exists) tsc_catalog_path else null,
         join_path,
         policy_paths,
     );
     defer control_join.deinit();
     const control_resolver: ?zigmark.footnotes.Resolver = control_join.resolver();
+    const control_annex_provider: ?control_annex.Provider = control_join.annexProvider();
 
     // --- Front-matter validation (pre-flight) ---
     // Warn on incomplete front matter; with --strict, fail on audit-critical
@@ -607,6 +618,7 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
             config,
             p.path,
             control_resolver,
+            control_annex_provider,
             stamps_dir_path,
             compile_node,
             &error_mutex,
@@ -929,6 +941,7 @@ fn compileOne(
     config: Config,
     input_path: []const u8,
     resolver: ?zigmark.footnotes.Resolver,
+    annex_provider: ?control_annex.Provider,
     stamps_dir: []const u8,
     progress_node: std.Progress.Node,
     error_mutex: *std.Io.Mutex,
@@ -937,7 +950,7 @@ fn compileOne(
 ) void {
     defer progress_node.completeOne();
 
-    Typst.compile(io, env, alloc, config, input_path, resolver) catch |err| {
+    Typst.compile(io, env, alloc, config, input_path, resolver, annex_provider) catch |err| {
         error_mutex.lockUncancelable(io);
         defer error_mutex.unlock(io);
         error_count.* += 1;

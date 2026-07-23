@@ -35,6 +35,7 @@ const praxis_join = @import("praxis_join");
 const Config = @import("config").Config;
 const u = @import("utils");
 const mvzr = @import("mvzr");
+const annex = @import("control_annex");
 
 const ctrllog = std.log.scoped(.controls);
 
@@ -79,6 +80,11 @@ pub const ControlJoin = struct {
     /// is absent — the resolver then omits the title clause and validation skips
     /// the unknown-id check.
     catalog: ?reports,
+    /// TSC 2017 (SOC 2) catalog instance, or null when `data/tsc2017.json` is
+    /// absent. Only the control-coverage annex reads it (to title tagged
+    /// `taxonomies.TSC2017` criteria); footnote resolution and validation are
+    /// SCF-only.
+    tsc_catalog: ?reports,
     /// praxis spine membership, or null when no join file is configured.
     join: ?praxis_join.PraxisJoin,
     /// The non-draft policies, queried for covering-policy titles.
@@ -98,6 +104,7 @@ pub const ControlJoin = struct {
         io: std.Io,
         alloc: Allocator,
         catalog_path: ?[]const u8,
+        tsc_catalog_path: ?[]const u8,
         join_path: ?[]const u8,
         policy_paths: []const []const u8,
     ) !ControlJoin {
@@ -108,6 +115,20 @@ pub const ControlJoin = struct {
                 ctrllog.info(
                     "control catalog '{s}' unavailable ({s}); footnotes will omit control titles",
                     .{ cp, @errorName(err) },
+                );
+                break :blk null;
+            };
+        }
+
+        // TSC 2017 catalog for the annex; degrades to null exactly like the SCF
+        // catalog (the annex then shows tagged criteria by id alone).
+        var tsc_catalog: ?reports = null;
+        errdefer if (tsc_catalog) |*c| c.deinit();
+        if (tsc_catalog_path) |tp| {
+            tsc_catalog = reports.init(io, alloc, tp) catch |err| blk: {
+                ctrllog.info(
+                    "TSC 2017 catalog '{s}' unavailable ({s}); the coverage annex will omit criterion titles",
+                    .{ tp, @errorName(err) },
                 );
                 break :blk null;
             };
@@ -147,11 +168,12 @@ pub const ControlJoin = struct {
             };
         }
 
-        return .{ .catalog = catalog, .join = join, .library = library };
+        return .{ .catalog = catalog, .tsc_catalog = tsc_catalog, .join = join, .library = library };
     }
 
     pub fn deinit(self: *ControlJoin) void {
         if (self.catalog) |*c| c.deinit();
+        if (self.tsc_catalog) |*c| c.deinit();
         if (self.join) |*j| j.deinit();
         self.library.deinit();
     }
@@ -165,6 +187,33 @@ pub const ControlJoin = struct {
     fn resolveThunk(ctx: ?*anyopaque, alloc: Allocator, label: []const u8) anyerror!?[]const u8 {
         const self: *const ControlJoin = @ptrCast(@alignCast(ctx.?));
         return self.resolveFootnote(alloc, label);
+    }
+
+    /// A `control_annex.Provider` bound to this join, for the PDF control-coverage
+    /// annex. Answers the one global lookup (control/criterion title) that
+    /// `typst.zig` cannot do itself; the per-policy tags come from the frontmatter
+    /// typst already parses. The annex is praxis-agnostic — spine membership is an
+    /// optional overlay (web badges + join.json), not part of the core table. The
+    /// returned provider borrows `self`; it must not outlive the `ControlJoin`.
+    /// Read-only, so safe to share (by value) across the concurrent compile tasks.
+    pub fn annexProvider(self: *const ControlJoin) annex.Provider {
+        return .{
+            .ctx = @constCast(self),
+            .lookupFn = annexLookupThunk,
+        };
+    }
+
+    fn annexLookupThunk(ctx: ?*anyopaque, framework: annex.Framework, id: []const u8) annex.Info {
+        const self: *const ControlJoin = @ptrCast(@alignCast(ctx.?));
+        const cat: ?*const reports = switch (framework) {
+            .scf => if (self.catalog) |*c| c else null,
+            .tsc2017 => if (self.tsc_catalog) |*c| c else null,
+        };
+        const title: ?[]const u8 = if (cat) |c| blk: {
+            const ctrl = c.map.get(id) orelse break :blk null;
+            break :blk std.mem.trim(u8, ctrl.control, " ");
+        } else null;
+        return .{ .title = title };
     }
 
     /// Markdown definition body for a control footnote, or null when `label` is
@@ -257,6 +306,13 @@ pub const ControlJoin = struct {
     ///
     /// Unknown-id checks are skipped when no catalog is loaded (nothing to check
     /// against). Non-control footnote references are ignored here.
+    ///
+    /// Scope exclusions (`extra.scope_exclusions`) are also validated: a
+    /// malformed/unknown id or a missing reason is critical, an id both covered
+    /// and excluded by the same policy is critical, and a control excluded here
+    /// but covered by *another* policy is an advisory (a legitimate governance
+    /// tension for praxis to adjudicate — the repo-wide view comes from the
+    /// shared library).
     pub fn reviewControlRefs(self: *const ControlJoin, io: std.Io, alloc: Allocator, path: []const u8) Config.IssueKind {
         const content = std.Io.Dir.cwd().readFileAlloc(io, path, alloc, .limited(u.max_policy_bytes)) catch |err| {
             ctrllog.warn("{s}: cannot read for control validation: {s}", .{ path, @errorName(err) });
@@ -268,6 +324,7 @@ pub const ControlJoin = struct {
         worst = maxKind(worst, self.reviewTaxonomy(alloc, path, content));
         worst = maxKind(worst, self.reviewShortcodes(path, content));
         worst = maxKind(worst, self.reviewDanglingRefs(alloc, path, content));
+        worst = maxKind(worst, self.reviewExclusions(alloc, path, content));
         return worst;
     }
 
@@ -365,6 +422,111 @@ pub const ControlJoin = struct {
                 .{ path, label, label },
             );
             worst = .critical;
+        }
+        return worst;
+    }
+
+    /// `extra.scope_exclusions` validation. Each entry is `{ id, reason }`. An
+    /// exclusion is a documented "we do not do X", so it must never read as
+    /// coverage — the rules keep exclusions well-formed and surface the
+    /// governance tension when a control is both covered and excluded:
+    ///
+    ///   * a malformed or (with a catalog) unknown id → critical;
+    ///   * a missing/empty `reason` → critical;
+    ///   * an id in *this* policy's `taxonomies.SCF` and its exclusions → critical
+    ///     (a policy cannot both claim and disclaim the same control); and
+    ///   * an id excluded here but covered by *another* published policy →
+    ///     advisory (repo-wide view via the shared library).
+    fn reviewExclusions(self: *const ControlJoin, alloc: Allocator, path: []const u8, content: []const u8) Config.IssueKind {
+        var fm = zigmark.Frontmatter.initFromMarkdown(alloc, content) catch return .none;
+        defer fm.deinit();
+
+        const ex_v = fm.get("extra.scope_exclusions") orelse return .none;
+        if (ex_v != .array) {
+            ctrllog.warn("{s}: extra.scope_exclusions must be a list of {{ id, reason }} entries", .{path});
+            return .critical;
+        }
+
+        // This policy's own SCF tags, for the same-policy cover+exclude check.
+        const scf_v = fm.get("taxonomies.SCF");
+        const own_title: []const u8 = blk: {
+            if (fm.get("title")) |t| {
+                if (t == .string) break :blk t.string;
+            }
+            break :blk path;
+        };
+
+        var worst: Config.IssueKind = .none;
+        for (ex_v.array.items) |item| {
+            if (item != .object) {
+                ctrllog.warn("{s}: each extra.scope_exclusions entry must be a mapping with 'id' and 'reason'", .{path});
+                worst = .critical;
+                continue;
+            }
+            const obj = item.object;
+
+            const id: ?[]const u8 = if (obj.get("id")) |v| (if (v == .string) v.string else null) else null;
+            if (id == null) {
+                ctrllog.warn("{s}: a scope-exclusion entry is missing a string 'id'", .{path});
+                worst = .critical;
+                continue;
+            }
+            const eid = id.?;
+
+            if (!isControlId(eid)) {
+                ctrllog.warn("{s}: malformed scope-exclusion id '{s}' (expected e.g. PES-01)", .{ path, eid });
+                worst = .critical;
+            } else if (self.catalog) |*cat| {
+                if (!cat.map.contains(eid)) {
+                    ctrllog.warn("{s}: unknown scope-exclusion id '{s}' (not in data/scf.json)", .{ path, eid });
+                    worst = .critical;
+                }
+            }
+
+            // A reason is mandatory: an unexplained exclusion is worthless to an
+            // auditor and easy to mistake for an oversight.
+            const reason_ok = blk: {
+                const r = obj.get("reason") orelse break :blk false;
+                if (r != .string) break :blk false;
+                break :blk std.mem.trim(u8, r.string, " \t\r\n").len > 0;
+            };
+            if (!reason_ok) {
+                ctrllog.warn("{s}: scope-exclusion '{s}' needs a non-empty 'reason'", .{ path, eid });
+                worst = .critical;
+            }
+
+            // Same-policy cover+exclude: contradictory.
+            if (scf_v) |sv| {
+                if (sv == .array) {
+                    for (sv.array.items) |t| {
+                        if (t == .string and std.mem.eql(u8, t.string, eid)) {
+                            ctrllog.warn(
+                                "{s}: control '{s}' is listed in both taxonomies.SCF and extra.scope_exclusions — a policy cannot both claim and disclaim a control",
+                                .{ path, eid },
+                            );
+                            worst = .critical;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Cross-policy cover/exclude conflict → advisory. Only meaningful for
+            // well-formed ids; a covering policy other than this one is the tension.
+            if (isControlId(eid)) {
+                const covering = self.coveringPolicies(alloc, eid) catch &.{};
+                defer alloc.free(covering);
+                for (covering) |title| {
+                    if (!std.mem.eql(u8, title, own_title)) {
+                        ctrllog.warn(
+                            "{s}: control '{s}' is declared out of scope here but covered by '{s}' — praxis should adjudicate this governance tension",
+                            .{ path, eid, title },
+                        );
+                        worst = maxKind(worst, .advisory);
+                        break;
+                    }
+                }
+            }
         }
         return worst;
     }

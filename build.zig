@@ -69,6 +69,15 @@ pub fn build(b: *std.Build) !void {
     // config uses utils for Date/today and readAllAlloc helpers.
     config_mod.addImport("utils", utils_mod);
 
+    // praxis control-join loader (src/praxis_join.zig): reads the
+    // consumer-generated data/praxis-join.json (schema policypress/praxis-join/v1).
+    // A leaf module — std only — wired into the engines that consume the join.
+    const praxis_join_mod = b.addModule("praxis_join", .{
+        .root_source_file = b.path("src/praxis_join.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     // the executable from your call to exe_mod.addExecutable
     if (target.result.os.tag != .windows) {
         const zap = b.dependency("zap", .{
@@ -111,6 +120,7 @@ pub fn build(b: *std.Build) !void {
     typst_mod.addImport("utils", utils_mod);
     typst_mod.addImport("zigmark", zigmark_mod);
     typst_mod.addImport("pozeiden", pozeiden_mod);
+    typst_mod.addImport("praxis_join", praxis_join_mod);
     const typst_exe = b.addExecutable(.{
         .root_module = typst_mod,
         .name = "pdf_engine",
@@ -134,6 +144,7 @@ pub fn build(b: *std.Build) !void {
     reports_mod.addImport("zigmark", zigmark_mod);
     reports_mod.addImport("utils", utils_mod);
     reports_mod.addImport("typst", typst_mod);
+    reports_mod.addImport("praxis_join", praxis_join_mod);
 
     // Shared render helper for the golden Typst-markup snapshots (used by both
     // golden_test.zig and tools/golden_gen.zig).
@@ -163,6 +174,7 @@ pub fn build(b: *std.Build) !void {
     policypress_mod.addImport("typst", typst_mod);
     policypress_mod.addImport("reports", reports_mod);
     policypress_mod.addImport("utils", utils_mod);
+    policypress_mod.addImport("praxis_join", praxis_join_mod);
     // Build-time mermaid rendering for the site (src/diagrams.zig, `render-diagrams`).
     policypress_mod.addImport("pozeiden", pozeiden_mod);
     const policypress_exe = b.addExecutable(.{
@@ -201,6 +213,7 @@ pub fn build(b: *std.Build) !void {
         test_module.addImport("typst", typst_mod);
         test_module.addImport("config", config_mod);
         test_module.addImport("reports", reports_mod);
+        test_module.addImport("praxis_join", praxis_join_mod);
         test_module.addImport("mvzr", mvzr.module("mvzr"));
         // src/diagrams.zig (imported by src/test.zig) renders mermaid via pozeiden.
         test_module.addImport("pozeiden", pozeiden_mod);

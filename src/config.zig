@@ -57,6 +57,13 @@ pub const Config = struct {
     /// PDFs). Off by default: ua-1 is a hard-fail standard, so it is opt-in via
     /// `[extra.policypress] pdf_standard`. Borrowed from the toml table.
     pdf_standard: ?[]const u8 = null,
+    /// Optional path to the praxis control-join file (`data/praxis-join.json`),
+    /// the consumer-generated, committed list of bare SCF control ids an
+    /// external GRC system (praxis) actively governs. When set, praxis coverage
+    /// surfaces light up; when unset every such surface degrades gracefully. Set
+    /// via `[extra.policypress] praxis_join`; borrowed from the toml table, like
+    /// `pdf_standard`. Generate/refresh it with `nix run .#gen-praxis-join`.
+    praxis_join: ?[]const u8 = null,
 
     zola_config: ?toml.Table,
 
@@ -108,6 +115,7 @@ pub const Config = struct {
         try obj.put(alloc, "audit_bundle", .{ .bool = self.audit_bundle });
         try obj.put(alloc, "classification", .{ .string = self.classification });
         try obj.put(alloc, "pdf_standard", if (self.pdf_standard) |v| .{ .string = v } else .null);
+        try obj.put(alloc, "praxis_join", if (self.praxis_join) |v| .{ .string = v } else .null);
 
         return .{ .object = obj };
     }
@@ -162,6 +170,7 @@ pub const Config = struct {
             365;
         config.classification = e.getString("classification") orelse "Confidential";
         config.pdf_standard = e.getString("pdf_standard");
+        config.praxis_join = e.getString("praxis_join");
         config.report_pdfs = e.getBool("report_pdfs") orelse true;
         config.audit_bundle = e.getBool("audit_bundle") orelse false;
         config.build_dir = "public";

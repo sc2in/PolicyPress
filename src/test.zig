@@ -14,6 +14,7 @@ const report = @import("reports");
 const typst = @import("typst");
 const utils = @import("utils");
 const zigmark = @import("zigmark");
+const praxis_join = @import("praxis_join");
 
 const audit = @import("audit.zig");
 const diagrams = @import("diagrams.zig");
@@ -1333,4 +1334,67 @@ test "audit bundle: manifest hashes, newest revision, coverage export" {
         try tst.expect(scf.get("covered").?.integer >= 1);
         try tst.expect(scf.get("total").?.integer >= 1468);
     }
+}
+
+// ── praxis join loader (src/praxis_join.zig) ─────────────────────────────────
+
+test "praxis join: loads the committed demo fixture" {
+    const alloc = tst.allocator;
+    var join = try praxis_join.PraxisJoin.load(io, alloc, "data/praxis-join.json");
+    defer join.deinit();
+
+    // Provenance carried through for auditors.
+    try tst.expectEqualStrings("2026-07-22", join.generated_at);
+    try tst.expectEqualStrings("demo-fixture", join.source_rev);
+    try tst.expectEqualStrings("2026.1.1", join.scf_version);
+    try tst.expectEqual(@as(usize, 1), join.organizational_families.len);
+    try tst.expectEqualStrings("GOV", join.organizational_families[0]);
+
+    // contains() positive: a demo-tagged id, a dotted sub-control, an
+    // uncovered gap id, and the future scope-exclusion id are all in the spine.
+    try tst.expect(join.contains("GOV-01"));
+    try tst.expect(join.contains("HRS-05.1"));
+    try tst.expect(join.contains("MON-02")); // uncovered gap id
+    try tst.expect(join.contains("PES-01")); // future scope-exclusion id
+    // contains() negative: a valid SCF id the fixture deliberately omits.
+    try tst.expect(!join.contains("AST-01"));
+}
+
+test "praxis join: wrong schema string is a hard, distinct error" {
+    const alloc = tst.allocator;
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    const bad =
+        \\{ "schema": "policypress/praxis-join/v2",
+        \\  "generated_at": "2026-07-22",
+        \\  "source": { "rev": "x", "scf_version": "2026.1.1" },
+        \\  "organizational_families": ["GOV"], "ids": ["GOV-01"] }
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "bad_schema.json", .data = bad });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "bad_schema.json" });
+    defer alloc.free(p);
+
+    try tst.expectError(error.SchemaMismatch, praxis_join.PraxisJoin.load(io, alloc, p));
+}
+
+test "praxis join: missing schema field is a hard, distinct error" {
+    const alloc = tst.allocator;
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // Valid JSON, plausible payload — but no `schema`, so it must not pass.
+    const bad =
+        \\{ "generated_at": "2026-07-22",
+        \\  "organizational_families": ["GOV"], "ids": ["GOV-01"] }
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "no_schema.json", .data = bad });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "no_schema.json" });
+    defer alloc.free(p);
+
+    try tst.expectError(error.MissingSchema, praxis_join.PraxisJoin.load(io, alloc, p));
 }

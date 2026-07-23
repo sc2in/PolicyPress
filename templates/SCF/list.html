@@ -17,6 +17,15 @@
 {% set data = load_data(path=config.extra.policypress.scf_controls | default(value="data/scf.yml")) %}
 {% set line_items = tax.items | group_by(attribute="name") %}
 
+{# praxis control-join (optional): the committed list of SCF ids an external GRC
+   system actively governs. Guarded on the key being set so an unconfigured site
+   degrades — no spine bar, no per-control badges — with no load_data on an empty
+   path. `praxis.ids` is a flat array for cheap Tera membership tests. #}
+{% set praxis_path = config.extra.policypress.praxis_join | default(value="") %}
+{% set praxis = false %}
+{% if praxis_path %}{% set praxis = load_data(path=praxis_path, required=false) %}{% endif %}
+{% set has_praxis = praxis and praxis.ids %}
+
 {# Coverage = distinct data-file control_ids with >=1 mapped policy, over the
    total number of distinct control_ids. Counting `tax.items | length` (taxonomy
    terms used) over `data | length` (data rows) mismatched both ends: a typo'd
@@ -28,6 +37,17 @@
 {% if cid in line_items %}{% set_global covered_count = covered_count + 1 %}{% endif %}
 {% endfor %}
 {{ macros_coverage::coverage_bar(covered=covered_count, total=total_count, label="SCF Control Coverage") }}
+
+{# praxis spine coverage: of the ids in the control spine, how many have >=1
+   published policy mapped to them. Distinct from SCF coverage above (all catalog
+   controls) — this counts only the ids praxis actively governs. #}
+{% if has_praxis %}
+{% set_global spine_covered = 0 %}
+{% for sid in praxis.ids %}
+{% if sid in line_items %}{% set_global spine_covered = spine_covered + 1 %}{% endif %}
+{% endfor %}
+{{ macros_coverage::coverage_bar(covered=spine_covered, total=praxis.ids | length, label="praxis spine coverage") }}
+{% endif %}
 
 {% set domain_groups = data | group_by(attribute="domain") %}
 
@@ -64,7 +84,9 @@
     {% for control_id, control_group in domain_items | group_by(attribute="control_id") %}
     {% set control = control_group | first %}
     {% set control_policies = line_items[control_id] | default(value=[]) %}
-    <div class="control-item">
+    {# id anchor: the deep-link target for control-ref links, satisfies tags, and
+       the eventual PDF footnotes. Every control row is addressable as #<id>. #}
+    <div class="control-item" id="{{ control.control_id }}">
       <div class="control-header">
         <h3>
           <span class="control-id-link">{{ control.control_id }}</span>:
@@ -73,6 +95,9 @@
           <span class="badge bg-success-subtle text-success-emphasis ms-1" style="font-size: 0.7em;">
             {{ control_policies | length }} {% if control_policies | length == 1 %}policy{% else %}policies{% endif %}
           </span>
+          {% endif %}
+          {% if has_praxis and control.control_id in praxis.ids %}
+          <span class="praxis-badge" title="In praxis control spine">praxis</span>
           {% endif %}
         </h3>
         {% if control.description %}<div class="control-description">{{ control.description }}</div>{% endif %}

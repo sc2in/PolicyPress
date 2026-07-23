@@ -265,6 +265,53 @@ pub fn replace_org(alloc: Allocator, txt: *Array(u8), with: []const u8) !void {
     txt.* = new;
 }
 
+/// PDF pre-pass stopgap for inline control references.
+///
+/// Rewrites every `{{ control(id="IAC-01") }}` shortcode to the bare control id
+/// text (`IAC-01`) so demo PDFs never show literal shortcode syntax. This is a
+/// placeholder: a later subissue (#164) upgrades the rewrite to a `[^IAC-01]`
+/// footnote reference resolved against the SCF catalog + praxis join. The website
+/// renders the same shortcode as a link via templates/shortcodes/control.html.
+///
+/// Strictness mirrors `redact`'s orphan-tag handling: the id must match
+/// `[A-Z]{2,5}-[0-9]{2}(\.[0-9]+)*` exactly. Any `control(` construct that does
+/// not form a well-formed shortcode with a valid id is a hard error
+/// (`MalformedControlRef`) rather than passed through — a malformed reference
+/// that reached the PDF would otherwise render as raw template text.
+pub fn replace_control_refs(alloc: Allocator, txt: *Array(u8)) !void {
+    // Coarse opener: detects any control shortcode so we can (a) skip the work
+    // entirely when there are none and (b) flag leftovers that the strict
+    // pattern below did not consume as malformed.
+    const opener: mvzr.Regex = mvzr.compile("\\{\\{\\s*control\\(").?;
+    if (!opener.isMatch(txt.items)) return;
+
+    // Strict, well-formed reference: `{{ control(id="<ID>") }}` with a valid id.
+    const ref: mvzr.Regex = mvzr.compile("\\{\\{\\s*control\\(id=\"[A-Z]{2,5}-[0-9]{2}(\\.[0-9]+)*\"\\)\\s*\\}\\}").?;
+
+    var new = try txt.clone(alloc);
+
+    var iter = ref.iterator(txt.items);
+    while (iter.next()) |m| {
+        // Pull the id out of the matched slice (between `id="` and the next `"`).
+        // The strict regex guarantees these markers exist and bound a valid id.
+        const key = "id=\"";
+        const s = std.mem.indexOf(u8, m.slice, key) orelse return error.InvalidShortCode;
+        const id_start = s + key.len;
+        const id_end = std.mem.indexOfScalarPos(u8, m.slice, id_start, '"') orelse return error.InvalidShortCode;
+        const id = m.slice[id_start..id_end];
+
+        try new.replaceRange(alloc, m.start, m.slice.len, id);
+        iter = ref.iterator(new.items);
+    }
+    txt.deinit(alloc);
+    txt.* = new;
+
+    // After rewriting every well-formed reference, any surviving `control(`
+    // opener is malformed (bad id, missing id, or unclosed) — hard fail so it
+    // never reaches the PDF as literal shortcode text.
+    if (opener.isMatch(txt.items)) return error.MalformedControlRef;
+}
+
 /// Replaces all instances of the [...](@/...) links in the markdown text with the base_url
 /// Example: [Privacy](@/policies/privacy-policy.md) -> [Privacy](https://security.sc2.in/policies/privacy-policy.html)
 /// Example: [Acceptable Use](@/policies/aup/) -> [Acceptable Use](https://security.sc2.in/policies/aup/)

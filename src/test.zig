@@ -966,6 +966,50 @@ test "redact: multiple blocks are all redacted" {
     try tst.expect(std.mem.indexOf(u8, ts.items, "secret") == null);
 }
 
+test "control refs: a valid reference is rewritten to its bare id" {
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    try ts.appendSlice(tst.allocator, "Access is least-privilege {{ control(id=\"IAC-01\") }} enforced.");
+    try utils.replace_control_refs(tst.allocator, &ts);
+    try tst.expectEqualStrings("Access is least-privilege IAC-01 enforced.", ts.items);
+}
+
+test "control refs: multiple references are all rewritten" {
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    // Second ref uses the no-whitespace form to exercise \s* on both ends.
+    try ts.appendSlice(tst.allocator, "See {{ control(id=\"IAC-01\") }} and {{control(id=\"CRY-01\")}}.");
+    try utils.replace_control_refs(tst.allocator, &ts);
+    try tst.expectEqualStrings("See IAC-01 and CRY-01.", ts.items);
+}
+
+test "control refs: a dotted sub-control id is accepted" {
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    try ts.appendSlice(tst.allocator, "Ref {{ control(id=\"IAC-21.5\") }} here.");
+    try utils.replace_control_refs(tst.allocator, &ts);
+    try tst.expectEqualStrings("Ref IAC-21.5 here.", ts.items);
+}
+
+test "control refs: a malformed id is a hard error" {
+    // Lowercase / single-digit id fails the [A-Z]{2,5}-[0-9]{2}… pattern, so the
+    // leftover control( opener trips the strictness check (mirrors redact's
+    // orphan-tag handling).
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    try ts.appendSlice(tst.allocator, "Bad {{ control(id=\"iac-1\") }} ref.");
+    try tst.expectError(error.MalformedControlRef, utils.replace_control_refs(tst.allocator, &ts));
+}
+
+test "control refs: the org shortcode is not a false positive" {
+    // No control shortcode present — must be a no-op with no spurious error.
+    var ts = Array(u8).empty;
+    defer ts.deinit(tst.allocator);
+    try ts.appendSlice(tst.allocator, "Welcome to {{ org() }}!");
+    try utils.replace_control_refs(tst.allocator, &ts);
+    try tst.expectEqualStrings("Welcome to {{ org() }}!", ts.items);
+}
+
 test "redact mode: title suffix and content scrubbed" {
     const alloc = tst.allocator;
     const test_policy_file = try std.Io.Dir.cwd().openFile(io, "src/test/test_policy.md", .{});

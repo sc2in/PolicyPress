@@ -219,6 +219,42 @@ optional dotted sub-id (`IAC-01`, `HRS-05.1`, `IAC-21.5`). A malformed id — or
 any `control(…)` shortcode that is not well-formed — is a hard build error, so a
 broken reference can never silently ship in a PDF.
 
+## Checking the praxis join is fresh
+
+The praxis spine lives in a committed file (`data/praxis-join.json`) that a
+consumer regenerates from their praxis flake with `nix run .#gen-praxis-join`.
+praxis is **not** a PolicyPress flake input — PolicyPress is public and a
+praxis-like GRC system is private, and the feature must work for any consumer —
+so there is **no build-time freshness gate**. If the set of controls praxis
+governs changes upstream, the committed file goes stale silently until someone
+regenerates it. Catch that drift in CI by regenerating and diffing:
+
+```bash
+# Pin the provenance fields (generated_at, source.rev) to the committed file so
+# the diff surfaces only real drift in the governed control set, not the date:
+gen=$(jq -r .generated_at data/praxis-join.json)
+rev=$(jq -r .source.rev data/praxis-join.json)
+
+nix run github:sc2in/PolicyPress#gen-praxis-join -- \
+    github:your-org/praxis --generated-at "$gen" --rev "$rev" -o - \
+  | diff - data/praxis-join.json && echo "praxis join is up to date"
+```
+
+`-o -` writes the regenerated document to stdout instead of overwriting the
+file, so `diff` compares the freshly-evaluated spine against the committed one.
+A non-empty diff (non-zero exit) fails the CI step; to fix it, regenerate the
+file for real and commit it:
+
+```bash
+nix run github:sc2in/PolicyPress#gen-praxis-join -- github:your-org/praxis
+git add data/praxis-join.json && git commit -m "chore: refresh praxis join"
+```
+
+The join also surfaces in the [audit bundle](@/reports/assurance.md) as
+`join.json` — the policy↔praxis cross-check (which spine controls have a
+published policy, which are declared out of scope, and where the two conflict),
+written whenever `praxis_join` is configured.
+
 ## The SCF example
 
 The SCF files in `templates/opencontrols/standards/` show a real-world example of this pattern at scale (~1,200 controls). The SCF is published by the [Secure Controls Framework Council](https://securecontrolsframework.com/) under CC BY-ND 4.0. The files ship with descriptions removed - only control IDs, names, and domains are included.

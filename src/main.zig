@@ -1067,8 +1067,21 @@ fn runNew(io: std.Io, alloc: Allocator, args: []const [:0]const u8) !void {
         \\date: {s}
         \\description: ""
         \\draft: true
+        \\# Map this policy to compliance-framework controls by listing control ids
+        \\# (see the "Compliance Frameworks" guide). Ids must exist in your control
+        \\# catalog (e.g. data/scf.json) or a --strict build fails. Uncomment to use:
+        \\# taxonomies:
+        \\#   SCF:
+        \\#     - IAC-01
+        \\#     - IAC-02
         \\extra:
         \\  last_reviewed: {s}
+        \\  # Declare controls explicitly out of scope ("we do not do X"). Each entry
+        \\  # needs an `id` and a non-empty `reason`; excluded controls are a distinct
+        \\  # state (neither covered nor a silent gap). Uncomment to use:
+        \\  # scope_exclusions:
+        \\  #   - id: PES-01
+        \\  #     reason: "We operate no physical facilities."
         \\  major_revisions:
         \\    - version: "0.1"
         \\      date: {s}

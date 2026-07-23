@@ -48,6 +48,16 @@ fn tmpAbsPath(alloc: Allocator, tmp: *tst.TmpDir) ![]u8 {
     return std.fs.path.join(alloc, &.{ buf[0..cwd_len], ".zig-cache", "tmp", &tmp.sub_path });
 }
 
+/// Write `bytes` to `dir/name`, truncating any existing file. Small helper for
+/// staging scratch fixtures (policies, fake PDFs) in the audit-bundle tests.
+fn writeFileAt(alloc: Allocator, dir: []const u8, name: []const u8, bytes: []const u8) !void {
+    const p = try std.fs.path.join(alloc, &.{ dir, name });
+    defer alloc.free(p);
+    const f = try std.Io.Dir.cwd().createFile(io, p, .{ .truncate = true });
+    defer f.close(io);
+    try f.writeStreamingAll(io, bytes);
+}
+
 test {
     _ = utils;
     _ = zigmark;
@@ -1408,6 +1418,149 @@ test "audit bundle: manifest hashes, newest revision, coverage export" {
         try tst.expect(saw_pes01);
         try tst.expect(saw_hrs05);
     }
+
+    // ── join.json gating: NOT written without a praxis_join ─────────────────
+    // TestConfig configures no praxis_join, so the join facet must be absent —
+    // the bundle is exactly as it was before the facet existed.
+    {
+        const p = try std.fs.path.join(alloc, &.{ audit_dir, "join.json" });
+        defer alloc.free(p);
+        const exists = if (std.Io.Dir.cwd().access(io, p, .{})) |_| true else |_| false;
+        try tst.expect(!exists);
+    }
+}
+
+test "audit bundle: praxis join facet (join.json)" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+    conf.date = .{ .year = 2026, .month = 1, .day = 1 };
+    // Enable the facet. The path is resolved relative to conf.root (the repo
+    // root under test), matching main.zig's join-path resolution.
+    conf.praxis_join = "data/praxis-join.json";
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const base = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(base);
+
+    const pol_dir = try std.fs.path.join(alloc, &.{ base, "policies" });
+    defer alloc.free(pol_dir);
+    try std.Io.Dir.cwd().createDirPath(io, pol_dir);
+    const pdf_dir = try std.fs.path.join(alloc, &.{ base, "pdfs" });
+    defer alloc.free(pdf_dir);
+    try std.Io.Dir.cwd().createDirPath(io, pdf_dir);
+
+    // Policy 1: the shared fixture — covers HRS-05.* (all in the spine) and
+    // declares PES-01 (also in the spine) out of scope.
+    const src_md = try std.Io.Dir.cwd().readFileAlloc(io, "src/test/test_policy.md", alloc, .limited(1 << 20));
+    defer alloc.free(src_md);
+    try writeFileAt(alloc, pol_dir, "test_policy.md", src_md);
+    try writeFileAt(alloc, pdf_dir, "Test_Policy_-_v1.1.pdf", "fake pdf bytes");
+
+    // Policy 2: COVERS PES-01, which policy 1 excludes — a cross-policy conflict
+    // (declared_by AND excluded_by both non-empty) and, via the tie-break, a
+    // spine control that counts as covered despite the exclusion.
+    const conflict_md =
+        \\---
+        \\title: "Conflict Test Policy"
+        \\date: 2024-11-13
+        \\taxonomies:
+        \\  SCF:
+        \\    - PES-01
+        \\extra:
+        \\  owner: SC2
+        \\  last_reviewed: 2025-02-24
+        \\  major_revisions:
+        \\    - version: "1.0"
+        \\      date: 2024-11-13
+        \\      approved_by: Ada Byrne
+        \\      description: Initial version.
+        \\---
+        \\
+        \\## Body
+        \\
+        \\Content.
+        \\
+    ;
+    try writeFileAt(alloc, pol_dir, "conflict_test.md", conflict_md);
+    try writeFileAt(alloc, pdf_dir, "Conflict_Test_Policy_-_v1.0.pdf", "fake pdf bytes");
+
+    alloc.free(conf.policy_dir);
+    conf.policy_dir = try alloc.dupe(u8, pol_dir);
+    conf.build_dir = pdf_dir;
+
+    const audit_dir = try std.fs.path.join(alloc, &.{ base, "audit" });
+    defer alloc.free(audit_dir);
+    try audit.writeBundle(io, alloc, conf, audit_dir, "9.9.9-test");
+
+    const p = try std.fs.path.join(alloc, &.{ audit_dir, "join.json" });
+    defer alloc.free(p);
+    const bytes = try std.Io.Dir.cwd().readFileAlloc(io, p, alloc, .limited(16 << 20));
+    defer alloc.free(bytes);
+    const parsed = try std.json.parseFromSlice(std.json.Value, alloc, bytes, .{});
+    defer parsed.deinit();
+    const root = parsed.value.object;
+
+    // Schema + provenance carried from the loaded join.
+    try tst.expectEqualStrings("policypress/audit-join/v1", root.get("schema").?.string);
+    try tst.expectEqualStrings("2026-01-01", root.get("generated_at").?.string);
+    const prov = root.get("praxis").?.object;
+    try tst.expectEqualStrings("2026-07-22", prov.get("generated_at").?.string);
+    try tst.expectEqualStrings("demo-fixture", prov.get("source_rev").?.string);
+    try tst.expectEqualStrings("2026.1.1", prov.get("scf_version").?.string);
+
+    // Summary math identity: covered + excluded + unaddressed == total.
+    const sm = root.get("summary").?.object;
+    const total = sm.get("spine_total").?.integer;
+    const covered = sm.get("spine_covered").?.integer;
+    const excluded = sm.get("spine_excluded").?.integer;
+    const unaddressed = sm.get("spine_unaddressed").?.integer;
+    try tst.expectEqual(@as(i64, 23), total); // the demo fixture has 23 spine ids
+    try tst.expectEqual(total, covered + excluded + unaddressed);
+    // HRS-05.* (6) plus PES-01 (covered by the conflict policy, tie-break) = 7.
+    try tst.expectEqual(@as(i64, 7), covered);
+    // PES-01 is covered, so it does NOT count toward excluded.
+    try tst.expectEqual(@as(i64, 0), excluded);
+
+    // Walk the control rows for the three representative states.
+    var saw_pes01 = false;
+    var saw_hrs05 = false;
+    var saw_mon02 = false;
+    for (root.get("controls").?.array.items) |cv| {
+        const c = cv.object;
+        const cid = c.get("id").?.string;
+        const in_spine = c.get("in_praxis_spine").?.bool;
+        const decl = c.get("declared_by").?.array.items;
+        const excl = c.get("excluded_by").?.array.items;
+        const conflict = c.get("conflict").?.bool;
+        if (std.mem.eql(u8, cid, "PES-01")) {
+            saw_pes01 = true;
+            try tst.expect(in_spine); // in-spine AND excluded
+            try tst.expectEqual(@as(usize, 1), decl.len);
+            try tst.expectEqualStrings("Conflict Test Policy", decl[0].string);
+            try tst.expectEqual(@as(usize, 1), excl.len);
+            try tst.expectEqualStrings("Test Policy", excl[0].string);
+            try tst.expect(conflict); // the cross-policy tension
+        } else if (std.mem.eql(u8, cid, "HRS-05")) {
+            saw_hrs05 = true;
+            try tst.expect(in_spine);
+            try tst.expectEqual(@as(usize, 1), decl.len);
+            try tst.expectEqualStrings("Test Policy", decl[0].string);
+            try tst.expectEqual(@as(usize, 0), excl.len);
+            try tst.expect(!conflict);
+        } else if (std.mem.eql(u8, cid, "MON-02")) {
+            // A gap id: in the spine but neither covered nor excluded.
+            saw_mon02 = true;
+            try tst.expect(in_spine);
+            try tst.expectEqual(@as(usize, 0), decl.len);
+            try tst.expectEqual(@as(usize, 0), excl.len);
+            try tst.expect(!conflict);
+        }
+    }
+    try tst.expect(saw_pes01);
+    try tst.expect(saw_hrs05);
+    try tst.expect(saw_mon02);
 }
 
 // ── praxis join loader (src/praxis_join.zig) ─────────────────────────────────

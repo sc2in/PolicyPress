@@ -10,6 +10,29 @@ versioning; breaking changes to it bump the major version.
 
 ### Added
 
+- **Audit bundle praxis-join facet (`audit/join.json`).** When a praxis control
+  join is configured (`[extra.policypress] praxis_join`), the audit bundle gains
+  a new `join.json` file (schema `policypress/audit-join/v1`) exposing the
+  policy↔praxis cross-check directly, so an external GRC system or auditor can
+  consume it without recomputing it from `coverage.json`. It carries the praxis
+  provenance, a spine summary that partitions every spine control into covered,
+  excluded, or unaddressed (a control both covered and excluded counts as
+  covered, so the three sum to the total), and one row per control in the union
+  of the praxis spine, the SCF-tagged controls, and the declared-out-of-scope
+  controls — each recording spine membership, the policies that declare it, the
+  policies that declare it out of scope, and whether those conflict. The file is
+  written **only** when a join is configured; without one the bundle is
+  byte-for-byte unchanged. The generator (`nix run .#gen-praxis-join`) gained
+  `-o -` to write to stdout, enabling a consumer-side CI drift check (see the
+  Compliance Frameworks guide).
+- The audit bundle's `coverage.json` / `coverage.csv` now carry an additive
+  per-control `excluded_by` list — the policies that declare a control out of
+  scope via `extra.scope_exclusions`. The `policypress/audit-coverage/v1` schema
+  string is unchanged (consumers that exact-match it and ignore unknown keys are
+  unaffected); an exclusion is a distinct third state, never counted as coverage.
+- Scaffolds from `policypress new` now include commented `taxonomies:`/`SCF:`
+  and `extra.scope_exclusions` stubs so authors discover both — still commented,
+  so a fresh scaffold validates unchanged.
 - **Praxis control-join plumbing.** A new optional `config.toml` key,
   `[extra.policypress] praxis_join`, points at a committed JSON file
   (`data/praxis-join.json`, schema `policypress/praxis-join/v1`) listing the bare

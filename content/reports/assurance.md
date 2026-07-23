@@ -28,7 +28,15 @@ PolicyPress site:
   flattened and queryable in one place.
 - [`coverage.json`](/audit/coverage.json) / [`coverage.csv`](/audit/coverage.csv)
   — structured SCF and SOC 2 (TSC 2017) control coverage, the same numbers the
-  [reports](@/reports/_index.md) render.
+  [reports](@/reports/_index.md) render. Each control also carries an
+  `excluded_by` list: the policies that declare it out of scope.
+- [`join.json`](/audit/join.json) — the policy↔praxis join as a first-class
+  facet (written only when a [praxis control join](@/guides/configuration.md#praxis-control-join)
+  is configured). For every control in the union of the praxis spine, the
+  SCF-tagged controls, and the declared-out-of-scope controls, it records
+  whether the control is in the praxis spine, which policies declare it, which
+  declare it out of scope, and whether those two conflict — plus a spine summary
+  (`spine_total` = `spine_covered` + `spine_excluded` + `spine_unaddressed`).
 
 To verify a PDF you downloaded from this site against the manifest:
 

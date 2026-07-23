@@ -26,6 +26,8 @@ const reports = @import("reports");
 const writeStamp = @import("utils").writeStamp;
 const audit = @import("audit.zig");
 const diagrams = @import("diagrams.zig");
+const controls = @import("controls");
+const zigmark = @import("zigmark");
 
 // ---------------------------------------------------------------------------
 // Logging
@@ -444,6 +446,39 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     // since-deleted policy still leaves its PDF at a guessable URL otherwise.
     try sweepStalePdfs(io, alloc, config, output_path, policies.items);
 
+    // --- Control-ID join ---
+    // One read-only join (SCF catalog + optional praxis join + a library of the
+    // non-draft policies) drives both control-footnote resolution during compile
+    // and the control-reference preflight below. Built once here so it is shared
+    // (by resolver value) across the concurrent compile task group. A missing
+    // catalog degrades gracefully; a configured-but-unloadable praxis join is a
+    // hard error (see ControlJoin.init).
+    const scf_catalog_path = try std.fs.path.join(alloc, &.{ config.root, reports.Kind.scf.catalogFile().? });
+    defer alloc.free(scf_catalog_path);
+    const scf_exists = blk: {
+        std.Io.Dir.cwd().access(io, scf_catalog_path, .{}) catch break :blk false;
+        break :blk true;
+    };
+    const join_path: ?[]const u8 = if (config.praxis_join) |rel|
+        try std.fs.path.join(alloc, &.{ config.root, rel })
+    else
+        null;
+    defer if (join_path) |p| alloc.free(p);
+
+    var policy_paths = try alloc.alloc([]const u8, policies.items.len);
+    defer alloc.free(policy_paths);
+    for (policies.items, 0..) |p, i| policy_paths[i] = p.path;
+
+    var control_join = try controls.ControlJoin.init(
+        io,
+        alloc,
+        if (scf_exists) scf_catalog_path else null,
+        join_path,
+        policy_paths,
+    );
+    defer control_join.deinit();
+    const control_resolver: ?zigmark.footnotes.Resolver = control_join.resolver();
+
     // --- Front-matter validation (pre-flight) ---
     // Warn on incomplete front matter; with --strict, fail on audit-critical
     // gaps. Runs over every current policy (not just the rebuild subset) so a
@@ -453,7 +488,12 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         var critical: usize = 0;
         var advisory: usize = 0;
         for (policies.items) |p| {
-            switch (config.reviewPolicyFile(io, alloc, p.path)) {
+            // The more severe of the front-matter/body review and the
+            // control-reference review, folded into the same counters.
+            const fm_kind = config.reviewPolicyFile(io, alloc, p.path);
+            const ctl_kind = control_join.reviewControlRefs(io, alloc, p.path);
+            const kind = if (@intFromEnum(fm_kind) >= @intFromEnum(ctl_kind)) fm_kind else ctl_kind;
+            switch (kind) {
                 .none => {},
                 .advisory => advisory += 1,
                 .critical => critical += 1,
@@ -566,6 +606,7 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
             alloc,
             config,
             p.path,
+            control_resolver,
             stamps_dir_path,
             compile_node,
             &error_mutex,
@@ -887,6 +928,7 @@ fn compileOne(
     alloc: Allocator,
     config: Config,
     input_path: []const u8,
+    resolver: ?zigmark.footnotes.Resolver,
     stamps_dir: []const u8,
     progress_node: std.Progress.Node,
     error_mutex: *std.Io.Mutex,
@@ -895,7 +937,7 @@ fn compileOne(
 ) void {
     defer progress_node.completeOne();
 
-    Typst.compile(io, env, alloc, config, input_path) catch |err| {
+    Typst.compile(io, env, alloc, config, input_path, resolver) catch |err| {
         error_mutex.lockUncancelable(io);
         defer error_mutex.unlock(io);
         error_count.* += 1;

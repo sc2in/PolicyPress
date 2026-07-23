@@ -146,6 +146,24 @@ pub fn build(b: *std.Build) !void {
     reports_mod.addImport("typst", typst_mod);
     reports_mod.addImport("praxis_join", praxis_join_mod);
 
+    // Control-ID join (src/controls.zig): binds the SCF catalog, the optional
+    // praxis join, and a zigmark Library of the non-draft policies so inline
+    // control footnotes resolve to title + spine status + covering policies.
+    // Imports `reports` (which imports `typst`), so `typst` must NOT import
+    // this module — the footnote resolver reaches typst.render() as a plain
+    // `zigmark.footnotes.Resolver` value instead.
+    const controls_mod = b.addModule("controls", .{
+        .root_source_file = b.path("src/controls.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    controls_mod.addImport("zigmark", zigmark_mod);
+    controls_mod.addImport("reports", reports_mod);
+    controls_mod.addImport("praxis_join", praxis_join_mod);
+    controls_mod.addImport("config", config_mod);
+    controls_mod.addImport("utils", utils_mod);
+    controls_mod.addImport("mvzr", mvzr.module("mvzr"));
+
     // Shared render helper for the golden Typst-markup snapshots (used by both
     // golden_test.zig and tools/golden_gen.zig).
     const golden_mod = b.addModule("golden", .{
@@ -156,6 +174,7 @@ pub fn build(b: *std.Build) !void {
     golden_mod.addImport("config", config_mod);
     golden_mod.addImport("typst", typst_mod);
     golden_mod.addImport("reports", reports_mod);
+    golden_mod.addImport("controls", controls_mod);
 
     const policypress_mod = b.addModule("policypress", .{
         .target = target,
@@ -175,6 +194,7 @@ pub fn build(b: *std.Build) !void {
     policypress_mod.addImport("reports", reports_mod);
     policypress_mod.addImport("utils", utils_mod);
     policypress_mod.addImport("praxis_join", praxis_join_mod);
+    policypress_mod.addImport("controls", controls_mod);
     // Build-time mermaid rendering for the site (src/diagrams.zig, `render-diagrams`).
     policypress_mod.addImport("pozeiden", pozeiden_mod);
     const policypress_exe = b.addExecutable(.{
@@ -214,6 +234,7 @@ pub fn build(b: *std.Build) !void {
         test_module.addImport("config", config_mod);
         test_module.addImport("reports", reports_mod);
         test_module.addImport("praxis_join", praxis_join_mod);
+        test_module.addImport("controls", controls_mod);
         test_module.addImport("mvzr", mvzr.module("mvzr"));
         // src/diagrams.zig (imported by src/test.zig) renders mermaid via pozeiden.
         test_module.addImport("pozeiden", pozeiden_mod);
@@ -286,6 +307,10 @@ pub fn build(b: *std.Build) !void {
             .{ .name = "test_policy_draft.typ", .fixture = "src/test/test_policy.md", .flag = "--draft" },
             .{ .name = "test_policy_render.typ", .fixture = "src/test/test_policy_render.md", .flag = null },
             .{ .name = "test_policy_math.typ", .fixture = "src/test/test_policy_math.md", .flag = null },
+            // Control-footnote fixture: rendered with a fixture-backed ControlJoin
+            // context (`--controls`), so it shows native `#footnote[…]` with the
+            // resolved title / spine / covering-policy text.
+            .{ .name = "test_policy_controls.typ", .fixture = "--controls", .flag = null },
             .{ .name = "report_scf.typ", .fixture = "--report", .flag = "scf" },
             .{ .name = "report_soc2.typ", .fixture = "--report", .flag = "soc2" },
             .{ .name = "report_review.typ", .fixture = "--report", .flag = "review" },

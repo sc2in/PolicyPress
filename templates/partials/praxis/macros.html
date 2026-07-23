@@ -1,0 +1,57 @@
+{#- ===========================================================================
+    praxis overlay — OPTIONAL, in-repo (issue #174)
+
+    Every praxis-specific rendering decision lives in this file (and its sibling
+    spine-bar.html), so the core SCF templates stay praxis-agnostic: a site with
+    no `praxis_join` configured renders exactly as if this overlay did not exist.
+
+    Each macro is SELF-GUARDING — it loads the join itself and degrades to empty
+    output when no join is set (Zola memoises load_data per build, so repeated
+    calls are cheap) — so core templates carry a single macro call at each
+    insertion point instead of scattered `{% if has_praxis %}` blocks or their
+    own `load_data`. `config` is passed in because Tera macros do not see the
+    global context.
+
+    Import once per template:
+        {% import "partials/praxis/macros.html" as praxis %}
+    =========================================================================== -#}
+
+{#- The flat list of SCF ids the praxis control spine governs, or [] when no
+    join is configured. Private helper the public macros build on; each loads it
+    itself rather than threading an array (Tera macros can only return strings). -#}
+
+{#- CSS class fragment (leading space) appended to a Framework-Coverage SCF tag
+    when `id` is in the praxis spine; empty otherwise. -#}
+{% macro tag_class(config, id) -%}
+{%- set path = config.extra.policypress.praxis_join | default(value="") -%}
+{%- if path %}{% set join = load_data(path=path, required=false) %}{%- if join and join.ids and id in join.ids %} satisfies-tag--praxis{% endif -%}{% endif -%}
+{%- endmacro tag_class %}
+
+{#- `title` attribute (leading space) for an in-spine Framework-Coverage SCF
+    tag; empty otherwise. -#}
+{% macro tag_title(config, id) -%}
+{%- set path = config.extra.policypress.praxis_join | default(value="") -%}
+{%- if path %}{% set join = load_data(path=path, required=false) %}{%- if join and join.ids and id in join.ids %} title="In praxis control spine"{% endif -%}{% endif -%}
+{%- endmacro tag_title %}
+
+{#- CSS class fragment (leading space) appended to an inline control reference
+    ({{ control(id="…") }}) when `id` is in the praxis spine; empty otherwise. -#}
+{% macro ref_class(config, id) -%}
+{%- set path = config.extra.policypress.praxis_join | default(value="") -%}
+{%- if path %}{% set join = load_data(path=path, required=false) %}{%- if join and join.ids and id in join.ids %} control-ref--praxis{% endif -%}{% endif -%}
+{%- endmacro ref_class %}
+
+{#- The spine-membership note for an inline control reference's tooltip
+    ("In praxis control spine"), or empty when `id` is not in the spine. The
+    caller composes it into the title with any control-name it already has. -#}
+{% macro spine_note(config, id) -%}
+{%- set path = config.extra.policypress.praxis_join | default(value="") -%}
+{%- if path %}{% set join = load_data(path=path, required=false) %}{%- if join and join.ids and id in join.ids %}In praxis control spine{% endif -%}{% endif -%}
+{%- endmacro spine_note %}
+
+{#- The per-control "praxis" pill for the SCF report table, or empty when `id`
+    is not in the spine. -#}
+{% macro badge(config, id) -%}
+{%- set path = config.extra.policypress.praxis_join | default(value="") -%}
+{%- if path %}{% set join = load_data(path=path, required=false) %}{%- if join and join.ids and id in join.ids %}<span class="praxis-badge" title="In praxis control spine">praxis</span>{% endif -%}{% endif -%}
+{%- endmacro badge %}

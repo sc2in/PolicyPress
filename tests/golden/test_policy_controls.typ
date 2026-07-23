@@ -95,10 +95,10 @@
 )
 
 == Purpose
-Access is least-privilege #footnote[IAC-01 — Identity & Access Management. praxis: in control spine. Covered by: Access Control Test Policy.] enforced across all systems.
+Access is least-privilege #footnote[IAC-01 — Identity & Access Management. See also: Access Control Standard.] enforced across all systems.
 
 == Data protection
-All data is classified and protected #footnote[DCH-01 — Data Protection. praxis: not in control spine. Covered by: Access Control Test Policy.] according to its sensitivity.
+All data is classified and protected #footnote[DCH-01 — Data Protection.] according to its sensitivity.
 
 
 #pagebreak()

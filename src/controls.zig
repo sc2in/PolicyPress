@@ -3,27 +3,36 @@
 //!
 //! Control-ID join for policy PDFs (#127 / #164).
 //!
-//! Binds three read-only data sources so that inline control references become
+//! Binds two read-only data sources so that inline control references become
 //! footnotes carrying auditable context:
 //!
 //!   * the SCF control catalog (`data/scf.json`, via `control_report.zig`) — the
-//!     control title;
-//!   * the optional praxis join (`data/praxis-join.json`) — whether the control
-//!     is in praxis's actively-governed spine; and
+//!     control title; and
 //!   * a `zigmark.Library` of the non-draft policies — the render-time reverse
 //!     lookup (control id → covering policy titles) that exists nowhere else.
 //!
-//! `ControlJoin` produces a `zigmark.footnotes.Resolver`: given a control label
-//! like `IAC-01`, it returns the Markdown definition body that
-//! `zigmark.footnotes.resolve` synthesises into the AST, which the Typst
-//! renderer then expands to a native `#footnote[…]`. Every clause degrades: a
-//! missing catalog drops the title, a missing join drops the praxis clause, no
-//! covering policy drops that clause — the id alone is always a valid footnote.
+//! The footnote body is **praxis-agnostic** (#172/#174): praxis spine
+//! membership is an optional overlay surfaced on the web badges, the PDF
+//! coverage annex, and `audit/join.json` — never repeated inline in every
+//! footnote. The one residual praxis touch in this file is a load-time catalog
+//! skew diagnostic, quarantined behind `checkPraxisCatalogSkew` (see below); it
+//! reads the join purely to warn, and does not shape any rendered output.
+//!
+//! `ControlJoin` produces a per-document `zigmark.footnotes.Resolver` (via
+//! `DocResolver`): given a control label like `IAC-01`, it returns the Markdown
+//! definition body that `zigmark.footnotes.resolve` synthesises into the AST,
+//! which the Typst renderer then expands to a native `#footnote[…]`. Shape:
+//! `IAC-01 — <title>. See also: <other covering policies>.` — every clause
+//! degrades: a missing catalog drops the title, and no *other* covering policy
+//! drops the "See also" clause (the id alone is always a valid footnote). The
+//! resolver is per-document so "See also" can exclude the policy that owns the
+//! footnote (it never lists itself).
 //!
 //! `ControlJoin` is additive: it never touches `control_report.zig`'s
 //! `coverage()`, whose draft-exclusion / dedup / corrected-numerator logic stays
 //! canonical. After construction it is read-only, so a single instance is shared
-//! (by resolver value) across the concurrent per-policy compile tasks.
+//! across the concurrent per-policy compile tasks; each task wraps it in its own
+//! stack-local `DocResolver` bound to that policy's path.
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
@@ -85,7 +94,11 @@ pub const ControlJoin = struct {
     /// `taxonomies.TSC2017` criteria); footnote resolution and validation are
     /// SCF-only.
     tsc_catalog: ?reports,
-    /// praxis spine membership, or null when no join file is configured.
+    /// The optional praxis join — the SINGLE praxis seam in this core type.
+    /// Held only to drive the load-time catalog-skew diagnostic
+    /// (`checkPraxisCatalogSkew`); it is deliberately *not* read by
+    /// `resolveFootnote` (footnotes are praxis-agnostic, #172/#174). Null when
+    /// no join file is configured, so a praxis-free build touches none of it.
     join: ?praxis_join.PraxisJoin,
     /// The non-draft policies, queried for covering-policy titles.
     library: zigmark.Library,
@@ -138,20 +151,7 @@ pub const ControlJoin = struct {
         errdefer if (join) |*j| j.deinit();
         if (join_path) |jp| {
             join = try praxis_join.PraxisJoin.load(io, alloc, jp);
-            // A configured catalog and join built from different SCF versions is a
-            // maintenance smell: spine ids the local catalog does not know cannot
-            // be titled. Advisory, so builds still pass (SCF-version skew is the
-            // author's to reconcile, not a hard failure).
-            if (catalog) |*c| {
-                for (join.?.ids) |id| {
-                    if (!c.map.contains(id)) {
-                        ctrllog.warn(
-                            "praxis spine id '{s}' is not in the local control catalog (SCF version skew)",
-                            .{id},
-                        );
-                    }
-                }
-            }
+            checkPraxisCatalogSkew(join.?, if (catalog) |*c| c else null);
         }
 
         var library = zigmark.Library.init(alloc);
@@ -178,15 +178,18 @@ pub const ControlJoin = struct {
         self.library.deinit();
     }
 
-    /// A `zigmark.footnotes.Resolver` bound to this join. The returned resolver
-    /// borrows `self`; it must not outlive the `ControlJoin`.
-    pub fn resolver(self: *const ControlJoin) zigmark.footnotes.Resolver {
-        return .{ .ctx = @constCast(self), .resolveFn = resolveThunk };
-    }
-
-    fn resolveThunk(ctx: ?*anyopaque, alloc: Allocator, label: []const u8) anyerror!?[]const u8 {
-        const self: *const ControlJoin = @ptrCast(@alignCast(ctx.?));
-        return self.resolveFootnote(alloc, label);
+    /// Build a per-document footnote resolver bound to this join and to
+    /// `self_path` — the path (relative to `config.root`) of the policy being
+    /// compiled. "See also" cross-references exclude that policy so a footnote
+    /// never lists the document it lives in. Pass null for a document-agnostic
+    /// resolver (every covering policy is listed).
+    ///
+    /// The returned `DocResolver` borrows both `self` and `self_path`; keep it
+    /// alive for the whole compile. Because compilation is concurrent across
+    /// policies, each task must build (and own) its own `DocResolver` — never
+    /// share one mutable instance.
+    pub fn docResolver(self: *const ControlJoin, self_path: ?[]const u8) DocResolver {
+        return .{ .join = self, .self_path = self_path };
     }
 
     /// A `control_annex.Provider` bound to this join, for the PDF control-coverage
@@ -220,11 +223,21 @@ pub const ControlJoin = struct {
     /// not a control id (so a genuinely unknown footnote reference stays
     /// dangling for validation to catch). Shape:
     ///
-    ///   `IAC-01 — <title>. praxis: in control spine. Covered by: A, B.`
+    ///   `IAC-01 — <title>. See also: A, B.`
     ///
-    /// with any clause omitted when its data source is absent. Caller owns the
-    /// returned slice (zigmark frees it, per the resolver contract).
-    pub fn resolveFootnote(self: *const ControlJoin, alloc: Allocator, label: []const u8) !?[]const u8 {
+    /// The body is praxis-agnostic (#172/#174): no spine clause. "See also"
+    /// lists the *other* non-draft policies that address the control (excluding
+    /// `self_path`, the policy that owns the footnote); it is omitted entirely
+    /// when no other policy covers the control, and the title clause is omitted
+    /// when the catalog is absent (the id alone is always a valid footnote).
+    /// Caller owns the returned slice (zigmark frees it, per the resolver
+    /// contract).
+    pub fn resolveFootnote(
+        self: *const ControlJoin,
+        alloc: Allocator,
+        label: []const u8,
+        self_path: ?[]const u8,
+    ) !?[]const u8 {
         if (!isControlId(label)) return null;
 
         var aw: std.Io.Writer.Allocating = .init(alloc);
@@ -239,19 +252,13 @@ pub const ControlJoin = struct {
         }
         try aw.writer.writeByte('.');
 
-        // praxis spine clause (only when a join is configured).
-        if (self.join) |*j| {
-            try aw.writer.print(" praxis: {s}.", .{
-                if (j.contains(label)) "in control spine" else "not in control spine",
-            });
-        }
-
-        // Covering-policy clause (only when ≥1 non-draft policy tags the control).
-        const covering = try self.coveringPolicies(alloc, label);
-        defer alloc.free(covering);
-        if (covering.len > 0) {
-            try aw.writer.writeAll(" Covered by: ");
-            for (covering, 0..) |title, i| {
+        // "See also" clause: the OTHER non-draft policies tagging this control,
+        // excluding the current one. Omitted when no other policy covers it.
+        const also = try self.coveringPolicies(alloc, label, self_path);
+        defer alloc.free(also);
+        if (also.len > 0) {
+            try aw.writer.writeAll(" See also: ");
+            for (also, 0..) |title, i| {
                 if (i > 0) try aw.writer.writeAll(", ");
                 try aw.writer.writeAll(title);
             }
@@ -262,10 +269,16 @@ pub const ControlJoin = struct {
     }
 
     /// Sorted, deduplicated titles of the non-draft policies whose
-    /// `taxonomies.SCF` lists `label`. The returned slice is owned by the caller
+    /// `taxonomies.SCF` lists `label`, excluding the policy at `exclude_path`
+    /// (pass null to exclude none). The returned slice is owned by the caller
     /// (`alloc.free`); its elements borrow from the library's frontmatter, which
     /// lives for the whole build.
-    fn coveringPolicies(self: *const ControlJoin, alloc: Allocator, label: []const u8) ![]const []const u8 {
+    fn coveringPolicies(
+        self: *const ControlJoin,
+        alloc: Allocator,
+        label: []const u8,
+        exclude_path: ?[]const u8,
+    ) ![]const []const u8 {
         const q = try std.fmt.allocPrint(alloc, "taxonomies.SCF={s}", .{label});
         defer alloc.free(q);
 
@@ -275,6 +288,12 @@ pub const ControlJoin = struct {
         var titles = std.ArrayList([]const u8).empty;
         errdefer titles.deinit(alloc);
         for (results) |r| {
+            // Skip the current policy so its own footnotes never list it.
+            if (exclude_path) |ep| {
+                if (r.entry.path) |rp| {
+                    if (std.mem.eql(u8, rp, ep)) continue;
+                }
+            }
             const fm = r.entry.frontmatter orelse continue;
             const title_v = fm.get("title") orelse continue;
             if (title_v != .string) continue;
@@ -514,7 +533,7 @@ pub const ControlJoin = struct {
             // Cross-policy cover/exclude conflict → advisory. Only meaningful for
             // well-formed ids; a covering policy other than this one is the tension.
             if (isControlId(eid)) {
-                const covering = self.coveringPolicies(alloc, eid) catch &.{};
+                const covering = self.coveringPolicies(alloc, eid, null) catch &.{};
                 defer alloc.free(covering);
                 for (covering) |title| {
                     if (!std.mem.eql(u8, title, own_title)) {
@@ -534,6 +553,49 @@ pub const ControlJoin = struct {
 
 fn lessThanStr(_: void, lhs: []const u8, rhs: []const u8) bool {
     return std.mem.order(u8, lhs, rhs) == .lt;
+}
+
+/// A per-document `zigmark.footnotes.Resolver` context: a borrowed
+/// `*const ControlJoin` plus the path of the policy currently being compiled.
+/// The resolver's opaque `ctx` is a single pointer, so this small struct is the
+/// per-document ctx — one is built (on the stack) per concurrent compile task,
+/// bound to that task's policy, so "See also" can exclude the owning document
+/// without any shared mutable state. Build via `ControlJoin.docResolver`.
+pub const DocResolver = struct {
+    join: *const ControlJoin,
+    /// Path (relative to `config.root`) of the policy being compiled, excluded
+    /// from its own "See also" cross-references. Null lists every covering
+    /// policy (document-agnostic).
+    self_path: ?[]const u8,
+
+    /// The `zigmark.footnotes.Resolver` view. Borrows `self`; the `DocResolver`
+    /// must outlive every use of the returned resolver.
+    pub fn resolver(self: *const DocResolver) zigmark.footnotes.Resolver {
+        return .{ .ctx = @constCast(self), .resolveFn = resolveThunk };
+    }
+
+    fn resolveThunk(ctx: ?*anyopaque, alloc: Allocator, label: []const u8) anyerror!?[]const u8 {
+        const self: *const DocResolver = @ptrCast(@alignCast(ctx.?));
+        return self.join.resolveFootnote(alloc, label, self.self_path);
+    }
+};
+
+/// The one praxis touch in this core module: a load-time diagnostic warning
+/// when the configured catalog and praxis join were built from different SCF
+/// versions (a spine id the local catalog does not know cannot be titled).
+/// Advisory only — it logs and never shapes rendered output, so a praxis-free
+/// build (no join) never reaches it. Quarantined here so `resolveFootnote` and
+/// the rest of `ControlJoin` stay praxis-agnostic (#174).
+fn checkPraxisCatalogSkew(join: praxis_join.PraxisJoin, catalog: ?*const reports) void {
+    const cat = catalog orelse return;
+    for (join.ids) |id| {
+        if (!cat.map.contains(id)) {
+            ctrllog.warn(
+                "praxis spine id '{s}' is not in the local control catalog (SCF version skew)",
+                .{id},
+            );
+        }
+    }
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────

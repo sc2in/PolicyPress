@@ -1,0 +1,24 @@
+{#- praxis overlay (optional, #174): the "praxis spine coverage" bar for the SCF
+    report page.
+
+    Included by SCF/list.html behind the single praxis_join guard. Self-guarding
+    on the data too: renders nothing when the join is unset or empty. Reuses the
+    caller's `line_items` (SCF taxonomy terms that have >=1 mapped policy) to
+    count how many spine ids are covered — distinct from overall SCF coverage,
+    which spans the whole catalog. Keep the count logic identical to the pre-#174
+    inline block.
+
+    `macros_coverage` is imported by the includer (templates/SCF/list.html) —
+    Tera does not carry this partial's own import across an include inside an
+    inherited block, and list.html already imports it. -#}
+{%- set praxis_path = config.extra.policypress.praxis_join | default(value="") -%}
+{%- if praxis_path -%}
+{%- set praxis = load_data(path=praxis_path, required=false) -%}
+{%- if praxis and praxis.ids -%}
+{%- set_global spine_covered = 0 -%}
+{%- for sid in praxis.ids -%}
+{%- if sid in line_items -%}{%- set_global spine_covered = spine_covered + 1 -%}{%- endif -%}
+{%- endfor -%}
+{{ macros_coverage::coverage_bar(covered=spine_covered, total=praxis.ids | length, label="praxis spine coverage") }}
+{%- endif -%}
+{%- endif -%}

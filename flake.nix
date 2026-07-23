@@ -103,6 +103,10 @@
                     ./templates
                     ./sass
                     ./static
+                    # Templates read the SCF catalog / praxis join at build time
+                    # via `load_data` (e.g. the `control` shortcode's title
+                    # tooltip and spine badge), so the check needs `data/`.
+                    ./data
                   ]
                   ++ lib.optional (builtins.pathExists ./theme.toml) ./theme.toml
                 )

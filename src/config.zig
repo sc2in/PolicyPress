@@ -31,7 +31,19 @@ pub const Config = struct {
     current_year: u16,
     root: []const u8,
     is_draft: bool = false,
+    /// Whether the emitted PDFs are redacted (`{% redact() %}` spans masked and
+    /// a "(Redacted)" title suffix, so the on-disk name gains the `__Redacted__`
+    /// infix). Defaults from `[extra.policypress] redact`; `--redact` /
+    /// `--no-redact` override it (applied in main.zig). This is the state the
+    /// policy templates key their PDF link filenames off, so the links always
+    /// resolve to the files produced here (#159). Independent of `redact_web`.
     redact: bool = false,
+    /// Whether the website masks `{% redact() %}` blocks — the Zola templates'
+    /// `[extra.policypress] redact_web`. Parsed here only so the build can
+    /// preflight-warn when web masking and PDF redaction diverge (#159); it
+    /// never itself affects PDF output (#115: an org may mask the public site
+    /// while keeping full PDFs).
+    redact_web: bool = false,
     build_dir: []const u8,
     date: u.Date,
 
@@ -109,6 +121,7 @@ pub const Config = struct {
         try obj.put(alloc, "root", .{ .string = self.root });
         try obj.put(alloc, "is_draft", .{ .bool = self.is_draft });
         try obj.put(alloc, "redact", .{ .bool = self.redact });
+        try obj.put(alloc, "redact_web", .{ .bool = self.redact_web });
         try obj.put(alloc, "build_dir", .{ .string = self.build_dir });
         try obj.put(alloc, "review_overdue_days", .{ .integer = @intCast(self.review_overdue_days) });
         try obj.put(alloc, "report_pdfs", .{ .bool = self.report_pdfs });
@@ -175,12 +188,19 @@ pub const Config = struct {
         config.audit_bundle = e.getBool("audit_bundle") orelse false;
         config.build_dir = "public";
         config.zola_config = t;
-        // PDF redaction is controlled only by --redact/--no-redact (and the
-        // action's redact_mode input). `redact_web` is read by the Zola
-        // templates for the website's redaction bars and deliberately does
-        // not affect PDFs: an org may hide content (e.g. phone numbers) on
-        // the public site while keeping it in the PDFs. (#115)
-        config.redact = false;
+        // PDF redaction defaults from `[extra.policypress] redact` (#159), so a
+        // config-only consumer — e.g. via the GitHub Action — can enable it and
+        // keep the site's PDF links in lock-step with the files produced here.
+        // Off by default, preserving prior behavior. `--redact`/`--no-redact`
+        // still override this (applied in main.zig after load).
+        //
+        // This is independent of `redact_web`, which masks only the website's
+        // redaction bars and deliberately does not affect PDFs (#115: an org may
+        // hide content on the public site while keeping full PDFs). The two are
+        // preflight-compared (`reviewRedactionConsistency`) so a divergence is
+        // surfaced rather than silently shipping mismatched web/PDF output.
+        config.redact = e.getBool("redact") orelse false;
+        config.redact_web = e.getBool("redact_web") orelse false;
         return config;
     }
     pub fn deinit(self: *Config, alloc: Allocator) void {
@@ -264,6 +284,19 @@ pub const Config = struct {
     /// none < advisory < critical).
     fn maxKind(a: IssueKind, b: IssueKind) IssueKind {
         return if (@intFromEnum(a) >= @intFromEnum(b)) a else b;
+    }
+
+    /// Build-level preflight (#159): web redaction (`redact_web`, website-only
+    /// per #115) and PDF redaction (`redact`, the effective build state) are
+    /// independent knobs, but the policy templates now key the linked PDF
+    /// filename off `redact`, so the links always resolve regardless of
+    /// `redact_web`. When the two disagree the site is masked while the PDFs are
+    /// full (or vice versa) — supported (#115) but almost always unintended, and
+    /// on a public site it can leak the masked content through the published
+    /// PDF. Advisory, not fatal: the links still resolve. Returns `.none` when
+    /// the two agree.
+    pub fn reviewRedactionConsistency(self: Config) IssueKind {
+        return if (self.redact_web != self.redact) .advisory else .none;
     }
 
     /// Classify a policy by how long ago it was reviewed. `extra.last_reviewed`

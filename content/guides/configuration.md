@@ -46,14 +46,17 @@ policy_dir = "policies/"
 
 | Field | Location | Type | Default | Description |
 |---|---|---|---|---|
-| `redact_web` | `[extra.policypress]` | bool | `false` | When `true`, renders a redaction bar over `{%/* redact() */%} … {%/* end */%}` blocks on the website. Does **not** affect PDF generation — use `--redact` on the CLI. |
+| `redact_web` | `[extra.policypress]` | bool | `false` | When `true`, renders a redaction bar over `{%/* redact() */%} … {%/* end */%}` blocks on the **website**. Web-only (#115): it does **not** affect PDFs — use `redact` (below) for those. |
+| `redact` | `[extra.policypress]` | bool | `false` | When `true`, the generated **PDFs** are redacted: `{%/* redact() */%} … {%/* end */%}` spans are masked, the title gains a "(Redacted)" suffix, and the filename gains a `__Redacted__` infix. The policy pages key each PDF download link off this value, so the links always resolve to the files produced (#159). `--redact` / `--no-redact` on the CLI — and the action's `redact_mode` — override it. Independent of `redact_web`. |
 | `show_draft_pdfs` | `[extra.policypress]` | bool | `false` | When `true`, links to draft PDFs appear on the policy index page |
 | `report_pdfs` | `[extra.policypress]` | bool | `true` | Generate downloadable PDFs for the compliance reports (SCF/SOC 2 coverage, policy review) alongside the policy PDFs. Coverage reports are skipped with a note when the matching `data/` control catalog is absent. Report PDFs are produced by official (non-draft) builds only — if your site *only* ever builds with `draft_mode`, set this to `false` so the report pages don't show download buttons for files that are never generated. |
 | `audit_bundle` | `[extra.policypress]` | bool | `false` | Write a machine-readable audit bundle next to the PDFs (`audit/manifest.json` with per-PDF sha-256 hashes, `revisions.json`, `coverage.json`/`.csv`) so auditors and evidence collectors can consume the compliance state without scraping the site. Also available as the `--audit-bundle` CLI flag and the action's `audit_bundle` input. |
 | `praxis_join` | `[extra.policypress]` | string | - | Path to the praxis control-join file (see [Praxis control join](#praxis-control-join)). Unset by default; when unset, every praxis coverage surface degrades gracefully. |
 
 > [!NOTE]
-> Draft and redact modes can also be set at build time via GitHub Action inputs or CLI flags (`--draft` / `--redact`). Action inputs always override `config.toml`.
+> `redact_web` masks the website and `redact` masks the PDFs — two independent knobs (#115), but the policy pages link each PDF by a name that encodes the PDF's redaction state, so **keep the two in step unless you deliberately want a masked site with full PDFs** (or vice versa). A mismatch is reported as an advisory at build time; the links still resolve because they follow `redact`.
+>
+> Draft and redact can also be set at build time via GitHub Action inputs or CLI flags (`--draft` / `--redact` / `--no-redact`). An explicit CLI flag or `draft_mode` input always overrides `config.toml`; the action's `redact_mode` inherits `redact` from `config.toml` when left unset (`''`), so a config-only consumer can drive PDF redaction — and keep the links in lock-step — from config alone.
 
 ## Praxis control join
 

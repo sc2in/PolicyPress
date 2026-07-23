@@ -70,10 +70,12 @@ test "config loading and validation" {
     const alloc = tst.allocator;
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
-    // redact_web is web-only (Zola templates); PDF redaction comes solely
-    // from --redact/--no-redact. TestConfig sets redact_web = true, so this
-    // pins the decoupling (#115).
+    // TestConfig sets redact_web = true but no `redact` key: redact_web is
+    // web-only (#115) and does not by itself redact PDFs, and the config
+    // `redact` key (#159) defaults off. So the two are independent and PDF
+    // redaction is off here.
     try tst.expect(!conf.redact);
+    try tst.expect(conf.redact_web);
     alloc.free(conf.content_dir);
     conf.content_dir = try std.fs.path.join(alloc, &.{
         conf.root,
@@ -84,6 +86,106 @@ test "config loading and validation" {
     conf.policy_dir = try alloc.dupe(u8, conf.content_dir);
 
     try conf.validatePolicyFiles(io, alloc);
+}
+
+test "config: [extra.policypress] redact drives PDF redaction, independent of redact_web (#159)" {
+    const alloc = tst.allocator;
+
+    // Absent → off, preserving prior behavior (TestConfig has redact_web = true
+    // but no `redact` key).
+    {
+        var conf = try config.load(io, alloc, TestConfig);
+        defer conf.deinit(alloc);
+        try tst.expect(!conf.redact);
+        try tst.expect(conf.redact_web);
+    }
+
+    // `redact = true` turns PDF redaction on from config alone — the knob a
+    // config-only consumer (e.g. via the Action) uses to keep links in step.
+    {
+        var conf = try config.load(io, alloc, TestConfig ++ "\nredact = true\n");
+        defer conf.deinit(alloc);
+        try tst.expect(conf.redact);
+        try tst.expect(conf.redact_web);
+    }
+
+    // Independent of redact_web: web masking off, PDF redaction on.
+    {
+        const cfg =
+            \\base_url = "http://localhost:1111"
+            \\[extra.policypress]
+            \\redact_web = false
+            \\redact = true
+            \\policy_dir = "src/test"
+            \\organization = "Star City Security Consulting"
+            \\logo = "logo.png"
+            \\pdf_color = "#0e90f3"
+        ;
+        var conf = try config.load(io, alloc, cfg);
+        defer conf.deinit(alloc);
+        try tst.expect(conf.redact);
+        try tst.expect(!conf.redact_web);
+    }
+}
+
+test "preflight: redact_web vs PDF redaction divergence is advisory (#159)" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig); // redact_web = true, redact = false
+    defer conf.deinit(alloc);
+
+    // Web masked but PDFs full → divergence (#115 permits it, flagged advisory).
+    try tst.expectEqual(config.IssueKind.advisory, conf.reviewRedactionConsistency());
+
+    // Aligned (both on) → clean.
+    conf.redact = true;
+    try tst.expectEqual(config.IssueKind.none, conf.reviewRedactionConsistency());
+
+    // Both off → clean.
+    conf.redact_web = false;
+    conf.redact = false;
+    try tst.expectEqual(config.IssueKind.none, conf.reviewRedactionConsistency());
+
+    // PDFs redacted but web full → also a divergence.
+    conf.redact = true;
+    try tst.expectEqual(config.IssueKind.advisory, conf.reviewRedactionConsistency());
+}
+
+test "link↔file: PDF link matches on-disk filename across redact_web × redact (#159)" {
+    const alloc = tst.allocator;
+    const f = try std.Io.Dir.cwd().openFile(io, "src/test/test_policy.md", .{});
+    defer f.close(io);
+    const raw = try utils.readAllAlloc(io, f, alloc, std.math.maxInt(usize));
+    defer alloc.free(raw);
+
+    var contents = Array(u8).empty; // get_metadata reads it read-only, so reuse
+    defer contents.deinit(alloc);
+    try contents.appendSlice(alloc, raw);
+
+    // The policy template keys the linked PDF filename off the effective PDF
+    // redaction state (`redact`), NOT `redact_web`; the on-disk name follows the
+    // same `redact` through get_metadata + FrontMatter.filename(). Assert the two
+    // agree for every (redact_web, redact) so a PDF link never 404s — and, by
+    // holding across both redact_web values, that redact_web is irrelevant to the
+    // filename (the #159 fix; before it the link followed redact_web).
+    inline for ([_]bool{ false, true }) |redact_web| {
+        _ = redact_web;
+        inline for ([_]bool{ false, true }) |redact| {
+            var fm = try utils.get_metadata(alloc, &contents, .{ .redact = redact, .is_draft = false });
+            defer fm.deinit(alloc);
+            const on_disk = try fm.filename(alloc);
+            defer alloc.free(on_disk);
+
+            // Mirror templates/policies/page.html: slug(title) ~ infix ~ version.
+            // slug("Test Policy") == "Test_Policy"; the newest revision is v1.1.
+            const link = if (redact)
+                try std.fmt.allocPrint(alloc, "Test_Policy__Redacted__-_v{s}.pdf", .{fm.most_recent_version})
+            else
+                try std.fmt.allocPrint(alloc, "Test_Policy_-_v{s}.pdf", .{fm.most_recent_version});
+            defer alloc.free(link);
+
+            try tst.expectEqualStrings(link, on_disk);
+        }
+    }
 }
 
 test "review preflight flags overdue policies" {

@@ -272,10 +272,20 @@ test "typst source: math stays off without extra.math opt-in" {
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
 
-    // test_policy_render.md does not set extra.math, so no mitex import appears
-    // even though math would be inert; guards the opt-in gate against drift.
-    var rendered = try typst.render(io, alloc, conf, "src/test/test_policy_render.md");
+    // test_policy_math_off.md CONTAINS `$…$` / `$$…$$` math syntax but does NOT
+    // set extra.math. With the gate off, zigmark parses `$` as ordinary text and
+    // escapes it to `\$`; nothing becomes a mitex equation. This guards the
+    // opt-in gate against a regression to always-on (a fixture with no math
+    // could not catch that — there'd be nothing to mis-parse).
+    var rendered = try typst.render(io, alloc, conf, "src/test/test_policy_math_off.md");
     defer rendered.deinit(alloc);
+
+    // The `$` in `$x^2$` stays escaped as literal text — not opened as math.
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "\\$x^2\\$") != null);
+    // No equation was emitted: neither the inline `#mi(` nor the display
+    // `#mitex(` renderer calls, and thus no mitex import either.
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "#mi(") == null);
+    try tst.expect(std.mem.indexOf(u8, rendered.source, "#mitex(") == null);
     try tst.expect(std.mem.indexOf(u8, rendered.source, "@preview/mitex") == null);
 }
 

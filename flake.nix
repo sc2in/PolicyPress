@@ -56,6 +56,25 @@
               in
               if match != null then builtins.head match else "0.0.0";
 
+            # mitex version, parsed from the `#import "@preview/mitex:X"` line in
+            # src/typst.zig — the single source of truth for the version the PDF
+            # math path imports. `typstWithMath` below asserts the nixpkgs-vendored
+            # package matches this, so a nixpkgs mitex bump fails loudly here at
+            # eval time (with an actionable message) instead of as a non-obvious
+            # typst "package not found" error deep in the pdf-accessibility build.
+            mitexImportVersion =
+              let
+                src = builtins.readFile ./src/typst.zig;
+                # The import lives in a Zig string literal, so its closing quote
+                # is backslash-escaped in the source (`mitex:0.2.7\"`). Capture
+                # just the version digits; `[0-9.]+` stops at the backslash.
+                match = builtins.match ".*@preview/mitex:([0-9.]+).*" src;
+              in
+              if match != null then
+                builtins.head match
+              else
+                throw "flake.nix: could not find the `@preview/mitex:X` import version in src/typst.zig";
+
             # Pin Zig 0.16.0 from zig2nix rather than nixpkgs' `pkgs.zig`, which
             # tracks an older release than this project's minimum_zig_version.
             zig = zig2nix.outputs.packages.${system}."zig-0_16_0";
@@ -174,12 +193,26 @@
               ];
             };
 
+            # typst with the mitex package vendored into its offline package
+            # cache, so `@preview/mitex` resolves in the hermetic build (opt-in
+            # policy math renders TeX via mitex). typst's `@preview/mitex:X` import
+            # is version-exact, so the vendored package MUST match the version in
+            # src/typst.zig. Assert that here — reading the version off the same
+            # `p.mitex` that gets vendored — so a nixpkgs bump that drifts the two
+            # apart is a loud, actionable eval-time failure, not a cryptic compile.
+            typstWithMath = pkgs.typst.withPackages (
+              p:
+              if p.mitex.version == mitexImportVersion then
+                [ p.mitex ]
+              else
+                throw ''
+                  mitex version mismatch: nixpkgs provides mitex ${p.mitex.version}, but src/typst.zig imports `@preview/mitex:${mitexImportVersion}`.
+                  Update the `#import "@preview/mitex:X"` line in src/typst.zig to ${p.mitex.version} (and regenerate the math golden with `zig build update-golden`), or pin nixpkgs to a mitex ${mitexImportVersion} release.
+                ''
+            );
+
             runtimeDeps = with pkgs; [
-              # typst with the mitex package vendored into its offline package
-              # cache, so `@preview/mitex` resolves in the hermetic build (opt-in
-              # policy math renders TeX via mitex). Keep the mitex version here in
-              # lock-step with the `#import "@preview/mitex:X"` line in src/typst.zig.
-              (typst.withPackages (p: [ p.mitex ]))
+              typstWithMath
               zola
             ];
 

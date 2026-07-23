@@ -10,6 +10,15 @@ versioning; breaking changes to it bump the major version.
 
 ### Added
 
+- **Praxis control-join plumbing.** A new optional `config.toml` key,
+  `[extra.policypress] praxis_join`, points at a committed JSON file
+  (`data/praxis-join.json`, schema `policypress/praxis-join/v1`) listing the bare
+  SCF control ids an external GRC system (praxis) actively governs. A stdlib-only
+  generator (`tools/gen-praxis-join.py`, flake app `nix run .#gen-praxis-join`)
+  produces it deterministically from a praxis flake ref (or an offline id list),
+  and the loader hard-errors on a missing or mismatched schema. This step is
+  plumbing only — no rendering changes yet; the key is unset by default and every
+  praxis surface degrades gracefully when it is absent.
 - **Policy revisers, approvers, and owners now link to their team profiles, and
   each profile links back.** A revision table's *Revised by* / *Approved by*
   entries, the policy header's owner and approver, and news bylines all resolve a

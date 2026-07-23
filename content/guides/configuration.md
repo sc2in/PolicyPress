@@ -50,9 +50,51 @@ policy_dir = "policies/"
 | `show_draft_pdfs` | `[extra.policypress]` | bool | `false` | When `true`, links to draft PDFs appear on the policy index page |
 | `report_pdfs` | `[extra.policypress]` | bool | `true` | Generate downloadable PDFs for the compliance reports (SCF/SOC 2 coverage, policy review) alongside the policy PDFs. Coverage reports are skipped with a note when the matching `data/` control catalog is absent. Report PDFs are produced by official (non-draft) builds only — if your site *only* ever builds with `draft_mode`, set this to `false` so the report pages don't show download buttons for files that are never generated. |
 | `audit_bundle` | `[extra.policypress]` | bool | `false` | Write a machine-readable audit bundle next to the PDFs (`audit/manifest.json` with per-PDF sha-256 hashes, `revisions.json`, `coverage.json`/`.csv`) so auditors and evidence collectors can consume the compliance state without scraping the site. Also available as the `--audit-bundle` CLI flag and the action's `audit_bundle` input. |
+| `praxis_join` | `[extra.policypress]` | string | - | Path to the praxis control-join file (see [Praxis control join](#praxis-control-join)). Unset by default; when unset, every praxis coverage surface degrades gracefully. |
 
 > [!NOTE]
 > Draft and redact modes can also be set at build time via GitHub Action inputs or CLI flags (`--draft` / `--redact`). Action inputs always override `config.toml`.
+
+## Praxis control join
+
+`praxis_join` points at a committed JSON file listing the bare SCF control ids that an external GRC system (praxis) actively governs — its "control spine". It lets PolicyPress mark which controls are in scope for continuous governance, distinct from which controls your policies happen to tag.
+
+```toml
+[extra.policypress]
+praxis_join = "data/praxis-join.json"
+```
+
+The file carries provenance (the praxis revision and SCF dataset version it was resolved against) alongside a flat, sorted id list, so it diffs cleanly in Git and an auditor can trace it back to a source:
+
+```json
+{
+  "schema": "policypress/praxis-join/v1",
+  "generated_at": "2026-07-22",
+  "source": { "rev": "demo-fixture", "scf_version": "2026.1.1" },
+  "organizational_families": ["GOV"],
+  "ids": ["GOV-01", "IAC-01", "..."]
+}
+```
+
+**Generate it** with the bundled flake app, passing your praxis flake reference (praxis is deliberately *not* a pinned input — the file must work for any consumer with their own praxis-like list):
+
+```sh
+nix run .#gen-praxis-join -- github:sc2in/Praxis --rev "$(git -C ../praxis rev-parse HEAD)"
+```
+
+The app wraps `nix eval --json <praxis-flake>#praxis.joins.policypress`. For offline or CI use, feed the id list directly instead of evaluating a flake:
+
+```sh
+nix run .#gen-praxis-join -- --ids-json ids.json --rev demo-fixture
+```
+
+Because praxis is not a flake input, freshness is a consumer-side check — regenerate and diff against the committed file rather than relying on a lockfile:
+
+```sh
+nix run .#gen-praxis-join -- github:sc2in/Praxis | diff - data/praxis-join.json
+```
+
+**Graceful degradation:** `praxis_join` is optional. Leave it unset (as the starter template does) and PolicyPress builds exactly as before — no praxis surfaces appear, and nothing errors. Set it to a path that cannot be read or that carries the wrong `schema` string and the build fails fast rather than silently ignoring the join.
 
 ## Site content fields
 

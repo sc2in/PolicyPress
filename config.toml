@@ -218,6 +218,12 @@ pdf_standard = "ua-1"
 # (`nix run .#serve` / `.#preview`) serve /audit/ the same way the deployed
 # site does.
 audit_bundle = true
+# Path to the praxis control-join file: the committed, consumer-generated list
+# of bare SCF control ids an external GRC system (praxis) actively governs.
+# Regenerate with `nix run .#gen-praxis-join -- <praxis-flake>`; unset it and
+# every praxis coverage surface degrades gracefully. This demo ships a fixture
+# (source.rev = "demo-fixture") so the coverage surfaces have data to show.
+praxis_join = "data/praxis-join.json"
 # scf_controls = "data/scf.yml"         # optional: override default SCF control data path
 # tsc2017_controls = "data/tsc2017.yml" # optional: override default TSC2017 control data path
 

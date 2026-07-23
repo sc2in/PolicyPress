@@ -31,7 +31,8 @@ Options:
                              Families the spine was built from; repeatable and/or
                              comma-separated (default: GOV).
   --generated-at YYYY-MM-DD  Override the generation date (default: today, UTC).
-  -o, --output FILE          Output path (default: <repo>/data/praxis-join.json).
+  -o, --output FILE          Output path (default: <repo>/data/praxis-join.json);
+                             "-" writes to stdout (for a `| diff -` drift check).
 
 Stdlib only. Deterministic output: ids and families are sorted and deduped, keys
 are emitted in a stable order, and there are no incidental timestamps beyond
@@ -92,7 +93,7 @@ def main() -> int:
         help="families the spine was built from (repeatable/comma-separated)",
     )
     parser.add_argument("--generated-at", metavar="YYYY-MM-DD", help="override the generation date")
-    parser.add_argument("-o", "--output", metavar="FILE", help="output path")
+    parser.add_argument("-o", "--output", metavar="FILE", help='output path ("-" for stdout)')
     args = parser.parse_args()
 
     if args.ids_json is None and args.flake is None:
@@ -110,13 +111,22 @@ def main() -> int:
         "ids": sorted(set(ids)),
     }
 
-    out_path = (
-        Path(args.output)
-        if args.output
-        else Path(__file__).resolve().parent.parent / "data" / "praxis-join.json"
-    )
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    rendered = json.dumps(doc, indent=2, ensure_ascii=False) + "\n"
+
+    # `-o -` writes the document to stdout instead of a file, so a consumer can
+    # pipe it straight into a drift check (`... -o - | diff - data/praxis-join.json`);
+    # the human-readable summary always goes to stderr, keeping stdout clean.
+    if args.output == "-":
+        sys.stdout.write(rendered)
+        out_path = "(stdout)"
+    else:
+        out_path = (
+            Path(args.output)
+            if args.output
+            else Path(__file__).resolve().parent.parent / "data" / "praxis-join.json"
+        )
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(rendered, encoding="utf-8")
 
     print(
         f"wrote {out_path} — {len(doc['ids'])} ids, families {doc['organizational_families']} "

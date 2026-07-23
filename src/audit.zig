@@ -31,6 +31,11 @@ const log = std.log.scoped(.audit);
 const schema_manifest = "policypress/audit-manifest/v1";
 const schema_revisions = "policypress/audit-revisions/v1";
 const schema_coverage = "policypress/audit-coverage/v1";
+// The praxis join facet is a NEW file (join.json), so praxis's v1 coverage
+// readers are untouched. It is written only when `config.praxis_join` is set.
+const schema_join = "policypress/audit-join/v1";
+
+const praxis_join = @import("praxis_join");
 
 /// Write the three-file bundle into `audit_dir` (created if needed).
 /// `pp_version` is the PolicyPress version stamped into the manifest.
@@ -181,6 +186,11 @@ pub fn writeBundle(
     }
 
     // ── coverage.json + coverage.csv ─────────────────────────────────────────
+    // The SCF coverage is captured for reuse by the praxis join facet below;
+    // its rows (declared_by / excluded_by, in catalog order) are exactly the
+    // per-control data join.json needs. Backed by the catalog arena, itself
+    // backed by `a`, so it stays valid until writeBundle returns.
+    var scf_cov: ?reports.Coverage = null;
     {
         var frameworks = std.json.Array.init(a);
         var csv: std.Io.Writer.Allocating = .init(a);
@@ -205,6 +215,7 @@ pub fn writeBundle(
                 // when writeBundle returns.
                 var catalog = try reports.init(io, a, catalog_path);
                 const cov = try catalog.coverage(io, kind.taxonomyKey().?, config.policy_dir);
+                if (kind == .scf) scf_cov = cov;
 
                 var controls = std.json.Array.init(a);
                 for (cov.controls) |c| {
@@ -261,7 +272,140 @@ pub fn writeBundle(
         try writeFile(io, a, audit_dir, "coverage.csv", csv_bytes);
     }
 
+    // ── audit/join.json (praxis join facet) ──────────────────────────────────
+    // Written ONLY when a praxis join is configured; when it is absent the
+    // bundle is exactly as before this facet existed.
+    try writeJoinFacet(io, a, config, audit_dir, generated, scf_cov);
+
     log.info("audit bundle written to '{s}' ({d} policies).", .{ audit_dir, manifest_policies.items.len });
+}
+
+/// Write `audit/join.json` (schema `policypress/audit-join/v1`) — the
+/// policy↔praxis cross-check as a first-class facet, so praxis and auditors can
+/// consume it directly instead of recomputing it from coverage.json. A NEW
+/// file: praxis's coverage/v1 readers are untouched.
+///
+/// Returns immediately (writing nothing) when `config.praxis_join` is unset, so
+/// the rest of the bundle is unchanged for sites without a join.
+///
+/// `controls` rows are the union of (praxis spine ids) ∪ (SCF-tagged ids) ∪
+/// (excluded ids): every catalog control with coverage/exclusion data or spine
+/// membership, in catalog order, followed by any spine id the local catalog
+/// does not know (SCF version skew) in the join's sorted id order — fully
+/// deterministic. `scf_cov` supplies the per-control declared_by / excluded_by.
+fn writeJoinFacet(
+    io: std.Io,
+    a: Allocator,
+    config: Config,
+    audit_dir: []const u8,
+    generated: []const u8,
+    scf_cov: ?reports.Coverage,
+) !void {
+    const rel = config.praxis_join orelse return;
+
+    // Resolve relative to the site root, matching how main.zig feeds the join
+    // path to ControlJoin. A configured-but-unloadable join is a hard error —
+    // silently dropping coverage data is worse than failing the build.
+    const path = try std.fs.path.join(a, &.{ config.root, rel });
+    var join = try praxis_join.PraxisJoin.load(io, a, path);
+    defer join.deinit();
+
+    var controls = std.json.Array.init(a);
+
+    // Spine partition counts. Tie-break: a control that is BOTH covered and
+    // excluded counts as covered (coverage precedes an exclusion), so the three
+    // buckets stay disjoint and sum to the spine total.
+    var spine_covered: usize = 0;
+    var spine_excluded: usize = 0;
+    var spine_unaddressed: usize = 0;
+
+    // Spine ids already emitted as a catalog row, so the skew loop below never
+    // double-counts one.
+    var seen_spine: std.StringHashMapUnmanaged(void) = .empty;
+
+    if (scf_cov) |cov| {
+        for (cov.controls) |c| {
+            const in_spine = join.contains(c.control_id);
+            const covered = c.policies.len > 0;
+            const excluded = c.excluded_by.len > 0;
+            // Union filter: skip controls with no coverage, no exclusion, and no
+            // spine membership — they are noise for a join view.
+            if (!(in_spine or covered or excluded)) continue;
+
+            var obj: std.json.ObjectMap = .empty;
+            try obj.put(a, "id", .{ .string = c.control_id });
+            try obj.put(a, "in_praxis_spine", .{ .bool = in_spine });
+            var decl = std.json.Array.init(a);
+            for (c.policies) |p| try decl.append(.{ .string = p });
+            try obj.put(a, "declared_by", .{ .array = decl });
+            var excl = std.json.Array.init(a);
+            for (c.excluded_by) |p| try excl.append(.{ .string = p });
+            try obj.put(a, "excluded_by", .{ .array = excl });
+            // Cross-policy tension B4 flags as advisory: some policy claims the
+            // control while another disclaims it (same-policy is a critical
+            // validation error, so a conflict here is always cross-policy).
+            try obj.put(a, "conflict", .{ .bool = covered and excluded });
+            try controls.append(.{ .object = obj });
+
+            if (in_spine) {
+                try seen_spine.put(a, c.control_id, {});
+                if (covered) {
+                    spine_covered += 1;
+                } else if (excluded) {
+                    spine_excluded += 1;
+                } else {
+                    spine_unaddressed += 1;
+                }
+            }
+        }
+    }
+
+    // Spine ids the local catalog does not carry: no coverage data exists, so
+    // they are unaddressed. Appended after the catalog-ordered rows in the
+    // join's (sorted) id order; deduped so a repeated join id counts once.
+    for (join.ids) |id| {
+        if (seen_spine.contains(id)) continue;
+        try seen_spine.put(a, try a.dupe(u8, id), {});
+        spine_unaddressed += 1;
+
+        var obj: std.json.ObjectMap = .empty;
+        try obj.put(a, "id", .{ .string = try a.dupe(u8, id) });
+        try obj.put(a, "in_praxis_spine", .{ .bool = true });
+        try obj.put(a, "declared_by", .{ .array = std.json.Array.init(a) });
+        try obj.put(a, "excluded_by", .{ .array = std.json.Array.init(a) });
+        try obj.put(a, "conflict", .{ .bool = false });
+        try controls.append(.{ .object = obj });
+    }
+
+    // spine_total is the number of distinct spine ids; the loops above place
+    // each in exactly one bucket, so the identity
+    //   spine_covered + spine_excluded + spine_unaddressed == spine_total
+    // holds by construction.
+    const spine_total = join.id_set.count();
+
+    var praxis_obj: std.json.ObjectMap = .empty;
+    try praxis_obj.put(a, "generated_at", .{ .string = try a.dupe(u8, join.generated_at) });
+    try praxis_obj.put(a, "source_rev", .{ .string = try a.dupe(u8, join.source_rev) });
+    try praxis_obj.put(a, "scf_version", .{ .string = try a.dupe(u8, join.scf_version) });
+
+    var summary: std.json.ObjectMap = .empty;
+    try summary.put(a, "spine_total", .{ .integer = @intCast(spine_total) });
+    try summary.put(a, "spine_covered", .{ .integer = @intCast(spine_covered) });
+    try summary.put(a, "spine_excluded", .{ .integer = @intCast(spine_excluded) });
+    try summary.put(a, "spine_unaddressed", .{ .integer = @intCast(spine_unaddressed) });
+
+    var root: std.json.ObjectMap = .empty;
+    try root.put(a, "schema", .{ .string = schema_join });
+    try root.put(a, "generated_at", .{ .string = generated });
+    try root.put(a, "praxis", .{ .object = praxis_obj });
+    try root.put(a, "summary", .{ .object = summary });
+    try root.put(a, "controls", .{ .array = controls });
+    try writeJson(io, a, audit_dir, "join.json", .{ .object = root });
+
+    log.info(
+        "audit bundle: join.json written ({d} spine controls: {d} covered, {d} excluded, {d} unaddressed).",
+        .{ spine_total, spine_covered, spine_excluded, spine_unaddressed },
+    );
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────

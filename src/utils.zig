@@ -393,6 +393,9 @@ test "replace_zola_at" {
 /// filesystem access, so a genuinely missing image surfaces as a clear Typst
 /// compile error rather than being silently dropped.
 pub fn rewrite_image_paths(alloc: Allocator, txt: *Array(u8)) !void {
+    // The lazy `.*?\)` stops at the first `)`, so a destination or title that
+    // itself contains `)` (e.g. `![a](/x(1).png)`) is truncated. Pathological
+    // for policy images; documented in #152 as a negligible edge — no action.
     const img: mvzr.Regex = mvzr.compile("!\\[.*?\\]\\(/.*?\\)").?;
     if (!img.isMatch(txt.items)) return;
 

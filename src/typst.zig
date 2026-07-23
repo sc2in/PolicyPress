@@ -563,9 +563,13 @@ fn writePreamble(writer: anytype, opts: DocOpts) !void {
     // `#mitex(…, alt: …)` (per-equation alt text, which typst's PDF/UA-1 mode
     // requires) but deliberately does not import mitex, so the consumer's
     // preamble must. Emitted here, not in writeDocSetup, so the report PDFs
-    // (which share writeDocSetup and have no math) stay mitex-free. The mitex
-    // version is pinned in lock-step with flake.nix's `typst.withPackages
-    // [ mitex ]` (offline package cache).
+    // (which share writeDocSetup and have no math) stay mitex-free.
+    //
+    // This `@preview/mitex:X` line is the single source of truth for the version.
+    // flake.nix parses it and asserts the vendored nixpkgs mitex package matches
+    // (typst's import is version-exact), so a nixpkgs bump that drifts the two
+    // apart fails loudly at flake eval. Bumping the version here means updating
+    // the math golden (`zig build update-golden`).
     if (opts.math) {
         try writer.writeAll("#import \"@preview/mitex:0.2.7\": mi, mitex\n\n");
     }

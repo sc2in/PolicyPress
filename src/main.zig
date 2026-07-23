@@ -510,6 +510,26 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
                 .critical => critical += 1,
             }
         }
+        // #159: web-vs-PDF redaction consistency. The policy templates key the
+        // linked PDF filename off the effective PDF redaction state, so links
+        // resolve regardless of `redact_web`; but a build that masks the website
+        // while shipping full PDFs (or vice versa) is almost always a mistake
+        // and can leak the masked content through the public PDF. Advisory —
+        // #115 permits web-only masking — folded into the same counter.
+        switch (config.reviewRedactionConsistency()) {
+            .advisory => {
+                advisory += 1;
+                std.log.warn(
+                    "policypress: redact_web={} but PDFs are built redact={}; web masking and PDF " ++
+                        "redaction diverge. Supported (#115: mask the site, keep full PDFs) but usually " ++
+                        "unintended — a public site can leak the masked content through the PDF. Set " ++
+                        "[extra.policypress] redact to match redact_web (or pass --redact/--no-redact) to " ++
+                        "align them.",
+                    .{ config.redact_web, config.redact },
+                );
+            },
+            else => {},
+        }
         if (critical + advisory > 0) {
             std.log.warn(
                 "policypress: policy validation found {d} audit-critical and {d} advisory issue(s).",

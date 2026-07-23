@@ -75,9 +75,17 @@ policy_dir = "policies/"
 
 # Renders a redaction bar over {% redact() %}...{% end %} blocks on the *website*.
 # Defaults to true because this starter auto-deploys to public GitHub Pages: with
-# it off, redacted content would ship in the site's HTML and search index. Does
-# not affect PDFs — use --redact (redact_mode in the action) for those.
+# it off, redacted content would ship in the site's HTML and search index.
+# Web-only (#115); does not itself affect PDFs.
 redact_web = true
+
+# Redact the *PDFs* too (mask {% redact() %} spans and add the "__Redacted__"
+# filename infix). Defaults to true here for the same reason as redact_web: the
+# PDFs are published to the same public Pages site, so leaving them full would
+# leak the masked content. Keep this in step with redact_web so the site's PDF
+# links resolve (#159). --redact/--no-redact (redact_mode in the action)
+# override it.
+redact = true
 
 # Set to true to stamp all PDFs with a DRAFT watermark by default.
 # Can be overridden per-run with --draft / --no-draft.

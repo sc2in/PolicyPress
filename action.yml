@@ -23,10 +23,12 @@ inputs:
     default: "false"
   redact_mode:
     description: >
-      Set to 'true' to redact content inside redaction shortcode tags.
-      Set to 'false' (default) to include all content.
+      Redact content inside redaction shortcode tags in the PDFs. 'true' forces
+      redaction on; 'false' forces it off; '' (default) inherits the site's
+      [extra.policypress] redact setting. Inheriting keeps the PDF links (which
+      follow the effective redaction state) in lock-step with config.toml (#159).
     required: false
-    default: "false"
+    default: ""
   generate_draft_pdfs:
     description: >
       Set to 'true' to also generate a second set of PDFs stamped with a DRAFT
@@ -224,8 +226,11 @@ runs:
         # render with JavaScript disabled. Operates on the just-built HTML.
         policypress render-diagrams public
 
-        # Build flags - explicitly set draft/redact so action inputs always
-        # override whatever is in the consumer's config.toml.
+        # Build flags. draft_mode is always set explicitly so the action input
+        # overrides config.toml. redact_mode inherits config when unset ('') so
+        # a config-only consumer can drive PDF redaction from [extra.policypress]
+        # redact and keep the PDF links in lock-step (#159); an explicit
+        # true/false still overrides.
         ARGS=(-c "${PP_CONFIG_PATH}" -o "${PP_OUTPUT_DIR}/pdfs")
         if [ "${PP_DRAFT_MODE}" = "true" ]; then
           ARGS+=(--draft)
@@ -234,7 +239,7 @@ runs:
         fi
         if [ "${PP_REDACT_MODE}" = "true" ]; then
           ARGS+=(--redact)
-        else
+        elif [ "${PP_REDACT_MODE}" = "false" ]; then
           ARGS+=(--no-redact)
         fi
         # Official run only: the draft pass below must never overwrite the
@@ -252,7 +257,7 @@ runs:
           DRAFT_ARGS=(-c "${PP_CONFIG_PATH}" -o "${PP_OUTPUT_DIR}/pdfs" --draft)
           if [ "${PP_REDACT_MODE}" = "true" ]; then
             DRAFT_ARGS+=(--redact)
-          else
+          elif [ "${PP_REDACT_MODE}" = "false" ]; then
             DRAFT_ARGS+=(--no-redact)
           fi
           policypress "${DRAFT_ARGS[@]}"

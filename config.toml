@@ -195,9 +195,14 @@ library = "katex" # options: "katex", "mathjax". default is "katex".
 
 # PolicyPress configuration
 [extra.policypress]
-# Set to true to render a black redaction bar over {% redact() %}...{% end %} blocks on the website.
-# Does not affect PDF generation - use --redact flag on the CLI for PDF redaction.
+# Render a black redaction bar over {% redact() %}...{% end %} blocks on the
+# *website*. Web-only (#115); does not itself affect PDF generation.
 redact_web = true
+# Redact the *PDFs* too: mask {% redact() %} spans, add a "(Redacted)" title and
+# the "__Redacted__" filename infix. Kept in step with redact_web so the site's
+# PDF links resolve (#159). --redact/--no-redact (redact_mode in the action)
+# still override this.
+redact = true
 show_draft_pdfs = true
 policy_dir = "policies/"
 policy_root = "policies/_index.md"

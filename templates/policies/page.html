@@ -11,7 +11,12 @@
 {% set versions = page.extra.major_revisions | sort(attribute="date") | reverse %}
 {% set current_version = versions | first %}
 {%- set title_slug = macros_pdf::slug(title=page.title) | trim -%}
-{%- if config.extra.policypress.redact_web -%}
+{# Key the linked PDF name off the effective PDF redaction state
+   (`[extra.policypress] redact`), NOT `redact_web`: the on-disk name gains the
+   "__Redacted__" infix only when the PDF itself is redacted, so keying off
+   `redact` keeps the link and the file in lock-step (#159). `redact_web` masks
+   only the website (#115) and must never drive the PDF filename here. #}
+{%- if config.extra.policypress.redact | default(value=false) -%}
   {%- set pdf_official = title_slug ~ "__Redacted__-_v" ~ current_version.version ~ ".pdf" -%}
 {%- else -%}
   {%- set pdf_official = title_slug ~ "_-_v" ~ current_version.version ~ ".pdf" -%}
@@ -45,8 +50,12 @@ reverse %}
 {% set review_overdue = (today - last_reviewed_ts) > 31557600 %}
 
 {%- set title_slug = macros_pdf::slug(title=page.title) | trim -%}
-{# The binary sanitises '(' and ')' to '_', so (Redacted) becomes __Redacted__ #}
-{%- if config.extra.policypress.redact_web -%}
+{# Key the linked PDF names off the effective PDF redaction state
+   (`[extra.policypress] redact`), NOT `redact_web` (#159). The binary sanitises
+   '(' and ')' to '_', so a redacted PDF's "(Redacted)" title suffix becomes the
+   "__Redacted__" infix on disk; mirroring the same condition here keeps the
+   links and files in lock-step. `redact_web` masks only the website (#115). #}
+{%- if config.extra.policypress.redact | default(value=false) -%}
   {%- set pdf_official = title_slug ~ "__Redacted__-_v" ~ current_version.version ~ ".pdf" -%}
   {%- set pdf_draft = title_slug ~ "__Redacted___Draft__-_v" ~ current_version.version ~ ".pdf" -%}
 {%- else -%}

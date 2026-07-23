@@ -13,11 +13,15 @@
 {%- set report_page = pp.scf_report_page | default(value="") -%}
 
 {#- Title tooltip: look the id up in the same SCF catalog the report templates
-    use (override via scf_controls, else data/scf.yml). -#}
-{%- set scf_data = load_data(path=pp.scf_controls | default(value="data/scf.yml")) -%}
-{%- set match = scf_data | filter(attribute="control_id", value=id) | first | default(value=false) -%}
+    use (override via scf_controls, else data/scf.yml). `required=false` so a
+    site without a generated catalog (e.g. the starter) degrades to an
+    untitled reference rather than failing the whole build. -#}
+{%- set scf_data = load_data(path=pp.scf_controls | default(value="data/scf.yml"), required=false) -%}
 {%- set ctrl_title = "" -%}
+{%- if scf_data -%}
+{%- set match = scf_data | filter(attribute="control_id", value=id) | first | default(value=false) -%}
 {%- if match and match.control -%}{%- set ctrl_title = match.control | trim -%}{%- endif -%}
+{%- endif -%}
 
 {#- praxis spine membership — guarded on the key being set so an unconfigured
     site (starter) never triggers a load_data on an empty path. -#}

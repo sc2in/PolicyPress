@@ -83,6 +83,17 @@ redact_web = true
 # Can be overridden per-run with --draft / --no-draft.
 show_draft_pdfs = false
 
+# Point at an SCF report page to make inline {{ control(id="…") }} references and
+# SCF framework tags link to it. Left unset here, so those references render as
+# plain (unlinked) control ids — the shortcode degrades gracefully.
+# scf_report_page = "@/reports/scf.md"
+
+# Path to the praxis control-join file (the list of SCF ids an external GRC
+# system actively governs). When set, SCF surfaces gain a "praxis" in-spine
+# marker and a spine-coverage bar. Regenerate with `nix run .#gen-praxis-join`.
+# Left unset here so the starter shows the plain, unmarked baseline.
+# praxis_join = "data/praxis-join.json"
+
 [extra.author]
 name = "Security Team"
 email = "security@example.com"

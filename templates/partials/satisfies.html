@@ -1,5 +1,14 @@
 {% set page_tax = page.taxonomies %}
 {% if page_tax %}
+{%- set pp = config.extra.policypress -%}
+{%- set scf_report = pp.scf_report_page | default(value="") -%}
+{#- praxis spine ids, guarded on the key being set (degrades when unconfigured). -#}
+{%- set praxis_ids = [] -%}
+{%- set praxis_path = pp.praxis_join | default(value="") -%}
+{%- if praxis_path -%}
+{%- set praxis = load_data(path=praxis_path, required=false) -%}
+{%- if praxis and praxis.ids -%}{%- set praxis_ids = praxis.ids -%}{%- endif -%}
+{%- endif -%}
 <div class="satisfies">
   <span class="satisfies-label">Framework Coverage</span>
   <div class="satisfies-cards">
@@ -8,7 +17,14 @@
       <span class="satisfies-framework">{{ key }}</span>
       <div class="satisfies-tags">
         {% for term in terms %}
+        {%- if key == "SCF" and scf_report -%}
+        {%- set tag_class = "satisfies-tag" -%}
+        {%- set in_spine = term in praxis_ids -%}
+        {%- if in_spine -%}{%- set tag_class = tag_class ~ " satisfies-tag--praxis" -%}{%- endif -%}
+        <a class="{{ tag_class }}" href="{{ get_url(path=scf_report) | safe }}#{{ term }}"{% if in_spine %} title="In praxis control spine"{% endif %}>{{ term }}</a>
+        {%- else -%}
         <span class="satisfies-tag">{{ term }}</span>
+        {%- endif -%}
         {% endfor %}
       </div>
     </div>

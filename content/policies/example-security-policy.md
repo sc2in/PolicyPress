@@ -63,7 +63,7 @@ extra:
 
 ### 1. Access Control
 
-All access to information systems must be authorized and based on the principle of least privilege. Users shall only be granted access necessary to perform their job functions.
+All access to information systems must be authorized and based on the principle of least privilege {{ control(id="IAC-01") }}. Users shall only be granted access necessary to perform their job functions.
 
 #### Requirements
 
@@ -74,7 +74,7 @@ All access to information systems must be authorized and based on the principle 
 
 ### 2. Data Classification and Handling
 
-{{ org() }} classifies data into three categories:
+{{ org() }} classifies data into three categories {{ control(id="DCH-01") }}:
 
 | Classification | Description | Examples | Handling Requirements |
 |---------------|-------------|----------|---------------------|
@@ -86,7 +86,7 @@ All access to information systems must be authorized and based on the principle 
 
 ### 3. Encryption Standards
 
-All sensitive data must be encrypted both at rest and in transit:
+All sensitive data must be encrypted both at rest and in transit {{ control(id="CRY-01") }}:
 
 - **At Rest**: AES-256 encryption for stored data
 - **In Transit**: TLS 1.3 or higher for network communications

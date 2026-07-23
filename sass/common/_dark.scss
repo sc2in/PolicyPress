@@ -37,6 +37,12 @@ $link-color-dark: $blue-300;
   --pp-section-title-bg: #{$gray-100};
   --pp-section-title-hover-bg: #{$gray-200};
 
+  // praxis control-spine accent — a teal distinct from the purple brand so an
+  // "in praxis spine" marker never reads as a normal link. Dark enough to clear
+  // AA 4.5:1 as text/dot on the light tag & card backgrounds it appears on.
+  --pp-praxis: #0f6e5f;
+  --pp-praxis-subtle: rgba(15, 110, 95, 0.1);
+
   // Design tokens - spacing, shadows, radii, transitions
   --pp-space-xs: 0.5rem;
   --pp-space-sm: 1rem;
@@ -98,6 +104,10 @@ $link-color-dark: $blue-300;
   --pp-dropdown-shadow: rgba(0, 0, 0, 0.4);
   --pp-section-title-bg: #{$gray-800};
   --pp-section-title-hover-bg: #{$gray-700};
+  // Lighter teal for dark surfaces — clears AA 4.5:1 as text/dot on the dark
+  // tag & card backgrounds.
+  --pp-praxis: #5fd4c4;
+  --pp-praxis-subtle: rgba(95, 212, 196, 0.16);
   --pp-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
   --pp-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
   --pp-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);

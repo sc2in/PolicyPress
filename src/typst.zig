@@ -244,6 +244,10 @@ pub fn render(
     // ── 2. Pre-process shortcodes (same sequence as the pandoc pipeline) ─────
 
     try u.replace_org(alloc, &contents, config.org);
+    // Inline control references: rewrite `{{ control(id="…") }}` to the bare id
+    // text for now (footnote synthesis lands in a later subissue). Malformed ids
+    // hard-fail here rather than leaking raw shortcode syntax into the PDF.
+    try u.replace_control_refs(alloc, &contents);
     try u.replace_zola_at(alloc, &contents, config.base_url);
     // Root-absolute image paths (`/x`, Zola-served from `static/`) must point at
     // `/static/x` for the Typst `--root`, or the image 404s in the PDF. Runs

@@ -1,0 +1,37 @@
+{#- Inline control reference: {{ control(id="IAC-01") }}
+
+    Renders a link to the SCF report page anchor for `id`, titled with the
+    control's name from the SCF catalog. When the praxis join is configured and
+    the id is in the control spine, adds the `control-ref--praxis` marker.
+
+    Degrades to a styled <span> when `scf_report_page` is unset (the starter
+    case): the reference still reads as a control id, it just isn't linkable
+    because there is no report page to anchor into. The PDF pipeline rewrites the
+    shortcode independently (src/utils.zig replace_control_refs), so this template
+    only governs the website. -#}
+{%- set pp = config.extra.policypress -%}
+{%- set report_page = pp.scf_report_page | default(value="") -%}
+
+{#- Title tooltip: look the id up in the same SCF catalog the report templates
+    use (override via scf_controls, else data/scf.yml). -#}
+{%- set scf_data = load_data(path=pp.scf_controls | default(value="data/scf.yml")) -%}
+{%- set match = scf_data | filter(attribute="control_id", value=id) | first | default(value=false) -%}
+{%- set ctrl_title = "" -%}
+{%- if match and match.control -%}{%- set ctrl_title = match.control | trim -%}{%- endif -%}
+
+{#- praxis spine membership — guarded on the key being set so an unconfigured
+    site (starter) never triggers a load_data on an empty path. -#}
+{%- set in_spine = false -%}
+{%- set praxis_path = pp.praxis_join | default(value="") -%}
+{%- if praxis_path -%}
+{%- set praxis = load_data(path=praxis_path, required=false) -%}
+{%- if praxis and praxis.ids and id in praxis.ids -%}{%- set in_spine = true -%}{%- endif -%}
+{%- endif -%}
+
+{%- set classes = "control-ref" -%}
+{%- if in_spine -%}{%- set classes = classes ~ " control-ref--praxis" -%}{%- endif -%}
+
+{#- Compose the title attribute value (name and/or spine note). -#}
+{%- set tip = ctrl_title -%}
+{%- if in_spine -%}{%- if tip -%}{%- set tip = tip ~ " · In praxis control spine" -%}{%- else -%}{%- set tip = "In praxis control spine" -%}{%- endif -%}{%- endif -%}
+{%- if report_page -%}<a class="{{ classes }}" href="{{ get_url(path=report_page) | safe }}#{{ id }}"{% if tip %} title="{{ tip }}"{% endif %}>{{ id }}</a>{%- else -%}<span class="{{ classes }}"{% if tip %} title="{{ tip }}"{% endif %}>{{ id }}</span>{%- endif -%}

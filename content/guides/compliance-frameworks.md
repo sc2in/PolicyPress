@@ -181,6 +181,44 @@ taxonomies:
     - IAC-02
 ```
 
+## Inline control references
+
+Front-matter tags map a whole policy to a control. To point at a control from
+inside the body prose, use the `control` shortcode:
+
+```md
+Access is granted on the principle of least privilege {{/* control(id="IAC-01") */}}.
+```
+
+**Syntax is the shortcode, and only the shortcode.** Do not hand-write raw
+footnote references like `[^IAC-01]` in a policy body: the website build feeds
+`content/` to Zola verbatim, so a raw footnote ref would render broken on the
+site. The shortcode is the one authoring form that renders correctly in both the
+website and the PDF.
+
+**On the website**, the shortcode renders as an inline link to the control's
+anchor on the SCF report page (`{{/* control(id="IAC-01") */}}` →
+`<a class="control-ref" href="…/reports/scf/#IAC-01">IAC-01</a>`), with the
+control's title from the SCF catalog shown as a hover tooltip. If
+`scf_report_page` is not set in `[extra.policypress]`, the reference degrades to
+plain (unlinked) text — it still reads as a control id, it just has nothing to
+link to.
+
+**In the PDF**, the reference currently renders as the bare control id text
+(`IAC-01`). A later release upgrades this to a proper footnote carrying the
+control title and coverage status.
+
+**praxis marker.** When a [praxis control join](@/guides/configuration.md#praxis-control-join)
+is configured, references (and SCF framework tags) whose id is in the control
+spine gain a small teal dot and an "in praxis control spine" tooltip. This marks
+the controls an external GRC system actively governs, distinct from the controls
+your policies happen to tag.
+
+**Strictness.** The id must match the SCF id shape `[A-Z]{2,5}-[0-9]{2}` with an
+optional dotted sub-id (`IAC-01`, `HRS-05.1`, `IAC-21.5`). A malformed id — or
+any `control(…)` shortcode that is not well-formed — is a hard build error, so a
+broken reference can never silently ship in a PDF.
+
 ## The SCF example
 
 The SCF files in `templates/opencontrols/standards/` show a real-world example of this pattern at scale (~1,200 controls). The SCF is published by the [Secure Controls Framework Council](https://securecontrolsframework.com/) under CC BY-ND 4.0. The files ship with descriptions removed - only control IDs, names, and domains are included.

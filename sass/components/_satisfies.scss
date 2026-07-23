@@ -66,3 +66,99 @@
     text-decoration: none;
   }
 }
+
+// praxis spine marker on a framework tag. Not colour-only: a leading dot plus a
+// thin accent border make the "in spine" state legible without relying on hue,
+// and the markup carries a `title` tooltip. The dot uses --pp-praxis, which
+// clears AA 4.5:1 on the tag background in both themes.
+.satisfies-tag--praxis {
+  border-left: 3px solid var(--pp-praxis);
+  padding-left: 0.4rem;
+
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-right: 0.35rem;
+    border-radius: 50%;
+    background: var(--pp-praxis);
+    vertical-align: middle;
+  }
+}
+
+// Inline control reference produced by the {{ control(id="…") }} shortcode.
+// Subtle enough to sit inside body prose without shouting, but still clearly a
+// link. Monospace matches the framework-tag treatment so ids read as ids.
+// Renders as <a> when a report page exists, else <span> (starter degrade path);
+// both share the base look, only the <a> gets link affordances.
+.control-ref {
+  font-family: $font-family-monospace;
+  font-size: 0.9em;
+  color: var(--bs-body-color);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--bs-border-color);
+  white-space: nowrap;
+}
+
+a.control-ref {
+  color: var(--bs-link-color);
+  border-bottom-color: currentcolor;
+  transition: var(--pp-transition);
+
+  &:hover,
+  &:focus {
+    color: var(--bs-link-hover-color);
+    text-decoration: none;
+  }
+}
+
+// praxis spine marker for an inline control reference. Leading dot (not
+// colour-only), paired with the `title` tooltip in the markup. --pp-praxis
+// clears AA 4.5:1 as a dot against the page background in both themes.
+.control-ref--praxis::before {
+  content: "";
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-right: 0.25rem;
+  border-radius: 50%;
+  background: var(--pp-praxis);
+  vertical-align: baseline;
+}
+
+// "praxis" badge shown per control on the SCF report/single pages. A bordered
+// pill with a leading dot; text + border + dot all use --pp-praxis (AA 4.5:1 on
+// the card background in both themes) so it never depends on colour alone.
+.praxis-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--pp-praxis);
+  border-radius: var(--pp-radius-pill, 50px);
+  background: var(--pp-praxis-subtle);
+  color: var(--pp-praxis);
+  font-family: $font-family-monospace;
+  font-size: 0.7em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  white-space: nowrap;
+
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-right: 0.3rem;
+    border-radius: 50%;
+    background: var(--pp-praxis);
+    vertical-align: middle;
+  }
+}
+
+// Deep-link targets on the SCF report page: nudge the scroll position so an
+// anchored control isn't hidden under any sticky chrome.
+.control-item[id] {
+  scroll-margin-top: 1rem;
+}

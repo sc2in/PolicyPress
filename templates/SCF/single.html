@@ -4,10 +4,19 @@
 {% set data = load_data(path=config.extra.policypress.scf_controls | default(value="data/scf.yml")) %}
 {% set control_data = data | filter(attribute="control_id", value=term.name) | first | default(value=false) %}
 
-<div class="report-section">
+{# praxis spine membership for this control (optional; guarded on the key). #}
+{% set praxis_path = config.extra.policypress.praxis_join | default(value="") %}
+{% set in_spine = false %}
+{% if praxis_path %}
+{% set praxis = load_data(path=praxis_path, required=false) %}
+{% if praxis and praxis.ids and term.name in praxis.ids %}{% set in_spine = true %}{% endif %}
+{% endif %}
+
+<div class="report-section" id="{{ term.name }}">
   <h2 class="section-title active">
     {{ term.name }}
     {% if control_data %}- {{ control_data.control | trim }}{% endif %}
+    {% if in_spine %}<span class="praxis-badge" title="In praxis control spine">praxis</span>{% endif %}
   </h2>
   <div class="section-content active">
     <div class="control-item">

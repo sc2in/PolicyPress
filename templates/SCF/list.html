@@ -1,5 +1,6 @@
 {% extends "reports/base.html" %}
 {% import 'macros/coverage-bar.html' as macros_coverage %}
+{% import "partials/praxis/macros.html" as praxis %}
 
 {% block report_pdf %}
 {# Lock-step with src/control_report.zig Kind.pdfName (.scf). #}
@@ -16,15 +17,6 @@
 {% set tax = get_taxonomy(kind="SCF") %}
 {% set data = load_data(path=config.extra.policypress.scf_controls | default(value="data/scf.yml")) %}
 {% set line_items = tax.items | group_by(attribute="name") %}
-
-{# praxis control-join (optional): the committed list of SCF ids an external GRC
-   system actively governs. Guarded on the key being set so an unconfigured site
-   degrades — no spine bar, no per-control badges — with no load_data on an empty
-   path. `praxis.ids` is a flat array for cheap Tera membership tests. #}
-{% set praxis_path = config.extra.policypress.praxis_join | default(value="") %}
-{% set praxis = false %}
-{% if praxis_path %}{% set praxis = load_data(path=praxis_path, required=false) %}{% endif %}
-{% set has_praxis = praxis and praxis.ids %}
 
 {# Policy pages, for the out-of-scope third state below: a control with no
    covering policy may still be *deliberately* excluded by one. Fetched once;
@@ -45,16 +37,10 @@
 {% endfor %}
 {{ macros_coverage::coverage_bar(covered=covered_count, total=total_count, label="SCF Control Coverage") }}
 
-{# praxis spine coverage: of the ids in the control spine, how many have >=1
-   published policy mapped to them. Distinct from SCF coverage above (all catalog
-   controls) — this counts only the ids praxis actively governs. #}
-{% if has_praxis %}
-{% set_global spine_covered = 0 %}
-{% for sid in praxis.ids %}
-{% if sid in line_items %}{% set_global spine_covered = spine_covered + 1 %}{% endif %}
-{% endfor %}
-{{ macros_coverage::coverage_bar(covered=spine_covered, total=praxis.ids | length, label="praxis spine coverage") }}
-{% endif %}
+{# praxis overlay (optional, #174): the "praxis spine coverage" bar. Single
+   guarded hook — the partial self-guards on the join data and reuses
+   `line_items` from above. #}
+{% if config.extra.policypress.praxis_join %}{% include "partials/praxis/spine-bar.html" %}{% endif %}
 
 {% set domain_groups = data | group_by(attribute="domain") %}
 
@@ -103,9 +89,8 @@
             {{ control_policies | length }} {% if control_policies | length == 1 %}policy{% else %}policies{% endif %}
           </span>
           {% endif %}
-          {% if has_praxis and control.control_id in praxis.ids %}
-          <span class="praxis-badge" title="In praxis control spine">praxis</span>
-          {% endif %}
+          {# praxis overlay (optional, #174): per-control spine pill; empty when unconfigured. #}
+          {{ praxis::badge(config=config, id=control.control_id) }}
         </h3>
         {% if control.description %}<div class="control-description">{{ control.description }}</div>{% endif %}
       </div>

@@ -379,6 +379,29 @@
                   touch $out
                 '';
 
+            # praxis is an OPTIONAL overlay (#174): with no `praxis_join`
+            # configured, the rendered site must contain ZERO praxis-overlay
+            # markup, so praxis is provably removable. Build the demo web output
+            # with `praxis_join` commented out and grep the HTML for the overlay
+            # tokens; any hit fails. (Bare "praxis" in authored guide prose is
+            # fine — only the overlay's own class/marker tokens are checked.)
+            checks.praxis-optional =
+              pkgs.runCommand "praxis-optional"
+                {
+                  nativeBuildInputs = [ pkgs.zola ];
+                }
+                ''
+                  cp -r ${zolaCheckSrc}/. .
+                  chmod -R u+w .
+                  sed -i 's/^praxis_join =/# praxis_join =/' config.toml
+                  zola build --output-dir public
+                  if grep -rE 'praxis-badge|satisfies-tag--praxis|control-ref--praxis|In praxis control spine|praxis spine coverage' public --include='*.html'; then
+                    echo "praxis overlay markup found in the rendered site despite no praxis_join (#174 invariant violated)." >&2
+                    exit 1
+                  fi
+                  touch $out
+                '';
+
             # Validate the tagged PDFs actually conform to PDF/UA-1, using
             # veraPDF (the PDF Association's reference validator). Builds the
             # demo policies (config.toml has pdf_standard = "ua-1") and fails if

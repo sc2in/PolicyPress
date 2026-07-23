@@ -1,0 +1,76 @@
+// praxis overlay styles — OPTIONAL, in-repo (issue #174).
+//
+// All praxis-specific presentation lives here, behind the overlay boundary in
+// main.scss, so the core `_satisfies.scss` styles stay praxis-agnostic. These
+// modifiers decorate base classes defined in `_satisfies.scss`
+// (`.satisfies-tag`, `.control-ref`), so this partial is imported after it.
+// The rules are inert until the praxis overlay templates emit the matching
+// classes (which they only do when a `praxis_join` is configured).
+//
+// The `--pp-praxis` / `--pp-praxis-subtle` colour tokens are defined with the
+// rest of the palette in `common/_dark.scss`; a distinct teal so an "in praxis
+// spine" marker never reads as a normal link.
+
+// praxis spine marker on a framework tag. Not colour-only: a leading dot plus a
+// thin accent border make the "in spine" state legible without relying on hue,
+// and the markup carries a `title` tooltip. The dot uses --pp-praxis, which
+// clears AA 4.5:1 on the tag background in both themes.
+.satisfies-tag--praxis {
+  border-left: 3px solid var(--pp-praxis);
+  padding-left: 0.4rem;
+
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-right: 0.35rem;
+    border-radius: 50%;
+    background: var(--pp-praxis);
+    vertical-align: middle;
+  }
+}
+
+// praxis spine marker for an inline control reference. Leading dot (not
+// colour-only), paired with the `title` tooltip in the markup. --pp-praxis
+// clears AA 4.5:1 as a dot against the page background in both themes.
+.control-ref--praxis::before {
+  content: "";
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-right: 0.25rem;
+  border-radius: 50%;
+  background: var(--pp-praxis);
+  vertical-align: baseline;
+}
+
+// "praxis" badge shown per control on the SCF report/single pages. A bordered
+// pill with a leading dot; text + border + dot all use --pp-praxis (AA 4.5:1 on
+// the card background in both themes) so it never depends on colour alone.
+.praxis-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--pp-praxis);
+  border-radius: var(--pp-radius-pill, 50px);
+  background: var(--pp-praxis-subtle);
+  color: var(--pp-praxis);
+  font-family: $font-family-monospace;
+  font-size: 0.7em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  white-space: nowrap;
+
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-right: 0.3rem;
+    border-radius: 50%;
+    background: var(--pp-praxis);
+    vertical-align: middle;
+  }
+}

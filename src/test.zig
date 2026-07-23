@@ -1741,8 +1741,10 @@ test "praxis join: missing schema field is a hard, distinct error" {
 // ── Control-ID join (src/controls.zig) ────────────────────────────────────────
 
 /// A ControlJoin over the committed fixtures: catalog IAC-01/DCH-01/NET-02,
-/// spine {IAC-01, NET-02}, library = the single control fixture policy (tags
-/// IAC-01 + DCH-01, titled "Access Control Test Policy").
+/// spine {IAC-01, NET-02}, library = two control fixture policies — the primary
+/// ("Access Control Test Policy", tags IAC-01 + DCH-01) and a related policy
+/// ("Access Control Standard", tags IAC-01), so "See also" cross-references have
+/// another policy to point at.
 fn fixtureControlJoin(alloc: Allocator) !controls.ControlJoin {
     return controls.ControlJoin.init(
         io,
@@ -1750,45 +1752,64 @@ fn fixtureControlJoin(alloc: Allocator) !controls.ControlJoin {
         "src/test/controls_catalog.json",
         "src/test/controls_tsc_catalog.json",
         "src/test/controls_join.json",
-        &.{"src/test/test_policy_controls.md"},
+        &.{ "src/test/test_policy_controls.md", "src/test/test_policy_controls_related.md" },
     );
 }
 
-test "controls: resolveFootnote — covered + in spine" {
+/// The primary fixture policy, used as the "self" excluded from its own
+/// "See also" cross-references.
+const fixture_self = "src/test/test_policy_controls.md";
+
+test "controls: resolveFootnote — praxis-free, 'See also' lists OTHER covering policies (excludes self)" {
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
 
-    const md = (try cj.resolveFootnote(alloc, "IAC-01")).?;
+    // IAC-01 is tagged by the primary fixture (self) and the related policy.
+    // Rendered from the primary fixture, "See also" names only the related one.
+    const md = (try cj.resolveFootnote(alloc, "IAC-01", fixture_self)).?;
     defer alloc.free(md);
     try tst.expect(std.mem.startsWith(u8, md, "IAC-01 \u{2014} Identity & Access Management."));
-    try tst.expect(std.mem.indexOf(u8, md, "praxis: in control spine.") != null);
-    try tst.expect(std.mem.indexOf(u8, md, "Covered by: Access Control Test Policy.") != null);
+    try tst.expect(std.mem.indexOf(u8, md, "See also: Access Control Standard.") != null);
+    // No praxis clause, and the policy never lists itself.
+    try tst.expect(std.mem.indexOf(u8, md, "praxis") == null);
+    try tst.expect(std.mem.indexOf(u8, md, "Access Control Test Policy") == null);
 }
 
-test "controls: resolveFootnote — covered but not in spine" {
+test "controls: resolveFootnote — 'See also' omitted when self is the only coverer" {
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
 
-    const md = (try cj.resolveFootnote(alloc, "DCH-01")).?;
+    // DCH-01 is tagged only by the primary fixture; excluding self leaves no
+    // other policy, so the clause is dropped entirely — just id + title.
+    const md = (try cj.resolveFootnote(alloc, "DCH-01", fixture_self)).?;
     defer alloc.free(md);
-    try tst.expect(std.mem.indexOf(u8, md, "DCH-01 \u{2014} Data Protection.") != null);
-    try tst.expect(std.mem.indexOf(u8, md, "praxis: not in control spine.") != null);
-    try tst.expect(std.mem.indexOf(u8, md, "Covered by: Access Control Test Policy.") != null);
+    try tst.expectEqualStrings("DCH-01 \u{2014} Data Protection.", md);
 }
 
-test "controls: resolveFootnote — in spine but uncovered omits the Covered-by clause" {
+test "controls: resolveFootnote — null self_path lists every covering policy, sorted" {
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
 
-    const md = (try cj.resolveFootnote(alloc, "NET-02")).?;
+    // Document-agnostic resolver: both policies covering IAC-01 are listed.
+    const md = (try cj.resolveFootnote(alloc, "IAC-01", null)).?;
     defer alloc.free(md);
-    try tst.expect(std.mem.indexOf(u8, md, "NET-02 \u{2014} Layered Network Defenses.") != null);
-    try tst.expect(std.mem.indexOf(u8, md, "praxis: in control spine.") != null);
-    // No policy tags NET-02, so there is no covering clause.
-    try tst.expect(std.mem.indexOf(u8, md, "Covered by:") == null);
+    try tst.expect(std.mem.indexOf(u8, md, "See also: Access Control Standard, Access Control Test Policy.") != null);
+    try tst.expect(std.mem.indexOf(u8, md, "praxis") == null);
+}
+
+test "controls: resolveFootnote — an uncovered control has no 'See also' clause" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    // No policy tags NET-02, so the footnote is just id + title (no praxis, even
+    // though NET-02 is in the spine).
+    const md = (try cj.resolveFootnote(alloc, "NET-02", fixture_self)).?;
+    defer alloc.free(md);
+    try tst.expectEqualStrings("NET-02 \u{2014} Layered Network Defenses.", md);
 }
 
 test "controls: resolveFootnote — a non-control label returns null" {
@@ -1796,27 +1817,22 @@ test "controls: resolveFootnote — a non-control label returns null" {
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
 
-    try tst.expect((try cj.resolveFootnote(alloc, "not-a-control")) == null);
-    try tst.expect((try cj.resolveFootnote(alloc, "1")) == null);
+    try tst.expect((try cj.resolveFootnote(alloc, "not-a-control", fixture_self)) == null);
+    try tst.expect((try cj.resolveFootnote(alloc, "1", fixture_self)) == null);
 }
 
-test "controls: resolveFootnote — no praxis join omits the spine clause" {
+test "controls: resolveFootnote — a configured join never adds a praxis clause" {
     const alloc = tst.allocator;
-    var cj = try controls.ControlJoin.init(
-        io,
-        alloc,
-        "src/test/controls_catalog.json",
-        null, // no TSC catalog
-        null, // no join configured
-        &.{"src/test/test_policy_controls.md"},
-    );
+    // Even with a praxis join loaded, the footnote body stays praxis-agnostic
+    // (#172/#174): spine membership lives on the web badges / annex / join.json,
+    // not inline in every footnote.
+    var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
 
-    const md = (try cj.resolveFootnote(alloc, "IAC-01")).?;
+    const md = (try cj.resolveFootnote(alloc, "IAC-01", null)).?;
     defer alloc.free(md);
-    try tst.expect(std.mem.indexOf(u8, md, "Identity & Access Management") != null);
-    try tst.expect(std.mem.indexOf(u8, md, "praxis:") == null);
-    try tst.expect(std.mem.indexOf(u8, md, "Covered by: Access Control Test Policy.") != null);
+    try tst.expect(std.mem.indexOf(u8, md, "praxis") == null);
+    try tst.expect(std.mem.indexOf(u8, md, "in control spine") == null);
 }
 
 test "controls: resolveFootnote — no catalog omits the title clause" {
@@ -1827,16 +1843,16 @@ test "controls: resolveFootnote — no catalog omits the title clause" {
         null, // no catalog
         null, // no TSC catalog
         "src/test/controls_join.json",
-        &.{"src/test/test_policy_controls.md"},
+        &.{ "src/test/test_policy_controls.md", "src/test/test_policy_controls_related.md" },
     );
     defer cj.deinit();
 
-    const md = (try cj.resolveFootnote(alloc, "IAC-01")).?;
+    const md = (try cj.resolveFootnote(alloc, "IAC-01", fixture_self)).?;
     defer alloc.free(md);
-    // Just the id (no "— title"), then the spine + covering clauses.
+    // Just the id (no "— title"), then the See-also clause for the other policy.
     try tst.expect(std.mem.startsWith(u8, md, "IAC-01."));
     try tst.expect(std.mem.indexOf(u8, md, "\u{2014}") == null);
-    try tst.expect(std.mem.indexOf(u8, md, "praxis: in control spine.") != null);
+    try tst.expect(std.mem.indexOf(u8, md, "See also: Access Control Standard.") != null);
 }
 
 test "controls: reviewControlRefs — clean fixture is none" {

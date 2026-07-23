@@ -487,7 +487,10 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         policy_paths,
     );
     defer control_join.deinit();
-    const control_resolver: ?zigmark.footnotes.Resolver = control_join.resolver();
+    // The footnote resolver is now built PER DOCUMENT inside `compileOne` (a
+    // stack-local `DocResolver` bound to that policy's path, so "See also"
+    // excludes the owning policy). The annex provider stays a single read-only
+    // value shared across the concurrent compile tasks.
     const control_annex_provider: ?control_annex.Provider = control_join.annexProvider();
 
     // --- Front-matter validation (pre-flight) ---
@@ -637,7 +640,7 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
             alloc,
             config,
             p.path,
-            control_resolver,
+            &control_join,
             control_annex_provider,
             stamps_dir_path,
             compile_node,
@@ -960,7 +963,7 @@ fn compileOne(
     alloc: Allocator,
     config: Config,
     input_path: []const u8,
-    resolver: ?zigmark.footnotes.Resolver,
+    control_join: *const controls.ControlJoin,
     annex_provider: ?control_annex.Provider,
     stamps_dir: []const u8,
     progress_node: std.Progress.Node,
@@ -969,6 +972,12 @@ fn compileOne(
     error_list: *std.ArrayList(ErrorInfo),
 ) void {
     defer progress_node.completeOne();
+
+    // Per-document footnote resolver: a stack-local bound to this policy's path
+    // so its own "See also" cross-references exclude it. Owned by this task; no
+    // shared mutable resolver across the concurrent compiles.
+    var doc_resolver = control_join.docResolver(input_path);
+    const resolver: ?zigmark.footnotes.Resolver = doc_resolver.resolver();
 
     Typst.compile(io, env, alloc, config, input_path, resolver, annex_provider) catch |err| {
         error_mutex.lockUncancelable(io);

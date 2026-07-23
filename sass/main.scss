@@ -28,6 +28,11 @@
 @import "components/reports";
 @import "components/tabs";
 @import "components/satisfies";
+// praxis overlay (optional, #174): spine markers/badge styling, kept in its own
+// partial behind this boundary. Decorates the base classes in `satisfies`, so
+// it is imported after it; inert until the praxis overlay templates emit the
+// matching classes (only when a praxis_join is configured).
+@import "components/praxis";
 @import "components/search";
 @import "components/section-cards";
 @import "components/syntax";

@@ -58,20 +58,28 @@ pub fn renderControlFixture(io: std.Io, alloc: std.mem.Allocator) ![]u8 {
     conf.current_year = 2026;
 
     const fixture = "src/test/test_policy_controls.md";
+    // A second policy that also addresses IAC-01, so the rendered fixture's
+    // IAC-01 footnote carries a "See also" cross-reference to it — while DCH-01
+    // (covered only by the fixture itself) shows the clause omitted.
+    const related = "src/test/test_policy_controls_related.md";
     var cj = try controls.ControlJoin.init(
         io,
         alloc,
         "src/test/controls_catalog.json",
         "src/test/controls_tsc_catalog.json",
         "src/test/controls_join.json",
-        &.{fixture},
+        &.{ fixture, related },
     );
     defer cj.deinit();
 
     // Pass BOTH the footnote resolver (inline control(...) refs) and the annex
     // provider (frontmatter framework tags + scope exclusions), so the baseline
-    // exercises the full #164+#165 render path.
-    var rendered = try typst.renderWithControls(io, alloc, conf, fixture, cj.resolver(), cj.annexProvider());
+    // exercises the full #164+#165 render path. The resolver is per-document
+    // (bound to the fixture's own path) so "See also" excludes the fixture
+    // itself — the fixture is the sole library policy, so its footnotes carry no
+    // "See also" clause.
+    var doc_resolver = cj.docResolver(fixture);
+    var rendered = try typst.renderWithControls(io, alloc, conf, fixture, doc_resolver.resolver(), cj.annexProvider());
     defer rendered.deinit(alloc);
     return alloc.dupe(u8, rendered.source);
 }

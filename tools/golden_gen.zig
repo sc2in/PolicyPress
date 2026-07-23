@@ -21,6 +21,16 @@ pub fn main(init: std.process.Init) !void {
     }
     const fixture = argv[1];
 
+    if (std.mem.eql(u8, fixture, "--controls")) {
+        const src = try golden.renderControlFixture(io, alloc);
+        defer alloc.free(src);
+        var buf: [4096]u8 = undefined;
+        var out = std.Io.File.stdout().writer(io, &buf);
+        try out.interface.writeAll(src);
+        try out.interface.flush();
+        return;
+    }
+
     if (std.mem.eql(u8, fixture, "--report")) {
         if (argv.len < 3) {
             std.debug.print("usage: golden_gen --report <scf|soc2|review>\n", .{});

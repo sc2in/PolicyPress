@@ -265,13 +265,14 @@ pub fn replace_org(alloc: Allocator, txt: *Array(u8), with: []const u8) !void {
     txt.* = new;
 }
 
-/// PDF pre-pass stopgap for inline control references.
+/// PDF pre-pass for inline control references.
 ///
-/// Rewrites every `{{ control(id="IAC-01") }}` shortcode to the bare control id
-/// text (`IAC-01`) so demo PDFs never show literal shortcode syntax. This is a
-/// placeholder: a later subissue (#164) upgrades the rewrite to a `[^IAC-01]`
-/// footnote reference resolved against the SCF catalog + praxis join. The website
-/// renders the same shortcode as a link via templates/shortcodes/control.html.
+/// Rewrites every `{{ control(id="IAC-01") }}` shortcode to a Markdown footnote
+/// reference (`[^IAC-01]`). The control-ID join (`src/controls.zig`) then
+/// synthesises the matching footnote definition — control title + praxis spine
+/// status + covering policies — which zigmark's Typst renderer expands into a
+/// native `#footnote[…]`. The website renders the same shortcode as a link via
+/// templates/shortcodes/control.html.
 ///
 /// Strictness mirrors `redact`'s orphan-tag handling: the id must match
 /// `[A-Z]{2,5}-[0-9]{2}(\.[0-9]+)*` exactly. Any `control(` construct that does
@@ -300,7 +301,12 @@ pub fn replace_control_refs(alloc: Allocator, txt: *Array(u8)) !void {
         const id_end = std.mem.indexOfScalarPos(u8, m.slice, id_start, '"') orelse return error.InvalidShortCode;
         const id = m.slice[id_start..id_end];
 
-        try new.replaceRange(alloc, m.start, m.slice.len, id);
+        // Emit a footnote reference `[^<id>]`; controls.zig synthesises the
+        // definition so the Typst renderer produces a native `#footnote[…]`.
+        const fnref = try std.fmt.allocPrint(alloc, "[^{s}]", .{id});
+        defer alloc.free(fnref);
+
+        try new.replaceRange(alloc, m.start, m.slice.len, fnref);
         iter = ref.iterator(new.items);
     }
     txt.deinit(alloc);

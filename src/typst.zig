@@ -129,8 +129,12 @@ pub fn compile(
     alloc: Allocator,
     config: Config,
     input_file: []const u8,
+    /// Control-footnote resolver (from `controls.ControlJoin`), or null to leave
+    /// footnote references undefined. Read-only, so it is safe to copy into each
+    /// concurrent compile task.
+    resolver: ?zigmark.footnotes.Resolver,
 ) !void {
-    var rendered = try render(io, alloc, config, input_file);
+    var rendered = try renderWithControls(io, alloc, config, input_file, resolver);
     defer rendered.deinit(alloc);
 
     try compileSource(io, env, alloc, config, rendered.source, std.fs.path.basename(input_file), rendered.pdf_name);
@@ -214,11 +218,32 @@ pub fn outputName(io: std.Io, alloc: Allocator, config: Config, input_file: []co
 /// Render a Markdown policy file to a complete Typst source. Split out from
 /// `compile` so tests can assert on the generated markup without a typst
 /// binary. Caller owns the result (free via `Rendered.deinit`).
+///
+/// This is the control-free path: footnote references are left unresolved, so
+/// output is byte-identical to the pre-#164 renderer (the golden baselines
+/// depend on this). Pass a resolver via `renderWithControls` to synthesise
+/// control footnotes.
 pub fn render(
     io: std.Io,
     alloc: Allocator,
     config: Config,
     input_file: []const u8,
+) !Rendered {
+    return renderWithControls(io, alloc, config, input_file, null);
+}
+
+/// As `render`, but when `resolver` is non-null every undefined footnote
+/// reference is offered to it (`zigmark.footnotes.resolve`) between parsing and
+/// rendering, so inline control references (`[^IAC-01]`, produced from the
+/// `control(...)` shortcode by `replace_control_refs`) become native
+/// `#footnote[…]`. A null resolver leaves the AST untouched — byte-identical to
+/// the pre-#164 output.
+pub fn renderWithControls(
+    io: std.Io,
+    alloc: Allocator,
+    config: Config,
+    input_file: []const u8,
+    resolver: ?zigmark.footnotes.Resolver,
 ) !Rendered {
     log.debug("Processing markdown file: {s}\n", .{input_file});
 
@@ -284,6 +309,15 @@ pub fn render(
     defer parser.deinit(alloc);
     var doc = try parser.parseMarkdown(alloc, contents.items);
     defer doc.deinit(alloc);
+
+    // Synthesise control-footnote definitions for the `[^ID]` references that
+    // `replace_control_refs` produced from `control(...)` shortcodes. Only when a
+    // resolver is supplied — a null resolver leaves the AST (and every existing
+    // golden) byte-identical. Uses the same parser flags so a synthesised body
+    // parses like the host document.
+    if (resolver) |r| {
+        _ = try zigmark.footnotes.resolve(alloc, &doc, r, .{ .parser = parser });
+    }
 
     // Only pull in mitex when math is both enabled and actually present, so a
     // policy that opts in but writes no `$…$` still produces a mitex-free PDF.

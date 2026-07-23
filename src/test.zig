@@ -15,6 +15,7 @@ const typst = @import("typst");
 const utils = @import("utils");
 const zigmark = @import("zigmark");
 const praxis_join = @import("praxis_join");
+const controls = @import("controls");
 
 const audit = @import("audit.zig");
 const diagrams = @import("diagrams.zig");
@@ -197,7 +198,7 @@ test "pdf rendering" {
     // test_policy.md contains a mermaid diagram: unlike the pandoc pipeline
     // (which needed Chrome for mermaid-filter), pozeiden renders it in-process
     // so the full pipeline works even inside the Nix sandbox.
-    typst.compile(io, &env, tst.allocator, conf, "src/test/test_policy.md") catch |e| {
+    typst.compile(io, &env, tst.allocator, conf, "src/test/test_policy.md", null) catch |e| {
         std.debug.print("Test Policy Typst Call Failed! \nConfig:{f}\n", .{conf});
         return e;
     };
@@ -966,12 +967,12 @@ test "redact: multiple blocks are all redacted" {
     try tst.expect(std.mem.indexOf(u8, ts.items, "secret") == null);
 }
 
-test "control refs: a valid reference is rewritten to its bare id" {
+test "control refs: a valid reference is rewritten to a footnote reference" {
     var ts = Array(u8).empty;
     defer ts.deinit(tst.allocator);
     try ts.appendSlice(tst.allocator, "Access is least-privilege {{ control(id=\"IAC-01\") }} enforced.");
     try utils.replace_control_refs(tst.allocator, &ts);
-    try tst.expectEqualStrings("Access is least-privilege IAC-01 enforced.", ts.items);
+    try tst.expectEqualStrings("Access is least-privilege [^IAC-01] enforced.", ts.items);
 }
 
 test "control refs: multiple references are all rewritten" {
@@ -980,7 +981,7 @@ test "control refs: multiple references are all rewritten" {
     // Second ref uses the no-whitespace form to exercise \s* on both ends.
     try ts.appendSlice(tst.allocator, "See {{ control(id=\"IAC-01\") }} and {{control(id=\"CRY-01\")}}.");
     try utils.replace_control_refs(tst.allocator, &ts);
-    try tst.expectEqualStrings("See IAC-01 and CRY-01.", ts.items);
+    try tst.expectEqualStrings("See [^IAC-01] and [^CRY-01].", ts.items);
 }
 
 test "control refs: a dotted sub-control id is accepted" {
@@ -988,7 +989,7 @@ test "control refs: a dotted sub-control id is accepted" {
     defer ts.deinit(tst.allocator);
     try ts.appendSlice(tst.allocator, "Ref {{ control(id=\"IAC-21.5\") }} here.");
     try utils.replace_control_refs(tst.allocator, &ts);
-    try tst.expectEqualStrings("Ref IAC-21.5 here.", ts.items);
+    try tst.expectEqualStrings("Ref [^IAC-21.5] here.", ts.items);
 }
 
 test "control refs: a malformed id is a hard error" {
@@ -1441,4 +1442,185 @@ test "praxis join: missing schema field is a hard, distinct error" {
     defer alloc.free(p);
 
     try tst.expectError(error.MissingSchema, praxis_join.PraxisJoin.load(io, alloc, p));
+}
+
+// ── Control-ID join (src/controls.zig) ────────────────────────────────────────
+
+/// A ControlJoin over the committed fixtures: catalog IAC-01/DCH-01/NET-02,
+/// spine {IAC-01, NET-02}, library = the single control fixture policy (tags
+/// IAC-01 + DCH-01, titled "Access Control Test Policy").
+fn fixtureControlJoin(alloc: Allocator) !controls.ControlJoin {
+    return controls.ControlJoin.init(
+        io,
+        alloc,
+        "src/test/controls_catalog.json",
+        "src/test/controls_join.json",
+        &.{"src/test/test_policy_controls.md"},
+    );
+}
+
+test "controls: resolveFootnote — covered + in spine" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    const md = (try cj.resolveFootnote(alloc, "IAC-01")).?;
+    defer alloc.free(md);
+    try tst.expect(std.mem.startsWith(u8, md, "IAC-01 \u{2014} Identity & Access Management."));
+    try tst.expect(std.mem.indexOf(u8, md, "praxis: in control spine.") != null);
+    try tst.expect(std.mem.indexOf(u8, md, "Covered by: Access Control Test Policy.") != null);
+}
+
+test "controls: resolveFootnote — covered but not in spine" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    const md = (try cj.resolveFootnote(alloc, "DCH-01")).?;
+    defer alloc.free(md);
+    try tst.expect(std.mem.indexOf(u8, md, "DCH-01 \u{2014} Data Protection.") != null);
+    try tst.expect(std.mem.indexOf(u8, md, "praxis: not in control spine.") != null);
+    try tst.expect(std.mem.indexOf(u8, md, "Covered by: Access Control Test Policy.") != null);
+}
+
+test "controls: resolveFootnote — in spine but uncovered omits the Covered-by clause" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    const md = (try cj.resolveFootnote(alloc, "NET-02")).?;
+    defer alloc.free(md);
+    try tst.expect(std.mem.indexOf(u8, md, "NET-02 \u{2014} Layered Network Defenses.") != null);
+    try tst.expect(std.mem.indexOf(u8, md, "praxis: in control spine.") != null);
+    // No policy tags NET-02, so there is no covering clause.
+    try tst.expect(std.mem.indexOf(u8, md, "Covered by:") == null);
+}
+
+test "controls: resolveFootnote — a non-control label returns null" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    try tst.expect((try cj.resolveFootnote(alloc, "not-a-control")) == null);
+    try tst.expect((try cj.resolveFootnote(alloc, "1")) == null);
+}
+
+test "controls: resolveFootnote — no praxis join omits the spine clause" {
+    const alloc = tst.allocator;
+    var cj = try controls.ControlJoin.init(
+        io,
+        alloc,
+        "src/test/controls_catalog.json",
+        null, // no join configured
+        &.{"src/test/test_policy_controls.md"},
+    );
+    defer cj.deinit();
+
+    const md = (try cj.resolveFootnote(alloc, "IAC-01")).?;
+    defer alloc.free(md);
+    try tst.expect(std.mem.indexOf(u8, md, "Identity & Access Management") != null);
+    try tst.expect(std.mem.indexOf(u8, md, "praxis:") == null);
+    try tst.expect(std.mem.indexOf(u8, md, "Covered by: Access Control Test Policy.") != null);
+}
+
+test "controls: resolveFootnote — no catalog omits the title clause" {
+    const alloc = tst.allocator;
+    var cj = try controls.ControlJoin.init(
+        io,
+        alloc,
+        null, // no catalog
+        "src/test/controls_join.json",
+        &.{"src/test/test_policy_controls.md"},
+    );
+    defer cj.deinit();
+
+    const md = (try cj.resolveFootnote(alloc, "IAC-01")).?;
+    defer alloc.free(md);
+    // Just the id (no "— title"), then the spine + covering clauses.
+    try tst.expect(std.mem.startsWith(u8, md, "IAC-01."));
+    try tst.expect(std.mem.indexOf(u8, md, "\u{2014}") == null);
+    try tst.expect(std.mem.indexOf(u8, md, "praxis: in control spine.") != null);
+}
+
+test "controls: reviewControlRefs — clean fixture is none" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+    try tst.expectEqual(config.IssueKind.none, cj.reviewControlRefs(io, alloc, "src/test/test_policy_controls.md"));
+}
+
+test "controls: reviewControlRefs — unknown id in taxonomies.SCF is critical" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // GOV-99 is well-formed but not in the fixture catalog.
+    const md =
+        \\---
+        \\title: "Bad Taxonomy"
+        \\taxonomies:
+        \\  SCF:
+        \\    - GOV-99
+        \\---
+        \\Body.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "bad_tax.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "bad_tax.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+}
+
+test "controls: reviewControlRefs — malformed shortcode is critical" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // Lowercase, single-digit id: the strict pattern rejects it, leaving a
+    // control( opener the reviewer flags.
+    const md =
+        \\---
+        \\title: "Bad Shortcode"
+        \\---
+        \\Access {{ control(id="iac-1") }} enforced.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "bad_sc.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "bad_sc.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+}
+
+test "controls: reviewControlRefs — a control-shaped dangling raw ref is critical" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // Author typed a raw footnote reference instead of the shortcode.
+    const md =
+        \\---
+        \\title: "Raw Footnote"
+        \\---
+        \\Access is least-privilege [^IAC-01] enforced.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "raw_fn.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "raw_fn.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
 }

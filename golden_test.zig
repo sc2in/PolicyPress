@@ -42,6 +42,19 @@ test "golden: test_policy_math (plain)" {
     try checkGolden("test_policy_math.typ", "src/test/test_policy_math.md", .plain);
 }
 
+test "golden: control footnotes (fixture-backed ControlJoin)" {
+    const expected = @embedFile("tests/golden/test_policy_controls.typ");
+    const actual = try golden.renderControlFixture(std.testing.io, std.testing.allocator);
+    defer std.testing.allocator.free(actual);
+    std.testing.expectEqualStrings(expected, actual) catch |err| {
+        std.debug.print(
+            "\ngolden mismatch for test_policy_controls.typ — if the change is intentional, run `zig build update-golden` and review the diff.\n",
+            .{},
+        );
+        return err;
+    };
+}
+
 fn checkReportGolden(comptime baseline: []const u8, kind: anytype) !void {
     const expected = @embedFile("tests/golden/" ++ baseline);
     const actual = try golden.renderReportFixture(std.testing.io, std.testing.allocator, kind);

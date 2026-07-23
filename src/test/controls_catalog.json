@@ -1,0 +1,17 @@
+[
+  {
+    "domain": "Identity & Access Management",
+    "control_id": "IAC-01",
+    "control": "Identity & Access Management"
+  },
+  {
+    "domain": "Data Classification & Handling",
+    "control_id": "DCH-01",
+    "control": "Data Protection"
+  },
+  {
+    "domain": "Network Security",
+    "control_id": "NET-02",
+    "control": "Layered Network Defenses"
+  }
+]

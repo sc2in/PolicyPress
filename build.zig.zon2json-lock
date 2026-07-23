@@ -1,8 +1,8 @@
 {
-  "zigmark-0.10.0-cwOiyOMRCwDf1Z62LEuDj6DCDL1M-vzAFdh969E6Rpl_": {
+  "zigmark-0.11.0-cwOiyGavCwD_RfjSI5UU-xGwQzgKbfnFv3Gjd454Ypqx": {
     "name": "zigmark",
-    "url": "git+https://github.com/sc2in/zigmark?ref=v0.10.0#23d12b74dfe586c36f7a7cfd5350719c067cc2a6",
-    "hash": "sha256-pOMqX6x9EAfu8JyoWH6L4j26wtBX+86n6qjRn8P2MI0="
+    "url": "git+https://github.com/sc2in/zigmark?ref=v0.11.0#63f68d4dd759836e35900b75a140a35ed7ab2223",
+    "hash": "sha256-syIAWFl/bpBF0UnmjZ/h/KRH/2eJuU/hH+RxHMWzi7o="
   },
   "tomlz-0.3.0-H2E6w3VKAgCSZQFKG-VugLEn3cjOWshGqwGzAVABNm--": {
     "name": "tomlz",
@@ -44,10 +44,10 @@
     "url": "git+https://github.com/mnemnion/mvzr?ref=v0.3.10#dd0e1bd2d6b10f9650317b30baef7ab7bc9dd9ec",
     "hash": "sha256-hUGdJPjC1PAm6zWL9eAE7A+wAfzf6Q7uSutT2Xe7EMU="
   },
-  "zig_yaml-0.3.1-C1161s2zAgBOYGjCQB3uWdAadPevfdNiTaffefbhAhBq": {
+  "zig_yaml-0.3.2-C1161q3CAgCEpqWl_MKjkQpPZmos4DHBJewpb58XMcAL": {
     "name": "yaml",
-    "url": "git+https://github.com/sc2in/zig-yaml#7c60d9cd6ae596c8247ac74b5b8e32c329e7c1d0",
-    "hash": "sha256-JAYq7B7gXd4+c60KXZ9b5IuaKLY7x7Bn9TNynyx4kog="
+    "url": "git+https://github.com/sc2in/zig-yaml#3dc3441ee1f9a42565881a8f846f529fd8564bff",
+    "hash": "sha256-kILMfi0bF69Mm7MOZZ7+DeJ+iMdOkAfGd0mR7LXK3ns="
   },
   "mvzr-0.3.9-ZSOky6t2AQCA7efmm5EYbPb5sOdbXa4EFsUgYbQ6hZv9": {
     "name": "mvzr",

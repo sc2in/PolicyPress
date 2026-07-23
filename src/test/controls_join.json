@@ -1,0 +1,10 @@
+{
+  "schema": "policypress/praxis-join/v1",
+  "generated_at": "2026-01-01",
+  "source": {
+    "rev": "test-fixture",
+    "scf_version": "2026.1.1"
+  },
+  "organizational_families": ["IAC"],
+  "ids": ["IAC-01", "NET-02"]
+}

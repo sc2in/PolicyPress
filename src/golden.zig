@@ -12,6 +12,7 @@ const std = @import("std");
 const Config = @import("config").Config;
 const typst = @import("typst");
 const reports = @import("reports");
+const controls = @import("controls");
 
 pub const Mode = enum { plain, redact, draft };
 
@@ -41,6 +42,32 @@ pub fn renderFixture(io: std.Io, alloc: std.mem.Allocator, fixture: []const u8, 
     conf.is_draft = (mode == .draft);
 
     var rendered = try typst.render(io, alloc, conf, fixture);
+    defer rendered.deinit(alloc);
+    return alloc.dupe(u8, rendered.source);
+}
+
+/// Render the control-footnote fixture with a fixture-backed `ControlJoin`
+/// context (small committed catalog + join under src/test, and the fixture
+/// itself as the sole library policy). Proves that inline `control(...)`
+/// references become native `#footnote[…]` with the resolved title / spine /
+/// covering-policy text. Fully deterministic. Caller owns the slice.
+pub fn renderControlFixture(io: std.Io, alloc: std.mem.Allocator) ![]u8 {
+    var conf = try Config.load(io, alloc, golden_config);
+    defer conf.deinit(alloc);
+    conf.date = .{ .year = 2026, .month = 1, .day = 1 };
+    conf.current_year = 2026;
+
+    const fixture = "src/test/test_policy_controls.md";
+    var cj = try controls.ControlJoin.init(
+        io,
+        alloc,
+        "src/test/controls_catalog.json",
+        "src/test/controls_join.json",
+        &.{fixture},
+    );
+    defer cj.deinit();
+
+    var rendered = try typst.renderWithControls(io, alloc, conf, fixture, cj.resolver());
     defer rendered.deinit(alloc);
     return alloc.dupe(u8, rendered.source);
 }

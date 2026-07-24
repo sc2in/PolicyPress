@@ -1,5 +1,5 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 //!
 //! Plain data contract for the PDF "Control Coverage" annex (#127 / #165).
 //!

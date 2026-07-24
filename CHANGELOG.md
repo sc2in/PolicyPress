@@ -89,6 +89,17 @@ versioning; breaking changes to it bump the major version.
 
 ### Changed
 
+- **Licensing: PolicyPress is now free for any organization's own use.**
+  Alongside PolyForm Noncommercial 1.0.0, it may now be used under **PolyForm
+  Internal Use 1.0.0** — free for a company of any size to manage its own
+  policies (internal business operations, affiliates included). A commercial
+  license is required only to offer PolicyPress *to others* (an MSP/consultancy
+  running it for clients, a hosted/SaaS offering, embedding, or redistribution);
+  optional support subscriptions add SLAs and indemnification. Adds
+  `LICENSE-PolyForm-Internal-Use-1.0.0.md` and a plain-language `LICENSING.md`,
+  updates the `theme.toml`/README license metadata, and stamps dual SPDX headers
+  (`PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0`) across the
+  sources.
 - **The demo Team section is now a five-person security & compliance team** — a
   CISO, a Compliance/GRC manager, a security engineer, an IT/infrastructure lead,
   and a data protection officer — following the A.B./C.D./E.F. initials scheme,

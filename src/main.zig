@@ -1,5 +1,5 @@
 //! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 //!
 //! This program automates the process of converting Markdown policy documents into styled PDF files.
 //! It loads configuration from a TOML file, processes Markdown files (including YAML front matter and custom placeholders),

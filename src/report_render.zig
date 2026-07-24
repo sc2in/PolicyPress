@@ -1,5 +1,5 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 //!
 //! Typst markup for the report PDFs (SCF/SOC 2 coverage, policy review).
 //! Struct-driven — the data comes from control_report.zig, never zigmark —
@@ -12,6 +12,7 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 
 const typst = @import("typst");
+
 const report = @import("control_report.zig");
 
 /// Document chrome shared by all reports, derived from Config by the caller

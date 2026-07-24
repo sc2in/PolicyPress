@@ -1,5 +1,5 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 //!
 //! Loader for the praxis control-join file (`data/praxis-join.json`).
 //!

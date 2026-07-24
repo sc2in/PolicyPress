@@ -1,13 +1,14 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
 
-const ReportType = @import("src/control_report.zig").Report;
 const zon = @import("build.zig.zon");
+
+const ReportType = @import("src/control_report.zig").Report;
 
 pub fn build(b: *std.Build) !void {
     var threaded: std.Io.Threaded = .init(b.allocator, .{});

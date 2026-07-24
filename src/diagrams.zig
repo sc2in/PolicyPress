@@ -1,5 +1,5 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 //!
 //! Build-time mermaid rendering for the website. Zola's `mermaid` shortcode
 //! emits `<pre class="mermaid">…</pre>` placeholders; this pass rewrites them
@@ -8,6 +8,7 @@
 //! and diagrams render with JavaScript disabled. See issue #114.
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+
 const pozeiden = @import("pozeiden");
 
 const log = std.log.scoped(.diagrams);

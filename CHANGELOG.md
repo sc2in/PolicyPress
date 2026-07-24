@@ -10,6 +10,26 @@ versioning; breaking changes to it bump the major version.
 
 ### Added
 
+- **Native `[^CONTROL-ID]` footnote references (opt-in, #173).** Inline control
+  references can now be written as standard Markdown footnote references
+  (`[^IAC-01]`) instead of the `{{ control(id="IAC-01") }}` shortcode, enabled by
+  `[extra.policypress] control_footnotes = true` (default off). A new
+  `policypress stage-site` subcommand performs a pre-Zola content-synthesis pass:
+  it writes a disposable copy of the site root with the matching
+  `[^IAC-01]: …` footnote definitions appended to each content Markdown file —
+  the web analogue of what the PDF pipeline already does — and the GitHub Action
+  builds from that staged root (`zola --root "$SITE_ROOT" build`). The transform
+  is append-only and its definitions derive only from the SCF catalog and the
+  policy library, never from document bodies, so the redaction chokepoint (#116)
+  is unaffected and the authored `content/` tree is never modified; the staged
+  copy lives outside the workspace and is never published. With the flag off,
+  `stage-site` prints `.` and the build is unchanged. Native references render as
+  a bottom-of-page footnote linking to the SCF report-page anchor, whereas the
+  shortcode renders an inline link — both are supported and may be mixed. Under
+  `--strict`: with the flag off, any control-shaped `[^…]` is an error (use the
+  shortcode); with it on, a known SCF id is accepted while an unknown one is
+  still an error (typo detection). The demo enables the flag and uses one native
+  reference to exercise coexistence in CI.
 - **Audit bundle praxis-join facet (`audit/join.json`).** When a praxis control
   join is configured (`[extra.policypress] praxis_join`), the audit bundle gains
   a new `join.json` file (schema `policypress/audit-join/v1`) exposing the

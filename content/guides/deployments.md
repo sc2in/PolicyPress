@@ -135,3 +135,22 @@ nix run github:sc2in/policypress -- -c config.toml -o public
 # Redacted PDFs only
 nix run github:sc2in/policypress -- -c config.toml -o dist --redact
 ```
+
+### Local preview with native control footnotes
+
+If you enable `control_footnotes` (see
+[Inline control references](@/guides/compliance-frameworks.md#inline-control-references))
+and write native `[^IAC-01]` references, a plain `zola serve` / `zola build`
+does **not** synthesise the footnote definitions — those references show as
+literal `[^IAC-01]` text, because synthesis happens in the `policypress
+stage-site` step that CI runs before Zola. To preview the resolved footnotes
+locally, stage first and point Zola at the staged root:
+
+```sh
+zola --root "$(policypress stage-site -c config.toml -o .pp-stage)" serve
+```
+
+The staged copy is a snapshot: re-run `stage-site` after editing a policy to
+pick up the change. The `{{/* control() */}}` shortcode has no such caveat — it
+resolves in a plain `zola serve` — so it remains the simplest option for quick
+local iteration.

@@ -10,6 +10,18 @@ versioning; breaking changes to it bump the major version.
 
 ### Added
 
+- **Private-by-default site visibility + turnkey SSO deploy.** A new
+  `[extra.policypress] private` key (default off; the starter template ships it
+  **on**) marks a policy site as confidential/internal: every page is served
+  `noindex, nofollow` and `robots.txt` becomes `Disallow: /`, so policies stay
+  out of search engines even if a URL leaks. The build prints an advisory when a
+  `private` site would still publish a `/sitemap.xml`; the starter pairs the flag
+  with `generate_sitemap = false`. The starter also ships a ready-to-fill
+  `static/staticwebapp.config.json` (Azure AD SSO gating every route, redirect to
+  Microsoft login, `X-Robots-Tag: noindex`) and a hardened `static/_headers`, so
+  putting the site behind SSO is a fill-in-your-tenant-ID step rather than a
+  hand-authored config. `private` governs discoverability only — access control
+  is still the hosting layer's job (see the "Securing your repository" guide).
 - **Native `[^CONTROL-ID]` footnote references (opt-in, #173).** Inline control
   references can now be written as standard Markdown footnote references
   (`[^IAC-01]`) instead of the `{{ control(id="IAC-01") }}` shortcode, enabled by

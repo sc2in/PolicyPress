@@ -1,4 +1,4 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
 //! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 const std = @import("std");
 const Array = std.ArrayList;
@@ -10,12 +10,12 @@ const EnvMap = std.process.Environ.Map;
 const b = @import("builtin");
 
 const config = @import("config").Config;
+const controls = @import("controls");
+const praxis_join = @import("praxis_join");
 const report = @import("reports");
 const typst = @import("typst");
 const utils = @import("utils");
 const zigmark = @import("zigmark");
-const praxis_join = @import("praxis_join");
-const controls = @import("controls");
 
 const audit = @import("audit.zig");
 const diagrams = @import("diagrams.zig");
@@ -142,6 +142,56 @@ test "config: control_footnotes defaults off and parses from [extra.policypress]
         var conf = try config.load(io, alloc, TestConfig ++ "\ncontrol_footnotes = true\n");
         defer conf.deinit(alloc);
         try tst.expect(conf.control_footnotes);
+    }
+}
+
+test "config: private defaults off and parses from [extra.policypress]" {
+    const alloc = tst.allocator;
+    // Absent → off: the site stays indexable (the demo and public policy sites).
+    {
+        var conf = try config.load(io, alloc, TestConfig);
+        defer conf.deinit(alloc);
+        try tst.expect(!conf.private);
+    }
+    // Explicit true marks the site confidential/internal, so the web templates
+    // emit noindex meta and a Disallow robots.txt.
+    {
+        var conf = try config.load(io, alloc, TestConfig ++ "\nprivate = true\n");
+        defer conf.deinit(alloc);
+        try tst.expect(conf.private);
+    }
+}
+
+test "preflight: a private site that still generates a sitemap is advisory" {
+    const alloc = tst.allocator;
+    // Not private → never flagged, regardless of sitemap.
+    {
+        var conf = try config.load(io, alloc, TestConfig);
+        defer conf.deinit(alloc);
+        try tst.expectEqual(config.IssueKind.none, conf.reviewPrivatePosture());
+    }
+    // Private but generate_sitemap left at its default (on) → advisory: the
+    // sitemap would still enumerate every URL.
+    {
+        var conf = try config.load(io, alloc, TestConfig ++ "\nprivate = true\n");
+        defer conf.deinit(alloc);
+        try tst.expectEqual(config.IssueKind.advisory, conf.reviewPrivatePosture());
+    }
+    // Private with the sitemap explicitly disabled → clean.
+    {
+        const cfg =
+            \\base_url = "http://localhost:1111"
+            \\generate_sitemap = false
+            \\[extra.policypress]
+            \\private = true
+            \\policy_dir = "src/test"
+            \\organization = "Star City Security Consulting"
+            \\logo = "logo.png"
+            \\pdf_color = "#0e90f3"
+        ;
+        var conf = try config.load(io, alloc, cfg);
+        defer conf.deinit(alloc);
+        try tst.expectEqual(config.IssueKind.none, conf.reviewPrivatePosture());
     }
 }
 

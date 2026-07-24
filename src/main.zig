@@ -1,4 +1,4 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
 //! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 //!
 //! This program automates the process of converting Markdown policy documents into styled PDF files.
@@ -18,17 +18,18 @@ const build_options = @import("build_options");
 
 const clap = @import("clap");
 const Config = @import("config").Config;
+const control_annex = @import("control_annex");
+const controls = @import("controls");
 const Date = @import("utils").Date;
-const stampIsNewer = @import("utils").stampIsNewer;
 const isDraftPolicy = @import("utils").isDraftPolicy;
-const Typst = @import("typst");
 const reports = @import("reports");
+const stampIsNewer = @import("utils").stampIsNewer;
+const Typst = @import("typst");
 const writeStamp = @import("utils").writeStamp;
+const zigmark = @import("zigmark");
+
 const audit = @import("audit.zig");
 const diagrams = @import("diagrams.zig");
-const controls = @import("controls");
-const control_annex = @import("control_annex");
-const zigmark = @import("zigmark");
 const stage = @import("stage.zig");
 
 // ---------------------------------------------------------------------------
@@ -537,6 +538,23 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
                         "[extra.policypress] redact to match redact_web (or pass --redact/--no-redact) to " ++
                         "align them.",
                     .{ config.redact_web, config.redact },
+                );
+            },
+            else => {},
+        }
+        // Private/internal posture: a `private = true` site emits noindex meta
+        // and a `Disallow: /` robots.txt, but Zola's top-level generate_sitemap
+        // is independent — left on it still publishes /sitemap.xml enumerating
+        // every policy URL. Advisory, folded into the same counter.
+        switch (config.reviewPrivatePosture()) {
+            .advisory => {
+                advisory += 1;
+                std.log.warn(
+                    "policypress: [extra.policypress] private = true but generate_sitemap is not false; " ++
+                        "Zola will still publish /sitemap.xml listing every policy URL, undercutting the " ++
+                        "private posture. Add `generate_sitemap = false` (top level in config.toml) to keep " ++
+                        "the site non-discoverable.",
+                    .{},
                 );
             },
             else => {},

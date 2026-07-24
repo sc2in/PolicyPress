@@ -13,7 +13,11 @@ compile_sass = true
 minify_html = false
 generate_feeds = false
 build_search_index = true
-generate_sitemap = true
+# Private by default: no sitemap, so the site does not enumerate every policy
+# URL for search engines. robots.txt is still generated (as `Disallow: /` while
+# [extra.policypress] private = true). Set generate_sitemap = true only if you
+# also set private = false to publish an intentionally public policy site.
+generate_sitemap = false
 generate_robots_txt = true
 
 [[taxonomies]]
@@ -60,6 +64,16 @@ homepage_style = "dashboard"
 
 # PolicyPress configuration
 [extra.policypress]
+# Website visibility. `true` (the default for this starter) treats the site as
+# confidential/internal: every page emits `noindex, nofollow` and robots.txt is
+# `Disallow: /`, so search engines will not index your policies even if the URL
+# leaks. This does NOT authenticate anyone — it only controls discoverability.
+# Put the site behind SSO/VPN to actually restrict who can read it; the shipped
+# static/staticwebapp.config.json gives you Azure AD SSO in a few fields. See the
+# "Securing your repository" guide. Set to `false` only for an intentionally
+# public policy site (and then also set generate_sitemap = true above).
+private = true
+
 # Your organization's name. Used in PDF headers, footers, and policy text
 # wherever the {{ org() }} shortcode appears.
 organization = "Example Corp"
@@ -74,9 +88,9 @@ pdf_color = "#0e90f3"
 policy_dir = "policies/"
 
 # Renders a redaction bar over {% redact() %}...{% end %} blocks on the *website*.
-# Defaults to true because this starter auto-deploys to public GitHub Pages: with
-# it off, redacted content would ship in the site's HTML and search index.
-# Web-only (#115); does not itself affect PDFs.
+# Defaults to true as defense in depth: even on a private, access-controlled
+# deployment, internal notes wrapped in {% redact() %} then never reach the
+# site's HTML or search index. Web-only (#115); does not itself affect PDFs.
 redact_web = true
 
 # Redact the *PDFs* too (mask {% redact() %} spans and add the "__Redacted__"

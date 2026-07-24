@@ -96,6 +96,14 @@ show_draft_pdfs = false
 # plain (unlinked) control ids — the shortcode degrades gracefully.
 # scf_report_page = "@/reports/scf.md"
 
+# Accept native Markdown footnote references to controls ([^IAC-01]) as an
+# alternative to the {{ control(id="IAC-01") }} shortcode (#173). Off by default:
+# the shortcode needs no extra build step and works in a plain `zola serve`. With
+# this on, the GitHub Action's build synthesises the footnote definitions (via
+# `policypress stage-site`) so the references resolve on the site the way they do
+# in the PDF. See the "Compliance frameworks" guide.
+# control_footnotes = true
+
 # Path to the praxis control-join file (the list of SCF ids an external GRC
 # system actively governs). When set, SCF surfaces gain a "praxis" in-spine
 # marker and a spine-coverage bar. Regenerate with `nix run .#gen-praxis-join`.

@@ -18,6 +18,8 @@ static/pdfs/
 **/internal/*
 **/node_modules/*
 **/public/*
+# stage-site (#173) default staging dir; CI passes an explicit temp dir
+.pp-stage/
 hugo_stats.json
 resources
 tmp.*

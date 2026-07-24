@@ -238,13 +238,48 @@ pub const ControlJoin = struct {
         label: []const u8,
         self_path: ?[]const u8,
     ) !?[]const u8 {
+        return self.resolveFootnoteImpl(alloc, label, self_path, null);
+    }
+
+    /// Like `resolveFootnote`, but renders the leading control id as a Markdown
+    /// link to `link_url` with a `#<id>` fragment — the web path used by the
+    /// `stage-site` pass (#173), so a synthesised definition's id links to the
+    /// control's row on the SCF report page (paralleling the `control()`
+    /// shortcode's inline link). `link_url` is an already-resolved site path
+    /// (e.g. `/reports/scf/`); pass null to emit a plain id.
+    ///
+    /// The PDF path always goes through `resolveFootnote` (link_url = null), so
+    /// the Typst output — and every golden — stays byte-identical. Only the web
+    /// definitions carry the link.
+    pub fn resolveFootnoteLinked(
+        self: *const ControlJoin,
+        alloc: Allocator,
+        label: []const u8,
+        self_path: ?[]const u8,
+        link_url: ?[]const u8,
+    ) !?[]const u8 {
+        return self.resolveFootnoteImpl(alloc, label, self_path, link_url);
+    }
+
+    fn resolveFootnoteImpl(
+        self: *const ControlJoin,
+        alloc: Allocator,
+        label: []const u8,
+        self_path: ?[]const u8,
+        link_url: ?[]const u8,
+    ) !?[]const u8 {
         if (!isControlId(label)) return null;
 
         var aw: std.Io.Writer.Allocating = .init(alloc);
         defer aw.deinit();
 
-        // First sentence: the id and, when the catalog knows it, its title.
-        try aw.writer.writeAll(label);
+        // First sentence: the id — linked to the report-page anchor on the web,
+        // plain in the PDF — and, when the catalog knows it, its title.
+        if (link_url) |url| {
+            try aw.writer.print("[{s}]({s}#{s})", .{ label, url, label });
+        } else {
+            try aw.writer.writeAll(label);
+        }
         if (self.catalog) |*cat| {
             if (cat.map.get(label)) |ctrl| {
                 try aw.writer.print(" \u{2014} {s}", .{std.mem.trim(u8, ctrl.control, " ")});
@@ -318,13 +353,23 @@ pub const ControlJoin = struct {
     ///
     ///   * a malformed or unknown id in `taxonomies.SCF`;
     ///   * a malformed or unknown id in a `control(...)` shortcode; and
-    ///   * a control-shaped raw `[^ID]` footnote reference in the body (the
-    ///     author must use the `control(id="…")` shortcode so the reference
-    ///     resolves on both the website and the PDF — same web/PDF-divergence
-    ///     rationale as the raw-HTML rule).
+    ///   * a control-shaped raw `[^ID]` footnote reference in the body — see
+    ///     `reviewDanglingRefs`. Whether such a ref is critical depends on
+    ///     `native_refs_ok` (`[extra.policypress] control_footnotes`, #173): with
+    ///     native footnotes off it is always critical (the author must use the
+    ///     shortcode so the ref resolves on both web and PDF); with them on only
+    ///     an UNKNOWN id is (the `stage-site` pass synthesises the web definition
+    ///     for known ids).
     ///
     /// Unknown-id checks are skipped when no catalog is loaded (nothing to check
     /// against). Non-control footnote references are ignored here.
+    ///
+    /// One **advisory** (non-critical) rule: a known control referenced *inline*
+    /// in the body (a `control(...)` shortcode, or — with native footnotes on — a
+    /// `[^ID]` reference) but absent from `taxonomies.SCF`. It renders, but
+    /// coverage (the SCF report, the coverage annex, the audit bundle) is
+    /// front-matter-driven, so the mention does not count toward coverage — see
+    /// `reviewInlineCoverage`.
     ///
     /// Scope exclusions (`extra.scope_exclusions`) are also validated: a
     /// malformed/unknown id or a missing reason is critical, an id both covered
@@ -332,7 +377,7 @@ pub const ControlJoin = struct {
     /// but covered by *another* policy is an advisory (a legitimate governance
     /// tension for praxis to adjudicate — the repo-wide view comes from the
     /// shared library).
-    pub fn reviewControlRefs(self: *const ControlJoin, io: std.Io, alloc: Allocator, path: []const u8) Config.IssueKind {
+    pub fn reviewControlRefs(self: *const ControlJoin, io: std.Io, alloc: Allocator, path: []const u8, native_refs_ok: bool) Config.IssueKind {
         const content = std.Io.Dir.cwd().readFileAlloc(io, path, alloc, .limited(u.max_policy_bytes)) catch |err| {
             ctrllog.warn("{s}: cannot read for control validation: {s}", .{ path, @errorName(err) });
             return .critical;
@@ -342,7 +387,8 @@ pub const ControlJoin = struct {
         var worst: Config.IssueKind = .none;
         worst = maxKind(worst, self.reviewTaxonomy(alloc, path, content));
         worst = maxKind(worst, self.reviewShortcodes(path, content));
-        worst = maxKind(worst, self.reviewDanglingRefs(alloc, path, content));
+        worst = maxKind(worst, self.reviewDanglingRefs(alloc, path, content, native_refs_ok));
+        worst = maxKind(worst, self.reviewInlineCoverage(alloc, path, content, native_refs_ok));
         worst = maxKind(worst, self.reviewExclusions(alloc, path, content));
         return worst;
     }
@@ -416,9 +462,22 @@ pub const ControlJoin = struct {
     }
 
     /// Control-shaped raw `[^ID]` footnote references with no definition in the
-    /// body → critical. Parses the raw body (shortcodes are still `{{ … }}`
-    /// text at this stage, so only author-typed `[^…]` refs are found).
-    fn reviewDanglingRefs(_: *const ControlJoin, alloc: Allocator, path: []const u8, content: []const u8) Config.IssueKind {
+    /// body. Parses the raw body (shortcodes are still `{{ … }}` text at this
+    /// stage, so only author-typed `[^…]` refs are found).
+    ///
+    /// Behaviour depends on whether native control footnotes are enabled for this
+    /// build (`native_refs_ok`, from `[extra.policypress] control_footnotes`, #173):
+    ///
+    ///   * disabled (default): ANY control-shaped dangling ref → critical. A bare
+    ///     `[^ID]` resolves in the PDF (the synthesiser) but is dead text on the
+    ///     website with no synthesis pass, so the author must use the
+    ///     `control(id="…")` shortcode (or enable `control_footnotes`).
+    ///   * enabled: a KNOWN id — or any id when no catalog is loaded to check
+    ///     against — is fine, because the pre-Zola `stage-site` pass synthesises
+    ///     the web definition just as the PDF pipeline does. An UNKNOWN but
+    ///     well-formed id is still critical: a typo would render as dead text on
+    ///     the web (mirrors the unknown-id rule in `reviewShortcodes`).
+    fn reviewDanglingRefs(self: *const ControlJoin, alloc: Allocator, path: []const u8, content: []const u8, native_refs_ok: bool) Config.IssueKind {
         var parser = zigmark.Parser.init();
         defer parser.deinit(alloc);
         var doc = parser.parseMarkdown(alloc, content) catch |err| {
@@ -436,11 +495,98 @@ pub const ControlJoin = struct {
         var worst: Config.IssueKind = .none;
         for (dangs) |label| {
             if (!isControlId(label)) continue;
+            if (native_refs_ok) {
+                // Native footnotes are accepted; only a well-formed id the
+                // catalog does not know is a problem (a typo → dead web text).
+                if (self.catalog) |*cat| {
+                    if (!cat.map.contains(label)) {
+                        ctrllog.warn(
+                            "{s}: unknown SCF control id '{s}' in footnote reference '[^{s}]' (not in data/scf.json)",
+                            .{ path, label, label },
+                        );
+                        worst = .critical;
+                    }
+                }
+                continue;
+            }
             ctrllog.warn(
-                "{s}: raw footnote reference '[^{s}]' in the body; use the control(id=\"{s}\") shortcode so it resolves on both the website and the PDF",
+                "{s}: raw footnote reference '[^{s}]' in the body; use the control(id=\"{s}\") shortcode so it resolves on both the website and the PDF, or enable [extra.policypress] control_footnotes",
                 .{ path, label, label },
             );
             worst = .critical;
+        }
+        return worst;
+    }
+
+    /// Advisory: a *known* control id referenced inline in the body — via a
+    /// `control(...)` shortcode, or (when `native_refs_ok`) a `[^ID]` footnote
+    /// reference — that is NOT listed in this policy's `taxonomies.SCF`. Coverage
+    /// (the SCF report, the coverage annex, the audit bundle) is driven by the
+    /// front-matter tags alone, so such a mention renders but silently does not
+    /// count toward coverage; the author likely meant to tag it. Non-fatal,
+    /// because referencing a control another policy owns is legitimate.
+    ///
+    /// Scoped to known ids with a catalog present: without a catalog there is no
+    /// coverage report to match, and an unknown id is already flagged critical by
+    /// `reviewShortcodes` / `reviewDanglingRefs`, so it is not re-reported here.
+    /// Footnote references are considered only when native footnotes are enabled;
+    /// otherwise a `[^ID]` is a dangling-ref critical handled separately.
+    fn reviewInlineCoverage(self: *const ControlJoin, alloc: Allocator, path: []const u8, content: []const u8, native_refs_ok: bool) Config.IssueKind {
+        const cat = if (self.catalog) |*c| c else return .none;
+
+        var fm = zigmark.Frontmatter.initFromMarkdown(alloc, content) catch return .none;
+        defer fm.deinit();
+
+        // The set of front-matter SCF tags (borrowed; fm outlives this function).
+        var tagged = std.StringHashMap(void).init(alloc);
+        defer tagged.deinit();
+        if (fm.get("taxonomies.SCF")) |scf| {
+            if (scf == .array) {
+                for (scf.array.items) |item| {
+                    if (item == .string) tagged.put(item.string, {}) catch {};
+                }
+            }
+        }
+
+        // Ids already advised, so a control referenced twice warns once. Keys are
+        // owned (some come from freed dangling-label slices).
+        var advised = std.StringHashMap(void).init(alloc);
+        defer {
+            var kit = advised.keyIterator();
+            while (kit.next()) |k| alloc.free(k.*);
+            advised.deinit();
+        }
+
+        var worst: Config.IssueKind = .none;
+
+        // Shortcode references: `{{ control(id="…") }}` (still `{{ … }}` text here).
+        const strict: mvzr.Regex = mvzr.compile("\\{\\{\\s*control\\(id=\"[A-Z]{2,5}-[0-9]{2}(\\.[0-9]+)*\"\\)\\s*\\}\\}").?;
+        var it = strict.iterator(content);
+        while (it.next()) |m| {
+            const key = "id=\"";
+            const s = std.mem.indexOf(u8, m.slice, key) orelse continue;
+            const id_start = s + key.len;
+            const id_end = std.mem.indexOfScalarPos(u8, m.slice, id_start, '"') orelse continue;
+            worst = maxKind(worst, considerInlineId(alloc, path, cat, &tagged, &advised, m.slice[id_start..id_end]));
+        }
+
+        // Native footnote references — only when they are an accepted form.
+        if (native_refs_ok) {
+            var parser = zigmark.Parser.init();
+            defer parser.deinit(alloc);
+            if (parser.parseMarkdown(alloc, content)) |doc_val| {
+                var doc = doc_val;
+                defer doc.deinit(alloc);
+                if (zigmark.footnotes.dangling(alloc, &doc)) |dangs| {
+                    defer {
+                        for (dangs) |d| alloc.free(d);
+                        alloc.free(dangs);
+                    }
+                    for (dangs) |label| {
+                        worst = maxKind(worst, considerInlineId(alloc, path, cat, &tagged, &advised, label));
+                    }
+                } else |_| {}
+            } else |_| {}
         }
         return worst;
     }
@@ -553,6 +699,34 @@ pub const ControlJoin = struct {
 
 fn lessThanStr(_: void, lhs: []const u8, rhs: []const u8) bool {
     return std.mem.order(u8, lhs, rhs) == .lt;
+}
+
+/// Advise (once) on one inline-referenced control id: emit an advisory when it is
+/// a known catalog control that is not in the policy's `taxonomies.SCF`. Returns
+/// `.advisory` if it warned, else `.none`. `advised` dedups across the shortcode
+/// and footnote passes (keys owned by the caller's map). See `reviewInlineCoverage`.
+fn considerInlineId(
+    alloc: Allocator,
+    path: []const u8,
+    cat: *const reports,
+    tagged: *const std.StringHashMap(void),
+    advised: *std.StringHashMap(void),
+    id: []const u8,
+) Config.IssueKind {
+    if (!isControlId(id)) return .none;
+    if (!cat.map.contains(id)) return .none; // unknown id: flagged critical elsewhere
+    if (tagged.contains(id)) return .none; // tagged → already counts toward coverage
+    if (advised.contains(id)) return .none; // warn once per id
+    const key = alloc.dupe(u8, id) catch return .none;
+    advised.put(key, {}) catch {
+        alloc.free(key);
+        return .none;
+    };
+    ctrllog.warn(
+        "{s}: control '{s}' is referenced inline but not listed in taxonomies.SCF; it renders but does not count toward coverage. Add it to taxonomies.SCF to include it in the coverage report.",
+        .{ path, id },
+    );
+    return .advisory;
 }
 
 /// A per-document `zigmark.footnotes.Resolver` context: a borrowed

@@ -22,8 +22,11 @@ tmp_pdfs="$(mktemp -d)"
 tmp_content=""      # populated by the raw-HTML divergence check below
 tmp_html_out=""
 tmp_audit_out=""    # populated by the audit-bundle check below
+site_stage=""       # populated by the site staging step (#173) below
+tmp_cf=""           # populated by the control-footnotes strictness leg below
+tmp_sub=""          # populated by the base_url sub-path leg below
 site_out="public"
-trap 'rm -rf "$tmp_pdfs" "$tmp_content" "$tmp_html_out" "$tmp_audit_out"' EXIT
+trap 'rm -rf "$tmp_pdfs" "$tmp_content" "$tmp_html_out" "$tmp_audit_out" "$site_stage" "$tmp_cf" "$tmp_sub"' EXIT
 
 # Sentinel strings that live inside {% redact() %} blocks in the demo content.
 # Each MUST be absent from every published artifact.
@@ -32,11 +35,18 @@ sentinels=(
   "sensitive information that should not be disclosed"
 )
 
-echo "▸ Building site (zola build)…"
+echo "▸ Staging site root + building (stage-site → zola --root)…"
 # The action copies theme shortcodes to the site root; mirror that so a
 # standalone build resolves the redact shortcode.
 mkdir -p templates/shortcodes
-zola build >/dev/null
+# Mirror the action's build exactly: stage-site synthesises [^CONTROL-ID]
+# footnote definitions into a disposable copy when control_footnotes is enabled
+# (#173), then zola builds from that root. With the flag off it prints "." and
+# this degenerates to a plain in-place build. Capturing the printed root keeps
+# both cases correct.
+site_stage="$(mktemp -d)"
+site_root="$(./zig-out/bin/policypress stage-site -c config.toml -o "$site_stage")"
+zola --root "$site_root" build --output-dir "$site_out" --force >/dev/null
 
 echo "▸ Rendering mermaid diagrams to inline SVG (render-diagrams)…"
 ./zig-out/bin/policypress render-diagrams "$site_out" >/dev/null 2>&1 \
@@ -82,6 +92,52 @@ if grep -rqE 'mermaid\.min|plugins/mermaid' "$site_out"; then
   fail=1
 else
   echo "  ✓ no client-side mermaid bundle referenced"
+fi
+
+echo "▸ Checking native control footnotes (#173)…"
+# The demo enables control_footnotes and example-security-policy.md uses a native
+# [^IAC-01] reference. Assert stage-site is append-only (never modifies the
+# authored tree) and that the synthesised definition renders on the web.
+if [ "$site_root" != "." ]; then
+  staged_policy="$site_root/content/policies/example-security-policy.md"
+  # 1. The staged copy carries an appended, catalog-derived definition.
+  if grep -qE '^\[\^IAC-01\]: \[IAC-01\]\(/reports/scf/#IAC-01\)' "$staged_policy"; then
+    echo "  ✓ synthesised [^IAC-01] definition appended to the staged policy"
+  else
+    echo "  ✗ no synthesised [^IAC-01] definition in the staged policy"; fail=1
+  fi
+  # 2. The authored source is untouched — no definition line leaked into content/.
+  if grep -qE '^\[\^IAC-01\]: ' content/policies/example-security-policy.md; then
+    echo "  ✗ authored content/ was modified by stage-site"; fail=1
+  else
+    echo "  ✓ authored content/ untouched by staging (append-only)"
+  fi
+  # 3. The definition renders on the web as a bottom-of-page footnote linking to
+  #    the report-page anchor (the <li id="fn-IAC-01"> is Zola's def anchor).
+  policy_html="$site_out/policies/example-security-policy/index.html"
+  if grep -q 'id="fn-IAC-01"' "$policy_html" && grep -qF 'href="/reports/scf/#IAC-01"' "$policy_html"; then
+    echo "  ✓ native footnote renders on the web with its report-page link"
+  else
+    echo "  ✗ native footnote did not render on the web"; fail=1
+  fi
+else
+  echo "  … control_footnotes disabled; skipping native-footnote checks"
+fi
+
+echo "▸ Checking base_url sub-path prefixing of footnote links (#173)…"
+# Under a sub-path deployment, a synthesised link must carry the base_url path
+# component (Zola does not add it to plain absolute Markdown links). stage-site
+# takes --base-url (the same value the action passes to `zola build`) for this.
+if [ "$site_root" != "." ]; then
+  tmp_sub="$(mktemp -d)"
+  ./zig-out/bin/policypress stage-site -c config.toml -o "$tmp_sub" --base-url "https://example.com/sub" >/dev/null
+  if grep -qF '[^IAC-01]: [IAC-01](/sub/reports/scf/#IAC-01)' "$tmp_sub/content/policies/example-security-policy.md"; then
+    echo "  ✓ synthesised link carries the base_url sub-path (/sub)"
+  else
+    echo "  ✗ synthesised link missing the base_url sub-path prefix"; fail=1
+  fi
+else
+  echo "  … control_footnotes disabled; skipping sub-path check"
 fi
 
 echo "▸ Building redacted PDFs to a scratch dir…"
@@ -218,6 +274,53 @@ elif grep -q "raw HTML" <<<"$demo_strict"; then
   grep "raw HTML" <<<"$demo_strict" | sed 's/^/      /'; fail=1
 else
   echo "  ✓ demo policies pass --strict (no raw-HTML false positives)"
+fi
+
+echo "▸ Checking the control-footnote strictness matrix (#173)…"
+# A native [^CONTROL-ID] reference is a --strict error only when control_footnotes
+# is off; when on, a KNOWN id is accepted but an UNKNOWN (well-formed) id is still
+# critical (typo detection). Re-root onto fixtures with -i so the demo is untouched.
+tmp_cf="$(mktemp -d)"
+mkdir -p "$tmp_cf/ok/policies" "$tmp_cf/bad/policies" "$tmp_cf/out"
+fixture_fm() {
+  cat <<EOF
+---
+title: "$1"
+description: "Native control footnote fixture"
+extra:
+  last_reviewed: "2026-01-01"
+  major_revisions:
+    - date: "2026-01-01"
+      description: Initial.
+      revised_by: Test
+      approved_by: Test
+      version: "1.0"
+---
+Access is least-privilege $2 enforced.
+EOF
+}
+fixture_fm "Known Native Ref" '[^IAC-01]' > "$tmp_cf/ok/policies/ok.md"
+fixture_fm "Unknown Native Ref" '[^ZZZ-99]' > "$tmp_cf/bad/policies/bad.md"
+# A copy of the demo config with the flag forced off.
+sed 's/^control_footnotes = true/control_footnotes = false/' config.toml > "$tmp_cf/config-off.toml"
+
+# Flag OFF: a native ref (even a known id) must fail --strict.
+if ./zig-out/bin/policypress -c "$tmp_cf/config-off.toml" -i "$tmp_cf/ok" -o "$tmp_cf/out" --strict >/dev/null 2>&1; then
+  echo "  ✗ --strict passed a native [^IAC-01] with control_footnotes off"; fail=1
+else
+  echo "  ✓ --strict fails a native ref when control_footnotes is off"
+fi
+# Flag ON: a known id passes --strict.
+if ./zig-out/bin/policypress -c config.toml -i "$tmp_cf/ok" -o "$tmp_cf/out" --strict >/dev/null 2>&1; then
+  echo "  ✓ --strict passes a known native [^IAC-01] when control_footnotes is on"
+else
+  echo "  ✗ --strict wrongly failed a known native ref with control_footnotes on"; fail=1
+fi
+# Flag ON: an unknown well-formed id is still critical.
+if ./zig-out/bin/policypress -c config.toml -i "$tmp_cf/bad" -o "$tmp_cf/out" --strict >/dev/null 2>&1; then
+  echo "  ✗ --strict passed an unknown native [^ZZZ-99] with control_footnotes on"; fail=1
+else
+  echo "  ✓ --strict still fails an unknown native id when control_footnotes is on"
 fi
 
 if [ "$fail" -ne 0 ]; then

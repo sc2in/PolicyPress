@@ -379,6 +379,105 @@ test "replace_zola_at" {
     try tst.expectEqualStrings(expected, arr.items);
 }
 
+/// Map a Zola internal content link (`@/x/y.md`) to the *pretty* site path it is
+/// served at (`/x/y/`), for building already-resolved absolute links. Used by the
+/// `stage-site` pass (#173) to point a synthesised control footnote at its report
+/// page anchor without emitting an `@/…` link — a plain resolved path sidesteps
+/// Zola's internal link/anchor validation (the anchor is template-generated).
+///
+/// A leading `@/` is optional. Unlike `replace_zola_at` (the PDF path, which
+/// emits `.html`), this produces the slash-terminated pretty URL the web server
+/// uses:
+///
+///   `@/reports/scf.md`          -> `/reports/scf/`
+///   `@/reports/_index.md`       -> `/reports/`
+///   `@/reports/bundle/index.md` -> `/reports/bundle/`
+///   `@/already/a/path/`         -> `/already/a/path/`
+///
+/// Caller owns the returned slice. The result is root-relative (no `base_url`
+/// sub-path prefix). For a site deployed under a sub-path, prepend
+/// `baseUrlPath(base_url)` — Zola rewrites neither plain absolute Markdown links
+/// nor this path, so the caller must add the prefix itself the way `get_url`
+/// does for the shortcode.
+pub fn zolaAtToSitePath(alloc: Allocator, ref_in: []const u8) ![]u8 {
+    var ref = ref_in;
+    if (std.mem.startsWith(u8, ref, "@/")) ref = ref[2..];
+    ref = std.mem.trimStart(u8, ref, "/");
+
+    const path: []const u8 = if (std.mem.endsWith(u8, ref, "/_index.md"))
+        ref[0 .. ref.len - "_index.md".len] // keep the trailing slash
+    else if (std.mem.endsWith(u8, ref, "/index.md"))
+        ref[0 .. ref.len - "index.md".len]
+    else if (std.mem.eql(u8, ref, "_index.md") or std.mem.eql(u8, ref, "index.md"))
+        ref[0..0]
+    else if (std.mem.endsWith(u8, ref, ".md"))
+        ref[0 .. ref.len - ".md".len]
+    else
+        ref;
+
+    // Pretty URL: leading slash, and a trailing slash for a page target that
+    // doesn't already end in one.
+    const needs_trailing = path.len > 0 and !std.mem.endsWith(u8, path, "/");
+    return std.fmt.allocPrint(alloc, "/{s}{s}", .{ path, if (needs_trailing) "/" else "" });
+}
+
+test "zolaAtToSitePath: pretty-URL mapping for the web" {
+    const alloc = tst.allocator;
+    const cases = [_]struct { in: []const u8, want: []const u8 }{
+        .{ .in = "@/reports/scf.md", .want = "/reports/scf/" },
+        .{ .in = "reports/scf.md", .want = "/reports/scf/" }, // `@/` optional
+        .{ .in = "@/reports/_index.md", .want = "/reports/" },
+        .{ .in = "@/reports/bundle/index.md", .want = "/reports/bundle/" },
+        .{ .in = "@/_index.md", .want = "/" }, // site-root section
+        .{ .in = "@/already/a/path/", .want = "/already/a/path/" },
+    };
+    for (cases) |c| {
+        const got = try zolaAtToSitePath(alloc, c.in);
+        defer alloc.free(got);
+        try tst.expectEqualStrings(c.want, got);
+    }
+}
+
+/// The path component of a `base_url` — everything after the scheme and host —
+/// with any trailing slash removed, or `""` for a root-hosted site. Prepend this
+/// to a root-relative site path (e.g. from `zolaAtToSitePath`) so a synthesised
+/// absolute link carries the deployment sub-path the way `get_url` does:
+///
+///   `https://ex.com`             -> ""
+///   `https://ex.com/`            -> ""
+///   `https://acme.github.io/gp`  -> "/gp"
+///   `https://acme.github.io/gp/` -> "/gp"
+///
+/// Returns a slice into `base_url` (borrowed).
+pub fn baseUrlPath(base_url: []const u8) []const u8 {
+    // Skip the scheme: `https://`, `http://`, or a protocol-relative `//host`.
+    var s = base_url;
+    if (std.mem.indexOf(u8, s, "://")) |i| {
+        s = s[i + 3 ..];
+    } else if (std.mem.startsWith(u8, s, "//")) {
+        s = s[2..];
+    }
+    // The path starts at the first '/' after the host; no slash → root.
+    const slash = std.mem.indexOfScalar(u8, s, '/') orelse return "";
+    var path = s[slash..];
+    while (path.len > 1 and path[path.len - 1] == '/') path = path[0 .. path.len - 1];
+    if (std.mem.eql(u8, path, "/")) return "";
+    return path;
+}
+
+test "baseUrlPath: sub-path extraction" {
+    const cases = [_]struct { in: []const u8, want: []const u8 }{
+        .{ .in = "https://ex.com", .want = "" },
+        .{ .in = "https://ex.com/", .want = "" },
+        .{ .in = "http://ex.com/", .want = "" },
+        .{ .in = "https://acme.github.io/gp", .want = "/gp" },
+        .{ .in = "https://acme.github.io/gp/", .want = "/gp" },
+        .{ .in = "https://acme.github.io/a/b/", .want = "/a/b" },
+        .{ .in = "//ex.com/gp", .want = "/gp" }, // protocol-relative
+    };
+    for (cases) |c| try tst.expectEqualStrings(c.want, baseUrlPath(c.in));
+}
+
 /// For the PDF pipeline only: rewrite a Markdown image whose destination is a
 /// site-root-absolute path (`![alt](/x)`) to its on-disk location under
 /// `static/` (`![alt](/static/x)`).

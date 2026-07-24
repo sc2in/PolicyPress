@@ -214,12 +214,31 @@ runs:
       run: |
         set -euo pipefail
 
-        # Build the Zola static site
+        # Stage the site root. When [extra.policypress] control_footnotes is
+        # enabled (#173), stage-site writes a disposable copy of the site with
+        # synthesised [^CONTROL-ID] footnote definitions appended to content/*.md
+        # (the authored tree is never modified); otherwise it prints "." and the
+        # build happens in place. Staged into RUNNER_TEMP so the intermediate copy
+        # is never uploaded as a site artifact (preserves the #116 redaction
+        # property: only public/ is published, and its redaction runs in Zola).
+        #
+        # Pass the same base_url override zola gets (when set): stage-site prepends
+        # its path component to the synthesised footnote links so they resolve
+        # under a deployment sub-path, matching the shortcode's get_url links.
+        STAGE_ARGS=(-c "${PP_CONFIG_PATH}" -o "${RUNNER_TEMP}/pp-stage")
+        if [ -n "${PP_BASE_URL}" ]; then
+          STAGE_ARGS+=(--base-url "${PP_BASE_URL}")
+        fi
+        SITE_ROOT="$(policypress stage-site "${STAGE_ARGS[@]}")"
+
+        # Build the Zola static site from the staged root into the workspace's
+        # public/ (where render-diagrams and the deploy expect it). --force
+        # because an explicit --output-dir refuses a non-empty target.
         ZOLA_ARGS=()
         if [ -n "${PP_BASE_URL}" ]; then
           ZOLA_ARGS+=(--base-url "${PP_BASE_URL}")
         fi
-        zola build "${ZOLA_ARGS[@]}"
+        zola --root "${SITE_ROOT}" build --output-dir "${PWD}/public" --force "${ZOLA_ARGS[@]}"
 
         # Render mermaid diagrams to inline SVG in the built site (pozeiden),
         # so the published site ships no client-side mermaid bundle and diagrams

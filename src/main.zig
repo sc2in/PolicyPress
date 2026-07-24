@@ -29,6 +29,7 @@ const diagrams = @import("diagrams.zig");
 const controls = @import("controls");
 const control_annex = @import("control_annex");
 const zigmark = @import("zigmark");
+const stage = @import("stage.zig");
 
 // ---------------------------------------------------------------------------
 // Logging
@@ -115,6 +116,7 @@ const top_level_usage =
     \\  build            Build PDFs from policy Markdown files (default when no subcommand given)
     \\  new              Scaffold a new policy file
     \\  render-diagrams  Render site mermaid diagrams to inline SVG (run after `zola build`)
+    \\  stage-site       Stage a site root for `zola build` (synthesises [^CONTROL-ID] footnotes)
     \\  help             Show this message
     \\
     \\Run 'policypress <subcommand> --help' for subcommand-specific help.
@@ -152,6 +154,12 @@ pub fn main(init: std.process.Init) void {
         } else if (std.mem.eql(u8, subcmd, "render-diagrams")) {
             runRenderDiagrams(io, alloc, rest) catch |err| {
                 std.debug.print("policypress render-diagrams: {s}\n", .{@errorName(err)});
+                std.process.exit(1);
+            };
+            return;
+        } else if (std.mem.eql(u8, subcmd, "stage-site")) {
+            stage.run(io, alloc, rest, &pp_log_level) catch |err| {
+                std.debug.print("policypress stage-site: {s}\n", .{@errorName(err)});
                 std.process.exit(1);
             };
             return;

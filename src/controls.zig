@@ -238,13 +238,48 @@ pub const ControlJoin = struct {
         label: []const u8,
         self_path: ?[]const u8,
     ) !?[]const u8 {
+        return self.resolveFootnoteImpl(alloc, label, self_path, null);
+    }
+
+    /// Like `resolveFootnote`, but renders the leading control id as a Markdown
+    /// link to `link_url` with a `#<id>` fragment — the web path used by the
+    /// `stage-site` pass (#173), so a synthesised definition's id links to the
+    /// control's row on the SCF report page (paralleling the `control()`
+    /// shortcode's inline link). `link_url` is an already-resolved site path
+    /// (e.g. `/reports/scf/`); pass null to emit a plain id.
+    ///
+    /// The PDF path always goes through `resolveFootnote` (link_url = null), so
+    /// the Typst output — and every golden — stays byte-identical. Only the web
+    /// definitions carry the link.
+    pub fn resolveFootnoteLinked(
+        self: *const ControlJoin,
+        alloc: Allocator,
+        label: []const u8,
+        self_path: ?[]const u8,
+        link_url: ?[]const u8,
+    ) !?[]const u8 {
+        return self.resolveFootnoteImpl(alloc, label, self_path, link_url);
+    }
+
+    fn resolveFootnoteImpl(
+        self: *const ControlJoin,
+        alloc: Allocator,
+        label: []const u8,
+        self_path: ?[]const u8,
+        link_url: ?[]const u8,
+    ) !?[]const u8 {
         if (!isControlId(label)) return null;
 
         var aw: std.Io.Writer.Allocating = .init(alloc);
         defer aw.deinit();
 
-        // First sentence: the id and, when the catalog knows it, its title.
-        try aw.writer.writeAll(label);
+        // First sentence: the id — linked to the report-page anchor on the web,
+        // plain in the PDF — and, when the catalog knows it, its title.
+        if (link_url) |url| {
+            try aw.writer.print("[{s}]({s}#{s})", .{ label, url, label });
+        } else {
+            try aw.writer.writeAll(label);
+        }
         if (self.catalog) |*cat| {
             if (cat.map.get(label)) |ctrl| {
                 try aw.writer.print(" \u{2014} {s}", .{std.mem.trim(u8, ctrl.control, " ")});

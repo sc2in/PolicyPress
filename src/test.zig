@@ -19,6 +19,7 @@ const controls = @import("controls");
 
 const audit = @import("audit.zig");
 const diagrams = @import("diagrams.zig");
+const stage = @import("stage.zig");
 
 // TODO
 // - [ ] The reports should generate correctly
@@ -1869,6 +1870,95 @@ test "controls: resolveFootnote — no catalog omits the title clause" {
     try tst.expect(std.mem.startsWith(u8, md, "IAC-01."));
     try tst.expect(std.mem.indexOf(u8, md, "\u{2014}") == null);
     try tst.expect(std.mem.indexOf(u8, md, "See also: Access Control Standard.") != null);
+}
+
+test "controls: resolveFootnoteLinked — web variant links the id, null is byte-identical to the PDF body (#173)" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    // Linked (web) variant: the id becomes a Markdown link to the report-page
+    // anchor; the title and "See also" clause are otherwise unchanged.
+    const web = (try cj.resolveFootnoteLinked(alloc, "IAC-01", fixture_self, "/reports/scf/")).?;
+    defer alloc.free(web);
+    try tst.expect(std.mem.startsWith(u8, web, "[IAC-01](/reports/scf/#IAC-01) \u{2014} Identity & Access Management."));
+    try tst.expect(std.mem.indexOf(u8, web, "See also: Access Control Standard.") != null);
+
+    // link_url = null is exactly the PDF path — identical to resolveFootnote, so
+    // goldens stay stable.
+    const plain = (try cj.resolveFootnoteLinked(alloc, "IAC-01", fixture_self, null)).?;
+    defer alloc.free(plain);
+    const pdf = (try cj.resolveFootnote(alloc, "IAC-01", fixture_self)).?;
+    defer alloc.free(pdf);
+    try tst.expectEqualStrings(pdf, plain);
+    try tst.expect(std.mem.indexOf(u8, plain, "](") == null); // no link markup
+}
+
+test "stage: stageMarkdownFile appends synthesised defs, append-only, ignoring fenced + already-defined refs (#173)" {
+    // Wrap the testing allocator in an arena so stageMarkdownFile's internal
+    // allocations (it is written for an arena, per the one-shot CLI) are all
+    // reclaimed without per-value frees.
+    var arena_state = std.heap.ArenaAllocator.init(tst.allocator);
+    defer arena_state.deinit();
+    const arena = arena_state.allocator();
+
+    var cj = try fixtureControlJoin(arena);
+    // arena-backed; no cj.deinit needed.
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(arena, &tmp);
+
+    const src =
+        "---\ntitle: \"Native Refs\"\n---\n" ++
+        "Access is least-privilege [^IAC-01] enforced.\n\n" ++
+        "Data handling [^DCH-01] applies.\n\n" ++
+        "[^DCH-01]: An author-provided definition.\n\n" ++
+        "```text\nExample only: [^NET-02] inside a code fence.\n```\n";
+    try tmp.dir.writeFile(io, .{ .sub_path = "native.md", .data = src });
+
+    const src_path = try std.fs.path.join(arena, &.{ tmp_path, "native.md" });
+    const dst_path = try std.fs.path.join(arena, &.{ tmp_path, "out", "native.md" });
+    const self_path = try std.fs.path.join(arena, &.{ tmp_path, "native.md" });
+
+    const count = try stage.stageMarkdownFile(io, arena, src_path, dst_path, &cj, self_path, "/reports/scf/");
+
+    // Only [^IAC-01] is dangling: DCH-01 has an author definition (not dangling),
+    // and NET-02 sits inside a code fence (AST-based, so not a real reference).
+    try tst.expectEqual(@as(usize, 1), count);
+
+    const out = try std.Io.Dir.cwd().readFileAlloc(io, dst_path, arena, .limited(1 << 20));
+    // Append-only: the authored bytes are the exact prefix of the output.
+    try tst.expect(std.mem.startsWith(u8, out, src));
+    // The synthesised, linked definition for the one dangling ref is present.
+    try tst.expect(std.mem.indexOf(u8, out, "[^IAC-01]: [IAC-01](/reports/scf/#IAC-01) \u{2014} Identity & Access Management.") != null);
+    // No definition was synthesised for the fenced or already-defined ids.
+    try tst.expect(std.mem.indexOf(u8, out, "[^NET-02]:") == null);
+    try tst.expectEqual(@as(usize, 1), std.mem.count(u8, out, "[^DCH-01]:")); // only the author's
+}
+
+test "stage: stageMarkdownFile with no control-shaped refs is a verbatim copy (#173)" {
+    var arena_state = std.heap.ArenaAllocator.init(tst.allocator);
+    defer arena_state.deinit();
+    const arena = arena_state.allocator();
+
+    var cj = try fixtureControlJoin(arena);
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(arena, &tmp);
+
+    const src = "---\ntitle: \"Plain\"\n---\nJust prose, no control references at all.\n";
+    try tmp.dir.writeFile(io, .{ .sub_path = "plain.md", .data = src });
+
+    const src_path = try std.fs.path.join(arena, &.{ tmp_path, "plain.md" });
+    const dst_path = try std.fs.path.join(arena, &.{ tmp_path, "out", "plain.md" });
+
+    const count = try stage.stageMarkdownFile(io, arena, src_path, dst_path, &cj, src_path, "/reports/scf/");
+    try tst.expectEqual(@as(usize, 0), count);
+
+    const out = try std.Io.Dir.cwd().readFileAlloc(io, dst_path, arena, .limited(1 << 20));
+    try tst.expectEqualStrings(src, out);
 }
 
 test "controls: reviewControlRefs — clean fixture is none" {

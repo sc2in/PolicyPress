@@ -364,6 +364,13 @@ pub const ControlJoin = struct {
     /// Unknown-id checks are skipped when no catalog is loaded (nothing to check
     /// against). Non-control footnote references are ignored here.
     ///
+    /// One **advisory** (non-critical) rule: a known control referenced *inline*
+    /// in the body (a `control(...)` shortcode, or — with native footnotes on — a
+    /// `[^ID]` reference) but absent from `taxonomies.SCF`. It renders, but
+    /// coverage (the SCF report, the coverage annex, the audit bundle) is
+    /// front-matter-driven, so the mention does not count toward coverage — see
+    /// `reviewInlineCoverage`.
+    ///
     /// Scope exclusions (`extra.scope_exclusions`) are also validated: a
     /// malformed/unknown id or a missing reason is critical, an id both covered
     /// and excluded by the same policy is critical, and a control excluded here
@@ -381,6 +388,7 @@ pub const ControlJoin = struct {
         worst = maxKind(worst, self.reviewTaxonomy(alloc, path, content));
         worst = maxKind(worst, self.reviewShortcodes(path, content));
         worst = maxKind(worst, self.reviewDanglingRefs(alloc, path, content, native_refs_ok));
+        worst = maxKind(worst, self.reviewInlineCoverage(alloc, path, content, native_refs_ok));
         worst = maxKind(worst, self.reviewExclusions(alloc, path, content));
         return worst;
     }
@@ -510,6 +518,79 @@ pub const ControlJoin = struct {
         return worst;
     }
 
+    /// Advisory: a *known* control id referenced inline in the body — via a
+    /// `control(...)` shortcode, or (when `native_refs_ok`) a `[^ID]` footnote
+    /// reference — that is NOT listed in this policy's `taxonomies.SCF`. Coverage
+    /// (the SCF report, the coverage annex, the audit bundle) is driven by the
+    /// front-matter tags alone, so such a mention renders but silently does not
+    /// count toward coverage; the author likely meant to tag it. Non-fatal,
+    /// because referencing a control another policy owns is legitimate.
+    ///
+    /// Scoped to known ids with a catalog present: without a catalog there is no
+    /// coverage report to match, and an unknown id is already flagged critical by
+    /// `reviewShortcodes` / `reviewDanglingRefs`, so it is not re-reported here.
+    /// Footnote references are considered only when native footnotes are enabled;
+    /// otherwise a `[^ID]` is a dangling-ref critical handled separately.
+    fn reviewInlineCoverage(self: *const ControlJoin, alloc: Allocator, path: []const u8, content: []const u8, native_refs_ok: bool) Config.IssueKind {
+        const cat = if (self.catalog) |*c| c else return .none;
+
+        var fm = zigmark.Frontmatter.initFromMarkdown(alloc, content) catch return .none;
+        defer fm.deinit();
+
+        // The set of front-matter SCF tags (borrowed; fm outlives this function).
+        var tagged = std.StringHashMap(void).init(alloc);
+        defer tagged.deinit();
+        if (fm.get("taxonomies.SCF")) |scf| {
+            if (scf == .array) {
+                for (scf.array.items) |item| {
+                    if (item == .string) tagged.put(item.string, {}) catch {};
+                }
+            }
+        }
+
+        // Ids already advised, so a control referenced twice warns once. Keys are
+        // owned (some come from freed dangling-label slices).
+        var advised = std.StringHashMap(void).init(alloc);
+        defer {
+            var kit = advised.keyIterator();
+            while (kit.next()) |k| alloc.free(k.*);
+            advised.deinit();
+        }
+
+        var worst: Config.IssueKind = .none;
+
+        // Shortcode references: `{{ control(id="…") }}` (still `{{ … }}` text here).
+        const strict: mvzr.Regex = mvzr.compile("\\{\\{\\s*control\\(id=\"[A-Z]{2,5}-[0-9]{2}(\\.[0-9]+)*\"\\)\\s*\\}\\}").?;
+        var it = strict.iterator(content);
+        while (it.next()) |m| {
+            const key = "id=\"";
+            const s = std.mem.indexOf(u8, m.slice, key) orelse continue;
+            const id_start = s + key.len;
+            const id_end = std.mem.indexOfScalarPos(u8, m.slice, id_start, '"') orelse continue;
+            worst = maxKind(worst, considerInlineId(alloc, path, cat, &tagged, &advised, m.slice[id_start..id_end]));
+        }
+
+        // Native footnote references — only when they are an accepted form.
+        if (native_refs_ok) {
+            var parser = zigmark.Parser.init();
+            defer parser.deinit(alloc);
+            if (parser.parseMarkdown(alloc, content)) |doc_val| {
+                var doc = doc_val;
+                defer doc.deinit(alloc);
+                if (zigmark.footnotes.dangling(alloc, &doc)) |dangs| {
+                    defer {
+                        for (dangs) |d| alloc.free(d);
+                        alloc.free(dangs);
+                    }
+                    for (dangs) |label| {
+                        worst = maxKind(worst, considerInlineId(alloc, path, cat, &tagged, &advised, label));
+                    }
+                } else |_| {}
+            } else |_| {}
+        }
+        return worst;
+    }
+
     /// `extra.scope_exclusions` validation. Each entry is `{ id, reason }`. An
     /// exclusion is a documented "we do not do X", so it must never read as
     /// coverage — the rules keep exclusions well-formed and surface the
@@ -618,6 +699,34 @@ pub const ControlJoin = struct {
 
 fn lessThanStr(_: void, lhs: []const u8, rhs: []const u8) bool {
     return std.mem.order(u8, lhs, rhs) == .lt;
+}
+
+/// Advise (once) on one inline-referenced control id: emit an advisory when it is
+/// a known catalog control that is not in the policy's `taxonomies.SCF`. Returns
+/// `.advisory` if it warned, else `.none`. `advised` dedups across the shortcode
+/// and footnote passes (keys owned by the caller's map). See `reviewInlineCoverage`.
+fn considerInlineId(
+    alloc: Allocator,
+    path: []const u8,
+    cat: *const reports,
+    tagged: *const std.StringHashMap(void),
+    advised: *std.StringHashMap(void),
+    id: []const u8,
+) Config.IssueKind {
+    if (!isControlId(id)) return .none;
+    if (!cat.map.contains(id)) return .none; // unknown id: flagged critical elsewhere
+    if (tagged.contains(id)) return .none; // tagged → already counts toward coverage
+    if (advised.contains(id)) return .none; // warn once per id
+    const key = alloc.dupe(u8, id) catch return .none;
+    advised.put(key, {}) catch {
+        alloc.free(key);
+        return .none;
+    };
+    ctrllog.warn(
+        "{s}: control '{s}' is referenced inline but not listed in taxonomies.SCF; it renders but does not count toward coverage. Add it to taxonomies.SCF to include it in the coverage report.",
+        .{ path, id },
+    );
+    return .advisory;
 }
 
 /// A per-document `zigmark.footnotes.Resolver` context: a borrowed

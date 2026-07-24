@@ -28,8 +28,10 @@ versioning; breaking changes to it bump the major version.
   shortcode renders an inline link — both are supported and may be mixed. Under
   `--strict`: with the flag off, any control-shaped `[^…]` is an error (use the
   shortcode); with it on, a known SCF id is accepted while an unknown one is
-  still an error (typo detection). The demo enables the flag and uses one native
-  reference to exercise coexistence in CI.
+  still an error (typo detection). A non-fatal advisory additionally flags a
+  control referenced inline (either syntax) but absent from `taxonomies.SCF`,
+  since coverage is computed from the front-matter tags alone. The demo enables
+  the flag and uses one native reference to exercise coexistence in CI.
 - **Audit bundle praxis-join facet (`audit/join.json`).** When a praxis control
   join is configured (`[extra.policypress] praxis_join`), the audit bundle gains
   a new `join.json` file (schema `policypress/audit-join/v1`) exposing the

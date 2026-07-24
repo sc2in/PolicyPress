@@ -254,6 +254,13 @@ depends on `control_footnotes`:
   well-formed id (e.g. a typo like `[^IAC-99]`) is still critical, because it
   would render as dead text on the web.
 
+Separately, an **advisory** (never fatal) flags a control referenced inline — by
+either syntax — that you did *not* list in `taxonomies.SCF`. The reference still
+renders, but coverage (the SCF report, the coverage annex, the audit bundle) is
+computed from the front-matter tags alone, so an untagged inline mention does not
+count toward coverage. Add the id to `taxonomies.SCF` if you meant it to count; a
+deliberate mention of a control another policy owns is fine to leave as-is.
+
 ## Checking the praxis join is fresh
 
 The praxis spine lives in a committed file (`data/praxis-join.json`) that a

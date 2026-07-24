@@ -1961,6 +1961,85 @@ test "stage: stageMarkdownFile with no control-shaped refs is a verbatim copy (#
     try tst.expectEqualStrings(src, out);
 }
 
+test "controls: reviewControlRefs — inline shortcode ref missing from taxonomies.SCF is advisory (#173)" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // IAC-01 is a known catalog id, referenced inline but NOT in taxonomies.SCF:
+    // it renders but does not count toward coverage → advisory (not critical).
+    const md =
+        \\---
+        \\title: "Untagged Inline"
+        \\---
+        \\Access is least-privilege {{ control(id="IAC-01") }} enforced.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "untagged.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "untagged.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.advisory, cj.reviewControlRefs(io, alloc, p, false));
+}
+
+test "controls: reviewControlRefs — an inline ref present in taxonomies.SCF is clean (#173)" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // Same id, but tagged: no advisory.
+    const md =
+        \\---
+        \\title: "Tagged Inline"
+        \\taxonomies:
+        \\  SCF:
+        \\    - IAC-01
+        \\---
+        \\Access is least-privilege {{ control(id="IAC-01") }} enforced.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "tagged.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "tagged.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.none, cj.reviewControlRefs(io, alloc, p, false));
+}
+
+test "controls: reviewControlRefs — untagged native footnote ref is advisory on, critical off (#173)" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    const md =
+        \\---
+        \\title: "Untagged Native"
+        \\---
+        \\Access is least-privilege [^IAC-01] enforced.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "untagged_native.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "untagged_native.md" });
+    defer alloc.free(p);
+
+    // Flag on: the native ref is accepted (known id), but the missing tag is an
+    // advisory. Flag off: the ref itself is a dangling-ref critical (which
+    // outranks any advisory, and the coverage check skips footnote refs then).
+    try tst.expectEqual(config.IssueKind.advisory, cj.reviewControlRefs(io, alloc, p, true));
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p, false));
+}
+
 test "controls: reviewControlRefs — clean fixture is none" {
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
@@ -2056,10 +2135,14 @@ test "controls: reviewControlRefs — native footnotes on: a known dangling id i
 
     // IAC-01 is a known catalog id. With control_footnotes enabled the pre-Zola
     // stage-site pass synthesises the web definition, so a bare [^IAC-01] is fine
-    // (the PDF pipeline already resolves it).
+    // (the PDF pipeline already resolves it). Tagged in taxonomies.SCF so this
+    // isolates the dangling-ref rule from the separate inline-coverage advisory.
     const md =
         \\---
         \\title: "Native Footnote"
+        \\taxonomies:
+        \\  SCF:
+        \\    - IAC-01
         \\---
         \\Access is least-privilege [^IAC-01] enforced.
     ;

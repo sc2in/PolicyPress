@@ -63,7 +63,7 @@ extra:
 
 ### 1. Access Control
 
-All access to information systems must be authorized and based on the principle of least privilege {{ control(id="IAC-01") }}. Users shall only be granted access necessary to perform their job functions.
+All access to information systems must be authorized and based on the principle of least privilege [^IAC-01]. Users shall only be granted access necessary to perform their job functions.
 
 #### Requirements
 

@@ -27,7 +27,11 @@ zig-out
 zig-pkg
 .claude
 starter/templates/
-starter/static/
+starter/static/*
+# …but ship the turnkey deploy config the starter references (SSO gate +
+# security headers); the user still drops their own logo.png here.
+!starter/static/staticwebapp.config.json
+!starter/static/_headers
 starter/public/
 starter/starter/
 sbom.cdx.json

@@ -16,7 +16,7 @@ The outputs:
 
 ## Deploying the site
 
-After the build, push `public/` to your static host. For access-controlled deployments (restricting who can view the site), see [Securing Your Repository](@/guides/securing-your-repository.md#deployment-options) first — that guide covers setting up Azure AD SSO, GitHub Pages org access, and Cloudflare Zero Trust.
+After the build, push `public/` to your static host. Sites created from the template are **private by default** (`[extra.policypress] private = true`: every page is `noindex, nofollow`, `robots.txt` is `Disallow: /`, and no sitemap is published) and ship a ready-to-fill `static/staticwebapp.config.json` that gates the site behind Azure AD SSO. For access-controlled deployments (restricting *who* can view the site), see [Website visibility](@/guides/securing-your-repository.md#website-visibility) and [Deployment options](@/guides/securing-your-repository.md#deployment-options) first — that guide covers Azure AD SSO, GitHub Pages org access, and Cloudflare Zero Trust.
 
 <div class="tab-group" data-default="Azure Static Web Apps">
 <div class="tab-pane" data-tab="Azure Static Web Apps">

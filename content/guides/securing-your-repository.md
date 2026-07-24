@@ -125,6 +125,19 @@ For small teams, the simplest compliant configuration is:
 
 Even if the CISO and the second reviewer are the same two people every time, the dual-approval requirement is what satisfies the control.
 
+## Website visibility
+
+Access control (who *can* reach the site) is separate from discoverability (whether search engines *index* it). PolicyPress controls discoverability with one setting:
+
+```toml
+[extra.policypress]
+private = true   # the starter default
+```
+
+When `private = true`, every page is served with `<meta name="robots" content="noindex, nofollow">` and `robots.txt` becomes `Disallow: /`, so your policies stay out of Google and Bing even if a URL leaks. Pair it with `generate_sitemap = false` (also the starter default) so the site never publishes a `/sitemap.xml` enumerating every policy URL — the build prints an advisory if you leave the sitemap on while `private` is set.
+
+**This is not access control.** `private` only stops well-behaved crawlers; anyone who has the URL can still read the site. To restrict *who* can view it, put the site behind SSO or a VPN using the deployment options below. Set `private = false` only for an intentionally public policy site (for example, a published privacy notice).
+
 ## Deployment options
 
 The published website needs its own access controls, separate from the repository. Choose the option that matches your infrastructure.
@@ -144,7 +157,7 @@ Azure Static Web Apps (SWA) natively integrates with Azure Active Directory. You
    - Region: your preference
    - Deployment source: connect to your policy repository
 
-2. **Add a `staticwebapp.config.json`** to your repository root (committed alongside `config.toml`):
+2. **Configure SSO.** PolicyPress already ships this gate for you at `static/staticwebapp.config.json` — Zola copies it to the site root on every build, so Azure reads it from the deployed output. Open it and replace `<YOUR_TENANT_ID>` with your Azure AD tenant ID; the rest is ready to use:
 
    ```json
    {
@@ -160,19 +173,18 @@ Azure Static Web Apps (SWA) natively integrates with Azure Active Directory. You
        }
      },
      "routes": [
-       {
-         "route": "/*",
-         "allowedRoles": ["authenticated"]
-       }
+       { "route": "/*", "allowedRoles": ["authenticated"] }
      ],
      "responseOverrides": {
-       "401": {
-         "statusCode": 302,
-         "redirect": "/.auth/login/aad"
-       }
+       "401": { "statusCode": 302, "redirect": "/.auth/login/aad" }
+     },
+     "globalHeaders": {
+       "X-Robots-Tag": "noindex, nofollow"
      }
    }
    ```
+
+   Every route is gated behind an authenticated Azure AD session (`allowedRoles: ["authenticated"]`), anonymous visitors are redirected to Microsoft login, and `X-Robots-Tag` keeps the site out of search results.
 
 3. **Register an application in Azure AD:**
    - Azure Portal → Azure Active Directory → App Registrations → New Registration

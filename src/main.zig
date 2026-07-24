@@ -505,7 +505,7 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
             // The more severe of the front-matter/body review and the
             // control-reference review, folded into the same counters.
             const fm_kind = config.reviewPolicyFile(io, alloc, p.path);
-            const ctl_kind = control_join.reviewControlRefs(io, alloc, p.path);
+            const ctl_kind = control_join.reviewControlRefs(io, alloc, p.path, config.control_footnotes);
             const kind = if (@intFromEnum(fm_kind) >= @intFromEnum(ctl_kind)) fm_kind else ctl_kind;
             switch (kind) {
                 .none => {},

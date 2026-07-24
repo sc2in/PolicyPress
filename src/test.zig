@@ -128,6 +128,22 @@ test "config: [extra.policypress] redact drives PDF redaction, independent of re
     }
 }
 
+test "config: control_footnotes defaults off and parses from [extra.policypress] (#173)" {
+    const alloc = tst.allocator;
+    // Absent → off, preserving the shortcode-only status quo.
+    {
+        var conf = try config.load(io, alloc, TestConfig);
+        defer conf.deinit(alloc);
+        try tst.expect(!conf.control_footnotes);
+    }
+    // Explicit true accepts native [^CONTROL-ID] footnote refs as first-class.
+    {
+        var conf = try config.load(io, alloc, TestConfig ++ "\ncontrol_footnotes = true\n");
+        defer conf.deinit(alloc);
+        try tst.expect(conf.control_footnotes);
+    }
+}
+
 test "preflight: redact_web vs PDF redaction divergence is advisory (#159)" {
     const alloc = tst.allocator;
     var conf = try config.load(io, alloc, TestConfig); // redact_web = true, redact = false
@@ -1859,7 +1875,7 @@ test "controls: reviewControlRefs — clean fixture is none" {
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
-    try tst.expectEqual(config.IssueKind.none, cj.reviewControlRefs(io, alloc, "src/test/test_policy_controls.md"));
+    try tst.expectEqual(config.IssueKind.none, cj.reviewControlRefs(io, alloc, "src/test/test_policy_controls.md", false));
 }
 
 test "controls: reviewControlRefs — unknown id in taxonomies.SCF is critical" {
@@ -1886,7 +1902,7 @@ test "controls: reviewControlRefs — unknown id in taxonomies.SCF is critical" 
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "bad_tax.md" });
     defer alloc.free(p);
 
-    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p, false));
 }
 
 test "controls: reviewControlRefs — malformed shortcode is critical" {
@@ -1911,10 +1927,10 @@ test "controls: reviewControlRefs — malformed shortcode is critical" {
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "bad_sc.md" });
     defer alloc.free(p);
 
-    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p, false));
 }
 
-test "controls: reviewControlRefs — a control-shaped dangling raw ref is critical" {
+test "controls: reviewControlRefs — a control-shaped dangling raw ref is critical (native footnotes off)" {
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
@@ -1935,7 +1951,91 @@ test "controls: reviewControlRefs — a control-shaped dangling raw ref is criti
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "raw_fn.md" });
     defer alloc.free(p);
 
-    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p, false));
+}
+
+test "controls: reviewControlRefs — native footnotes on: a known dangling id is clean (#173)" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // IAC-01 is a known catalog id. With control_footnotes enabled the pre-Zola
+    // stage-site pass synthesises the web definition, so a bare [^IAC-01] is fine
+    // (the PDF pipeline already resolves it).
+    const md =
+        \\---
+        \\title: "Native Footnote"
+        \\---
+        \\Access is least-privilege [^IAC-01] enforced.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "native_fn.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "native_fn.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.none, cj.reviewControlRefs(io, alloc, p, true));
+}
+
+test "controls: reviewControlRefs — native footnotes on: an unknown well-formed id is still critical (#173)" {
+    const alloc = tst.allocator;
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    // ZZZ-99 is control-shaped but not in the fixture catalog: a typo would be
+    // dead text on the web, so it stays critical even with native footnotes on.
+    const md =
+        \\---
+        \\title: "Typo Footnote"
+        \\---
+        \\A typo reference [^ZZZ-99] here.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "typo_fn.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "typo_fn.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p, true));
+}
+
+test "controls: reviewControlRefs — native footnotes on, no catalog: a control-shaped id is clean (#173)" {
+    const alloc = tst.allocator;
+    // With no catalog to check against, the unknown-id typo check is skipped, so
+    // a control-shaped dangling ref is accepted (mirrors reviewShortcodes and
+    // reviewTaxonomy, which also skip unknown-id checks with no catalog).
+    var cj = try controls.ControlJoin.init(
+        io,
+        alloc,
+        null, // no catalog
+        null, // no TSC catalog
+        null, // no praxis join
+        &.{},
+    );
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    const md =
+        \\---
+        \\title: "No Catalog Footnote"
+        \\---
+        \\Reference [^IAC-01] with no catalog loaded.
+    ;
+    try tmp.dir.writeFile(io, .{ .sub_path = "nocat_fn.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "nocat_fn.md" });
+    defer alloc.free(p);
+
+    try tst.expectEqual(config.IssueKind.none, cj.reviewControlRefs(io, alloc, p, true));
 }
 
 test "controls: annexProvider resolves catalog titles (praxis-agnostic)" {
@@ -1986,7 +2086,7 @@ test "controls: reviewControlRefs — a scope exclusion missing a reason is crit
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "no_reason.md" });
     defer alloc.free(p);
 
-    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p, false));
 }
 
 test "controls: reviewControlRefs — an unknown scope-exclusion id is critical" {
@@ -2014,7 +2114,7 @@ test "controls: reviewControlRefs — an unknown scope-exclusion id is critical"
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "unknown_excl.md" });
     defer alloc.free(p);
 
-    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p, false));
 }
 
 test "controls: reviewControlRefs — same-policy cover+exclude is critical" {
@@ -2045,7 +2145,7 @@ test "controls: reviewControlRefs — same-policy cover+exclude is critical" {
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "contradiction.md" });
     defer alloc.free(p);
 
-    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p));
+    try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p, false));
 }
 
 test "controls: reviewControlRefs — excluding a control another policy covers is advisory" {
@@ -2075,5 +2175,5 @@ test "controls: reviewControlRefs — excluding a control another policy covers 
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "cross_conflict.md" });
     defer alloc.free(p);
 
-    try tst.expectEqual(config.IssueKind.advisory, cj.reviewControlRefs(io, alloc, p));
+    try tst.expectEqual(config.IssueKind.advisory, cj.reviewControlRefs(io, alloc, p, false));
 }

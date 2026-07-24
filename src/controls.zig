@@ -318,10 +318,13 @@ pub const ControlJoin = struct {
     ///
     ///   * a malformed or unknown id in `taxonomies.SCF`;
     ///   * a malformed or unknown id in a `control(...)` shortcode; and
-    ///   * a control-shaped raw `[^ID]` footnote reference in the body (the
-    ///     author must use the `control(id="…")` shortcode so the reference
-    ///     resolves on both the website and the PDF — same web/PDF-divergence
-    ///     rationale as the raw-HTML rule).
+    ///   * a control-shaped raw `[^ID]` footnote reference in the body — see
+    ///     `reviewDanglingRefs`. Whether such a ref is critical depends on
+    ///     `native_refs_ok` (`[extra.policypress] control_footnotes`, #173): with
+    ///     native footnotes off it is always critical (the author must use the
+    ///     shortcode so the ref resolves on both web and PDF); with them on only
+    ///     an UNKNOWN id is (the `stage-site` pass synthesises the web definition
+    ///     for known ids).
     ///
     /// Unknown-id checks are skipped when no catalog is loaded (nothing to check
     /// against). Non-control footnote references are ignored here.
@@ -332,7 +335,7 @@ pub const ControlJoin = struct {
     /// but covered by *another* policy is an advisory (a legitimate governance
     /// tension for praxis to adjudicate — the repo-wide view comes from the
     /// shared library).
-    pub fn reviewControlRefs(self: *const ControlJoin, io: std.Io, alloc: Allocator, path: []const u8) Config.IssueKind {
+    pub fn reviewControlRefs(self: *const ControlJoin, io: std.Io, alloc: Allocator, path: []const u8, native_refs_ok: bool) Config.IssueKind {
         const content = std.Io.Dir.cwd().readFileAlloc(io, path, alloc, .limited(u.max_policy_bytes)) catch |err| {
             ctrllog.warn("{s}: cannot read for control validation: {s}", .{ path, @errorName(err) });
             return .critical;
@@ -342,7 +345,7 @@ pub const ControlJoin = struct {
         var worst: Config.IssueKind = .none;
         worst = maxKind(worst, self.reviewTaxonomy(alloc, path, content));
         worst = maxKind(worst, self.reviewShortcodes(path, content));
-        worst = maxKind(worst, self.reviewDanglingRefs(alloc, path, content));
+        worst = maxKind(worst, self.reviewDanglingRefs(alloc, path, content, native_refs_ok));
         worst = maxKind(worst, self.reviewExclusions(alloc, path, content));
         return worst;
     }
@@ -416,9 +419,22 @@ pub const ControlJoin = struct {
     }
 
     /// Control-shaped raw `[^ID]` footnote references with no definition in the
-    /// body → critical. Parses the raw body (shortcodes are still `{{ … }}`
-    /// text at this stage, so only author-typed `[^…]` refs are found).
-    fn reviewDanglingRefs(_: *const ControlJoin, alloc: Allocator, path: []const u8, content: []const u8) Config.IssueKind {
+    /// body. Parses the raw body (shortcodes are still `{{ … }}` text at this
+    /// stage, so only author-typed `[^…]` refs are found).
+    ///
+    /// Behaviour depends on whether native control footnotes are enabled for this
+    /// build (`native_refs_ok`, from `[extra.policypress] control_footnotes`, #173):
+    ///
+    ///   * disabled (default): ANY control-shaped dangling ref → critical. A bare
+    ///     `[^ID]` resolves in the PDF (the synthesiser) but is dead text on the
+    ///     website with no synthesis pass, so the author must use the
+    ///     `control(id="…")` shortcode (or enable `control_footnotes`).
+    ///   * enabled: a KNOWN id — or any id when no catalog is loaded to check
+    ///     against — is fine, because the pre-Zola `stage-site` pass synthesises
+    ///     the web definition just as the PDF pipeline does. An UNKNOWN but
+    ///     well-formed id is still critical: a typo would render as dead text on
+    ///     the web (mirrors the unknown-id rule in `reviewShortcodes`).
+    fn reviewDanglingRefs(self: *const ControlJoin, alloc: Allocator, path: []const u8, content: []const u8, native_refs_ok: bool) Config.IssueKind {
         var parser = zigmark.Parser.init();
         defer parser.deinit(alloc);
         var doc = parser.parseMarkdown(alloc, content) catch |err| {
@@ -436,8 +452,22 @@ pub const ControlJoin = struct {
         var worst: Config.IssueKind = .none;
         for (dangs) |label| {
             if (!isControlId(label)) continue;
+            if (native_refs_ok) {
+                // Native footnotes are accepted; only a well-formed id the
+                // catalog does not know is a problem (a typo → dead web text).
+                if (self.catalog) |*cat| {
+                    if (!cat.map.contains(label)) {
+                        ctrllog.warn(
+                            "{s}: unknown SCF control id '{s}' in footnote reference '[^{s}]' (not in data/scf.json)",
+                            .{ path, label, label },
+                        );
+                        worst = .critical;
+                    }
+                }
+                continue;
+            }
             ctrllog.warn(
-                "{s}: raw footnote reference '[^{s}]' in the body; use the control(id=\"{s}\") shortcode so it resolves on both the website and the PDF",
+                "{s}: raw footnote reference '[^{s}]' in the body; use the control(id=\"{s}\") shortcode so it resolves on both the website and the PDF, or enable [extra.policypress] control_footnotes",
                 .{ path, label, label },
             );
             worst = .critical;

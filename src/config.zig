@@ -77,6 +77,16 @@ pub const Config = struct {
     /// `pdf_standard`. Generate/refresh it with `nix run .#gen-praxis-join`.
     praxis_join: ?[]const u8 = null,
 
+    /// Accept native Markdown footnote references to controls (`[^IAC-01]`) as
+    /// first-class, not only the `{{ control(id="…") }}` shortcode (#173). Off by
+    /// default. When on, the web build must run `policypress stage-site` so the
+    /// site gets synthesised `[^IAC-01]: …` definitions (the PDF pipeline resolves
+    /// them already); a raw control ref with a KNOWN id then stops being a
+    /// `--strict` error, while an UNKNOWN well-formed id stays critical (typo
+    /// detection). The shortcode keeps working either way. Set via
+    /// `[extra.policypress] control_footnotes`.
+    control_footnotes: bool = false,
+
     zola_config: ?toml.Table,
 
     pub fn format(self: Config, writer: *std.Io.Writer) !void {
@@ -129,6 +139,7 @@ pub const Config = struct {
         try obj.put(alloc, "classification", .{ .string = self.classification });
         try obj.put(alloc, "pdf_standard", if (self.pdf_standard) |v| .{ .string = v } else .null);
         try obj.put(alloc, "praxis_join", if (self.praxis_join) |v| .{ .string = v } else .null);
+        try obj.put(alloc, "control_footnotes", .{ .bool = self.control_footnotes });
 
         return .{ .object = obj };
     }
@@ -186,6 +197,7 @@ pub const Config = struct {
         config.praxis_join = e.getString("praxis_join");
         config.report_pdfs = e.getBool("report_pdfs") orelse true;
         config.audit_bundle = e.getBool("audit_bundle") orelse false;
+        config.control_footnotes = e.getBool("control_footnotes") orelse false;
         config.build_dir = "public";
         config.zola_config = t;
         // PDF redaction defaults from `[extra.policypress] redact` (#159), so a

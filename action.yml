@@ -221,7 +221,15 @@ runs:
         # build happens in place. Staged into RUNNER_TEMP so the intermediate copy
         # is never uploaded as a site artifact (preserves the #116 redaction
         # property: only public/ is published, and its redaction runs in Zola).
-        SITE_ROOT="$(policypress stage-site -c "${PP_CONFIG_PATH}" -o "${RUNNER_TEMP}/pp-stage")"
+        #
+        # Pass the same base_url override zola gets (when set): stage-site prepends
+        # its path component to the synthesised footnote links so they resolve
+        # under a deployment sub-path, matching the shortcode's get_url links.
+        STAGE_ARGS=(-c "${PP_CONFIG_PATH}" -o "${RUNNER_TEMP}/pp-stage")
+        if [ -n "${PP_BASE_URL}" ]; then
+          STAGE_ARGS+=(--base-url "${PP_BASE_URL}")
+        fi
+        SITE_ROOT="$(policypress stage-site "${STAGE_ARGS[@]}")"
 
         # Build the Zola static site from the staged root into the workspace's
         # public/ (where render-diagrams and the deploy expect it). --force

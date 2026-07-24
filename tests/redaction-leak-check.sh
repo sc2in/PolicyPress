@@ -24,8 +24,9 @@ tmp_html_out=""
 tmp_audit_out=""    # populated by the audit-bundle check below
 site_stage=""       # populated by the site staging step (#173) below
 tmp_cf=""           # populated by the control-footnotes strictness leg below
+tmp_sub=""          # populated by the base_url sub-path leg below
 site_out="public"
-trap 'rm -rf "$tmp_pdfs" "$tmp_content" "$tmp_html_out" "$tmp_audit_out" "$site_stage" "$tmp_cf"' EXIT
+trap 'rm -rf "$tmp_pdfs" "$tmp_content" "$tmp_html_out" "$tmp_audit_out" "$site_stage" "$tmp_cf" "$tmp_sub"' EXIT
 
 # Sentinel strings that live inside {% redact() %} blocks in the demo content.
 # Each MUST be absent from every published artifact.
@@ -121,6 +122,22 @@ if [ "$site_root" != "." ]; then
   fi
 else
   echo "  … control_footnotes disabled; skipping native-footnote checks"
+fi
+
+echo "▸ Checking base_url sub-path prefixing of footnote links (#173)…"
+# Under a sub-path deployment, a synthesised link must carry the base_url path
+# component (Zola does not add it to plain absolute Markdown links). stage-site
+# takes --base-url (the same value the action passes to `zola build`) for this.
+if [ "$site_root" != "." ]; then
+  tmp_sub="$(mktemp -d)"
+  ./zig-out/bin/policypress stage-site -c config.toml -o "$tmp_sub" --base-url "https://example.com/sub" >/dev/null
+  if grep -qF '[^IAC-01]: [IAC-01](/sub/reports/scf/#IAC-01)' "$tmp_sub/content/policies/example-security-policy.md"; then
+    echo "  ✓ synthesised link carries the base_url sub-path (/sub)"
+  else
+    echo "  ✗ synthesised link missing the base_url sub-path prefix"; fail=1
+  fi
+else
+  echo "  … control_footnotes disabled; skipping sub-path check"
 fi
 
 echo "▸ Building redacted PDFs to a scratch dir…"

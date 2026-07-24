@@ -394,9 +394,11 @@ test "replace_zola_at" {
 ///   `@/reports/bundle/index.md` -> `/reports/bundle/`
 ///   `@/already/a/path/`         -> `/already/a/path/`
 ///
-/// Caller owns the returned slice. Note: the result is root-absolute and does not
-/// carry a `base_url` sub-path prefix, so on a site deployed under a sub-path
-/// these links (unlike the `get_url`-based shortcode) assume root hosting.
+/// Caller owns the returned slice. The result is root-relative (no `base_url`
+/// sub-path prefix). For a site deployed under a sub-path, prepend
+/// `baseUrlPath(base_url)` — Zola rewrites neither plain absolute Markdown links
+/// nor this path, so the caller must add the prefix itself the way `get_url`
+/// does for the shortcode.
 pub fn zolaAtToSitePath(alloc: Allocator, ref_in: []const u8) ![]u8 {
     var ref = ref_in;
     if (std.mem.startsWith(u8, ref, "@/")) ref = ref[2..];
@@ -434,6 +436,46 @@ test "zolaAtToSitePath: pretty-URL mapping for the web" {
         defer alloc.free(got);
         try tst.expectEqualStrings(c.want, got);
     }
+}
+
+/// The path component of a `base_url` — everything after the scheme and host —
+/// with any trailing slash removed, or `""` for a root-hosted site. Prepend this
+/// to a root-relative site path (e.g. from `zolaAtToSitePath`) so a synthesised
+/// absolute link carries the deployment sub-path the way `get_url` does:
+///
+///   `https://ex.com`             -> ""
+///   `https://ex.com/`            -> ""
+///   `https://acme.github.io/gp`  -> "/gp"
+///   `https://acme.github.io/gp/` -> "/gp"
+///
+/// Returns a slice into `base_url` (borrowed).
+pub fn baseUrlPath(base_url: []const u8) []const u8 {
+    // Skip the scheme: `https://`, `http://`, or a protocol-relative `//host`.
+    var s = base_url;
+    if (std.mem.indexOf(u8, s, "://")) |i| {
+        s = s[i + 3 ..];
+    } else if (std.mem.startsWith(u8, s, "//")) {
+        s = s[2..];
+    }
+    // The path starts at the first '/' after the host; no slash → root.
+    const slash = std.mem.indexOfScalar(u8, s, '/') orelse return "";
+    var path = s[slash..];
+    while (path.len > 1 and path[path.len - 1] == '/') path = path[0 .. path.len - 1];
+    if (std.mem.eql(u8, path, "/")) return "";
+    return path;
+}
+
+test "baseUrlPath: sub-path extraction" {
+    const cases = [_]struct { in: []const u8, want: []const u8 }{
+        .{ .in = "https://ex.com", .want = "" },
+        .{ .in = "https://ex.com/", .want = "" },
+        .{ .in = "http://ex.com/", .want = "" },
+        .{ .in = "https://acme.github.io/gp", .want = "/gp" },
+        .{ .in = "https://acme.github.io/gp/", .want = "/gp" },
+        .{ .in = "https://acme.github.io/a/b/", .want = "/a/b" },
+        .{ .in = "//ex.com/gp", .want = "/gp" }, // protocol-relative
+    };
+    for (cases) |c| try tst.expectEqualStrings(c.want, baseUrlPath(c.in));
 }
 
 /// For the PDF pipeline only: rewrite a Markdown image whose destination is a

@@ -66,11 +66,16 @@ const usage =
     \\      zola --root "$(policypress stage-site -o "$TMP/stage")" build ...
     \\
     \\Options:
-    \\  -c, --config <path>   Path to config.toml (default: config.toml)
-    \\  -o, --output <dir>    Staging directory (default: .pp-stage)
-    \\  -v, --verbose         Show debug output
-    \\  -q, --quiet           Suppress progress output; errors only
-    \\  -h, --help            Show this message
+    \\  -c, --config <path>    Path to config.toml (default: config.toml)
+    \\  -o, --output <dir>     Staging directory (default: .pp-stage)
+    \\  -u, --base-url <url>   Effective base URL for the build; its path component
+    \\                         is prepended to synthesised control-footnote links so
+    \\                         they resolve under a deployment sub-path. Defaults to
+    \\                         config.toml's base_url. Pass the SAME value given to
+    \\                         `zola build --base-url` so the two agree.
+    \\  -v, --verbose          Show debug output
+    \\  -q, --quiet            Suppress progress output; errors only
+    \\  -h, --help             Show this message
     \\
 ;
 
@@ -83,6 +88,7 @@ const usage =
 pub fn run(io: std.Io, gpa: Allocator, args: []const [:0]const u8, log_level: *std.log.Level) !void {
     var config_path: []const u8 = "config.toml";
     var output_dir: []const u8 = ".pp-stage";
+    var base_url_override: ?[]const u8 = null;
 
     var i: usize = 0;
     while (i < args.len) : (i += 1) {
@@ -108,6 +114,13 @@ pub fn run(io: std.Io, gpa: Allocator, args: []const [:0]const u8, log_level: *s
                 std.process.exit(1);
             }
             output_dir = args[i];
+        } else if (std.mem.eql(u8, arg, "-u") or std.mem.eql(u8, arg, "--base-url")) {
+            i += 1;
+            if (i >= args.len) {
+                std.debug.print("policypress stage-site: {s} requires a value\n\n{s}", .{ arg, usage });
+                std.process.exit(1);
+            }
+            base_url_override = args[i];
         } else {
             std.debug.print("policypress stage-site: unexpected argument '{s}'\n\n{s}", .{ arg, usage });
             std.process.exit(1);
@@ -136,7 +149,7 @@ pub fn run(io: std.Io, gpa: Allocator, args: []const [:0]const u8, log_level: *s
         return;
     }
 
-    try stageSite(io, arena, config_path, output_dir, &config);
+    try stageSite(io, arena, config_path, output_dir, &config, base_url_override);
 
     // The only stdout line: the staged site root for `zola --root`.
     try printLine(io, output_dir);
@@ -145,7 +158,7 @@ pub fn run(io: std.Io, gpa: Allocator, args: []const [:0]const u8, log_level: *s
 /// Materialise the staged site root: wipe/recreate `output_dir`, copy the config
 /// and the verbatim site directories, then walk `content/` appending synthesised
 /// control-footnote definitions to each Markdown file.
-fn stageSite(io: std.Io, arena: Allocator, config_path: []const u8, output_dir: []const u8, config: *Config) !void {
+fn stageSite(io: std.Io, arena: Allocator, config_path: []const u8, output_dir: []const u8, config: *Config, base_url_override: ?[]const u8) !void {
     const cwd = std.Io.Dir.cwd();
 
     // Build the control-ID join exactly as the PDF build does, so the web
@@ -179,9 +192,22 @@ fn stageSite(io: std.Io, arena: Allocator, config_path: []const u8, output_dir: 
     // absolute path (not an `@/…` link) deliberately sidesteps Zola's internal
     // link/anchor validation. Unset → plain-text ids (matches control.html's
     // <span> fallback).
+    //
+    // Zola does NOT rewrite a plain absolute Markdown link with the base_url
+    // sub-path (only `@/…` links and get_url get that), so — unlike the shortcode
+    // — we must prepend it ourselves. Use the effective base_url: the `--base-url`
+    // override (the same value passed to `zola build`, for previews) when given,
+    // else config.toml's base_url.
+    const effective_base_url = if (base_url_override) |b|
+        (if (b.len > 0) b else config.base_url)
+    else
+        config.base_url;
     const link_base: ?[]const u8 = blk: {
         const page = scfReportPage(config) orelse break :blk null;
-        break :blk try u.zolaAtToSitePath(arena, page);
+        const site_path = try u.zolaAtToSitePath(arena, page);
+        const base_path = u.baseUrlPath(effective_base_url);
+        if (base_path.len == 0) break :blk site_path;
+        break :blk try std.fmt.allocPrint(arena, "{s}{s}", .{ base_path, site_path });
     };
     if (link_base) |lb| stagelog.debug("linking control footnotes to {s}#<id>", .{lb});
 

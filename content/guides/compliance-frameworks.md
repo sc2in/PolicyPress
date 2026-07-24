@@ -230,7 +230,9 @@ Choose per reference:
   stays readable in any Markdown tool, but it requires `control_footnotes` and
   the `stage-site` pass. (A plain `zola serve` without staging shows the literal
   `[^IAC-01]` text — see the local-preview note in the
-  [deployments guide](@/guides/deployments.md).)
+  [deployments guide](@/guides/deployments.md).) Its report-page link honours a
+  `base_url` sub-path (e.g. GitHub Pages project sites), just like the shortcode:
+  `stage-site` prepends the sub-path, and the GitHub Action passes it through.
 
 Both forms may be mixed freely in the same document.
 

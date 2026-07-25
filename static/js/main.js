@@ -220,3 +220,23 @@ if (savedSidebar === "0") setSidebar(false);
     group.insertBefore(nav, group.firstChild);
   });
 })();
+
+// Scrollable code blocks must be keyboard-accessible (WCAG
+// "scrollable-region-focusable"). The theme scrolls the inner `pre code`
+// (overflow-x: auto in _code.scss), so give whichever element actually overflows
+// tabindex="0". Re-checked on resize, since overflow depends on viewport width.
+(function initScrollableCodeBlocks() {
+  function mark() {
+    document.querySelectorAll("pre, pre code").forEach(function (el) {
+      var scrollable =
+        el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight;
+      if (scrollable) {
+        el.setAttribute("tabindex", "0");
+      } else if (el.getAttribute("tabindex") === "0") {
+        el.removeAttribute("tabindex");
+      }
+    });
+  }
+  mark();
+  window.addEventListener("resize", mark);
+})();

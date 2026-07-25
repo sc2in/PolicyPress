@@ -105,8 +105,8 @@ jobs:
         uses: sc2in/policypress@v1
         with:
           draft_mode: ${{ github.event.inputs.draft || 'false' }}
-          # Redact by default so a public Pages deploy never leaks redaction-tagged
-          # content; leave unset to inherit the config's [extra.policypress] redact.
+          # redact by default so a public deploy is safe;
+          # unset = inherit [extra.policypress] redact
           redact_mode: ${{ github.event.inputs.redact || 'true' }}
 
       - uses: actions/upload-artifact@v4
@@ -243,8 +243,8 @@ base_url = "https://security.example.com"
 title = "Example Co Security Center"
 compile_sass = true
 theme = "policypress"
-# Private by default: don't emit a sitemap enumerating every policy URL. Only
-# set this true for an intentionally public policy site (and then also set
+# Private by default: no sitemap enumerating every policy URL.
+# Set true only for an intentionally public site (also set
 # [extra.policypress] private = false below).
 generate_sitemap = false
 
@@ -261,11 +261,11 @@ organization = "Example Co"
 logo = "logo.png"
 pdf_color = "#0e90f3"
 policy_dir = "policies/"
-# Treat the site as confidential: every page emits noindex/nofollow and
-# robots.txt becomes `Disallow: /`. This controls discoverability only — put the
-# site behind SSO/VPN to actually restrict who can read it. Redaction-tagged
-# content is masked on the web and in the PDFs by default, so nothing internal
-# leaks on a public Pages deploy.
+# Treat the site as confidential: every page is noindex/nofollow
+# and robots.txt is `Disallow: /`. This affects discoverability
+# only — put the site behind SSO/VPN to restrict who can read it.
+# redact_web/redact mask redaction-tagged content on the web and
+# in the PDFs by default, so nothing internal leaks if published.
 private = true
 redact_web = true
 redact = true

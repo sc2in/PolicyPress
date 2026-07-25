@@ -144,6 +144,14 @@ jobs:
           A11Y_REPORT: evidence/a11y-report.json
         run: nix run .#a11y-scan
 
+      # Starter regression guard: build the shipped starter/ template through the
+      # full pipeline and assert a working, private-by-default site + PDFs, so a
+      # theme change that would break a real user's starter (an unguarded template
+      # reference, a dropped noindex) fails CI before it can ship.
+      - name: Build starter template (regression guard)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: nix run .#build-starter
+
       # Self-attestation evidence: SBOM (CycloneDX from the Zig lock file),
       # per-check records with logs, the veraPDF PDF/UA-1 reports (the
       # pdf-accessibility check's own $out — a cache hit, just built above),

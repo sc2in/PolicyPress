@@ -695,6 +695,34 @@
                 meta.description = "Build and serve a full local preview";
               };
 
+            # Regression guard: build the shipped starter/ through the full
+            # pipeline and assert it produces a working, private-by-default site
+            # and PDFs. Reproduces what the Action does for a user repo, so a
+            # theme change that would break a real starter (an unguarded template
+            # reference, a lost noindex) fails here first. Runnable locally and in
+            # CI identically: `nix run .#build-starter`.
+            apps.build-starter =
+              let
+                app = pkgs.writeShellApplication {
+                  name = "policypress-build-starter";
+                  meta.description = "Build the starter template and assert a working, private-by-default site + PDFs";
+                  runtimeInputs = [
+                    policypress
+                    pkgs.zola
+                  ]
+                  ++ runtimeDeps;
+                  text = ''
+                    export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
+                    exec bash ${./tools/build-starter.sh}
+                  '';
+                };
+              in
+              {
+                type = "app";
+                program = "${app}/bin/policypress-build-starter";
+                meta.description = "Build the starter template and verify it (CI regression guard)";
+              };
+
             apps.clean =
               let
                 app = pkgs.writeShellApplication {

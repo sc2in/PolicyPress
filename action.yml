@@ -80,22 +80,42 @@ runs:
         extra-conf: |
           sandbox = false
 
+    - name: Enable unprivileged user namespaces
+      # Ubuntu 24.04 runners restrict unprivileged user namespaces, which nix's
+      # bubblewrap sandbox needs when building policypress from source (the case
+      # for a moving-tag pin like @v1 that has no per-ref release binary — without
+      # this, the zig2nix toolchain build fails with "bwrap: … Permission denied").
+      # Harmless when a prebuilt release binary is downloaded instead; `|| true`
+      # makes it a no-op on macOS and on runners where the sysctl is absent.
+      shell: bash
+      run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
     - name: Setup Nix cache
       continue-on-error: true
       uses: DeterminateSystems/flakehub-cache-action@9926dde74484ccb2224835b80531de64ed4336ef # v3.21.2
 
-    - name: Get action ref
+    - name: Resolve theme ref
       id: get-ref
       shell: bash
-      run: echo "ref=${{ github.action_ref }}" >> $GITHUB_OUTPUT
+      # github.action_ref is empty inside a composite action (a long-standing
+      # Actions limitation), so derive the pinned ref from the action's own
+      # checkout path instead. Remote consumers (uses: sc2in/policypress@vX) are
+      # checked out under .../_actions/sc2in/policypress/<ref>, whose basename is
+      # the ref (a tag such as v1 or v1.7.0). An in-repo `uses: ./` run has no
+      # _actions path, so emit an empty ref and fall back to github.sha below.
+      run: |
+        case "${GITHUB_ACTION_PATH}" in
+          */_actions/*) echo "ref=$(basename "${GITHUB_ACTION_PATH}")" >> "${GITHUB_OUTPUT}" ;;
+          *)            echo "ref=" >> "${GITHUB_OUTPUT}" ;;
+        esac
 
     - name: Fetch policypress theme
       uses: actions/checkout@v4
       with:
         repository: sc2in/policypress
-        # action_ref for remote consumers (uses: sc2in/policypress@vX); for
-        # in-repo `uses: ./` runs it is empty, so fall back to the workflow's
-        # own commit — previews then use the PR's theme, not main's.
+        # The pinned ref (v1, v1.7.0, …) resolved from the action path above; empty
+        # for in-repo `uses: ./`, where we fall back to the workflow's own commit
+        # so previews use the PR's theme, not main's.
         ref: ${{ steps.get-ref.outputs.ref || github.sha }}
         path: themes/policypress
 
@@ -109,16 +129,18 @@ runs:
         build_from_flake() {
           # Build the binary from the action's own checkout (pinned at the ref
           # the consumer selected), so the binary always matches the theme code
-          # under `uses:`. Used for local `uses: ./` runs and whenever no
-          # release asset exists for the pinned ref (e.g. a branch or major-tag
-          # pin like @v1 that has no per-ref release).
+          # under `uses:`. Used for local `uses: ./` runs and for a branch or SHA
+          # pin that matches no release; a moving tag like @v1 resolves to its
+          # latest release binary below instead of building here.
           echo "Building policypress from the flake at the pinned ref…"
           out="$(nix build "path:${{ github.action_path }}#policypress-safe" --print-out-paths --no-link)"
           install -m755 "${out}/bin/policypress" "${RUNNER_TEMP}/policypress-bin/policypress"
         }
 
         REF="${{ steps.get-ref.outputs.ref }}"
+        bindir="${RUNNER_TEMP}/policypress-bin"
         if [ -z "${REF}" ]; then
+          # In-repo `uses: ./` — no release to match; build from the local checkout.
           build_from_flake
         else
           case "$(uname -s)-$(uname -m)" in
@@ -132,32 +154,50 @@ runs:
               ;;
           esac
 
-          # Download the release binary for the EXACT pinned ref (not "latest"),
-          # so pinning `uses: sc2in/policypress@vX.Y.Z` runs the vX.Y.Z binary.
-          bindir="${RUNNER_TEMP}/policypress-bin"
-          if gh release download "${REF}" --repo sc2in/policypress \
-               --pattern "${BINARY}" --dir "${bindir}"; then
-            # Verify the download against the published release checksums. A
+          # Resolve the pinned ref to a release that actually ships assets. A
+          # versioned pin (vX.Y.Z) is its own release; a moving line tag (vX or
+          # vX.Y) has no release of its own, so resolve it to the newest release
+          # sharing that prefix (v1 -> v1.7.0). This keeps `@v1` on a fast prebuilt
+          # binary instead of a slow from-source build, and stays on the major
+          # line even once a later major exists (^v1\. never matches v10/v2). A
+          # branch or SHA pin matches nothing and falls through to a source build.
+          if gh release view "${REF}" --repo sc2in/policypress >/dev/null 2>&1; then
+            release_tag="${REF}"
+          else
+            ref_re="${REF//./\\.}"
+            release_tag="$(gh release list --repo sc2in/policypress \
+                             --exclude-drafts --exclude-pre-releases \
+                             --json tagName --jq '.[].tagName' \
+                           | grep -E "^${ref_re}\.[0-9]" | sort -V | tail -1 || true)"
+          fi
+
+          # Download the resolved release's binary (not "latest") so the pin's
+          # major line is honoured.
+          if [ -n "${release_tag}" ] \
+             && gh release download "${release_tag}" --repo sc2in/policypress \
+                  --pattern "${BINARY}" --dir "${bindir}"; then
+            echo "Using released binary from ${release_tag} (pinned ${REF})."
+            # Verify the download against that release's published checksums. A
             # real release always ships SHA256SUMS.txt (see ci.yml), so a missing
             # checksum file, a missing entry, or a mismatch is fatal — never fall
             # back to trusting an unverified binary.
-            if ! gh release download "${REF}" --repo sc2in/policypress \
+            if ! gh release download "${release_tag}" --repo sc2in/policypress \
                  --pattern "SHA256SUMS.txt" --dir "${bindir}"; then
-              echo "::error::No SHA256SUMS.txt on release ${REF}; refusing to run an unverified binary."
+              echo "::error::No SHA256SUMS.txt on release ${release_tag}; refusing to run an unverified binary."
               exit 1
             fi
             # Capture the entry explicitly: piping grep into sha256sum would let
             # a no-match (grep exits non-zero) verify empty input and pass.
             expected="$(grep " ${BINARY}\$" "${bindir}/SHA256SUMS.txt" || true)"
             if [ -z "${expected}" ]; then
-              echo "::error::SHA256SUMS.txt for ${REF} has no entry for ${BINARY}."
+              echo "::error::SHA256SUMS.txt for ${release_tag} has no entry for ${BINARY}."
               exit 1
             fi
             ( cd "${bindir}" && printf '%s\n' "${expected}" | sha256sum -c - )
             mv "${bindir}/${BINARY}" "${bindir}/policypress"
             chmod +x "${bindir}/policypress"
           else
-            echo "::warning::No release asset ${BINARY} for ref ${REF}; building from source."
+            echo "::warning::No release binary for ref ${REF}; building from source."
             build_from_flake
           fi
         fi

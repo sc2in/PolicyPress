@@ -10,16 +10,23 @@ versioning; breaking changes to it bump the major version.
 
 ### Fixed
 
-- The Action now works for remote consumers (`uses: sc2in/policypress@v1`).
-  It resolved the theme ref from `github.action_ref`, which is empty inside a
-  composite action, so it fell back to the caller's commit and tried to check
-  the theme out of the *consumer's* repository at that SHA (`not our ref`) —
-  failing every external build; only in-repo `uses: ./` runs (CI/preview)
-  happened to work. The ref is now derived from the action's own checkout path.
-  The action also enables unprivileged user namespaces, so the from-source build
-  that a moving `@v1` pin triggers (no per-ref release binary) succeeds on Ubuntu
-  runners instead of failing in the zig2nix bubblewrap sandbox. Both caught by an
-  end-to-end "Use this template" smoke test.
+- The Action now works for remote consumers (`uses: sc2in/policypress@v1`) — the
+  path every template and Marketplace user takes. Three issues, none reachable by
+  the repo's own `uses: ./` CI, all caught by an end-to-end "Use this template"
+  smoke test:
+  - **Theme checkout used the wrong repository.** The theme ref came from
+    `github.action_ref`, which is empty inside a composite action, so it fell back
+    to the caller's commit and tried to check `sc2in/policypress` out at the
+    *consumer's* SHA (`not our ref`), failing every external build. The ref is now
+    derived from the action's own checkout path.
+  - **`@v1` now downloads a prebuilt binary.** A moving major tag has no per-ref
+    release, so the action built policypress from source on every run (slow). It
+    now resolves `@v1` to the newest release on that line (e.g. `v1.7.0`) and
+    downloads its checksum-verified binary; a branch or SHA pin still builds from
+    source.
+  - **From-source builds work on Ubuntu runners.** The action enables unprivileged
+    user namespaces, so the fallback source build no longer fails in zig2nix's
+    bubblewrap sandbox.
 
 ## [1.7.0] - 2026-07-25
 

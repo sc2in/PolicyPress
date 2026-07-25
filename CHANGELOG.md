@@ -94,7 +94,7 @@ versioning; breaking changes to it bump the major version.
   Action pipeline and asserts a working, private-by-default site + PDFs, so a
   theme change can no longer silently break a real user's starter. On a release
   tag, `publish-template.yml` regenerates the `sc2in/policypress-template` repo
-  from `starter/` (given a `TEMPLATE_DEPLOY_KEY` deploy key), so the published
+  from `starter/` (given a `TEMPLATE_DEPLOY_KEY` token), so the published
   template can never drift from the toolchain again.
 
 ### Changed

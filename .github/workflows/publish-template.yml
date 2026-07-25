@@ -4,8 +4,9 @@ name: Publish starter template
 # repo the docs point new users to) from the tracked starter/ tree, so it can
 # never drift from the toolchain. Runs on release tags - after the starter has
 # been PR-built by CI - and on demand. The sync needs a TEMPLATE_DEPLOY_KEY
-# secret (a deploy key with write access to policypress-template); without it the
-# job builds/verifies the starter and then skips the push with a clear warning.
+# secret holding a token with write access to policypress-template (a fine-grained
+# PAT with Contents: read and write, or a deploy token); without it the job
+# builds/verifies the starter and then skips the push with a clear warning.
 #
 # The vX.Y.Z tag pattern excludes the moving major alias (v1), exactly as ci.yml
 # does, so re-pointing v1 during a release never re-triggers a publish.
@@ -49,7 +50,7 @@ jobs:
           TEMPLATE_DEPLOY_KEY: ${{ secrets.TEMPLATE_DEPLOY_KEY }}
         run: |
           if [ -z "${TEMPLATE_DEPLOY_KEY}" ]; then
-            echo "::warning title=Template not published::TEMPLATE_DEPLOY_KEY secret is not set; skipped syncing starter/ to sc2in/policypress-template. Add a deploy key with write access to that repo as a secret to enable auto-publish."
+            echo "::warning title=Template not published::TEMPLATE_DEPLOY_KEY secret is not set; skipped syncing starter/ to sc2in/policypress-template. Add a token (fine-grained PAT with Contents: write, or a deploy token) as that secret to enable auto-publish."
             exit 0
           fi
           bash tools/publish-template.sh "${GITHUB_REF_NAME}"

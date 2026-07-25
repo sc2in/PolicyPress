@@ -29,9 +29,12 @@ zig-pkg
 starter/templates/
 starter/static/*
 # …but ship the turnkey deploy config the starter references (SSO gate +
-# security headers); the user still drops their own logo.png here.
+# security headers) and a neutral placeholder logo, so a fresh "Use this
+# template" repo builds a complete site on the first push; the user replaces
+# static/logo.png with their own brand mark.
 !starter/static/staticwebapp.config.json
 !starter/static/_headers
+!starter/static/logo.png
 starter/public/
 starter/starter/
 sbom.cdx.json

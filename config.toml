@@ -222,6 +222,10 @@ private = false
 control_footnotes = true
 policy_dir = "policies/"
 policy_root = "policies/_index.md"
+# Optional: a news/updates section to surface on the homepage. Unset it and the
+# homepage simply omits the "Recent updates" panel (get_section has no `required`
+# arg, so the theme only fetches this when the key is present).
+news_page = "news/_index.md"
 scf_report_page = "@/reports/scf.md"
 soc2_report_page = "@/reports/soc2.md"
 organization = "PolicyPress"

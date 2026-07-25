@@ -110,6 +110,11 @@ show_draft_pdfs = false
 # plain (unlinked) control ids — the shortcode degrades gracefully.
 # scf_report_page = "@/reports/scf.md"
 
+# Optional: add a content/news/ section and point this at it to surface a "Recent
+# updates" panel on the homepage. Left unset - the lean starter ships no news feed -
+# so the homepage simply omits that panel.
+# news_page = "news/_index.md"
+
 # Accept native Markdown footnote references to controls ([^IAC-01]) as an
 # alternative to the {{ control(id="IAC-01") }} shortcode (#173). Off by default:
 # the shortcode needs no extra build step and works in a plain `zola serve`. With
@@ -127,6 +132,21 @@ show_draft_pdfs = false
 [extra.author]
 name = "Security Team"
 email = "security@example.com"
+
+# Byline roster (optional, safe to leave as-is). When a policy's owner,
+# approved_by, or revised_by matches a member `name` below AND that member has a
+# `page`, the name becomes a link to that team profile; every other name - and any
+# member without a `page` - simply renders as plain text. Add your real approvers
+# here, and set `page = "team/<file>.md"` once you create a matching profile under
+# content/team/ to turn a byline into a link.
+[extra.policyteam]
+[[extra.policyteam.members]]
+name = "IT / Security"
+# page = "team/it-security.md"
+
+[[extra.policyteam.members]]
+name = "CEO"
+# page = "team/ceo.md"
 
 [extra.menu]
 logo = "/logo.png"

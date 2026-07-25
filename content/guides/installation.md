@@ -30,10 +30,12 @@ config.toml
 static/
   logo.png           ← your organization logo
 content/
+  _index.md          ← homepage (compliance dashboard)
   policies/
     _index.md
-    acceptable-use.md
     access-control.md
+    data-classification.md
+    incident-response.md
 ```
 
 ### Theme submodule
@@ -92,10 +94,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Build only reads the repo and uploads artifacts; the pages/id-token write
+    # scope lives solely on the deploy job below, the only step that publishes.
     permissions:
       contents: read
-      pages: write
-      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -103,7 +105,9 @@ jobs:
         uses: sc2in/policypress@v1
         with:
           draft_mode: ${{ github.event.inputs.draft || 'false' }}
-          redact_mode: ${{ github.event.inputs.redact || 'false' }}
+          # Redact by default so a public Pages deploy never leaks {% redact() %}
+          # content; leave unset to inherit [extra.policypress] redact instead.
+          redact_mode: ${{ github.event.inputs.redact || 'true' }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -161,7 +165,7 @@ variables:
   ${{ else }}:
     publish: 'false'
   # Pin to a specific release. Update this when you want to upgrade policypress.
-  POLICYPRESS_VERSION: 'v1.4.0'
+  POLICYPRESS_VERSION: 'v1.6.1'
 
 pool:
   vmImage: ubuntu-latest
@@ -239,6 +243,10 @@ base_url = "https://security.example.com"
 title = "Example Co Security Center"
 compile_sass = true
 theme = "policypress"
+# Private by default: don't emit a sitemap enumerating every policy URL. Only
+# set this true for an intentionally public policy site (and then also set
+# [extra.policypress] private = false below).
+generate_sitemap = false
 
 [[taxonomies]]
 name = "SCF"
@@ -253,6 +261,14 @@ organization = "Example Co"
 logo = "logo.png"
 pdf_color = "#0e90f3"
 policy_dir = "policies/"
+# Treat the site as confidential: every page emits noindex/nofollow and
+# robots.txt becomes `Disallow: /`. This controls discoverability only — put the
+# site behind SSO/VPN to actually restrict who can read it. Redact {% redact() %}
+# spans on the web and in the PDFs by default, so nothing internal leaks on a
+# public Pages deploy.
+private = true
+redact_web = true
+redact = true
 ```
 
 See the [Configuration Reference](@/guides/configuration.md) for all available fields.

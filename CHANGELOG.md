@@ -16,7 +16,10 @@ versioning; breaking changes to it bump the major version.
   the theme out of the *consumer's* repository at that SHA (`not our ref`) —
   failing every external build; only in-repo `uses: ./` runs (CI/preview)
   happened to work. The ref is now derived from the action's own checkout path.
-  Caught by an end-to-end "Use this template" smoke test.
+  The action also enables unprivileged user namespaces, so the from-source build
+  that a moving `@v1` pin triggers (no per-ref release binary) succeeds on Ubuntu
+  runners instead of failing in the zig2nix bubblewrap sandbox. Both caught by an
+  end-to-end "Use this template" smoke test.
 
 ## [1.7.0] - 2026-07-25
 

@@ -80,6 +80,16 @@ runs:
         extra-conf: |
           sandbox = false
 
+    - name: Enable unprivileged user namespaces
+      # Ubuntu 24.04 runners restrict unprivileged user namespaces, which nix's
+      # bubblewrap sandbox needs when building policypress from source (the case
+      # for a moving-tag pin like @v1 that has no per-ref release binary — without
+      # this, the zig2nix toolchain build fails with "bwrap: … Permission denied").
+      # Harmless when a prebuilt release binary is downloaded instead; `|| true`
+      # makes it a no-op on macOS and on runners where the sysctl is absent.
+      shell: bash
+      run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
     - name: Setup Nix cache
       continue-on-error: true
       uses: DeterminateSystems/flakehub-cache-action@9926dde74484ccb2224835b80531de64ed4336ef # v3.21.2

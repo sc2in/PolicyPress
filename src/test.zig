@@ -275,6 +275,25 @@ test "review preflight flags overdue policies" {
     );
 }
 
+test "review preflight flags unquoted revision versions" {
+    const alloc = tst.allocator;
+    var conf = try config.load(io, alloc, TestConfig);
+    defer conf.deinit(alloc);
+    // Pin the date so the recent last_reviewed is never the reason for a flag.
+    conf.date = .{ .year = 2026, .month = 1, .day = 1 };
+    // unquoted_version.md: `version: 1.0` (no quotes) -> YAML reads it as a
+    // number and the rendered version would silently mangle -> audit-critical.
+    try tst.expectEqual(
+        config.IssueKind.critical,
+        conf.reviewPolicyFile(io, alloc, "src/test/unquoted_version.md"),
+    );
+    // fresh_policy.md is identical but quotes the version -> clean.
+    try tst.expectEqual(
+        config.IssueKind.none,
+        conf.reviewPolicyFile(io, alloc, "src/test/fresh_policy.md"),
+    );
+}
+
 test "ua-1 preflight flags heading-level skips only when pdf_standard is set" {
     const alloc = tst.allocator;
     var conf = try config.load(io, alloc, TestConfig);

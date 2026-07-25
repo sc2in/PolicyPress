@@ -413,9 +413,46 @@ pub const Config = struct {
             },
         };
         return maxKind(
-            maxKind(reviewPolicyBody(alloc, path, content), self.reviewOverdue(path, frontMatter)),
-            self.reviewHeadings(alloc, path, content),
+            maxKind(
+                maxKind(reviewPolicyBody(alloc, path, content), self.reviewOverdue(path, frontMatter)),
+                self.reviewHeadings(alloc, path, content),
+            ),
+            reviewRevisionVersions(path, frontMatter),
         );
+    }
+
+    /// Flag revision `version` values written *unquoted* in the YAML front
+    /// matter. zigmark's parser reads an unquoted `version: 1.0` as a number,
+    /// and the PDF/filename then renders it losslessly-wrong: `1.0` becomes
+    /// "1" and `1.10` becomes "1.1" (trailing/omitted decimals vanish). Because
+    /// the version string is the spine of the audit trail, a silently-mangled
+    /// version is an integrity failure — critical, same class as raw HTML that
+    /// diverges site-vs-PDF. The original text cannot be recovered from the
+    /// parsed number, so the only fix is to tell the author to quote it.
+    fn reviewRevisionVersions(path: []const u8, frontMatter: zigmark.Frontmatter) IssueKind {
+        const revs = frontMatter.get("extra.major_revisions") orelse return .none;
+        switch (revs) {
+            .array => |arr| {
+                var worst: IssueKind = .none;
+                for (arr.items) |rev| {
+                    const version = rev.object.get("version") orelse continue;
+                    switch (version) {
+                        .float, .integer => {
+                            conflog.warn(
+                                "{s}: revision version is unquoted, so YAML read it as a number; the PDF will " ++
+                                    "show a mangled version (e.g. 1.0 -> \"1\", 1.10 -> \"1.1\"). Quote it as a " ++
+                                    "string, e.g. version: \"1.0\".",
+                                .{path},
+                            );
+                            worst = .critical;
+                        },
+                        else => {},
+                    }
+                }
+                return worst;
+            },
+            else => return .none,
+        }
     }
 
     /// Check the Markdown body for constructs that silently diverge between the

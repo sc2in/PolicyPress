@@ -96,18 +96,22 @@ Internal notes - stripped from redacted PDFs.
 
 | Input | Default | Description |
 | --- | --- | --- |
-| `config_path` | `config.toml` | Path to Zola config file |
-| `output_dir` | `public` | Output directory for the build |
+| `config_path` | `config.toml` | Path to the Zola config file |
+| `output_dir` | `public` | Output directory for PDFs and reports |
 | `draft_mode` | `false` | Stamp PDFs with a DRAFT watermark |
-| `redact_mode` | `false` | Strip content inside redaction tags |
+| `redact_mode` | `""` (inherit config) | Redact content inside redaction tags in the PDFs. `true`/`false` force it on/off; empty inherits the site's `[extra.policypress] redact` setting, keeping PDF links in lock-step with `config.toml` |
+| `generate_draft_pdfs` | `false` | Also generate a second, DRAFT-watermarked set of PDFs (for sites with `show_draft_pdfs = true`) |
+| `base_url` | `""` | Override `base_url` from `config.toml` (e.g. a preview URL); passed to `zola build --base-url` |
+| `audit_bundle` | `false` | Also write a machine-readable audit bundle (`manifest.json` with per-PDF SHA-256 hashes, `revisions.json`, coverage export) under `<output_dir>/audit` |
 
 ## Action outputs
 
 | Output | Description |
 | --- | --- |
 | `pdf_path` | Directory containing generated PDFs |
-| `site_path` | Directory containing built static site (`public/`) |
-| `report_path` | Directory containing compliance reports |
+| `site_path` | Directory containing the built static site (`public/`) |
+| `report_path` | Directory containing the generated report PDFs (same directory as `pdf_path`) |
+| `audit_path` | Directory containing the audit bundle (populated when `audit_bundle: true`) |
 
 ## PDF output
 

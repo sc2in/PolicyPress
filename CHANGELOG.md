@@ -86,6 +86,16 @@ versioning; breaking changes to it bump the major version.
   on the roster (a role like "CEO", or a former contributor) renders as plain
   text — no broken links and nothing to maintain by hand. A new `person_link`
   macro (`templates/macros/people.html`) centralizes the lookup.
+- **The starter template is now a tracked, CI-verified source of truth.** The
+  `starter/` tree is the canonical "Use this template" starting point: a lean,
+  private-by-default site (example policies + the dashboard homepage, a neutral
+  placeholder `static/logo.png`, and a `.gitignore` for build outputs). A new
+  `nix run .#build-starter` — run in CI on every PR — builds it through the full
+  Action pipeline and asserts a working, private-by-default site + PDFs, so a
+  theme change can no longer silently break a real user's starter. On a release
+  tag, `publish-template.yml` regenerates the `sc2in/policypress-template` repo
+  from `starter/` (given a `TEMPLATE_DEPLOY_KEY` deploy key), so the published
+  template can never drift from the toolchain again.
 
 ### Changed
 
@@ -119,6 +129,16 @@ versioning; breaking changes to it bump the major version.
   all. Also removed a never-included `contributors.html` partial, an empty
   leftover `templates/pdf/policy.tex`, and a dead debug comment in
   `src/control_report.zig`.
+- The homepage and policy templates no longer fail the site build on a site
+  without a `[extra.policyteam]` roster or a `news/` section. `person_link` call
+  sites default the roster to `[]` (and the macro renders a roster member with no
+  `page` as plain text), and the homepage fetches a news section only when
+  `[extra.policypress] news_page` is set — Zola's `get_section` has no `required`
+  argument, so the prior `required=false` guard was a silent no-op that errored on
+  any site without `news/`. Both paths were only ever exercised by the
+  fully-populated demo (which defines both, keeping CI green), so a minimal
+  starter would have broken the instant the next release shipped. The new starter
+  build check guards them.
 
 ## [1.6.1] - 2026-07-21
 

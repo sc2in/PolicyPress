@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-07-25
+
 ### Added
 
 - **Private-by-default site visibility + turnkey SSO deploy.** A new

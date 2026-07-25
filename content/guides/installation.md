@@ -105,8 +105,8 @@ jobs:
         uses: sc2in/policypress@v1
         with:
           draft_mode: ${{ github.event.inputs.draft || 'false' }}
-          # Redact by default so a public Pages deploy never leaks {% redact() %}
-          # content; leave unset to inherit [extra.policypress] redact instead.
+          # Redact by default so a public Pages deploy never leaks redaction-tagged
+          # content; leave unset to inherit the config's [extra.policypress] redact.
           redact_mode: ${{ github.event.inputs.redact || 'true' }}
 
       - uses: actions/upload-artifact@v4
@@ -263,9 +263,9 @@ pdf_color = "#0e90f3"
 policy_dir = "policies/"
 # Treat the site as confidential: every page emits noindex/nofollow and
 # robots.txt becomes `Disallow: /`. This controls discoverability only — put the
-# site behind SSO/VPN to actually restrict who can read it. Redact {% redact() %}
-# spans on the web and in the PDFs by default, so nothing internal leaks on a
-# public Pages deploy.
+# site behind SSO/VPN to actually restrict who can read it. Redaction-tagged
+# content is masked on the web and in the PDFs by default, so nothing internal
+# leaks on a public Pages deploy.
 private = true
 redact_web = true
 redact = true

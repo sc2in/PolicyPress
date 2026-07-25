@@ -84,18 +84,28 @@ runs:
       continue-on-error: true
       uses: DeterminateSystems/flakehub-cache-action@9926dde74484ccb2224835b80531de64ed4336ef # v3.21.2
 
-    - name: Get action ref
+    - name: Resolve theme ref
       id: get-ref
       shell: bash
-      run: echo "ref=${{ github.action_ref }}" >> $GITHUB_OUTPUT
+      # github.action_ref is empty inside a composite action (a long-standing
+      # Actions limitation), so derive the pinned ref from the action's own
+      # checkout path instead. Remote consumers (uses: sc2in/policypress@vX) are
+      # checked out under .../_actions/sc2in/policypress/<ref>, whose basename is
+      # the ref (a tag such as v1 or v1.7.0). An in-repo `uses: ./` run has no
+      # _actions path, so emit an empty ref and fall back to github.sha below.
+      run: |
+        case "${GITHUB_ACTION_PATH}" in
+          */_actions/*) echo "ref=$(basename "${GITHUB_ACTION_PATH}")" >> "${GITHUB_OUTPUT}" ;;
+          *)            echo "ref=" >> "${GITHUB_OUTPUT}" ;;
+        esac
 
     - name: Fetch policypress theme
       uses: actions/checkout@v4
       with:
         repository: sc2in/policypress
-        # action_ref for remote consumers (uses: sc2in/policypress@vX); for
-        # in-repo `uses: ./` runs it is empty, so fall back to the workflow's
-        # own commit — previews then use the PR's theme, not main's.
+        # The pinned ref (v1, v1.7.0, …) resolved from the action path above; empty
+        # for in-repo `uses: ./`, where we fall back to the workflow's own commit
+        # so previews use the PR's theme, not main's.
         ref: ${{ steps.get-ref.outputs.ref || github.sha }}
         path: themes/policypress
 

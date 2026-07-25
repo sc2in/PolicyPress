@@ -8,6 +8,16 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Fixed
+
+- The Action now works for remote consumers (`uses: sc2in/policypress@v1`).
+  It resolved the theme ref from `github.action_ref`, which is empty inside a
+  composite action, so it fell back to the caller's commit and tried to check
+  the theme out of the *consumer's* repository at that SHA (`not our ref`) —
+  failing every external build; only in-repo `uses: ./` runs (CI/preview)
+  happened to work. The ref is now derived from the action's own checkout path.
+  Caught by an end-to-end "Use this template" smoke test.
+
 ## [1.7.0] - 2026-07-25
 
 ### Added

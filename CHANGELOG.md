@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-07-25
+
 ### Fixed
 
 - The Action now works for remote consumers (`uses: sc2in/policypress@v1`) — the

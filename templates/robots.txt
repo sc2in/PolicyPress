@@ -1,4 +1,7 @@
-User-agent: *
+{% if config.extra.policypress.private %}User-agent: *
+Disallow: /
+{% else %}User-agent: *
 Allow: /
 
-Sitemap: {{config.base_url}}/sitemap.xml
+Sitemap: {{ config.base_url }}/sitemap.xml
+{% endif %}

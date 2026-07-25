@@ -3,16 +3,21 @@
 
    `members` must be passed in by the caller (Tera macros cannot see `config`):
        {% import 'macros/people.html' as macros_people %}
-       {{ macros_people::person_link(name=version.approved_by, members=config.extra.policyteam.members) }}
+       {{ macros_people::person_link(name=version.approved_by, members=config.extra.policyteam.members | default(value=[])) }}
 
    Names that are not on the roster (roles like "CEO", historical or external
-   contributors) simply render as text, so nobody has to be kept on the roster forever. #}
+   contributors), and roster entries without a `page`, simply render as text, so
+   nobody has to be kept on the roster - or given a bio page - to appear on a byline. #}
 {% macro person_link(name, members) -%}
 {%- set roster = members | default(value=[]) -%}
 {%- set match = roster | filter(attribute="name", value=name) -%}
 {%- if match | length > 0 -%}
 {%- set m = match | first -%}
+{%- if m.page | default(value="") -%}
 <a href="{{ get_url(path='@/' ~ m.page) | safe }}">{{ name }}</a>
+{%- else -%}
+{{ name }}
+{%- endif -%}
 {%- else -%}
 {{ name }}
 {%- endif -%}

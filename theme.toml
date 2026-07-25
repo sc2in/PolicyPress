@@ -1,6 +1,6 @@
 name = "PolicyPress"
 description = "Compliance policy management for small and mid-size teams - Markdown policies, a branded site, and audit-ready PDFs."
-license = "PolyForm-Noncommercial-1.0.0"
+license = "PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0"
 homepage = "https://github.com/sc2in/policypress"
 min_version = "0.15.0"
 demo = "https://policypress.sc2.in"

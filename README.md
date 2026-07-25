@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/sc2in/policypress/actions/workflows/ci.yml/badge.svg)](https://github.com/sc2in/policypress/actions/workflows/ci.yml)
 [![Latest Release](https://img.shields.io/github/v/release/sc2in/policypress)](https://github.com/sc2in/policypress/releases/latest)
-[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE)
+[![License: PolyForm Noncommercial / Internal Use](https://img.shields.io/badge/license-PolyForm%20NC%20%2F%20Internal%20Use-blue)](LICENSING.md)
 
 **▶ [Live demo](https://policypress.sc2.in)** · **[Documentation](https://policypress.sc2.in/guides/installation/)** · **[Sample PDF](https://policypress.sc2.in/pdfs/Example_Security_Policy__Redacted__-_v2.1.pdf)**
 
@@ -44,7 +44,7 @@ Most teams manage policies in one of three ways, and each leaves a gap PolicyPre
 | **Drata / Vanta** and other GRC SaaS | Heavyweight, cloud-only, subscription-priced; your data lives in their platform | Runs from your own repo with no subscription; your data never leaves your infrastructure |
 | **Plain Zola / MkDocs** | A website, but no PDFs, no compliance-control mapping, no draft/redaction workflow | Site *and* PDFs from one source, with SCF/SOC 2 coverage reports and redaction built in |
 
-Self-hosted, Git-native, and free for noncommercial use — no SaaS lock-in.
+Self-hosted, Git-native, and **free to run for your own organization** — any company size, no SaaS lock-in. (Optional support, and licenses for MSPs/resellers, are available; see [Licensing](#license).)
 
 ## How it works
 
@@ -96,18 +96,22 @@ Internal notes - stripped from redacted PDFs.
 
 | Input | Default | Description |
 | --- | --- | --- |
-| `config_path` | `config.toml` | Path to Zola config file |
-| `output_dir` | `public` | Output directory for the build |
+| `config_path` | `config.toml` | Path to the Zola config file |
+| `output_dir` | `public` | Output directory for PDFs and reports |
 | `draft_mode` | `false` | Stamp PDFs with a DRAFT watermark |
-| `redact_mode` | `false` | Strip content inside redaction tags |
+| `redact_mode` | `""` (inherit config) | Redact content inside redaction tags in the PDFs. `true`/`false` force it on/off; empty inherits the site's `[extra.policypress] redact` setting, keeping PDF links in lock-step with `config.toml` |
+| `generate_draft_pdfs` | `false` | Also generate a second, DRAFT-watermarked set of PDFs (for sites with `show_draft_pdfs = true`) |
+| `base_url` | `""` | Override `base_url` from `config.toml` (e.g. a preview URL); passed to `zola build --base-url` |
+| `audit_bundle` | `false` | Also write a machine-readable audit bundle (`manifest.json` with per-PDF SHA-256 hashes, `revisions.json`, coverage export) under `<output_dir>/audit` |
 
 ## Action outputs
 
 | Output | Description |
 | --- | --- |
 | `pdf_path` | Directory containing generated PDFs |
-| `site_path` | Directory containing built static site (`public/`) |
-| `report_path` | Directory containing compliance reports |
+| `site_path` | Directory containing the built static site (`public/`) |
+| `report_path` | Directory containing the generated report PDFs (same directory as `pdf_path`) |
+| `audit_path` | Directory containing the audit bundle (populated when `audit_bundle: true`) |
 
 ## PDF output
 
@@ -199,8 +203,12 @@ PolicyPress is developed and maintained by [Star City Security Consulting, LLC (
 
 ## License
 
-PolicyPress is released under the [PolyForm Noncommercial License 1.0.0](LICENSE) — free and open for **noncommercial** use, including personal projects, research, education, nonprofits, and government. The source is public: read it, run it, modify it, and self-host it for any noncommercial purpose.
+PolicyPress is offered under multiple licenses — use whichever one fits (full details in **[LICENSING.md](LICENSING.md)**):
 
-**Commercial use** — using PolicyPress in or for a for-profit business — requires a commercial license. Contact [sc2.in](https://sc2.in).
+- **[PolyForm Noncommercial 1.0.0](LICENSE)** — free for personal projects, research, education, nonprofits, and government.
+- **[PolyForm Internal Use 1.0.0](LICENSE-PolyForm-Internal-Use-1.0.0.md)** — free for **any company, at any size, managing its own policies**. Optional [support subscriptions](https://sc2.in) add SLAs and indemnification.
+- **Commercial license** — required only to offer PolicyPress *to others* (MSPs/consultancies running it for clients, hosted/SaaS, embedding, or redistribution). Contact [sc2.in](https://sc2.in).
+
+The source is public under all of them: read it, run it, modify it, and self-host it.
 
 Copyright © 2026 Star City Security Consulting, LLC (SC2) - [sc2.in](https://sc2.in)

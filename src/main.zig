@@ -1,5 +1,5 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 //!
 //! This program automates the process of converting Markdown policy documents into styled PDF files.
 //! It loads configuration from a TOML file, processes Markdown files (including YAML front matter and custom placeholders),
@@ -18,17 +18,18 @@ const build_options = @import("build_options");
 
 const clap = @import("clap");
 const Config = @import("config").Config;
+const control_annex = @import("control_annex");
+const controls = @import("controls");
 const Date = @import("utils").Date;
-const stampIsNewer = @import("utils").stampIsNewer;
 const isDraftPolicy = @import("utils").isDraftPolicy;
-const Typst = @import("typst");
 const reports = @import("reports");
+const stampIsNewer = @import("utils").stampIsNewer;
+const Typst = @import("typst");
 const writeStamp = @import("utils").writeStamp;
+const zigmark = @import("zigmark");
+
 const audit = @import("audit.zig");
 const diagrams = @import("diagrams.zig");
-const controls = @import("controls");
-const control_annex = @import("control_annex");
-const zigmark = @import("zigmark");
 const stage = @import("stage.zig");
 
 // ---------------------------------------------------------------------------
@@ -136,6 +137,22 @@ pub fn main(init: std.process.Init) void {
 
     // argv[0] is the binary name; user arguments start at argv[1].
     const user_args: []const [:0]const u8 = if (argv.len > 1) argv[1..] else &.{};
+
+    // Top-level informational flags (no subcommand). Handled here with
+    // std.debug.print — like the `help` subcommand below — so they never fall
+    // through to the build path, which knows nothing about `--version`.
+    // Subcommand-specific help (e.g. `build --help`) is handled per-subcommand.
+    if (user_args.len > 0) {
+        const first = user_args[0];
+        if (std.mem.eql(u8, first, "--version") or std.mem.eql(u8, first, "-V")) {
+            std.debug.print("policypress {s}\n", .{build_options.version});
+            return;
+        }
+        if (std.mem.eql(u8, first, "--help") or std.mem.eql(u8, first, "-h")) {
+            std.debug.print("{s}", .{top_level_usage});
+            return;
+        }
+    }
 
     // If the first user argument looks like a subcommand (no leading '-'), dispatch.
     if (user_args.len > 0 and !std.mem.startsWith(u8, user_args[0], "-")) {
@@ -245,7 +262,14 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         \\    --json             Emit log output as JSON lines (for CI).
     );
     var buf: [128]u8 = undefined;
-    var stderr = std.Io.File.stderr().writer(io, &buf).interface;
+    // Keep the File.Writer in a named local: `&w.interface` must point *into*
+    // the live struct so the flush/drain vtable can recover it via
+    // @fieldParentPtr. Taking `.interface` off the temporary returned by
+    // writer() left the parent File.Writer dangling, so flushing a non-empty
+    // buffer (a clap error or `--help` output) dereferenced a bad file handle
+    // and segfaulted.
+    var stderr_writer = std.Io.File.stderr().writer(io, &buf);
+    const stderr = &stderr_writer.interface;
     defer stderr.flush() catch {};
     var diag = clap.Diagnostic{};
 
@@ -259,14 +283,14 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
         .diagnostic = &diag,
         .allocator = alloc,
     }) catch |err| {
-        diag.report(&stderr, err) catch {};
+        diag.report(stderr, err) catch {};
         return err;
     };
     defer res.deinit();
 
     if (res.args.help != 0) {
         std.debug.print("PolicyPress\n\n", .{});
-        return clap.help(&stderr, clap.Help, &params, .{});
+        return clap.help(stderr, clap.Help, &params, .{});
     }
 
     // --- Load config ---
@@ -537,6 +561,23 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
                         "[extra.policypress] redact to match redact_web (or pass --redact/--no-redact) to " ++
                         "align them.",
                     .{ config.redact_web, config.redact },
+                );
+            },
+            else => {},
+        }
+        // Private/internal posture: a `private = true` site emits noindex meta
+        // and a `Disallow: /` robots.txt, but Zola's top-level generate_sitemap
+        // is independent — left on it still publishes /sitemap.xml enumerating
+        // every policy URL. Advisory, folded into the same counter.
+        switch (config.reviewPrivatePosture()) {
+            .advisory => {
+                advisory += 1;
+                std.log.warn(
+                    "policypress: [extra.policypress] private = true but generate_sitemap is not false; " ++
+                        "Zola will still publish /sitemap.xml listing every policy URL, undercutting the " ++
+                        "private posture. Add `generate_sitemap = false` (top level in config.toml) to keep " ++
+                        "the site non-discoverable.",
+                    .{},
                 );
             },
             else => {},

@@ -155,7 +155,7 @@ include_content = true
 
 [extra]
 homepage_style = "marketing"
-version = "1.6.1"
+version = "1.7.0"
 # release = "https://api.github.com/repos/getzola/zola/releases/latest"
 favicon = "https://www.getzola.org/favicon.ico"
 easydocs_logo_always_clickable = true
@@ -204,6 +204,14 @@ redact_web = true
 # still override this.
 redact = true
 show_draft_pdfs = true
+# Website visibility. `false` (the default) keeps the site indexable — correct
+# for this public marketing/demo deployment. Set `true` for an internal policy
+# site behind SSO/VPN: every page then emits `noindex, nofollow`, robots.txt
+# becomes `Disallow: /`, and (with `generate_sitemap = false`) the site is not
+# discoverable through search engines. Access control itself is the host's job —
+# see the "Securing your repository" guide. The starter template ships this as
+# `true`.
+private = false
 # Accept native Markdown footnote references to controls (`[^IAC-01]`) as an
 # alternative to the `{{ control(id="IAC-01") }}` shortcode (#173). With this on,
 # the site build must run `policypress stage-site` (the GitHub Action does) so the
@@ -214,6 +222,10 @@ show_draft_pdfs = true
 control_footnotes = true
 policy_dir = "policies/"
 policy_root = "policies/_index.md"
+# Optional: a news/updates section to surface on the homepage. Unset it and the
+# homepage simply omits the "Recent updates" panel (get_section has no `required`
+# arg, so the theme only fetches this when the key is present).
+news_page = "news/_index.md"
 scf_report_page = "@/reports/scf.md"
 soc2_report_page = "@/reports/soc2.md"
 organization = "PolicyPress"

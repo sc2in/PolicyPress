@@ -1,5 +1,5 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 
 const std = @import("std");
 const Array = std.ArrayList;
@@ -87,6 +87,17 @@ pub const Config = struct {
     /// `[extra.policypress] control_footnotes`.
     control_footnotes: bool = false,
 
+    /// Treat the published site as confidential/internal: the web templates
+    /// emit `noindex, nofollow` robots meta on every page and a `Disallow: /`
+    /// robots.txt, so a site placed behind SSO/VPN is not also discoverable
+    /// through search engines. Off by default — the demo and any intentionally
+    /// public policy site stay indexable. Set via `[extra.policypress] private`.
+    /// This governs *discoverability* only; actual access control is the
+    /// hosting layer's job (see the "Securing your repository" guide). Zola's
+    /// top-level `generate_sitemap` is independent — `reviewPrivatePosture`
+    /// advises when a private site would still publish a sitemap.
+    private: bool = false,
+
     zola_config: ?toml.Table,
 
     pub fn format(self: Config, writer: *std.Io.Writer) !void {
@@ -140,6 +151,7 @@ pub const Config = struct {
         try obj.put(alloc, "pdf_standard", if (self.pdf_standard) |v| .{ .string = v } else .null);
         try obj.put(alloc, "praxis_join", if (self.praxis_join) |v| .{ .string = v } else .null);
         try obj.put(alloc, "control_footnotes", .{ .bool = self.control_footnotes });
+        try obj.put(alloc, "private", .{ .bool = self.private });
 
         return .{ .object = obj };
     }
@@ -198,6 +210,7 @@ pub const Config = struct {
         config.report_pdfs = e.getBool("report_pdfs") orelse true;
         config.audit_bundle = e.getBool("audit_bundle") orelse false;
         config.control_footnotes = e.getBool("control_footnotes") orelse false;
+        config.private = e.getBool("private") orelse false;
         config.build_dir = "public";
         config.zola_config = t;
         // PDF redaction defaults from `[extra.policypress] redact` (#159), so a
@@ -309,6 +322,21 @@ pub const Config = struct {
     /// the two agree.
     pub fn reviewRedactionConsistency(self: Config) IssueKind {
         return if (self.redact_web != self.redact) .advisory else .none;
+    }
+
+    /// Build-level preflight for the private/internal posture
+    /// (`[extra.policypress] private`). A private site's page templates emit
+    /// `noindex, nofollow` and its robots.txt is `Disallow: /`, but Zola's
+    /// top-level `generate_sitemap` is a separate knob: left at its default it
+    /// still writes `/sitemap.xml` enumerating every policy URL, which undercuts
+    /// the "not discoverable" intent. Advisory, not fatal — the pages are
+    /// noindex regardless. Returns `.none` when the site is not private, or when
+    /// `generate_sitemap = false` is set explicitly.
+    pub fn reviewPrivatePosture(self: Config) IssueKind {
+        if (!self.private) return .none;
+        const zc = self.zola_config orelse return .none;
+        const sitemap = zc.getBool("generate_sitemap") orelse true;
+        return if (sitemap) .advisory else .none;
     }
 
     /// Classify a policy by how long ago it was reviewed. `extra.last_reviewed`

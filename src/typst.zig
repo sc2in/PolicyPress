@@ -1,5 +1,5 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 //!
 //! Typst-based PDF compiler — replaces the Pandoc/xelatex pipeline.
 //!
@@ -22,16 +22,16 @@
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
+const EnvMap = std.process.Environ.Map;
 
+const annex = @import("control_annex");
 const clap = @import("clap");
 const Config = @import("config").Config;
+const pozeiden = @import("pozeiden");
 const u = @import("utils");
 const zigmark = @import("zigmark");
-const pozeiden = @import("pozeiden");
-const fonts = @import("fonts.zig");
-const annex = @import("control_annex");
 
-const EnvMap = std.process.Environ.Map;
+const fonts = @import("fonts.zig");
 
 pub const std_options: std.Options = .{
     .log_level = .warn,

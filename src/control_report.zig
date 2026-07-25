@@ -1,5 +1,5 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 
 const std = @import("std");
 const Array = std.ArrayList;
@@ -9,8 +9,8 @@ const math = std.math;
 
 const BuildConfig = @import("config").Config;
 const clap = @import("clap");
-const zigmark = @import("zigmark");
 const u = @import("utils");
+const zigmark = @import("zigmark");
 
 /// Typst markup generation for the report PDFs (same module).
 pub const render = @import("report_render.zig");

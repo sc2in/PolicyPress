@@ -8,8 +8,22 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-07-25
+
 ### Added
 
+- **Private-by-default site visibility + turnkey SSO deploy.** A new
+  `[extra.policypress] private` key (default off; the starter template ships it
+  **on**) marks a policy site as confidential/internal: every page is served
+  `noindex, nofollow` and `robots.txt` becomes `Disallow: /`, so policies stay
+  out of search engines even if a URL leaks. The build prints an advisory when a
+  `private` site would still publish a `/sitemap.xml`; the starter pairs the flag
+  with `generate_sitemap = false`. The starter also ships a ready-to-fill
+  `static/staticwebapp.config.json` (Azure AD SSO gating every route, redirect to
+  Microsoft login, `X-Robots-Tag: noindex`) and a hardened `static/_headers`, so
+  putting the site behind SSO is a fill-in-your-tenant-ID step rather than a
+  hand-authored config. `private` governs discoverability only — access control
+  is still the hosting layer's job (see the "Securing your repository" guide).
 - **Native `[^CONTROL-ID]` footnote references (opt-in, #173).** Inline control
   references can now be written as standard Markdown footnote references
   (`[^IAC-01]`) instead of the `{{ control(id="IAC-01") }}` shortcode, enabled by
@@ -74,9 +88,30 @@ versioning; breaking changes to it bump the major version.
   on the roster (a role like "CEO", or a former contributor) renders as plain
   text — no broken links and nothing to maintain by hand. A new `person_link`
   macro (`templates/macros/people.html`) centralizes the lookup.
+- **The starter template is now a tracked, CI-verified source of truth.** The
+  `starter/` tree is the canonical "Use this template" starting point: a lean,
+  private-by-default site (example policies + the dashboard homepage, a neutral
+  placeholder `static/logo.png`, and a `.gitignore` for build outputs). A new
+  `nix run .#build-starter` — run in CI on every PR — builds it through the full
+  Action pipeline and asserts a working, private-by-default site + PDFs, so a
+  theme change can no longer silently break a real user's starter. On a release
+  tag, `publish-template.yml` regenerates the `sc2in/policypress-template` repo
+  from `starter/` (given a `TEMPLATE_DEPLOY_KEY` token), so the published
+  template can never drift from the toolchain again.
 
 ### Changed
 
+- **Licensing: PolicyPress is now free for any organization's own use.**
+  Alongside PolyForm Noncommercial 1.0.0, it may now be used under **PolyForm
+  Internal Use 1.0.0** — free for a company of any size to manage its own
+  policies (internal business operations, affiliates included). A commercial
+  license is required only to offer PolicyPress *to others* (an MSP/consultancy
+  running it for clients, a hosted/SaaS offering, embedding, or redistribution);
+  optional support subscriptions add SLAs and indemnification. Adds
+  `LICENSE-PolyForm-Internal-Use-1.0.0.md` and a plain-language `LICENSING.md`,
+  updates the `theme.toml`/README license metadata, and stamps dual SPDX headers
+  (`PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0`) across the
+  sources.
 - **The demo Team section is now a five-person security & compliance team** — a
   CISO, a Compliance/GRC manager, a security engineer, an IT/infrastructure lead,
   and a data protection officer — following the A.B./C.D./E.F. initials scheme,
@@ -96,6 +131,26 @@ versioning; breaking changes to it bump the major version.
   all. Also removed a never-included `contributors.html` partial, an empty
   leftover `templates/pdf/policy.tex`, and a dead debug comment in
   `src/control_report.zig`.
+- The homepage and policy templates no longer fail the site build on a site
+  without a `[extra.policyteam]` roster or a `news/` section. `person_link` call
+  sites default the roster to `[]` (and the macro renders a roster member with no
+  `page` as plain text), and the homepage fetches a news section only when
+  `[extra.policypress] news_page` is set — Zola's `get_section` has no `required`
+  argument, so the prior `required=false` guard was a silent no-op that errored on
+  any site without `news/`. Both paths were only ever exercised by the
+  fully-populated demo (which defines both, keeping CI green), so a minimal
+  starter would have broken the instant the next release shipped. The new starter
+  build check guards them.
+- `policypress --version` and `policypress --help` no longer segfault. The
+  top-level flag path is now handled directly — printing the version and the
+  top-level usage respectively and exiting 0 — instead of falling through to the
+  build path (which knew nothing about `--version`). The underlying crash was a
+  `std.Io.Writer` migration bug: `runBuild` took the `.interface` field off the
+  temporary `File.Writer` returned by `stderr().writer(...)`, so once that
+  temporary went out of scope the flush/drain vtable recovered a dangling parent
+  via `@fieldParentPtr` and dereferenced a stale file handle. The writer is now
+  kept in a named local (matching `stage-site`), which also fixes `build --help`
+  and clap error reporting.
 
 ## [1.6.1] - 2026-07-21
 

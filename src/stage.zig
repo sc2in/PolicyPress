@@ -1,5 +1,5 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 //!
 //! `policypress stage-site` — the pre-Zola content-synthesis pass (#173).
 //!
@@ -35,8 +35,8 @@ const tst = std.testing;
 
 const Config = @import("config").Config;
 const controls = @import("controls");
-const zigmark = @import("zigmark");
 const u = @import("utils");
+const zigmark = @import("zigmark");
 
 const stagelog = std.log.scoped(.stage);
 

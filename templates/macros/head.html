@@ -142,7 +142,12 @@ updated_time="2021-05-01T08:08:08+08:00"
 )
 %}
 
-{% if is_404 %}
+{# A private/internal site ([extra.policypress] private = true) is placed
+   behind SSO/VPN and must not be discoverable through search engines, so every
+   page is noindex, nofollow — no googlebot/bingbot index hints. #}
+{% if config.extra.policypress.private %}
+<meta name="robots" content="noindex, nofollow">
+{% elif is_404 %}
 <meta name="robots" content="noindex, follow">
 {% else %}
 <meta name="robots" content="index, follow">

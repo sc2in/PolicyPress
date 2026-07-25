@@ -1,5 +1,5 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 //!
 //! Audit bundle (#135): a machine-readable, self-describing export of the
 //! compliance state, written alongside the PDFs so an auditor or automated
@@ -22,9 +22,10 @@ const Allocator = std.mem.Allocator;
 const Sha256 = std.crypto.hash.sha2.Sha256;
 
 const Config = @import("config").Config;
+const praxis_join = @import("praxis_join");
+const reports = @import("reports");
 const u = @import("utils");
 const zigmark = @import("zigmark");
-const reports = @import("reports");
 
 const log = std.log.scoped(.audit);
 
@@ -34,8 +35,6 @@ const schema_coverage = "policypress/audit-coverage/v1";
 // The praxis join facet is a NEW file (join.json), so praxis's v1 coverage
 // readers are untouched. It is written only when `config.praxis_join` is set.
 const schema_join = "policypress/audit-join/v1";
-
-const praxis_join = @import("praxis_join");
 
 /// Write the three-file bundle into `audit_dir` (created if needed).
 /// `pp_version` is the PolicyPress version stamped into the manifest.

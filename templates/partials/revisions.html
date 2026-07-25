@@ -23,10 +23,10 @@
         {{version.description | default(value="")}}
       </td>
       <td>
-        {% if version.revised_by %}{{ macros_people::person_link(name=version.revised_by, members=config.extra.policyteam.members) }}{% endif %}
+        {% if version.revised_by %}{{ macros_people::person_link(name=version.revised_by, members=config.extra.policyteam.members | default(value=[])) }}{% endif %}
       </td>
       <td>
-        {% if version.approved_by %}{{ macros_people::person_link(name=version.approved_by, members=config.extra.policyteam.members) }}{% endif %}
+        {% if version.approved_by %}{{ macros_people::person_link(name=version.approved_by, members=config.extra.policyteam.members | default(value=[])) }}{% endif %}
       </td>
   </tr>
     {% endfor %}

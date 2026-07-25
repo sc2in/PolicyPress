@@ -1,0 +1,56 @@
+name: Publish starter template
+
+# Regenerate the sc2in/policypress-template repository (the "Use this template"
+# repo the docs point new users to) from the tracked starter/ tree, so it can
+# never drift from the toolchain. Runs on release tags - after the starter has
+# been PR-built by CI - and on demand. The sync needs a TEMPLATE_DEPLOY_KEY
+# secret holding a token with write access to policypress-template (a fine-grained
+# PAT with Contents: read and write, or a deploy token); without it the job
+# builds/verifies the starter and then skips the push with a clear warning.
+#
+# The vX.Y.Z tag pattern excludes the moving major alias (v1), exactly as ci.yml
+# does, so re-pointing v1 during a release never re-triggers a publish.
+on:
+  push:
+    tags: ["v?[0-9]+.[0-9]+.[0-9]+*"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-template
+  cancel-in-progress: false
+
+jobs:
+  publish-template:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3
+
+      - name: Setup Nix cache
+        uses: DeterminateSystems/flakehub-cache-action@9926dde74484ccb2224835b80531de64ed4336ef # v3.21.2
+        with:
+          use-gha-cache: "enabled"
+          flakehub-flake-name: "sc2in/PolicyPress"
+
+      - name: Configure permissions
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
+      # Never publish a starter that doesn't build. Same guard CI runs on PRs;
+      # a flakehub cache hit for this commit keeps it cheap.
+      - name: Verify the starter builds
+        run: nix run .#build-starter
+
+      - name: Sync starter/ to policypress-template
+        env:
+          TEMPLATE_DEPLOY_KEY: ${{ secrets.TEMPLATE_DEPLOY_KEY }}
+        run: |
+          if [ -z "${TEMPLATE_DEPLOY_KEY}" ]; then
+            echo "::warning title=Template not published::TEMPLATE_DEPLOY_KEY secret is not set; skipped syncing starter/ to sc2in/policypress-template. Add a token (fine-grained PAT with Contents: write, or a deploy token) as that secret to enable auto-publish."
+            exit 0
+          fi
+          bash tools/publish-template.sh "${GITHUB_REF_NAME}"

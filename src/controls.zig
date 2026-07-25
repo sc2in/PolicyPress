@@ -1,5 +1,5 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 //!
 //! Control-ID join for policy PDFs (#127 / #164).
 //!
@@ -38,13 +38,13 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 
-const zigmark = @import("zigmark");
-const reports = @import("reports");
-const praxis_join = @import("praxis_join");
-const Config = @import("config").Config;
-const u = @import("utils");
-const mvzr = @import("mvzr");
 const annex = @import("control_annex");
+const Config = @import("config").Config;
+const mvzr = @import("mvzr");
+const praxis_join = @import("praxis_join");
+const reports = @import("reports");
+const u = @import("utils");
+const zigmark = @import("zigmark");
 
 const ctrllog = std.log.scoped(.controls);
 

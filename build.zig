@@ -1,13 +1,14 @@
-//! Copyright © 2025 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
-//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+//! Copyright © 2026 [Star City Security Consulting, LLC (SC2)](https://sc2.in)
+//! SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 OR PolyForm-Internal-Use-1.0.0
 const std = @import("std");
 const Array = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 const math = std.math;
 
-const ReportType = @import("src/control_report.zig").Report;
 const zon = @import("build.zig.zon");
+
+const ReportType = @import("src/control_report.zig").Report;
 
 pub fn build(b: *std.Build) !void {
     var threaded: std.Io.Threaded = .init(b.allocator, .{});
@@ -272,6 +273,24 @@ pub fn build(b: *std.Build) !void {
         const run_golden_tests = b.addRunArtifact(golden_tests);
         run_golden_tests.setCwd(b.path("."));
         test_step.dependOn(&run_golden_tests.step);
+
+        // Regression guard for the top-level `--version` / `--help` paths, which
+        // segfaulted when runBuild built its stderr writer by taking `.interface`
+        // off a temporary File.Writer (the parent struct went out of scope, so
+        // the flush vtable dereferenced a dangling file handle). Runs the real
+        // binary and asserts a clean exit with the expected output; neither path
+        // reads config or touches the filesystem, so it is sandbox-safe.
+        const cli_version = b.addRunArtifact(policypress_exe);
+        cli_version.addArg("--version");
+        cli_version.expectExitCode(0);
+        cli_version.expectStdErrMatch(zon.version);
+        test_step.dependOn(&cli_version.step);
+
+        const cli_help = b.addRunArtifact(policypress_exe);
+        cli_help.addArg("--help");
+        cli_help.expectExitCode(0);
+        cli_help.expectStdErrMatch("Usage: policypress");
+        test_step.dependOn(&cli_help.step);
     }
     {
         // Fuzz harness for PolicyPress's own surfaces (src/fuzz.zig).

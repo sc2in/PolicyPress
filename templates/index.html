@@ -163,7 +163,10 @@ description=description, is_home=true) }}
 </section>
 {% endif %}
 
-{% set news_section = get_section(path="news/_index.md", required=false) %}
+{# get_section errors on a missing section (no `required` arg, unlike load_data),
+   so only fetch when a news feed is configured; sites without one skip it. #}
+{% set news_path = config.extra.policypress.news_page | default(value="") %}
+{% if news_path %}{% set news_section = get_section(path=news_path) %}{% else %}{% set news_section = false %}{% endif %}
 {% if news_section and news_section.pages %}
 <section class="recent-updates-section">
   <div class="container">
@@ -358,8 +361,10 @@ description=description, is_home=true) }}
         </div>
         {% endif %}
 
-        {# ---- Recent updates ---- #}
-        {% set news_section = get_section(path="news/_index.md", required=false) %}
+        {# ---- Recent updates (only when a news feed is configured; get_section
+             has no `required` arg and errors on a missing section) ---- #}
+        {% set news_path = config.extra.policypress.news_page | default(value="") %}
+        {% if news_path %}{% set news_section = get_section(path=news_path) %}{% else %}{% set news_section = false %}{% endif %}
         {% if news_section and news_section.pages %}
         <div class="col-lg-5">
           <div class="card h-100"><div class="card-body">

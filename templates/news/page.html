@@ -62,11 +62,15 @@ description=description) }}
         <i class="fas fa-user" aria-hidden="true"></i>
         {% for author in page.authors %}
         {% if loop.index > 1 %} &amp; {% endif %}
-        {% set team_match = config.extra.policyteam.members | filter(attribute="name", value=author) %}
+        {% set team_match = config.extra.policyteam.members | default(value=[]) | filter(attribute="name", value=author) %}
         {% if team_match %}
         {% set member = team_match | first %}
+        {% if member.page | default(value="") %}
         {% set member_page = get_page(path=member.page) %}
         <a href="{{ member_page.permalink | safe }}">{{ author }}</a>
+        {% else %}
+        {{ author }}
+        {% endif %}
         {% else %}
         {{ author }}
         {% endif %}

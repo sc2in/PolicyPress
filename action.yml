@@ -1,5 +1,5 @@
 name: PolicyPress
-description: Build ISMS policy PDFs and a Zola static site from markdown content.
+description: Compliance policy management - write policies in Markdown, publish a branded policy site and audit-ready PDFs.
 author: sc2in
 
 branding:

@@ -10,6 +10,8 @@ Compliance policy management for small and mid-size teams — write policies in 
 
 PolicyPress is built on [Zola](https://www.getzola.org/) and [Typst](https://typst.app/). You host it yourself in your own Git repository — PolicyPress is the theme and toolchain, not the content, so your policies never leave your infrastructure. Organizations that run several instances — a nonprofit with multiple programs, or a small business with a few brands or entities — keep one shared toolchain and a separate, owned policy repository per entity.
 
+> **Free to run for your own organization**, at any size — no subscription. A commercial license is required only to offer PolicyPress *to others* (an MSP running it for clients, a hosted/SaaS offering, or redistribution). See [Licensing](#license).
+
 ## See it in action
 
 [![PolicyPress homepage showing the hero and feature overview](docs/media/homepage.png)](https://policypress.sc2.in)

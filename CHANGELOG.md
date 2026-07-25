@@ -27,6 +27,12 @@ versioning; breaking changes to it bump the major version.
   - **From-source builds work on Ubuntu runners.** The action enables unprivileged
     user namespaces, so the fallback source build no longer fails in zig2nix's
     bubblewrap sandbox.
+### Changed
+
+- Marketplace listing polish: a clearer Action tagline (`action.yml` description)
+  and a README banner that makes the "free for your own organization; commercial
+  license only to serve others" split unmissable above the fold (the GitHub
+  Marketplace listing renders the README).
 
 ## [1.7.0] - 2026-07-25
 

@@ -139,6 +139,16 @@ versioning; breaking changes to it bump the major version.
   fully-populated demo (which defines both, keeping CI green), so a minimal
   starter would have broken the instant the next release shipped. The new starter
   build check guards them.
+- `policypress --version` and `policypress --help` no longer segfault. The
+  top-level flag path is now handled directly — printing the version and the
+  top-level usage respectively and exiting 0 — instead of falling through to the
+  build path (which knew nothing about `--version`). The underlying crash was a
+  `std.Io.Writer` migration bug: `runBuild` took the `.interface` field off the
+  temporary `File.Writer` returned by `stderr().writer(...)`, so once that
+  temporary went out of scope the flush/drain vtable recovered a dangling parent
+  via `@fieldParentPtr` and dereferenced a stale file handle. The writer is now
+  kept in a named local (matching `stage-site`), which also fixes `build --help`
+  and clap error reporting.
 
 ## [1.6.1] - 2026-07-21
 

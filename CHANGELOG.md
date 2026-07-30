@@ -8,6 +8,19 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Fixed
+
+- Consecutive footnote references are now readable. Markdown allows adjacent
+  footnote markers, and a control plus its sub-controls is the common case on a
+  `control_footnotes` site — but the theme styled only `.footnote-definition`, so
+  `[^GOV-19][^GOV-19.1][^GOV-19.2]` rendered as "192021", a single 6-digit number
+  rather than three citations. Adjacent markers are now comma-separated
+  ("19,20,21"). The demo policy gained an adjacent-reference run so the a11y scan
+  covers the path (#189).
+- The footnote-definition marker sat on the baseline instead of raised: its
+  `top` was `-0.2.5em`, which has two decimal points, so browsers dropped the
+  whole declaration (#189).
+
 ## [1.7.1] - 2026-07-25
 
 ### Fixed

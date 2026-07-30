@@ -8,6 +8,31 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Fixed
+
+- The Action now fails fast on a Windows runner, naming the reason and pointing
+  at the installation guide, instead of getting as far as installing Nix before
+  dying on an unrelated-looking error. Nothing stated the requirement anywhere:
+  the toolchain builds on Nix, which has no Windows support, and release binaries
+  ship for Linux and macOS only. `action.yml`, the README, and the installation
+  guide now all say so, and the binary resolver's bare "Unsupported platform"
+  names the supported set.
+- Inline `code` inside an admonition now meets WCAG AA. Bootstrap's
+  `--bs-code-color` (`#d63384`) measures 4.50:1 on white — AA by a hair, with no
+  headroom — so over an admonition's background tint it fell to 4.26:1. It is now
+  blended toward the body colour (the technique `.admonition-title` already used
+  for the same reason), reaching ~6.3:1 on every admonition type while keeping the
+  hue. Caught by the axe-core gate when the guide above added a code span to a
+  callout; dark mode was already compliant via its own rule.
+
+### Security
+
+- SHA-pinned `actions/checkout` inside `action.yml` (to `v4.4.0`, the revision
+  already used throughout `.github/workflows`). It was the one floating `uses:`
+  ref left in the action, and unlike the workflow refs it runs inside every
+  consumer's pipeline, so an upstream tag move would have changed what every
+  PolicyPress user executes. Completes the pinning work from #157.
+
 ## [1.7.1] - 2026-07-25
 
 ### Fixed

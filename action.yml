@@ -1,5 +1,8 @@
+# Requires a Linux or macOS runner (`runs-on: ubuntu-latest` is recommended).
+# Windows runners are not supported: the action builds on Nix, which has no
+# Windows support, and release binaries are published for Linux and macOS only.
 name: PolicyPress
-description: Compliance policy management - write policies in Markdown, publish a branded policy site and audit-ready PDFs.
+description: Compliance policy management on Linux/macOS runners - write policies in Markdown, publish a branded policy site and audit-ready PDFs.
 author: sc2in
 
 branding:
@@ -74,6 +77,21 @@ outputs:
 runs:
   using: composite
   steps:
+    # Fail fast, and say why. The action runs on Nix, which has no Windows
+    # support, and ships release binaries for Linux and macOS only — so on a
+    # windows-latest runner every path here is a dead end. Without this guard the
+    # run got as far as installing Nix before dying on an unrelated-looking
+    # error, or reached the binary resolver's bare "Unsupported platform".
+    - name: Check runner platform
+      shell: bash
+      run: |
+        if [ "${RUNNER_OS}" = "Windows" ]; then
+          echo "::error::PolicyPress does not support Windows runners." \
+               "Use runs-on: ubuntu-latest (recommended) or a macOS runner." \
+               "See https://policypress.sc2.in/guides/installation/"
+          exit 1
+        fi
+
     - name: Install Nix
       uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3
       with:
@@ -110,7 +128,10 @@ runs:
         esac
 
     - name: Fetch policypress theme
-      uses: actions/checkout@v4
+      # SHA-pinned like every other `uses:` here and in .github/workflows (#157).
+      # This one runs in the consumer's workflow, so a floating tag would let an
+      # upstream tag move change what every PolicyPress user executes.
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         repository: sc2in/policypress
         # The pinned ref (v1, v1.7.0, …) resolved from the action path above; empty
@@ -149,7 +170,9 @@ runs:
             Darwin-arm64)   BINARY="policypress-aarch64-macos" ;;
             Darwin-x86_64)  BINARY="policypress-x86_64-macos" ;;
             *)
-              echo "Unsupported platform: $(uname -s)-$(uname -m)"
+              echo "::error::Unsupported platform: $(uname -s)-$(uname -m)." \
+                   "PolicyPress ships binaries for Linux and macOS on x86_64 and" \
+                   "aarch64. Use runs-on: ubuntu-latest (recommended)."
               exit 1
               ;;
           esac

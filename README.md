@@ -54,6 +54,8 @@ Self-hosted, Git-native, and **free to run for your own organization** — any c
 2. On every push, the `sc2in/policypress` GitHub Action builds the policy site and generates PDFs
 3. The site deploys to GitHub Pages; PDFs are uploaded as artifacts for download
 
+The Action needs a **Linux or macOS runner** — `runs-on: ubuntu-latest` is the recommended choice and what every example here uses. Windows runners are not supported (the toolchain builds on Nix, and release binaries ship for Linux and macOS on x86_64 and aarch64). This is about the runner only; you can author policies from any OS, Windows included.
+
 ## Quick start
 
 **The fastest path:** use the [policypress-template](https://github.com/sc2in/policypress-template) repository. Click **Use this template → Create a new repository**, edit `config.toml` with your organization name and brand color, replace the logo, enable GitHub Pages, and push.

@@ -80,6 +80,45 @@
             zig = zig2nix.outputs.packages.${system}."zig-0_16_0";
             env = zig2nix.outputs.zig-env.${system} { inherit zig; };
 
+            # `zig fetch` unpacks a package into `$PWD/zig-pkg/<hash>`, staging it
+            # in `$PWD/zig-pkg/.tmp-<hex64>/` first. Because zig-pkg/ lives inside
+            # the build root, fetching the build root itself (`zig fetch .`) walks
+            # a source tree that contains its own destination: zig-pkg is copied
+            # into the package being created, and each repeat doubles the tree —
+            # size, inode count, and one more nesting level per run. One such run
+            # left 38 nested copies of this repo in zig-pkg/.
+            #
+            # Nothing in this flake, build.zig.zon, or CI fetches a path, so this
+            # only fires on a hand-typed `zig fetch .`. The devShell therefore
+            # shadows `zig` with a wrapper that refuses exactly that case and
+            # execs the real compiler for everything else. Nix builds keep the
+            # unwrapped `zig`: they run in the sandbox against a read-only source
+            # copy, where the destination can never be inside the source.
+            zigGuarded = pkgs.writeShellScriptBin "zig" ''
+              if [ "''${1:-}" = "fetch" ]; then
+                cwd=$(pwd -P)
+                for arg in "$@"; do
+                  case "$arg" in
+                    -*) continue ;;
+                  esac
+                  [ -d "$arg" ] || continue
+                  src=$(cd -- "$arg" && pwd -P) || continue
+                  case "$cwd/" in
+                    "$src"/*)
+                      echo "zig: refusing 'zig fetch $arg' — the fetch source contains the" >&2
+                      echo "  build root, so it would copy zig-pkg/ into its own staging" >&2
+                      echo "  dir and recurse until the disk fills." >&2
+                      echo "" >&2
+                      echo "  To refresh one dependency, fetch it by URL instead:" >&2
+                      echo '    zig fetch --save=<name> "git+https://…?ref=vX.Y.Z#<commit>"' >&2
+                      exit 1
+                      ;;
+                  esac
+                done
+              fi
+              exec ${zig}/bin/zig "$@"
+            '';
+
             # Only include files that affect the build so that content, docs, and
             # theme changes don't bust the Nix build cache.
             buildSrc = lib.fileset.toSource {
@@ -946,7 +985,7 @@
                 runtimeDeps
                 ++ config.pre-commit.settings.enabledPackages
                 ++ [
-                  zig
+                  zigGuarded
                   pkgs.act
                   pkgs.omnix
                   pkgs.watchexec
@@ -956,8 +995,9 @@
                     # Regenerate build.zig.zon2json-lock after a dependency bump.
                     #
                     # To bump a dep, first edit its URL in build.zig.zon and
-                    # refresh that dep's hash (a bare `zig fetch --save .` hangs
-                    # here, so update the one dep by name):
+                    # refresh that dep's hash by name — never with a bare
+                    # `zig fetch --save .`, which recurses into zig-pkg/ and
+                    # fills the disk (see zigGuarded above, which now blocks it):
                     #   zig fetch --save=<name> "git+https://…?ref=vX.Y.Z#<commit>"
                     # then run `update-zon`.
                     echo "Fetching the full dependency graph…"
@@ -969,6 +1009,16 @@
                     # zon2lock omits the trailing newline that the end-of-file-fixer
                     # pre-commit hook requires; add exactly one.
                     [ -n "$(tail -c1 build.zig.zon2json-lock)" ] && printf '\n' >> build.zig.zon2json-lock
+                    # zon2lock unpacks every dependency into ./zig-pkg/<hash> and
+                    # means to delete each one when it is done reading it, but its
+                    # cleanup resolves the path against the dependency dir instead
+                    # of the build root — `dir.deleteTree("zig-pkg/<hash>")` where
+                    # `dir` already *is* that zig-pkg/<hash>. It silently matches
+                    # nothing, so the unpacked trees leak and stale versions pile
+                    # up across bumps. zig-pkg/ is a regenerable unpack area
+                    # (gitignored; `zig build` re-extracts from the tarballs in
+                    # .zig-cache/p), so clear it outright.
+                    rm -rf zig-pkg
                     echo "Done. Review with: git diff build.zig.zon2json-lock"
                   '')
                 ];
@@ -976,6 +1026,16 @@
               shellHook = config.pre-commit.installationScript + ''
                 export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
                 export ZIG_GLOBAL_CACHE_DIR=.zig-cache
+
+                # A leftover zig-pkg/.tmp-* is the signature of a fetch that was
+                # interrupted or that recursed into itself. One sat here unnoticed
+                # until it had grown 38 levels deep, so say so on shell entry
+                # rather than waiting for `dust` to report a 600G checkout.
+                if [ -n "$(ls -d zig-pkg/.tmp-* 2>/dev/null)" ]; then
+                  echo "warning: leftover zig-pkg/.tmp-* staging dir — a fetch was interrupted"
+                  echo "         or recursed. Safe to clear: rm -rf zig-pkg"
+                  echo ""
+                fi
 
                 # Install the release-tag CHANGELOG guard. The pre-commit
                 # framework manages only the pre-commit hook, so pre-push is

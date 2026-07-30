@@ -70,6 +70,11 @@ Your pipeline's checkout step must initialize the submodule. The ADO example bel
 
 ### Pipeline
 
+{% admonition(type="note", title="Runner requirements") %}
+<p>PolicyPress builds on a <strong>Linux or macOS</strong> agent - <code>ubuntu-latest</code> is recommended and is what every example below uses. Release binaries ship for Linux and macOS on x86_64 and aarch64.</p>
+<p><strong>Windows agents are not supported</strong>, because the toolchain builds on Nix. The Action fails fast and names the reason rather than dying part-way through a build. Authoring is unaffected - you can write policies on Windows. It is only the CI agent that must be Linux or macOS.</p>
+{% end %}
+
 <div class="tab-group" data-default="GitHub Actions">
 <div class="tab-pane" data-tab="GitHub Actions">
 

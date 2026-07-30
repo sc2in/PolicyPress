@@ -109,6 +109,16 @@
     > *:last-child {
       margin-bottom: 0;
     }
+
+    // Inline code needs its own colour here. Bootstrap's --bs-code-color
+    // (#d63384) measures 4.50:1 on white — AA by a hair, with no headroom — so
+    // over the admonition's tint it drops to 4.26:1 and fails. Blend it toward
+    // the body colour, the same trick .admonition-title uses above, which keeps
+    // the hue and reaches ~6.3:1 on every admonition type. Dark mode has its own
+    // higher-specificity code rule in _dark.scss and already passes.
+    code {
+      color: color-mix(in srgb, var(--bs-code-color) 70%, var(--bs-body-color));
+    }
   }
 }
 

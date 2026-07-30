@@ -156,7 +156,7 @@ All personnel must complete security awareness training:
 
 ### All Personnel
 
-- Follow security policies and procedures
+- Follow security policies and procedures [^HRS-05][^HRS-05.1][^HRS-05.3]
 - Report security incidents promptly
 - Complete required security training
 - Protect credentials and access tokens

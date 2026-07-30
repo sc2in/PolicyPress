@@ -1,6 +1,22 @@
+// Inline markers, e.g. the "[^IAC-01]" citations in a policy statement. Markdown
+// allows adjacent footnote references, and a control plus its sub-controls is the
+// common case on a `control_footnotes` site — but with no rule here the <sup>
+// elements sit flush and "[^GOV-19][^GOV-19.1][^GOV-19.2]" renders as "192021",
+// one 6-digit number rather than three citations. Separate adjacent markers with
+// a comma to get "19,20,21" (#189).
+//
+// The ::before is inside the <sup>, so it already inherits that element's raise
+// and reduced size; giving it its own vertical-align/font-size would double-apply
+// both and lift the comma clear of the digits it separates.
+.footnote-reference + .footnote-reference::before {
+  content: ",";
+}
+
 .footnote-definition {
   sup {
-    top: -0.2.5em;
+    // Was "-0.2.5em" — two decimal points, so browsers dropped the whole
+    // declaration and the marker sat on the baseline (#189).
+    top: -0.25em;
     font-size: 0.75em;
     display: inline;
   }

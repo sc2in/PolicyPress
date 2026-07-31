@@ -406,6 +406,22 @@
 
             # Zola validates templates, content, and internal links in the sandbox.
             # PDF links use hardcoded hrefs so they are not checked here.
+            # GitHub validates the Marketplace metadata in action.yml only when
+            # a release is published to the Marketplace, in the release UI — no
+            # local tool or CI step looked at it. v1.7.2 delisted the action that
+            # way: `description` had grown to 133 characters against a
+            # 125-character cap, which merged green, released green, and showed
+            # up only as the listing 404ing. This check runs on every PR.
+            checks.action-metadata =
+              pkgs.runCommand "action-metadata"
+                {
+                  nativeBuildInputs = [ pkgs.yq-go ];
+                }
+                ''
+                  bash ${./tools/check-action-metadata.sh} ${./action.yml}
+                  touch $out
+                '';
+
             checks.zola-check =
               pkgs.runCommand "zola-check"
                 {

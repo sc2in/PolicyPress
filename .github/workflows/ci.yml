@@ -193,6 +193,37 @@ jobs:
           path: artifacts/
           retention-days: 7
 
+  # The single required status check for merging into main.
+  #
+  # The `changes` job sizes the `ci` matrix dynamically, so a docs-only PR never
+  # creates a `ci (macos-latest)` job at all. A ruleset cannot require the
+  # per-leg contexts under those conditions: GitHub leaves the context for a job
+  # that was never created permanently "expected", and the PR is unmergeable with
+  # every check that did run passing. That is exactly what happened to #194, the
+  # first genuinely docs-only PR since the ruleset landed in #134.
+  #
+  # This job is always created, so it always reports. protect-main.json requires
+  # `ci-gate` alone; the matrix stays free to shrink without touching branch
+  # protection. A leg that is skipped by design does not relax the gate — the
+  # matrix result must be `success` outright, and `changes` must have succeeded
+  # too, so a failure there cannot pass as a skipped `ci`.
+  ci-gate:
+    needs: [changes, ci]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the ci matrix to have succeeded
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          CI_RESULT: ${{ needs.ci.result }}
+          CI_MATRIX: ${{ needs.changes.outputs.os }}
+        run: |
+          echo "changes=${CHANGES_RESULT} ci=${CI_RESULT} matrix=${CI_MATRIX}"
+          if [ "${CHANGES_RESULT}" != success ] || [ "${CI_RESULT}" != success ]; then
+            echo "::error::CI did not pass (changes=${CHANGES_RESULT}, ci=${CI_RESULT})."
+            exit 1
+          fi
+
   # Release build: runs only on tags, once per target, in parallel. Each leg
   # cross-compiles one target and uploads its binary as an artifact for the
   # publish job to gather. The target list comes from release-targets.json (via

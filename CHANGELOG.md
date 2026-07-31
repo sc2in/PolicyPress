@@ -35,6 +35,18 @@ versioning; breaking changes to it bump the major version.
   hue. Caught by the axe-core gate when the runner note above added a code span to
   a callout; dark mode was already compliant via its own rule.
 
+- Docs-only pull requests can be merged again. The `changes` job sizes the `ci`
+  matrix dynamically, so a PR touching only `*.md`/`docs/` never creates a
+  `ci (macos-latest)` job — but `protect-main.json` required that exact context,
+  and GitHub leaves the context of a job that was never created permanently
+  "expected". The PR was then unmergeable with every check that did run passing.
+  CI now ends in a `ci-gate` job that is always created and collapses the whole
+  matrix into one context, and the ruleset requires `ci-gate` alone, so the
+  matrix can shrink without touching branch protection. A skipped leg does not
+  relax the gate: `changes` and the `ci` matrix must both report `success`
+  outright. Latent since the cost optimisation met the ruleset; this was the
+  first genuinely docs-only PR to hit it.
+
 ### Security
 
 - SHA-pinned `actions/checkout` inside `action.yml` (to `v4.4.0`, the revision

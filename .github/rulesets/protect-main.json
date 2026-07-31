@@ -17,10 +17,7 @@
       "parameters": {
         "strict_required_status_checks_policy": false,
         "do_not_enforce_on_create": true,
-        "required_status_checks": [
-          { "context": "ci (ubuntu-latest)" },
-          { "context": "ci (macos-latest)" }
-        ]
+        "required_status_checks": [{ "context": "ci-gate" }]
       }
     }
   ],

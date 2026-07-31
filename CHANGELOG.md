@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-07-31
+
 ### Fixed
 
 - Consecutive footnote references are now readable. Markdown allows adjacent

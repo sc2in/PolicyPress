@@ -10,6 +10,16 @@ versioning; breaking changes to it bump the major version.
 
 ### Fixed
 
+- Consecutive footnote references are now readable. Markdown allows adjacent
+  footnote markers, and a control plus its sub-controls is the common case on a
+  `control_footnotes` site — but the theme styled only `.footnote-definition`, so
+  `[^GOV-19][^GOV-19.1][^GOV-19.2]` rendered as "192021", a single 6-digit number
+  rather than three citations. Adjacent markers are now comma-separated
+  ("19,20,21"). The demo policy gained an adjacent-reference run so the a11y scan
+  covers the path (#189).
+- The footnote-definition marker sat on the baseline instead of raised: its
+  `top` was `-0.2.5em`, which has two decimal points, so browsers dropped the
+  whole declaration (#189).
 - The Action now fails fast on a Windows runner, naming the reason and pointing
   at the installation guide, instead of getting as far as installing Nix before
   dying on an unrelated-looking error. Nothing stated the requirement anywhere:
@@ -22,8 +32,20 @@ versioning; breaking changes to it bump the major version.
   headroom — so over an admonition's background tint it fell to 4.26:1. It is now
   blended toward the body colour (the technique `.admonition-title` already used
   for the same reason), reaching ~6.3:1 on every admonition type while keeping the
-  hue. Caught by the axe-core gate when the guide above added a code span to a
-  callout; dark mode was already compliant via its own rule.
+  hue. Caught by the axe-core gate when the runner note above added a code span to
+  a callout; dark mode was already compliant via its own rule.
+
+- Docs-only pull requests can be merged again. The `changes` job sizes the `ci`
+  matrix dynamically, so a PR touching only `*.md`/`docs/` never creates a
+  `ci (macos-latest)` job — but `protect-main.json` required that exact context,
+  and GitHub leaves the context of a job that was never created permanently
+  "expected". The PR was then unmergeable with every check that did run passing.
+  CI now ends in a `ci-gate` job that is always created and collapses the whole
+  matrix into one context, and the ruleset requires `ci-gate` alone, so the
+  matrix can shrink without touching branch protection. A skipped leg does not
+  relax the gate: `changes` and the `ci` matrix must both report `success`
+  outright. Latent since the cost optimisation met the ruleset; this was the
+  first genuinely docs-only PR to hit it.
 
 ### Security
 
@@ -32,16 +54,6 @@ versioning; breaking changes to it bump the major version.
   ref left in the action, and unlike the workflow refs it runs inside every
   consumer's pipeline, so an upstream tag move would have changed what every
   PolicyPress user executes. Completes the pinning work from #157.
-- Consecutive footnote references are now readable. Markdown allows adjacent
-  footnote markers, and a control plus its sub-controls is the common case on a
-  `control_footnotes` site — but the theme styled only `.footnote-definition`, so
-  `[^GOV-19][^GOV-19.1][^GOV-19.2]` rendered as "192021", a single 6-digit number
-  rather than three citations. Adjacent markers are now comma-separated
-  ("19,20,21"). The demo policy gained an adjacent-reference run so the a11y scan
-  covers the path (#189).
-- The footnote-definition marker sat on the baseline instead of raised: its
-  `top` was `-0.2.5em`, which has two decimal points, so browsers dropped the
-  whole declaration (#189).
 
 ## [1.7.1] - 2026-07-25
 

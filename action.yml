@@ -1,8 +1,12 @@
 # Requires a Linux or macOS runner (`runs-on: ubuntu-latest` is recommended).
 # Windows runners are not supported: the action builds on Nix, which has no
 # Windows support, and release binaries are published for Linux and macOS only.
+# That requirement is documented in the README (which is the Marketplace listing
+# body), the installation guide, and the action's own fail-fast guard below —
+# deliberately NOT in `description`, which GitHub caps at 125 characters and
+# validates only when publishing a release to the Marketplace.
 name: PolicyPress
-description: Compliance policy management on Linux/macOS runners - write policies in Markdown, publish a branded policy site and audit-ready PDFs.
+description: Compliance policy management - write policies in Markdown, publish a branded policy site and audit-ready PDFs.
 author: sc2in
 
 branding:

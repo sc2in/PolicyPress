@@ -8,6 +8,33 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The GitHub Marketplace listing is restored.** v1.7.2 delisted the Action:
+  1.7.2 had grown `action.yml`'s `description` to 133 characters to mention the
+  runner requirement, and the Marketplace caps it at 125. GitHub validates that
+  metadata *only* when publishing a release to the Marketplace, so the change
+  merged green, released green, and the sole symptom was
+  `github.com/marketplace/actions/policypress` returning 404 with the listing
+  gone from search. The description is back to its previous 110-character
+  wording; the runner requirement stays in the README (which is the listing
+  body), the installation guide, and the Action's own fail-fast guard, none of
+  which are length-capped.
+
+  Restoring the live listing needs a *release* carrying the fix — a published
+  release is immutable, so v1.7.2 can never be published to the Marketplace.
+
+### Added
+
+- **`action-metadata` check** (`nix run` via `nix flake check`, or
+  `bash tools/check-action-metadata.sh`) validates action.yml against the
+  Marketplace's publish rules on every PR: `description` under 125 characters,
+  `name` present and free of "GitHub", and `branding.icon`/`branding.color`
+  present with an accepted colour. Nothing previously inspected this metadata —
+  not the formatter, the test suite, `zola check`, or the release guards — which
+  is why a listing-breaking value shipped. The check is verified against the
+  actual 1.7.2 `action.yml`, which it rejects with the character count.
+
 ## [1.7.2] - 2026-07-31
 
 ### Fixed

@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-07-31
+
 ### Fixed
 
 - **The GitHub Marketplace listing is restored.** v1.7.2 delisted the Action:

@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.7.4] - 2026-08-07
+
 ### Changed
 
 - Bumped `pozeiden` v0.3.0 → v0.4.1. Mermaid diagrams pick up the O(V+E)

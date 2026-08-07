@@ -62,8 +62,8 @@
             .hash = "clap-0.11.0-oBajB-jlAQA8x4XSScN1d48Q83iYl-LDU63htNyXbXBe",
         },
         .pozeiden = .{
-            .url = "git+https://github.com/sc2in/pozeiden?ref=v0.3.0#a29e792fd7b5c8fa9f8d939536552d382c94c871",
-            .hash = "pozeiden-0.3.0-NAqiXXIpCgC2prHxCXJe59cXjbV7f8KcrHb9nstNkhOy",
+            .url = "git+https://github.com/sc2in/pozeiden?ref=v0.4.0#49f7a27aa7bf8e4bc4cdc1368f3f95a744dc7672",
+            .hash = "pozeiden-0.4.0-NAqiXYMXCwCzyp6k5efqAnjQ9j_0CWeuyJcw62yfnWxK",
         },
     },
     .paths = .{

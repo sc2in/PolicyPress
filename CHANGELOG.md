@@ -8,6 +8,17 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Changed
+
+- Bumped `pozeiden` v0.3.0 → v0.4.0. Mermaid diagrams pick up the O(V+E)
+  layout rewrite (graph caps raised 10× to 10 000 nodes / 20 000 edges), the
+  front-matter and deep-layout rendering fixes, and a default font stack that
+  now ends in `Liberation Sans, DejaVu Sans, sans-serif` — so Typst resolves
+  real fonts without the per-call override PolicyPress applies. Diagrams with
+  mermaid `accTitle:`/`accDescr:` directives now carry SVG `<title>`/`<desc>`
+  accessibility metadata. Golden Typst baselines are byte-identical (mermaid
+  SVG is golden-tested upstream, not re-pinned here).
+
 ## [1.7.3] - 2026-07-31
 
 ### Fixed

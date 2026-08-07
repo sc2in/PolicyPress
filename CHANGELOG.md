@@ -19,6 +19,31 @@ versioning; breaking changes to it bump the major version.
   accessibility metadata. Golden Typst baselines are byte-identical (mermaid
   SVG is golden-tested upstream, not re-pinned here).
 
+- Bad praxis join files are now diagnosed through the standard log (scoped
+  `praxis_join`, warn level) instead of raw stderr prints. The message text is
+  unchanged, but the diagnostics now respect `--quiet` and no longer corrupt
+  `--json-log` output.
+
+### Fixed
+
+- `update-zon` can no longer destroy `build.zig.zon2json-lock`. zig2nix's
+  `zon2lock` truncates its destination before it starts fetching and stages
+  its `zig fetch` runs in a `/tmp` scratch dir — with the dev shell's
+  project-relative `ZIG_GLOBAL_CACHE_DIR`, the repacked dependency tarballs
+  were written under that scratch dir but read back from the repo cache, so
+  every dependency bump crashed with `FileNotFound` and left a truncated
+  lock behind. The dev shell now exports an absolute cache path, and
+  `update-zon` generates into a temp file, validates the JSON, and only then
+  moves it into place (pozeiden's guard), so a crash cannot eat the lock.
+
+- `zig build test` no longer ends every run with a misleading
+  `failed command: … --listen=-` dump. The suite deliberately drives warning
+  paths, those expected warnings landed on stderr, and the zig 0.16 build
+  runner re-prints any stderr captured from a *passing* test binary under
+  that failure-looking trailer. Tests that intend to warn now silence
+  warn-level logs for their duration (`std.testing.log_level`), so a clean
+  run prints nothing and real diagnostics stand out.
+
 ## [1.7.3] - 2026-07-31
 
 ### Fixed

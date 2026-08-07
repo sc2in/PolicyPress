@@ -10,14 +10,22 @@ versioning; breaking changes to it bump the major version.
 
 ### Changed
 
-- Bumped `pozeiden` v0.3.0 → v0.4.0. Mermaid diagrams pick up the O(V+E)
+- Bumped `pozeiden` v0.3.0 → v0.4.1. Mermaid diagrams pick up the O(V+E)
   layout rewrite (graph caps raised 10× to 10 000 nodes / 20 000 edges), the
-  front-matter and deep-layout rendering fixes, and a default font stack that
-  now ends in `Liberation Sans, DejaVu Sans, sans-serif` — so Typst resolves
-  real fonts without the per-call override PolicyPress applies. Diagrams with
-  mermaid `accTitle:`/`accDescr:` directives now carry SVG `<title>`/`<desc>`
-  accessibility metadata. Golden Typst baselines are byte-identical (mermaid
-  SVG is golden-tested upstream, not re-pinned here).
+  front-matter and deep-layout rendering fixes, 0.4.1's direction-override
+  subgraph fix (same-layer nodes no longer swap positions), and a default
+  font stack that now ends in `Liberation Sans, DejaVu Sans, sans-serif` —
+  so Typst resolves real fonts without the per-call override PolicyPress
+  applies. Diagrams with mermaid `accTitle:`/`accDescr:` directives now
+  carry SVG `<title>`/`<desc>` accessibility metadata. Golden Typst
+  baselines are byte-identical (mermaid SVG is golden-tested upstream, not
+  re-pinned here).
+
+- Bumped `zigmark` v0.11.0 → v0.11.1, whose lazy `pozeiden` pin jumps
+  v0.2.0 → v0.4.1. That stale 0.2.0 pin sat in PolicyPress's lock alongside
+  the direct pozeiden dependency and predated both 0.3.0 security fixes
+  (GHSA-p2c5-qmq5-3r4f SVG/XSS injection, GHSA-rg4m-w3p2-gf3p out-of-bounds
+  writes); the lock now carries a single pozeiden entry at v0.4.1.
 
 - Bad praxis join files are now diagnosed through the standard log (scoped
   `praxis_join`, warn level) instead of raw stderr prints. The message text is

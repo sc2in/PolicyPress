@@ -10,6 +10,16 @@ const std = @import("std");
 const golden = @import("golden");
 const reports = @import("reports");
 
+pub const std_options: std.Options = .{
+    // Debug builds default the std.log threshold to .debug, so tomlz's
+    // .parser-scoped internals ("debug(parser): eatCommentsAndSpace", …)
+    // land on stderr every time a baseline regenerates — and the zig 0.16
+    // build runner re-prints any captured stderr from a passing step under
+    // a misleading "failed command:" trailer (#197). Warnings and errors
+    // stay audible; baselines go to stdout either way.
+    .log_level = .warn,
+};
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const alloc = init.gpa;

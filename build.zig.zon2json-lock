@@ -1,8 +1,8 @@
 {
-  "zigmark-0.11.0-cwOiyGavCwD_RfjSI5UU-xGwQzgKbfnFv3Gjd454Ypqx": {
+  "zigmark-0.11.1-cwOiyF2vCwB1wx2a1OsvpOb8f9Rfmjw64IP73I7Pj07D": {
     "name": "zigmark",
-    "url": "git+https://github.com/sc2in/zigmark?ref=v0.11.0#63f68d4dd759836e35900b75a140a35ed7ab2223",
-    "hash": "sha256-syIAWFl/bpBF0UnmjZ/h/KRH/2eJuU/hH+RxHMWzi7o="
+    "url": "https://github.com/sc2in/zigmark/archive/refs/tags/v0.11.1.tar.gz",
+    "hash": "sha256-Vcd7gk9YfqYS7aQNLTCAQFCPEfpV51qNvfmjiYyn5Zs="
   },
   "tomlz-0.3.0-H2E6w3VKAgCSZQFKG-VugLEn3cjOWshGqwGzAVABNm--": {
     "name": "tomlz",
@@ -34,14 +34,14 @@
     "url": "git+https://github.com/github/cmark-gfm.git#587a12bb54d95ac37241377e6ddc93ea0e45439b",
     "hash": "sha256-egCWzw09e5daT8cnlSORC3gep9soiqonVC4GQ/s3voM="
   },
-  "pozeiden-0.2.0-NAqiXaypCgBCkAMB3WZpGLPnwV5XTsUvOf3KUY9aAN0p": {
+  "pozeiden-0.4.1-NAqiXUkfCwBbeMXQus5ba8zxE3oEyZtnD_OtL_35qKi8": {
     "name": "pozeiden",
-    "url": "https://github.com/sc2in/pozeiden/archive/refs/tags/v0.2.0.tar.gz",
-    "hash": "sha256-9j8xkNndJX+l20+/qlfK2aLFCfPQsX1xoTDQ+V2jXUg="
+    "url": "https://github.com/sc2in/pozeiden/archive/refs/tags/v0.4.1.tar.gz",
+    "hash": "sha256-JRF9suGxbgmYBSkkfgJjiQB57fi5itR6B2RfNNbYMtw="
   },
   "mvzr-0.3.9-ZSOky8FzAQBQ9-GkQnaLjOZZHxrioD8NwY-QyZT6oAyR": {
     "name": "mvzr",
-    "url": "git+https://github.com/mnemnion/mvzr?ref=v0.3.10#dd0e1bd2d6b10f9650317b30baef7ab7bc9dd9ec",
+    "url": "git+https://github.com/mnemnion/mvzr?ref=v0.3.9#dd0e1bd2d6b10f9650317b30baef7ab7bc9dd9ec",
     "hash": "sha256-hUGdJPjC1PAm6zWL9eAE7A+wAfzf6Q7uSutT2Xe7EMU="
   },
   "zig_yaml-0.3.2-C1161q3CAgCEpqWl_MKjkQpPZmos4DHBJewpb58XMcAL": {
@@ -63,10 +63,5 @@
     "name": "clap",
     "url": "git+https://github.com/Hejsil/zig-clap#1d3d273524e3c180f015ff1e93c83075e4634e2c",
     "hash": "sha256-Ytdm6tGAO+2V5jNLn7oB0r4DnmhoL6PIDQ0ihxzsLts="
-  },
-  "pozeiden-0.4.0-NAqiXYMXCwCzyp6k5efqAnjQ9j_0CWeuyJcw62yfnWxK": {
-    "name": "pozeiden",
-    "url": "git+https://github.com/sc2in/pozeiden?ref=v0.4.0#49f7a27aa7bf8e4bc4cdc1368f3f95a744dc7672",
-    "hash": "sha256-uvGGJICGYLTqqDnOQcakvn3ft2MEcj5OmLP0puS4g/g="
   }
 }

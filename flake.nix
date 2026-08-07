@@ -1016,15 +1016,38 @@
                     # fills the disk (see zigGuarded above, which now blocks it):
                     #   zig fetch --save=<name> "git+https://…?ref=vX.Y.Z#<commit>"
                     # then run `update-zon`.
+                    cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+                    # Re-anchor the cache for standalone robustness: zon2lock
+                    # stages `zig fetch` runs in a /tmp scratch dir, so a
+                    # relative ZIG_GLOBAL_CACHE_DIR (e.g. inherited from a stale
+                    # shell) writes the repacked dependency tarballs there while
+                    # the lock builder reads them back from this repo —
+                    # FileNotFound at zon2lock's repack step (#197). An absolute
+                    # path keeps both sides on <repo>/.zig-cache, which also
+                    # lets zon2lock reuse what `zig build --fetch` just fetched.
+                    export ZIG_GLOBAL_CACHE_DIR="$PWD/.zig-cache"
                     echo "Fetching the full dependency graph…"
                     zig build --fetch
                     echo "Regenerating build.zig.zon2json-lock…"
+                    # zon2lock truncates its destination before it starts
+                    # fetching, so writing straight to the real lock leaves a
+                    # 0-byte or partial file behind on a crash or ^C. Generate
+                    # into a temp file, validate, then move into place
+                    # (pozeiden's guard).
+                    tmp="$(mktemp .build.zig.zon2json-lock.XXXXXX)"
+                    trap 'rm -f "$tmp"' EXIT
                     # zig2nix has no plain `zig2nix` binary on PATH; its CLI is
                     # the flake app, pinned here so this never hits the network.
-                    ${zig2nix.apps.${system}.default.program} zon2lock
+                    ${zig2nix.apps.${system}.default.program} zon2lock build.zig.zon "$tmp"
+                    if ! ${pkgs.jq}/bin/jq -e 'type == "object"' "$tmp" >/dev/null 2>&1; then
+                      echo "error: generated lock is empty or invalid JSON; keeping existing build.zig.zon2json-lock" >&2
+                      exit 1
+                    fi
                     # zon2lock omits the trailing newline that the end-of-file-fixer
                     # pre-commit hook requires; add exactly one.
-                    [ -n "$(tail -c1 build.zig.zon2json-lock)" ] && printf '\n' >> build.zig.zon2json-lock
+                    [ -n "$(tail -c1 "$tmp")" ] && printf '\n' >> "$tmp"
+                    mv -f "$tmp" build.zig.zon2json-lock
+                    trap - EXIT
                     # zon2lock unpacks every dependency into ./zig-pkg/<hash> and
                     # means to delete each one when it is done reading it, but its
                     # cleanup resolves the path against the dependency dir instead
@@ -1041,7 +1064,13 @@
 
               shellHook = config.pre-commit.installationScript + ''
                 export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
-                export ZIG_GLOBAL_CACHE_DIR=.zig-cache
+                # Absolute, not relative: tools that chdir before invoking zig
+                # resolve a relative value against their own cwd. zig2nix's
+                # zon2lock stages `zig fetch` runs in a /tmp scratch dir, so a
+                # relative ".zig-cache" made it write each repacked dependency
+                # tarball under /tmp/zig2nix_*/.zig-cache while reading it back
+                # from <repo>/.zig-cache — FileNotFound on every bump (#197).
+                export ZIG_GLOBAL_CACHE_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.zig-cache"
 
                 # A leftover zig-pkg/.tmp-* is the signature of a fetch that was
                 # interrupted or that recursed into itself. One sat here unnoticed

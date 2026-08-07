@@ -22,6 +22,12 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const tst = std.testing;
 
+// Scoped log rather than std.debug.print: the CLI output is identical (the
+// custom logFns print the bare message), but the diagnostics now respect
+// --quiet / --json-log, and the tests that deliberately feed this loader bad
+// files can silence the expected warnings via `std.testing.log_level`.
+const joinlog = std.log.scoped(.praxis_join);
+
 /// Schema string every join file must carry verbatim. A mismatch is a hard
 /// error: silently accepting an unknown shape would let a future or foreign
 /// format pass as coverage data.
@@ -67,7 +73,7 @@ pub const PraxisJoin = struct {
     pub fn load(io: std.Io, alloc: Allocator, path: []const u8) !PraxisJoin {
         var f = std.Io.Dir.cwd().openFile(io, path, .{ .mode = .read_only }) catch |e| blk: {
             if (e == error.FileNotFound) break :blk std.Io.Dir.openFileAbsolute(io, path, .{ .mode = .read_only }) catch |e2| {
-                std.debug.print("praxis join file not found: '{s}'\n", .{path});
+                joinlog.warn("praxis join file not found: '{s}'", .{path});
                 return e2;
             } else return e;
         };
@@ -82,11 +88,11 @@ pub const PraxisJoin = struct {
         const content = try fr.interface.allocRemaining(a, .limited(4_000_000));
 
         const root = std.json.parseFromSliceLeaky(std.json.Value, a, content, .{}) catch |e| {
-            std.debug.print("praxis join file '{s}' is not valid JSON: {s}\n", .{ path, @errorName(e) });
+            joinlog.warn("praxis join file '{s}' is not valid JSON: {s}", .{ path, @errorName(e) });
             return Error.MalformedJoinFile;
         };
         if (root != .object) {
-            std.debug.print("praxis join file '{s}' must be a JSON object\n", .{path});
+            joinlog.warn("praxis join file '{s}' must be a JSON object", .{path});
             return Error.MalformedJoinFile;
         }
         const obj = root.object;
@@ -94,15 +100,15 @@ pub const PraxisJoin = struct {
         // Schema gate first: the one hard, distinct error callers branch on. An
         // unknown or missing schema must never be treated as coverage data.
         const schema_v = obj.get("schema") orelse {
-            std.debug.print("praxis join file '{s}' has no 'schema' field (expected \"{s}\")\n", .{ path, schema_id });
+            joinlog.warn("praxis join file '{s}' has no 'schema' field (expected \"{s}\")", .{ path, schema_id });
             return Error.MissingSchema;
         };
         if (schema_v != .string) {
-            std.debug.print("praxis join file '{s}' 'schema' must be a string (expected \"{s}\")\n", .{ path, schema_id });
+            joinlog.warn("praxis join file '{s}' 'schema' must be a string (expected \"{s}\")", .{ path, schema_id });
             return Error.MissingSchema;
         }
         if (!std.mem.eql(u8, schema_v.string, schema_id)) {
-            std.debug.print("praxis join file '{s}' has schema \"{s}\"; expected \"{s}\"\n", .{ path, schema_v.string, schema_id });
+            joinlog.warn("praxis join file '{s}' has schema \"{s}\"; expected \"{s}\"", .{ path, schema_v.string, schema_id });
             return Error.SchemaMismatch;
         }
 

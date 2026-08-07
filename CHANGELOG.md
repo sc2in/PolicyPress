@@ -8,6 +8,52 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.7.4] - 2026-08-07
+
+### Changed
+
+- Bumped `pozeiden` v0.3.0 → v0.4.1. Mermaid diagrams pick up the O(V+E)
+  layout rewrite (graph caps raised 10× to 10 000 nodes / 20 000 edges), the
+  front-matter and deep-layout rendering fixes, 0.4.1's direction-override
+  subgraph fix (same-layer nodes no longer swap positions), and a default
+  font stack that now ends in `Liberation Sans, DejaVu Sans, sans-serif` —
+  so Typst resolves real fonts without the per-call override PolicyPress
+  applies. Diagrams with mermaid `accTitle:`/`accDescr:` directives now
+  carry SVG `<title>`/`<desc>` accessibility metadata. Golden Typst
+  baselines are byte-identical (mermaid SVG is golden-tested upstream, not
+  re-pinned here).
+
+- Bumped `zigmark` v0.11.0 → v0.11.1, whose lazy `pozeiden` pin jumps
+  v0.2.0 → v0.4.1. That stale 0.2.0 pin sat in PolicyPress's lock alongside
+  the direct pozeiden dependency and predated both 0.3.0 security fixes
+  (GHSA-p2c5-qmq5-3r4f SVG/XSS injection, GHSA-rg4m-w3p2-gf3p out-of-bounds
+  writes); the lock now carries a single pozeiden entry at v0.4.1.
+
+- Bad praxis join files are now diagnosed through the standard log (scoped
+  `praxis_join`, warn level) instead of raw stderr prints. The message text is
+  unchanged, but the diagnostics now respect `--quiet` and no longer corrupt
+  `--json-log` output.
+
+### Fixed
+
+- `update-zon` can no longer destroy `build.zig.zon2json-lock`. zig2nix's
+  `zon2lock` truncates its destination before it starts fetching and stages
+  its `zig fetch` runs in a `/tmp` scratch dir — with the dev shell's
+  project-relative `ZIG_GLOBAL_CACHE_DIR`, the repacked dependency tarballs
+  were written under that scratch dir but read back from the repo cache, so
+  every dependency bump crashed with `FileNotFound` and left a truncated
+  lock behind. The dev shell now exports an absolute cache path, and
+  `update-zon` generates into a temp file, validates the JSON, and only then
+  moves it into place (pozeiden's guard), so a crash cannot eat the lock.
+
+- `zig build test` no longer ends every run with a misleading
+  `failed command: … --listen=-` dump. The suite deliberately drives warning
+  paths, those expected warnings landed on stderr, and the zig 0.16 build
+  runner re-prints any stderr captured from a *passing* test binary under
+  that failure-looking trailer. Tests that intend to warn now silence
+  warn-level logs for their duration (`std.testing.log_level`), so a clean
+  run prints nothing and real diagnostics stand out.
+
 ## [1.7.3] - 2026-07-31
 
 ### Fixed

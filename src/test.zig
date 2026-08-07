@@ -24,6 +24,18 @@ const stage = @import("stage.zig");
 // TODO
 // - [ ] The reports should generate correctly
 
+// Several tests below deliberately drive warning paths — the warning IS the
+// behavior under test — and bracket themselves with:
+//     tst.log_level = .err;
+//     defer tst.log_level = .warn;
+// Left audible, those expected warnings land on stderr, and the zig 0.16
+// build runner re-prints any stderr captured from a PASSING test binary,
+// ending in a misleading "failed command: … --listen=-" line (the zig_test
+// success path never clears step.result_failed_command), so every
+// `zig build test` run looked like a build-runner failure (#197). Err-level
+// logs stay fatal regardless of this setting: the test runner counts them
+// via log_err_count before the level filter.
+
 const TestConfig =
     \\base_url = "http://localhost:1111"
     \\[extra.policypress]
@@ -256,6 +268,8 @@ test "link↔file: PDF link matches on-disk filename across redact_web × redact
 }
 
 test "review preflight flags overdue policies" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
@@ -276,6 +290,8 @@ test "review preflight flags overdue policies" {
 }
 
 test "review preflight flags unquoted revision versions" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
@@ -295,6 +311,8 @@ test "review preflight flags unquoted revision versions" {
 }
 
 test "ua-1 preflight flags heading-level skips only when pdf_standard is set" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
@@ -894,6 +912,8 @@ test "raw html: code fences, code spans, and autolinks do not trip" {
 }
 
 test "review: raw HTML in body → critical; clean body → none" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var tmp = tst.tmpDir(.{});
     defer tmp.cleanup();
@@ -953,6 +973,8 @@ test "review: raw HTML in body → critical; clean body → none" {
 }
 
 test "review: advisory front matter + raw HTML body → critical (max wins)" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var tmp = tst.tmpDir(.{});
     defer tmp.cleanup();
@@ -1316,6 +1338,8 @@ test "draft mode: site-root static/draft.png wins over theme fallback when both 
 }
 
 test "draft mode: returns null when no draft.png exists anywhere" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var conf = try config.load(io, alloc, TestConfig);
     defer conf.deinit(alloc);
@@ -1786,6 +1810,8 @@ test "praxis join: loads the committed demo fixture" {
 }
 
 test "praxis join: wrong schema string is a hard, distinct error" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var tmp = tst.tmpDir(.{});
     defer tmp.cleanup();
@@ -1806,6 +1832,8 @@ test "praxis join: wrong schema string is a hard, distinct error" {
 }
 
 test "praxis join: missing schema field is a hard, distinct error" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var tmp = tst.tmpDir(.{});
     defer tmp.cleanup();
@@ -2031,6 +2059,8 @@ test "stage: stageMarkdownFile with no control-shaped refs is a verbatim copy (#
 }
 
 test "controls: reviewControlRefs — inline shortcode ref missing from taxonomies.SCF is advisory (#173)" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
@@ -2083,6 +2113,8 @@ test "controls: reviewControlRefs — an inline ref present in taxonomies.SCF is
 }
 
 test "controls: reviewControlRefs — untagged native footnote ref is advisory on, critical off (#173)" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
@@ -2117,6 +2149,8 @@ test "controls: reviewControlRefs — clean fixture is none" {
 }
 
 test "controls: reviewControlRefs — unknown id in taxonomies.SCF is critical" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
@@ -2144,6 +2178,8 @@ test "controls: reviewControlRefs — unknown id in taxonomies.SCF is critical" 
 }
 
 test "controls: reviewControlRefs — malformed shortcode is critical" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
@@ -2169,6 +2205,8 @@ test "controls: reviewControlRefs — malformed shortcode is critical" {
 }
 
 test "controls: reviewControlRefs — a control-shaped dangling raw ref is critical (native footnotes off)" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
@@ -2223,6 +2261,8 @@ test "controls: reviewControlRefs — native footnotes on: a known dangling id i
 }
 
 test "controls: reviewControlRefs — native footnotes on: an unknown well-formed id is still critical (#173)" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
@@ -2304,6 +2344,8 @@ test "controls: annexProvider resolves catalog titles (praxis-agnostic)" {
 }
 
 test "controls: reviewControlRefs — a scope exclusion missing a reason is critical" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
@@ -2332,6 +2374,8 @@ test "controls: reviewControlRefs — a scope exclusion missing a reason is crit
 }
 
 test "controls: reviewControlRefs — an unknown scope-exclusion id is critical" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
@@ -2360,6 +2404,8 @@ test "controls: reviewControlRefs — an unknown scope-exclusion id is critical"
 }
 
 test "controls: reviewControlRefs — same-policy cover+exclude is critical" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
@@ -2391,6 +2437,8 @@ test "controls: reviewControlRefs — same-policy cover+exclude is critical" {
 }
 
 test "controls: reviewControlRefs — excluding a control another policy covers is advisory" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
     const alloc = tst.allocator;
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();

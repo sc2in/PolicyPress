@@ -58,8 +58,8 @@ pub fn renderControlFixture(io: std.Io, alloc: std.mem.Allocator) ![]u8 {
     conf.current_year = 2026;
 
     const fixture = "src/test/test_policy_controls.md";
-    // A second policy that also addresses IAC-01, so the rendered fixture's
-    // IAC-01 footnote carries a "See also" cross-reference to it — while DCH-01
+    // A second policy that also addresses IAC-02, so the rendered fixture's
+    // IAC-02 footnote carries a "See also" cross-reference to it — while DCH-02
     // (covered only by the fixture itself) shows the clause omitted.
     const related = "src/test/test_policy_controls_related.md";
     var cj = try controls.ControlJoin.init(

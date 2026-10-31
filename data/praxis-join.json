@@ -3,34 +3,34 @@
   "generated_at": "2026-07-22",
   "source": {
     "rev": "demo-fixture",
-    "scf_version": "2026.1.1"
+    "scf_version": "2026.3"
   },
   "organizational_families": [
     "GOV"
   ],
   "ids": [
-    "CPL-01",
-    "CRY-01",
-    "DCH-01",
+    "CPL-02",
+    "CRY-02",
     "DCH-02",
-    "DCH-06",
-    "GOV-01",
+    "DCH-04",
+    "DCH-13",
     "GOV-02",
-    "HRS-04",
+    "GOV-04",
     "HRS-05",
-    "HRS-05.1",
-    "HRS-05.2",
-    "HRS-05.3",
-    "HRS-05.4",
-    "HRS-05.5",
-    "IAC-01",
+    "HRS-06",
+    "HRS-06.1",
+    "HRS-06.2",
+    "HRS-06.3",
+    "HRS-06.4",
+    "HRS-06.5",
     "IAC-02",
-    "MON-01",
+    "IAC-32",
     "MON-02",
-    "NET-01",
+    "MON-05",
     "NET-02",
-    "PES-01",
-    "PRI-01",
-    "PRI-03"
+    "PES-02",
+    "PRI-02",
+    "PRI-24",
+    "SEA-06"
   ]
 }

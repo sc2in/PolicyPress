@@ -107,9 +107,9 @@ Coverage means a published policy lists the control in its front-matter taxonomy
   table.header(
     [*Control*], [*Name*], [*Covering Policies*],
   ),
-  [GOV-01], [Security Governance Program], [Alpha Security Policy; Bravo Handling Policy],
-  [GOV-02], [Publishing \*Security\* \[Documentation\] \#with \$pecials], [Alpha Security Policy; Charlie \*Escaping\* \[Policy\] \#1],
-  [GOV-03], [Periodic Review], [out of scope: Alpha Security Policy],
+  [GOV-02], [Security Governance Program], [Alpha Security Policy; Bravo Handling Policy],
+  [GOV-04], [Publishing \*Security\* \[Documentation\] \#with \$pecials], [Alpha Security Policy; Charlie \*Escaping\* \[Policy\] \#1],
+  [GOV-04.1], [Periodic Review], [out of scope: Alpha Security Policy],
 )
 
 = Human Resources
@@ -122,6 +122,6 @@ Coverage means a published policy lists the control in its front-matter taxonomy
   table.header(
     [*Control*], [*Name*], [*Covering Policies*],
   ),
-  [HRS-01], [HR Security Management], [Bravo Handling Policy],
-  [HRS-02], [Onboarding & Offboarding], [—],
+  [HRS-02], [HR Security Management], [Bravo Handling Policy],
+  [HRS-03], [Onboarding & Offboarding], [—],
 )

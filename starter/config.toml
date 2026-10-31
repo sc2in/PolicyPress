@@ -115,8 +115,8 @@ show_draft_pdfs = false
 # so the homepage simply omits that panel.
 # news_page = "news/_index.md"
 
-# Accept native Markdown footnote references to controls ([^IAC-01]) as an
-# alternative to the {{ control(id="IAC-01") }} shortcode (#173). Off by default:
+# Accept native Markdown footnote references to controls ([^IAC-02]) as an
+# alternative to the {{ control(id="IAC-02") }} shortcode (#173). Off by default:
 # the shortcode needs no extra build step and works in a plain `zola serve`. With
 # this on, the GitHub Action's build synthesises the footnote definitions (via
 # `policypress stage-site`) so the references resolve on the site the way they do

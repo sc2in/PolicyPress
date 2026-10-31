@@ -95,10 +95,10 @@
 )
 
 == Purpose
-Access is least-privilege #footnote[IAC-01 — Identity & Access Management. See also: Access Control Standard.] enforced across all systems.
+Access is least-privilege #footnote[IAC-02 — Identity & Access Management. See also: Access Control Standard.] enforced across all systems.
 
 == Data protection
-All data is classified and protected #footnote[DCH-01 — Data Protection.] according to its sensitivity.
+All data is classified and protected #footnote[DCH-02 — Data Protection.] according to its sensitivity.
 
 
 #pagebreak()
@@ -128,8 +128,8 @@ All data is classified and protected #footnote[DCH-01 — Data Protection.] acco
   table.header(
     [*ID*], [*Control*],
   ),
-  [IAC-01], [Identity & Access Management],
-  [DCH-01], [Data Protection],
+  [IAC-02], [Identity & Access Management],
+  [DCH-02], [Data Protection],
 )
 
 == TSC 2017
@@ -152,5 +152,5 @@ All data is classified and protected #footnote[DCH-01 — Data Protection.] acco
   table.header(
     [*ID*], [*Reason*],
   ),
-  [NET-02], [All network defenses are operated by our colocation provider under a shared-responsibility model.],
+  [SEA-06], [All network defenses are operated by our colocation provider under a shared-responsibility model.],
 )

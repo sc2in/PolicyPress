@@ -96,26 +96,26 @@ fi
 
 echo "▸ Checking native control footnotes (#173)…"
 # The demo enables control_footnotes and example-security-policy.md uses a native
-# [^IAC-01] reference. Assert stage-site is append-only (never modifies the
+# [^IAC-02] reference. Assert stage-site is append-only (never modifies the
 # authored tree) and that the synthesised definition renders on the web.
 if [ "$site_root" != "." ]; then
   staged_policy="$site_root/content/policies/example-security-policy.md"
   # 1. The staged copy carries an appended, catalog-derived definition.
-  if grep -qE '^\[\^IAC-01\]: \[IAC-01\]\(/reports/scf/#IAC-01\)' "$staged_policy"; then
-    echo "  ✓ synthesised [^IAC-01] definition appended to the staged policy"
+  if grep -qE '^\[\^IAC-02\]: \[IAC-02\]\(/reports/scf/#IAC-02\)' "$staged_policy"; then
+    echo "  ✓ synthesised [^IAC-02] definition appended to the staged policy"
   else
-    echo "  ✗ no synthesised [^IAC-01] definition in the staged policy"; fail=1
+    echo "  ✗ no synthesised [^IAC-02] definition in the staged policy"; fail=1
   fi
   # 2. The authored source is untouched — no definition line leaked into content/.
-  if grep -qE '^\[\^IAC-01\]: ' content/policies/example-security-policy.md; then
+  if grep -qE '^\[\^IAC-02\]: ' content/policies/example-security-policy.md; then
     echo "  ✗ authored content/ was modified by stage-site"; fail=1
   else
     echo "  ✓ authored content/ untouched by staging (append-only)"
   fi
   # 3. The definition renders on the web as a bottom-of-page footnote linking to
-  #    the report-page anchor (the <li id="fn-IAC-01"> is Zola's def anchor).
+  #    the report-page anchor (the <li id="fn-IAC-02"> is Zola's def anchor).
   policy_html="$site_out/policies/example-security-policy/index.html"
-  if grep -q 'id="fn-IAC-01"' "$policy_html" && grep -qF 'href="/reports/scf/#IAC-01"' "$policy_html"; then
+  if grep -q 'id="fn-IAC-02"' "$policy_html" && grep -qF 'href="/reports/scf/#IAC-02"' "$policy_html"; then
     echo "  ✓ native footnote renders on the web with its report-page link"
   else
     echo "  ✗ native footnote did not render on the web"; fail=1
@@ -131,7 +131,7 @@ echo "▸ Checking base_url sub-path prefixing of footnote links (#173)…"
 if [ "$site_root" != "." ]; then
   tmp_sub="$(mktemp -d)"
   ./zig-out/bin/policypress stage-site -c config.toml -o "$tmp_sub" --base-url "https://example.com/sub" >/dev/null
-  if grep -qF '[^IAC-01]: [IAC-01](/sub/reports/scf/#IAC-01)' "$tmp_sub/content/policies/example-security-policy.md"; then
+  if grep -qF '[^IAC-02]: [IAC-02](/sub/reports/scf/#IAC-02)' "$tmp_sub/content/policies/example-security-policy.md"; then
     echo "  ✓ synthesised link carries the base_url sub-path (/sub)"
   else
     echo "  ✗ synthesised link missing the base_url sub-path prefix"; fail=1
@@ -299,20 +299,20 @@ extra:
 Access is least-privilege $2 enforced.
 EOF
 }
-fixture_fm "Known Native Ref" '[^IAC-01]' > "$tmp_cf/ok/policies/ok.md"
+fixture_fm "Known Native Ref" '[^IAC-02]' > "$tmp_cf/ok/policies/ok.md"
 fixture_fm "Unknown Native Ref" '[^ZZZ-99]' > "$tmp_cf/bad/policies/bad.md"
 # A copy of the demo config with the flag forced off.
 sed 's/^control_footnotes = true/control_footnotes = false/' config.toml > "$tmp_cf/config-off.toml"
 
 # Flag OFF: a native ref (even a known id) must fail --strict.
 if ./zig-out/bin/policypress -c "$tmp_cf/config-off.toml" -i "$tmp_cf/ok" -o "$tmp_cf/out" --strict >/dev/null 2>&1; then
-  echo "  ✗ --strict passed a native [^IAC-01] with control_footnotes off"; fail=1
+  echo "  ✗ --strict passed a native [^IAC-02] with control_footnotes off"; fail=1
 else
   echo "  ✓ --strict fails a native ref when control_footnotes is off"
 fi
 # Flag ON: a known id passes --strict.
 if ./zig-out/bin/policypress -c config.toml -i "$tmp_cf/ok" -o "$tmp_cf/out" --strict >/dev/null 2>&1; then
-  echo "  ✓ --strict passes a known native [^IAC-01] when control_footnotes is on"
+  echo "  ✓ --strict passes a known native [^IAC-02] when control_footnotes is on"
 else
   echo "  ✗ --strict wrongly failed a known native ref with control_footnotes on"; fail=1
 fi

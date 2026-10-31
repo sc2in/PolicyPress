@@ -529,13 +529,13 @@ test "report generation" {
     // const rep = try f.report(io, "content/policies");
     // var j = try std.json.parseFromSlice(std.json.Value, tst.allocator, rep, .{});
     // defer j.deinit();
-    // try tst.expect(j.value.object.count() >= 1468); // number of controls in the SCF 2026.1.1 catalog
-    // try tst.expect(j.value.object.get("HRS-05").?.bool);
-    // try tst.expect(j.value.object.get("HRS-05.1").?.bool);
-    // try tst.expect(j.value.object.get("HRS-05.2").?.bool);
-    // try tst.expect(j.value.object.get("HRS-05.3").?.bool);
-    // try tst.expect(j.value.object.get("HRS-05.4").?.bool);
-    // try tst.expect(j.value.object.get("HRS-05.5").?.bool);
+    // try tst.expect(j.value.object.count() >= 1591); // number of controls in the SCF 2026.3 catalog
+    // try tst.expect(j.value.object.get("HRS-06").?.bool);
+    // try tst.expect(j.value.object.get("HRS-06.1").?.bool);
+    // try tst.expect(j.value.object.get("HRS-06.2").?.bool);
+    // try tst.expect(j.value.object.get("HRS-06.3").?.bool);
+    // try tst.expect(j.value.object.get("HRS-06.4").?.bool);
+    // try tst.expect(j.value.object.get("HRS-06.5").?.bool);
 }
 
 // ============================================================
@@ -1200,26 +1200,26 @@ test "redact: multiple blocks are all redacted" {
 test "control refs: a valid reference is rewritten to a footnote reference" {
     var ts = Array(u8).empty;
     defer ts.deinit(tst.allocator);
-    try ts.appendSlice(tst.allocator, "Access is least-privilege {{ control(id=\"IAC-01\") }} enforced.");
+    try ts.appendSlice(tst.allocator, "Access is least-privilege {{ control(id=\"IAC-02\") }} enforced.");
     try utils.replace_control_refs(tst.allocator, &ts);
-    try tst.expectEqualStrings("Access is least-privilege [^IAC-01] enforced.", ts.items);
+    try tst.expectEqualStrings("Access is least-privilege [^IAC-02] enforced.", ts.items);
 }
 
 test "control refs: multiple references are all rewritten" {
     var ts = Array(u8).empty;
     defer ts.deinit(tst.allocator);
     // Second ref uses the no-whitespace form to exercise \s* on both ends.
-    try ts.appendSlice(tst.allocator, "See {{ control(id=\"IAC-01\") }} and {{control(id=\"CRY-01\")}}.");
+    try ts.appendSlice(tst.allocator, "See {{ control(id=\"IAC-02\") }} and {{control(id=\"CRY-02\")}}.");
     try utils.replace_control_refs(tst.allocator, &ts);
-    try tst.expectEqualStrings("See [^IAC-01] and [^CRY-01].", ts.items);
+    try tst.expectEqualStrings("See [^IAC-02] and [^CRY-02].", ts.items);
 }
 
 test "control refs: a dotted sub-control id is accepted" {
     var ts = Array(u8).empty;
     defer ts.deinit(tst.allocator);
-    try ts.appendSlice(tst.allocator, "Ref {{ control(id=\"IAC-21.5\") }} here.");
+    try ts.appendSlice(tst.allocator, "Ref {{ control(id=\"IAC-30.1\") }} here.");
     try utils.replace_control_refs(tst.allocator, &ts);
-    try tst.expectEqualStrings("Ref [^IAC-21.5] here.", ts.items);
+    try tst.expectEqualStrings("Ref [^IAC-30.1] here.", ts.items);
 }
 
 test "control refs: a malformed id is a hard error" {
@@ -1435,9 +1435,9 @@ test "scf.json mirrors scf.yml (control-ID parity)" {
     // always double-quoted by the generator.
     var r = try report.init(io, tst.allocator, "data/scf.json");
     defer r.deinit();
-    try tst.expect(r.map.count() >= 1468);
-    try tst.expect(r.map.contains("GOV-01"));
-    try tst.expect(r.map.contains("WEB-14"));
+    try tst.expect(r.map.count() >= 1591);
+    try tst.expect(r.map.contains("GOV-02"));
+    try tst.expect(r.map.contains("WEB-13"));
 
     const yml = try std.Io.Dir.cwd().readFileAlloc(io, "data/scf.yml", tst.allocator, .limited(10_000_000));
     defer tst.allocator.free(yml);
@@ -1459,24 +1459,24 @@ test "coverage: corrected numerator, dedup, draft exclusion, unknown IDs" {
     const cov = try r.coverage(io, "taxonomies.SCF", "tests/report-fixtures/policies");
 
     try tst.expectEqual(@as(usize, 5), cov.total);
-    // GOV-01 (a+b), GOV-02 (a+c) — GOV-03 only in the draft, HRS-02 only in
-    // the draft, HRS-01 (b). NOT-A-CONTROL must not add anything.
+    // GOV-02 (a+b), GOV-04 (a+c) — GOV-04.1 only in the draft, HRS-03 only in
+    // the draft, HRS-02 (b). NOT-A-CONTROL must not add anything.
     try tst.expectEqual(@as(usize, 3), cov.covered);
 
     // Catalog order preserved.
-    try tst.expectEqualStrings("GOV-01", cov.controls[0].control_id);
+    try tst.expectEqualStrings("GOV-02", cov.controls[0].control_id);
     try tst.expectEqual(@as(usize, 2), cov.controls[0].policies.len);
     try tst.expectEqualStrings("Alpha Security Policy", cov.controls[0].policies[0]);
     try tst.expectEqualStrings("Bravo Handling Policy", cov.controls[0].policies[1]);
 
-    // pol_a lists GOV-02 twice — deduplicated.
-    try tst.expectEqualStrings("GOV-02", cov.controls[1].control_id);
+    // pol_a lists GOV-04 twice — deduplicated.
+    try tst.expectEqualStrings("GOV-04", cov.controls[1].control_id);
     try tst.expectEqual(@as(usize, 2), cov.controls[1].policies.len);
 
-    // GOV-03 is only tagged by the draft policy: uncovered. It is also declared
+    // GOV-04.1 is only tagged by the draft policy: uncovered. It is also declared
     // out of scope by Alpha (extra.scope_exclusions), so it is in the third
     // state — excluded but not covered. The exclusion never inflates `covered`.
-    try tst.expectEqualStrings("GOV-03", cov.controls[2].control_id);
+    try tst.expectEqualStrings("GOV-04.1", cov.controls[2].control_id);
     try tst.expectEqual(@as(usize, 0), cov.controls[2].policies.len);
     try tst.expectEqual(@as(usize, 1), cov.excluded);
     try tst.expectEqual(@as(usize, 1), cov.controls[2].excluded_by.len);
@@ -1572,6 +1572,8 @@ test "audit bundle: manifest hashes, newest revision, coverage export" {
         const root = parsed.value.object;
         try tst.expectEqualStrings("policypress/audit-manifest/v1", root.get("schema").?.string);
         try tst.expectEqualStrings("9.9.9-test", root.get("policypress_version").?.string);
+        // Additive: the SCF release of the catalog (data/scf.yml header).
+        try tst.expectEqualStrings("2026.3", root.get("scf_version").?.string);
         try tst.expectEqualStrings("2026-01-01", root.get("generated_at").?.string);
         try tst.expectEqual(false, root.get("build").?.object.get("redact").?.bool);
         const pols = root.get("policies").?.array.items;
@@ -1603,7 +1605,7 @@ test "audit bundle: manifest hashes, newest revision, coverage export" {
         try tst.expectEqualStrings("1.1", revs[0].object.get("version").?.string);
     }
 
-    // ── coverage.json: real catalogs at the repo root; HRS-05 covered ───────
+    // ── coverage.json: real catalogs at the repo root; HRS-06 covered ───────
     {
         const p = try std.fs.path.join(alloc, &.{ audit_dir, "coverage.json" });
         defer alloc.free(p);
@@ -1611,34 +1613,36 @@ test "audit bundle: manifest hashes, newest revision, coverage export" {
         defer alloc.free(bytes);
         const parsed = try std.json.parseFromSlice(std.json.Value, alloc, bytes, .{});
         defer parsed.deinit();
+        try tst.expectEqualStrings("policypress/audit-coverage/v1", parsed.value.object.get("schema").?.string);
+        try tst.expectEqualStrings("2026.3", parsed.value.object.get("scf_version").?.string);
         const fws = parsed.value.object.get("frameworks").?.array.items;
         try tst.expectEqual(@as(usize, 2), fws.len);
         const scf = fws[0].object;
         try tst.expectEqualStrings("SCF", scf.get("id").?.string);
         try tst.expect(scf.get("covered").?.integer >= 1);
-        try tst.expect(scf.get("total").?.integer >= 1468);
+        try tst.expect(scf.get("total").?.integer >= 1591);
 
         // Additive per-control excluded_by (#165), schema string unchanged. The
-        // fixture policy declares PES-01 out of scope, so that control's
-        // excluded_by lists the policy title; a covered control (HRS-05) has an
+        // fixture policy declares PES-02 out of scope, so that control's
+        // excluded_by lists the policy title; a covered control (HRS-06) has an
         // empty excluded_by. Every control carries the key (additive schema).
-        var saw_pes01 = false;
-        var saw_hrs05 = false;
+        var saw_pes = false;
+        var saw_hrs = false;
         for (scf.get("controls").?.array.items) |cv| {
             const c = cv.object;
             const cid = c.get("control_id").?.string;
             const excl = c.get("excluded_by").?.array.items;
-            if (std.mem.eql(u8, cid, "PES-01")) {
-                saw_pes01 = true;
+            if (std.mem.eql(u8, cid, "PES-02")) {
+                saw_pes = true;
                 try tst.expectEqual(@as(usize, 1), excl.len);
                 try tst.expectEqualStrings("Test Policy", excl[0].string);
-            } else if (std.mem.eql(u8, cid, "HRS-05")) {
-                saw_hrs05 = true;
+            } else if (std.mem.eql(u8, cid, "HRS-06")) {
+                saw_hrs = true;
                 try tst.expectEqual(@as(usize, 0), excl.len);
             }
         }
-        try tst.expect(saw_pes01);
-        try tst.expect(saw_hrs05);
+        try tst.expect(saw_pes);
+        try tst.expect(saw_hrs);
     }
 
     // ── join.json gating: NOT written without a praxis_join ─────────────────
@@ -1673,14 +1677,14 @@ test "audit bundle: praxis join facet (join.json)" {
     defer alloc.free(pdf_dir);
     try std.Io.Dir.cwd().createDirPath(io, pdf_dir);
 
-    // Policy 1: the shared fixture — covers HRS-05.* (all in the spine) and
-    // declares PES-01 (also in the spine) out of scope.
+    // Policy 1: the shared fixture — covers HRS-06.* (all in the spine) and
+    // declares PES-02 (also in the spine) out of scope.
     const src_md = try std.Io.Dir.cwd().readFileAlloc(io, "src/test/test_policy.md", alloc, .limited(1 << 20));
     defer alloc.free(src_md);
     try writeFileAt(alloc, pol_dir, "test_policy.md", src_md);
     try writeFileAt(alloc, pdf_dir, "Test_Policy_-_v1.1.pdf", "fake pdf bytes");
 
-    // Policy 2: COVERS PES-01, which policy 1 excludes — a cross-policy conflict
+    // Policy 2: COVERS PES-02, which policy 1 excludes — a cross-policy conflict
     // (declared_by AND excluded_by both non-empty) and, via the tie-break, a
     // spine control that counts as covered despite the exclusion.
     const conflict_md =
@@ -1689,7 +1693,7 @@ test "audit bundle: praxis join facet (join.json)" {
         \\date: 2024-11-13
         \\taxonomies:
         \\  SCF:
-        \\    - PES-01
+        \\    - PES-02
         \\extra:
         \\  owner: SC2
         \\  last_reviewed: 2025-02-24
@@ -1730,7 +1734,7 @@ test "audit bundle: praxis join facet (join.json)" {
     const prov = root.get("praxis").?.object;
     try tst.expectEqualStrings("2026-07-22", prov.get("generated_at").?.string);
     try tst.expectEqualStrings("demo-fixture", prov.get("source_rev").?.string);
-    try tst.expectEqualStrings("2026.1.1", prov.get("scf_version").?.string);
+    try tst.expectEqualStrings("2026.3", prov.get("scf_version").?.string);
 
     // Summary math identity: covered + excluded + unaddressed == total.
     const sm = root.get("summary").?.object;
@@ -1740,14 +1744,14 @@ test "audit bundle: praxis join facet (join.json)" {
     const unaddressed = sm.get("spine_unaddressed").?.integer;
     try tst.expectEqual(@as(i64, 23), total); // the demo fixture has 23 spine ids
     try tst.expectEqual(total, covered + excluded + unaddressed);
-    // HRS-05.* (6) plus PES-01 (covered by the conflict policy, tie-break) = 7.
+    // HRS-06.* (6) plus PES-02 (covered by the conflict policy, tie-break) = 7.
     try tst.expectEqual(@as(i64, 7), covered);
-    // PES-01 is covered, so it does NOT count toward excluded.
+    // PES-02 is covered, so it does NOT count toward excluded.
     try tst.expectEqual(@as(i64, 0), excluded);
 
     // Walk the control rows for the three representative states.
-    var saw_pes01 = false;
-    var saw_hrs05 = false;
+    var saw_pes = false;
+    var saw_hrs = false;
     var saw_mon02 = false;
     for (root.get("controls").?.array.items) |cv| {
         const c = cv.object;
@@ -1756,22 +1760,22 @@ test "audit bundle: praxis join facet (join.json)" {
         const decl = c.get("declared_by").?.array.items;
         const excl = c.get("excluded_by").?.array.items;
         const conflict = c.get("conflict").?.bool;
-        if (std.mem.eql(u8, cid, "PES-01")) {
-            saw_pes01 = true;
+        if (std.mem.eql(u8, cid, "PES-02")) {
+            saw_pes = true;
             try tst.expect(in_spine); // in-spine AND excluded
             try tst.expectEqual(@as(usize, 1), decl.len);
             try tst.expectEqualStrings("Conflict Test Policy", decl[0].string);
             try tst.expectEqual(@as(usize, 1), excl.len);
             try tst.expectEqualStrings("Test Policy", excl[0].string);
             try tst.expect(conflict); // the cross-policy tension
-        } else if (std.mem.eql(u8, cid, "HRS-05")) {
-            saw_hrs05 = true;
+        } else if (std.mem.eql(u8, cid, "HRS-06")) {
+            saw_hrs = true;
             try tst.expect(in_spine);
             try tst.expectEqual(@as(usize, 1), decl.len);
             try tst.expectEqualStrings("Test Policy", decl[0].string);
             try tst.expectEqual(@as(usize, 0), excl.len);
             try tst.expect(!conflict);
-        } else if (std.mem.eql(u8, cid, "MON-02")) {
+        } else if (std.mem.eql(u8, cid, "MON-05")) {
             // A gap id: in the spine but neither covered nor excluded.
             saw_mon02 = true;
             try tst.expect(in_spine);
@@ -1780,8 +1784,8 @@ test "audit bundle: praxis join facet (join.json)" {
             try tst.expect(!conflict);
         }
     }
-    try tst.expect(saw_pes01);
-    try tst.expect(saw_hrs05);
+    try tst.expect(saw_pes);
+    try tst.expect(saw_hrs);
     try tst.expect(saw_mon02);
 }
 
@@ -1795,18 +1799,18 @@ test "praxis join: loads the committed demo fixture" {
     // Provenance carried through for auditors.
     try tst.expectEqualStrings("2026-07-22", join.generated_at);
     try tst.expectEqualStrings("demo-fixture", join.source_rev);
-    try tst.expectEqualStrings("2026.1.1", join.scf_version);
+    try tst.expectEqualStrings("2026.3", join.scf_version);
     try tst.expectEqual(@as(usize, 1), join.organizational_families.len);
     try tst.expectEqualStrings("GOV", join.organizational_families[0]);
 
     // contains() positive: a demo-tagged id, a dotted sub-control, an
     // uncovered gap id, and the future scope-exclusion id are all in the spine.
-    try tst.expect(join.contains("GOV-01"));
-    try tst.expect(join.contains("HRS-05.1"));
-    try tst.expect(join.contains("MON-02")); // uncovered gap id
-    try tst.expect(join.contains("PES-01")); // future scope-exclusion id
+    try tst.expect(join.contains("GOV-02"));
+    try tst.expect(join.contains("HRS-06.1"));
+    try tst.expect(join.contains("MON-05")); // uncovered gap id
+    try tst.expect(join.contains("PES-02")); // future scope-exclusion id
     // contains() negative: a valid SCF id the fixture deliberately omits.
-    try tst.expect(!join.contains("AST-01"));
+    try tst.expect(!join.contains("AST-02"));
 }
 
 test "praxis join: wrong schema string is a hard, distinct error" {
@@ -1821,8 +1825,8 @@ test "praxis join: wrong schema string is a hard, distinct error" {
     const bad =
         \\{ "schema": "policypress/praxis-join/v2",
         \\  "generated_at": "2026-07-22",
-        \\  "source": { "rev": "x", "scf_version": "2026.1.1" },
-        \\  "organizational_families": ["GOV"], "ids": ["GOV-01"] }
+        \\  "source": { "rev": "x", "scf_version": "2026.3" },
+        \\  "organizational_families": ["GOV"], "ids": ["GOV-02"] }
     ;
     try tmp.dir.writeFile(io, .{ .sub_path = "bad_schema.json", .data = bad });
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "bad_schema.json" });
@@ -1843,7 +1847,7 @@ test "praxis join: missing schema field is a hard, distinct error" {
     // Valid JSON, plausible payload — but no `schema`, so it must not pass.
     const bad =
         \\{ "generated_at": "2026-07-22",
-        \\  "organizational_families": ["GOV"], "ids": ["GOV-01"] }
+        \\  "organizational_families": ["GOV"], "ids": ["GOV-02"] }
     ;
     try tmp.dir.writeFile(io, .{ .sub_path = "no_schema.json", .data = bad });
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "no_schema.json" });
@@ -1854,10 +1858,10 @@ test "praxis join: missing schema field is a hard, distinct error" {
 
 // ── Control-ID join (src/controls.zig) ────────────────────────────────────────
 
-/// A ControlJoin over the committed fixtures: catalog IAC-01/DCH-01/NET-02,
-/// spine {IAC-01, NET-02}, library = two control fixture policies — the primary
-/// ("Access Control Test Policy", tags IAC-01 + DCH-01) and a related policy
-/// ("Access Control Standard", tags IAC-01), so "See also" cross-references have
+/// A ControlJoin over the committed fixtures: catalog IAC-02/DCH-02/SEA-06,
+/// spine {IAC-02, SEA-06}, library = two control fixture policies — the primary
+/// ("Access Control Test Policy", tags IAC-02 + DCH-02) and a related policy
+/// ("Access Control Standard", tags IAC-02), so "See also" cross-references have
 /// another policy to point at.
 fn fixtureControlJoin(alloc: Allocator) !controls.ControlJoin {
     return controls.ControlJoin.init(
@@ -1879,11 +1883,11 @@ test "controls: resolveFootnote — praxis-free, 'See also' lists OTHER covering
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
 
-    // IAC-01 is tagged by the primary fixture (self) and the related policy.
+    // IAC-02 is tagged by the primary fixture (self) and the related policy.
     // Rendered from the primary fixture, "See also" names only the related one.
-    const md = (try cj.resolveFootnote(alloc, "IAC-01", fixture_self)).?;
+    const md = (try cj.resolveFootnote(alloc, "IAC-02", fixture_self)).?;
     defer alloc.free(md);
-    try tst.expect(std.mem.startsWith(u8, md, "IAC-01 \u{2014} Identity & Access Management."));
+    try tst.expect(std.mem.startsWith(u8, md, "IAC-02 \u{2014} Identity & Access Management."));
     try tst.expect(std.mem.indexOf(u8, md, "See also: Access Control Standard.") != null);
     // No praxis clause, and the policy never lists itself.
     try tst.expect(std.mem.indexOf(u8, md, "praxis") == null);
@@ -1895,11 +1899,11 @@ test "controls: resolveFootnote — 'See also' omitted when self is the only cov
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
 
-    // DCH-01 is tagged only by the primary fixture; excluding self leaves no
+    // DCH-02 is tagged only by the primary fixture; excluding self leaves no
     // other policy, so the clause is dropped entirely — just id + title.
-    const md = (try cj.resolveFootnote(alloc, "DCH-01", fixture_self)).?;
+    const md = (try cj.resolveFootnote(alloc, "DCH-02", fixture_self)).?;
     defer alloc.free(md);
-    try tst.expectEqualStrings("DCH-01 \u{2014} Data Protection.", md);
+    try tst.expectEqualStrings("DCH-02 \u{2014} Data Protection.", md);
 }
 
 test "controls: resolveFootnote — null self_path lists every covering policy, sorted" {
@@ -1907,8 +1911,8 @@ test "controls: resolveFootnote — null self_path lists every covering policy, 
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
 
-    // Document-agnostic resolver: both policies covering IAC-01 are listed.
-    const md = (try cj.resolveFootnote(alloc, "IAC-01", null)).?;
+    // Document-agnostic resolver: both policies covering IAC-02 are listed.
+    const md = (try cj.resolveFootnote(alloc, "IAC-02", null)).?;
     defer alloc.free(md);
     try tst.expect(std.mem.indexOf(u8, md, "See also: Access Control Standard, Access Control Test Policy.") != null);
     try tst.expect(std.mem.indexOf(u8, md, "praxis") == null);
@@ -1919,11 +1923,11 @@ test "controls: resolveFootnote — an uncovered control has no 'See also' claus
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
 
-    // No policy tags NET-02, so the footnote is just id + title (no praxis, even
-    // though NET-02 is in the spine).
-    const md = (try cj.resolveFootnote(alloc, "NET-02", fixture_self)).?;
+    // No policy tags SEA-06, so the footnote is just id + title (no praxis, even
+    // though SEA-06 is in the spine).
+    const md = (try cj.resolveFootnote(alloc, "SEA-06", fixture_self)).?;
     defer alloc.free(md);
-    try tst.expectEqualStrings("NET-02 \u{2014} Layered Network Defenses.", md);
+    try tst.expectEqualStrings("SEA-06 \u{2014} Defense-In-Depth (DiD) Architecture.", md);
 }
 
 test "controls: resolveFootnote — a non-control label returns null" {
@@ -1943,7 +1947,7 @@ test "controls: resolveFootnote — a configured join never adds a praxis clause
     var cj = try fixtureControlJoin(alloc);
     defer cj.deinit();
 
-    const md = (try cj.resolveFootnote(alloc, "IAC-01", null)).?;
+    const md = (try cj.resolveFootnote(alloc, "IAC-02", null)).?;
     defer alloc.free(md);
     try tst.expect(std.mem.indexOf(u8, md, "praxis") == null);
     try tst.expect(std.mem.indexOf(u8, md, "in control spine") == null);
@@ -1961,10 +1965,10 @@ test "controls: resolveFootnote — no catalog omits the title clause" {
     );
     defer cj.deinit();
 
-    const md = (try cj.resolveFootnote(alloc, "IAC-01", fixture_self)).?;
+    const md = (try cj.resolveFootnote(alloc, "IAC-02", fixture_self)).?;
     defer alloc.free(md);
     // Just the id (no "— title"), then the See-also clause for the other policy.
-    try tst.expect(std.mem.startsWith(u8, md, "IAC-01."));
+    try tst.expect(std.mem.startsWith(u8, md, "IAC-02."));
     try tst.expect(std.mem.indexOf(u8, md, "\u{2014}") == null);
     try tst.expect(std.mem.indexOf(u8, md, "See also: Access Control Standard.") != null);
 }
@@ -1976,16 +1980,16 @@ test "controls: resolveFootnoteLinked — web variant links the id, null is byte
 
     // Linked (web) variant: the id becomes a Markdown link to the report-page
     // anchor; the title and "See also" clause are otherwise unchanged.
-    const web = (try cj.resolveFootnoteLinked(alloc, "IAC-01", fixture_self, "/reports/scf/")).?;
+    const web = (try cj.resolveFootnoteLinked(alloc, "IAC-02", fixture_self, "/reports/scf/")).?;
     defer alloc.free(web);
-    try tst.expect(std.mem.startsWith(u8, web, "[IAC-01](/reports/scf/#IAC-01) \u{2014} Identity & Access Management."));
+    try tst.expect(std.mem.startsWith(u8, web, "[IAC-02](/reports/scf/#IAC-02) \u{2014} Identity & Access Management."));
     try tst.expect(std.mem.indexOf(u8, web, "See also: Access Control Standard.") != null);
 
     // link_url = null is exactly the PDF path — identical to resolveFootnote, so
     // goldens stay stable.
-    const plain = (try cj.resolveFootnoteLinked(alloc, "IAC-01", fixture_self, null)).?;
+    const plain = (try cj.resolveFootnoteLinked(alloc, "IAC-02", fixture_self, null)).?;
     defer alloc.free(plain);
-    const pdf = (try cj.resolveFootnote(alloc, "IAC-01", fixture_self)).?;
+    const pdf = (try cj.resolveFootnote(alloc, "IAC-02", fixture_self)).?;
     defer alloc.free(pdf);
     try tst.expectEqualStrings(pdf, plain);
     try tst.expect(std.mem.indexOf(u8, plain, "](") == null); // no link markup
@@ -2008,10 +2012,10 @@ test "stage: stageMarkdownFile appends synthesised defs, append-only, ignoring f
 
     const src =
         "---\ntitle: \"Native Refs\"\n---\n" ++
-        "Access is least-privilege [^IAC-01] enforced.\n\n" ++
-        "Data handling [^DCH-01] applies.\n\n" ++
-        "[^DCH-01]: An author-provided definition.\n\n" ++
-        "```text\nExample only: [^NET-02] inside a code fence.\n```\n";
+        "Access is least-privilege [^IAC-02] enforced.\n\n" ++
+        "Data handling [^DCH-02] applies.\n\n" ++
+        "[^DCH-02]: An author-provided definition.\n\n" ++
+        "```text\nExample only: [^SEA-06] inside a code fence.\n```\n";
     try tmp.dir.writeFile(io, .{ .sub_path = "native.md", .data = src });
 
     const src_path = try std.fs.path.join(arena, &.{ tmp_path, "native.md" });
@@ -2020,18 +2024,18 @@ test "stage: stageMarkdownFile appends synthesised defs, append-only, ignoring f
 
     const count = try stage.stageMarkdownFile(io, arena, src_path, dst_path, &cj, self_path, "/reports/scf/");
 
-    // Only [^IAC-01] is dangling: DCH-01 has an author definition (not dangling),
-    // and NET-02 sits inside a code fence (AST-based, so not a real reference).
+    // Only [^IAC-02] is dangling: DCH-02 has an author definition (not dangling),
+    // and SEA-06 sits inside a code fence (AST-based, so not a real reference).
     try tst.expectEqual(@as(usize, 1), count);
 
     const out = try std.Io.Dir.cwd().readFileAlloc(io, dst_path, arena, .limited(1 << 20));
     // Append-only: the authored bytes are the exact prefix of the output.
     try tst.expect(std.mem.startsWith(u8, out, src));
     // The synthesised, linked definition for the one dangling ref is present.
-    try tst.expect(std.mem.indexOf(u8, out, "[^IAC-01]: [IAC-01](/reports/scf/#IAC-01) \u{2014} Identity & Access Management.") != null);
+    try tst.expect(std.mem.indexOf(u8, out, "[^IAC-02]: [IAC-02](/reports/scf/#IAC-02) \u{2014} Identity & Access Management.") != null);
     // No definition was synthesised for the fenced or already-defined ids.
-    try tst.expect(std.mem.indexOf(u8, out, "[^NET-02]:") == null);
-    try tst.expectEqual(@as(usize, 1), std.mem.count(u8, out, "[^DCH-01]:")); // only the author's
+    try tst.expect(std.mem.indexOf(u8, out, "[^SEA-06]:") == null);
+    try tst.expectEqual(@as(usize, 1), std.mem.count(u8, out, "[^DCH-02]:")); // only the author's
 }
 
 test "stage: stageMarkdownFile with no control-shaped refs is a verbatim copy (#173)" {
@@ -2070,13 +2074,13 @@ test "controls: reviewControlRefs — inline shortcode ref missing from taxonomi
     const tmp_path = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(tmp_path);
 
-    // IAC-01 is a known catalog id, referenced inline but NOT in taxonomies.SCF:
+    // IAC-02 is a known catalog id, referenced inline but NOT in taxonomies.SCF:
     // it renders but does not count toward coverage → advisory (not critical).
     const md =
         \\---
         \\title: "Untagged Inline"
         \\---
-        \\Access is least-privilege {{ control(id="IAC-01") }} enforced.
+        \\Access is least-privilege {{ control(id="IAC-02") }} enforced.
     ;
     try tmp.dir.writeFile(io, .{ .sub_path = "untagged.md", .data = md });
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "untagged.md" });
@@ -2101,9 +2105,9 @@ test "controls: reviewControlRefs — an inline ref present in taxonomies.SCF is
         \\title: "Tagged Inline"
         \\taxonomies:
         \\  SCF:
-        \\    - IAC-01
+        \\    - IAC-02
         \\---
-        \\Access is least-privilege {{ control(id="IAC-01") }} enforced.
+        \\Access is least-privilege {{ control(id="IAC-02") }} enforced.
     ;
     try tmp.dir.writeFile(io, .{ .sub_path = "tagged.md", .data = md });
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "tagged.md" });
@@ -2128,7 +2132,7 @@ test "controls: reviewControlRefs — untagged native footnote ref is advisory o
         \\---
         \\title: "Untagged Native"
         \\---
-        \\Access is least-privilege [^IAC-01] enforced.
+        \\Access is least-privilege [^IAC-02] enforced.
     ;
     try tmp.dir.writeFile(io, .{ .sub_path = "untagged_native.md", .data = md });
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "untagged_native.md" });
@@ -2221,7 +2225,7 @@ test "controls: reviewControlRefs — a control-shaped dangling raw ref is criti
         \\---
         \\title: "Raw Footnote"
         \\---
-        \\Access is least-privilege [^IAC-01] enforced.
+        \\Access is least-privilege [^IAC-02] enforced.
     ;
     try tmp.dir.writeFile(io, .{ .sub_path = "raw_fn.md", .data = md });
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "raw_fn.md" });
@@ -2240,8 +2244,8 @@ test "controls: reviewControlRefs — native footnotes on: a known dangling id i
     const tmp_path = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(tmp_path);
 
-    // IAC-01 is a known catalog id. With control_footnotes enabled the pre-Zola
-    // stage-site pass synthesises the web definition, so a bare [^IAC-01] is fine
+    // IAC-02 is a known catalog id. With control_footnotes enabled the pre-Zola
+    // stage-site pass synthesises the web definition, so a bare [^IAC-02] is fine
     // (the PDF pipeline already resolves it). Tagged in taxonomies.SCF so this
     // isolates the dangling-ref rule from the separate inline-coverage advisory.
     const md =
@@ -2249,9 +2253,9 @@ test "controls: reviewControlRefs — native footnotes on: a known dangling id i
         \\title: "Native Footnote"
         \\taxonomies:
         \\  SCF:
-        \\    - IAC-01
+        \\    - IAC-02
         \\---
-        \\Access is least-privilege [^IAC-01] enforced.
+        \\Access is least-privilege [^IAC-02] enforced.
     ;
     try tmp.dir.writeFile(io, .{ .sub_path = "native_fn.md", .data = md });
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "native_fn.md" });
@@ -2311,7 +2315,7 @@ test "controls: reviewControlRefs — native footnotes on, no catalog: a control
         \\---
         \\title: "No Catalog Footnote"
         \\---
-        \\Reference [^IAC-01] with no catalog loaded.
+        \\Reference [^IAC-02] with no catalog loaded.
     ;
     try tmp.dir.writeFile(io, .{ .sub_path = "nocat_fn.md", .data = md });
     const p = try std.fs.path.join(alloc, &.{ tmp_path, "nocat_fn.md" });
@@ -2330,9 +2334,9 @@ test "controls: annexProvider resolves catalog titles (praxis-agnostic)" {
     // SCF: title from the catalog. The annex carries no praxis-spine column —
     // spine membership is an optional overlay (web badges + join.json), not
     // part of this core table.
-    const iac = prov.lookup(.scf, "IAC-01");
+    const iac = prov.lookup(.scf, "IAC-02");
     try tst.expectEqualStrings("Identity & Access Management", iac.title.?);
-    const dch = prov.lookup(.scf, "DCH-01");
+    const dch = prov.lookup(.scf, "DCH-02");
     try tst.expectEqualStrings("Data Protection", dch.title.?);
 
     // TSC 2017: title from the TSC catalog.
@@ -2355,14 +2359,14 @@ test "controls: reviewControlRefs — a scope exclusion missing a reason is crit
     const tmp_path = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(tmp_path);
 
-    // NET-02 is a valid catalog id not covered by the library policy, so the
+    // SEA-06 is a valid catalog id not covered by the library policy, so the
     // only problem is the missing reason (isolates the rule from the advisory).
     const md =
         \\---
         \\title: "No Reason"
         \\extra:
         \\  scope_exclusions:
-        \\    - id: NET-02
+        \\    - id: SEA-06
         \\---
         \\Body.
     ;
@@ -2415,16 +2419,16 @@ test "controls: reviewControlRefs — same-policy cover+exclude is critical" {
     const tmp_path = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(tmp_path);
 
-    // DCH-01 is both claimed (taxonomies.SCF) and disclaimed (scope_exclusions).
+    // DCH-02 is both claimed (taxonomies.SCF) and disclaimed (scope_exclusions).
     const md =
         \\---
         \\title: "Contradiction"
         \\taxonomies:
         \\  SCF:
-        \\    - DCH-01
+        \\    - DCH-02
         \\extra:
         \\  scope_exclusions:
-        \\    - id: DCH-01
+        \\    - id: DCH-02
         \\      reason: "x"
         \\---
         \\Body.
@@ -2448,7 +2452,7 @@ test "controls: reviewControlRefs — excluding a control another policy covers 
     const tmp_path = try tmpAbsPath(alloc, &tmp);
     defer alloc.free(tmp_path);
 
-    // IAC-01 is covered by the library policy ("Access Control Test Policy") but
+    // IAC-02 is covered by the library policy ("Access Control Test Policy") but
     // declared out of scope here — a legitimate governance tension, so advisory
     // (not critical). The exclusion is otherwise well-formed.
     const md =
@@ -2456,7 +2460,7 @@ test "controls: reviewControlRefs — excluding a control another policy covers 
         \\title: "Excludes A Covered Control"
         \\extra:
         \\  scope_exclusions:
-        \\    - id: IAC-01
+        \\    - id: IAC-02
         \\      reason: "Handled by the parent entity."
         \\---
         \\Body.

@@ -1,27 +1,27 @@
 [
   {
     "domain": "Governance",
-    "control_id": "GOV-01",
+    "control_id": "GOV-02",
     "control": "Security Governance Program"
   },
   {
     "domain": "Governance",
-    "control_id": "GOV-02",
+    "control_id": "GOV-04",
     "control": "Publishing *Security* [Documentation] #with $pecials"
   },
   {
     "domain": "Governance",
-    "control_id": "GOV-03",
+    "control_id": "GOV-04.1",
     "control": "Periodic Review"
   },
   {
     "domain": "Human Resources",
-    "control_id": "HRS-01",
+    "control_id": "HRS-02",
     "control": "HR Security Management"
   },
   {
     "domain": "Human Resources",
-    "control_id": "HRS-02",
+    "control_id": "HRS-03",
     "control": "Onboarding & Offboarding"
   }
 ]

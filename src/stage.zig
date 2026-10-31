@@ -7,7 +7,7 @@
 //! disposable copy of the site root in which every content Markdown file gains
 //! synthesised `[^CONTROL-ID]: …` footnote *definitions* — the web analogue of
 //! what zigmark's `footnotes.resolve` does for the PDF. The web build then runs
-//! `zola --root <stage> build`, so a bare `[^IAC-01]` resolves on the website
+//! `zola --root <stage> build`, so a bare `[^IAC-02]` resolves on the website
 //! just as it already does in the PDF, and the `control()` shortcode becomes
 //! optional rather than mandatory.
 //!

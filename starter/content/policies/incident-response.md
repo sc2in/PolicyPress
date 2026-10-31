@@ -5,13 +5,13 @@ date: 2024-06-01
 weight: 20
 taxonomies:
   SCF:
-    - IRO-01
     - IRO-02
-    - IRO-04
     - IRO-06
-    - IRO-07
     - IRO-08
-    - IRO-10
+    - IRO-09
+    - IRO-11
+    - IRO-13
+    - IRO-16
   ISO27001:
     - A.5.24
     - A.5.25

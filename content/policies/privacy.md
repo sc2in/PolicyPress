@@ -5,12 +5,12 @@ date: 2026-01-01
 weight: 10
 taxonomies:
   SCF:
-    - DCH-01
     - DCH-02
-    - DCH-06
-    - PRI-01
-    - PRI-03
-    - CPL-01
+    - DCH-04
+    - DCH-13
+    - PRI-02
+    - PRI-24
+    - CPL-02
   TSC2017:
     - CC2.1
     - P1.1

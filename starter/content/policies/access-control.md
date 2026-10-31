@@ -5,13 +5,13 @@ date: 2025-01-01
 weight: 10
 taxonomies:
   SCF:
-    - IAC-01
     - IAC-02
-    - IAC-06
-    - IAC-07
+    - IAC-32
+    - IAC-37
+    - IAC-04
+    - IAC-14
+    - IAC-08
     - IAC-10
-    - IAC-15
-    - IAC-16
   ISO27001:
     - A.5.15
     - A.5.16
@@ -33,7 +33,7 @@ extra:
 
 ## Purpose and Scope
 
-This policy establishes requirements for controlling access to {{ org() }}'s information systems, applications, and data. Access shall be granted based on the principle of least privilege {{ control(id="IAC-01") }} - users receive only the access required to perform their job duties.
+This policy establishes requirements for controlling access to {{ org() }}'s information systems, applications, and data. Access shall be granted based on the principle of least privilege {{ control(id="IAC-02") }} - users receive only the access required to perform their job duties.
 
 This policy applies to all employees, contractors, and third parties with access to {{ org() }} systems.
 

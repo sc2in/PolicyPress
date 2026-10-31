@@ -19,10 +19,10 @@
 //! reads the join purely to warn, and does not shape any rendered output.
 //!
 //! `ControlJoin` produces a per-document `zigmark.footnotes.Resolver` (via
-//! `DocResolver`): given a control label like `IAC-01`, it returns the Markdown
+//! `DocResolver`): given a control label like `IAC-02`, it returns the Markdown
 //! definition body that `zigmark.footnotes.resolve` synthesises into the AST,
 //! which the Typst renderer then expands to a native `#footnote[…]`. Shape:
-//! `IAC-01 — <title>. See also: <other covering policies>.` — every clause
+//! `IAC-02 — <title>. See also: <other covering policies>.` — every clause
 //! degrades: a missing catalog drops the title, and no *other* covering policy
 //! drops the "See also" clause (the id alone is always a valid footnote). The
 //! resolver is per-document so "See also" can exclude the policy that owns the
@@ -49,7 +49,7 @@ const zigmark = @import("zigmark");
 const ctrllog = std.log.scoped(.controls);
 
 /// The one control-id shape the whole toolchain agrees on:
-/// `^[A-Z]{2,5}-[0-9]{2}(\.[0-9]+)*$` (e.g. `IAC-01`, `HRS-05.1`, `IAC-21.5`).
+/// `^[A-Z]{2,5}-[0-9]{2}(\.[0-9]+)*$` (e.g. `IAC-02`, `HRS-06.1`, `IAC-30.1`).
 /// Implemented by hand rather than via a regex so it can anchor exactly and be
 /// reused for both validation and dangling-reference filtering without pulling
 /// mvzr anchoring semantics into the hot path.
@@ -223,7 +223,7 @@ pub const ControlJoin = struct {
     /// not a control id (so a genuinely unknown footnote reference stays
     /// dangling for validation to catch). Shape:
     ///
-    ///   `IAC-01 — <title>. See also: A, B.`
+    ///   `IAC-02 — <title>. See also: A, B.`
     ///
     /// The body is praxis-agnostic (#172/#174): no spine clause. "See also"
     /// lists the *other* non-draft policies that address the control (excluding
@@ -412,7 +412,7 @@ pub const ControlJoin = struct {
             if (item != .string) continue;
             const id = item.string;
             if (!isControlId(id)) {
-                ctrllog.warn("{s}: malformed SCF control id '{s}' in taxonomies.SCF (expected e.g. IAC-01)", .{ path, id });
+                ctrllog.warn("{s}: malformed SCF control id '{s}' in taxonomies.SCF (expected e.g. IAC-02)", .{ path, id });
                 worst = .critical;
             } else if (self.catalog) |*cat| {
                 if (!cat.map.contains(id)) {
@@ -455,7 +455,7 @@ pub const ControlJoin = struct {
         var oit = opener.iterator(content);
         while (oit.next()) |_| opener_count += 1;
         if (opener_count > strict_count) {
-            ctrllog.warn("{s}: malformed control() shortcode (bad or missing id; use the control(id=\"IAC-01\") form)", .{path});
+            ctrllog.warn("{s}: malformed control() shortcode (bad or missing id; use the control(id=\"IAC-02\") form)", .{path});
             worst = .critical;
         }
         return worst;
@@ -639,7 +639,7 @@ pub const ControlJoin = struct {
             const eid = id.?;
 
             if (!isControlId(eid)) {
-                ctrllog.warn("{s}: malformed scope-exclusion id '{s}' (expected e.g. PES-01)", .{ path, eid });
+                ctrllog.warn("{s}: malformed scope-exclusion id '{s}' (expected e.g. PES-02)", .{ path, eid });
                 worst = .critical;
             } else if (self.catalog) |*cat| {
                 if (!cat.map.contains(eid)) {
@@ -775,9 +775,9 @@ fn checkPraxisCatalogSkew(join: praxis_join.PraxisJoin, catalog: ?*const reports
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 test "isControlId: shapes accepted and rejected" {
-    try tst.expect(isControlId("IAC-01"));
-    try tst.expect(isControlId("HRS-05.1"));
-    try tst.expect(isControlId("IAC-21.5"));
+    try tst.expect(isControlId("IAC-02"));
+    try tst.expect(isControlId("HRS-06.1"));
+    try tst.expect(isControlId("IAC-30.1"));
     try tst.expect(isControlId("ABCDE-01")); // 5 letters
     try tst.expect(isControlId("GOV-01.2.3"));
     try tst.expect(!isControlId("iac-01")); // lowercase
@@ -785,7 +785,7 @@ test "isControlId: shapes accepted and rejected" {
     try tst.expect(!isControlId("ABCDEF-01")); // 6 letters
     try tst.expect(!isControlId("IAC-1")); // 1 digit
     try tst.expect(!isControlId("IAC01")); // no hyphen
-    try tst.expect(!isControlId("IAC-01.")); // trailing dot
-    try tst.expect(!isControlId("IAC-01.x")); // non-digit sub
+    try tst.expect(!isControlId("IAC-02.")); // trailing dot
+    try tst.expect(!isControlId("IAC-02.x")); // non-digit sub
     try tst.expect(!isControlId(""));
 }

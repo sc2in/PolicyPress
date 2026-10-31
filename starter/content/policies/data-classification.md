@@ -5,12 +5,12 @@ date: 2025-01-01
 weight: 30
 taxonomies:
   SCF:
-    - DCH-01
     - DCH-02
-    - DCH-03
-    - DCH-05
-    - DCH-06
-    - DCH-19
+    - DCH-04
+    - DCH-07.1
+    - DCH-37
+    - DCH-13
+    - DCH-30
   ISO27001:
     - A.5.9
     - A.5.10

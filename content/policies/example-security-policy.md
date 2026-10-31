@@ -13,18 +13,18 @@ taxonomies:
     - CC6.1
     - P4.1
   SCF:
-    - GOV-01
     - GOV-02
-    - IAC-01
+    - GOV-04
     - IAC-02
-    - HRS-05
-    - HRS-05.1
-    - HRS-05.2
-    - HRS-05.3
-    - HRS-05.4
-    - HRS-05.5
-    - CRY-01
-    - DCH-01
+    - IAC-32
+    - HRS-06
+    - HRS-06.1
+    - HRS-06.2
+    - HRS-06.3
+    - HRS-06.4
+    - HRS-06.5
+    - CRY-02
+    - DCH-02
 extra:
   math: true
   owner: Ada Byrne
@@ -63,7 +63,7 @@ extra:
 
 ### 1. Access Control
 
-All access to information systems must be authorized and based on the principle of least privilege [^IAC-01]. Users shall only be granted access necessary to perform their job functions.
+All access to information systems must be authorized and based on the principle of least privilege [^IAC-02]. Users shall only be granted access necessary to perform their job functions.
 
 #### Requirements
 
@@ -74,7 +74,7 @@ All access to information systems must be authorized and based on the principle 
 
 ### 2. Data Classification and Handling
 
-{{ org() }} classifies data into three categories {{ control(id="DCH-01") }}:
+{{ org() }} classifies data into three categories {{ control(id="DCH-02") }}:
 
 | Classification | Description | Examples | Handling Requirements |
 |---------------|-------------|----------|---------------------|
@@ -86,7 +86,7 @@ All access to information systems must be authorized and based on the principle 
 
 ### 3. Encryption Standards
 
-All sensitive data must be encrypted both at rest and in transit {{ control(id="CRY-01") }}:
+All sensitive data must be encrypted both at rest and in transit {{ control(id="CRY-02") }}:
 
 - **At Rest**: AES-256 encryption for stored data
 - **In Transit**: TLS 1.3 or higher for network communications
@@ -156,7 +156,7 @@ All personnel must complete security awareness training:
 
 ### All Personnel
 
-- Follow security policies and procedures [^HRS-05][^HRS-05.1][^HRS-05.3]
+- Follow security policies and procedures [^HRS-06][^HRS-06.1][^HRS-06.3]
 - Report security incidents promptly
 - Complete required security training
 - Protect credentials and access tokens

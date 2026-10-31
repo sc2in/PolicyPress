@@ -212,10 +212,10 @@ show_draft_pdfs = true
 # see the "Securing your repository" guide. The starter template ships this as
 # `true`.
 private = false
-# Accept native Markdown footnote references to controls (`[^IAC-01]`) as an
-# alternative to the `{{ control(id="IAC-01") }}` shortcode (#173). With this on,
+# Accept native Markdown footnote references to controls (`[^IAC-02]`) as an
+# alternative to the `{{ control(id="IAC-02") }}` shortcode (#173). With this on,
 # the site build must run `policypress stage-site` (the GitHub Action does) so the
-# web gets synthesised `[^IAC-01]: …` definitions the way the PDF already does; a
+# web gets synthesised `[^IAC-02]: …` definitions the way the PDF already does; a
 # bare ref with a known SCF id then stops being a --strict error (an unknown id
 # stays one). The shortcode keeps working — it renders an inline link, whereas a
 # native ref renders as a bottom-of-page footnote.

@@ -1,7 +1,7 @@
-// Inline markers, e.g. the "[^IAC-01]" citations in a policy statement. Markdown
+// Inline markers, e.g. the "[^IAC-02]" citations in a policy statement. Markdown
 // allows adjacent footnote references, and a control plus its sub-controls is the
 // common case on a `control_footnotes` site — but with no rule here the <sup>
-// elements sit flush and "[^GOV-19][^GOV-19.1][^GOV-19.2]" renders as "192021",
+// elements sit flush and "[^GOV-18][^CPL-13][^GOV-03.4]" renders as "192021",
 // one 6-digit number rather than three citations. Separate adjacent markers with
 // a comma to get "19,20,21" (#189).
 //

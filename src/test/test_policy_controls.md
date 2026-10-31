@@ -5,8 +5,8 @@ date: 2024-11-13
 weight: 10
 taxonomies:
   SCF:
-    - IAC-01
-    - DCH-01
+    - IAC-02
+    - DCH-02
   TSC2017:
     - CC1.1
     - CC6.1
@@ -14,7 +14,7 @@ extra:
   owner: SC2
   last_reviewed: 2025-02-24
   scope_exclusions:
-    - id: NET-02
+    - id: SEA-06
       reason: "All network defenses are operated by our colocation provider under a shared-responsibility model."
   major_revisions:
     - date: 2025-06-24
@@ -26,8 +26,8 @@ extra:
 
 ## Purpose
 
-Access is least-privilege {{ control(id="IAC-01") }} enforced across all systems.
+Access is least-privilege {{ control(id="IAC-02") }} enforced across all systems.
 
 ## Data protection
 
-All data is classified and protected {{ control(id="DCH-01") }} according to its sensitivity.
+All data is classified and protected {{ control(id="DCH-02") }} according to its sensitivity.

@@ -8,6 +8,35 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Added
+
+- **`scf_version` in the audit bundle.** `manifest.json` and `coverage.json`
+  carry a new top-level `scf_version` (e.g. `"2026.3"`): the SCF release of
+  the catalog the coverage was computed against, read from the generated
+  `data/scf.yml` header (omitted when a hand-supplied catalog has no such
+  header). The field is additive: the schema strings stay
+  `policypress/audit-manifest/v1` and `policypress/audit-coverage/v1`, and
+  `join.json` keeps its existing `praxis.scf_version`. praxis uses it to refuse
+  joining a bundle built against a different SCF release.
+
+### Changed
+
+- **The SCF catalog moves to SCF 2026.3** (`scf` input bumped to
+  `sc2in/scf@c4ec686`; 1,468 → 1,591 controls). SCF 2026.3 renumbers most
+  control ids **and reuses old ids for different controls** (2026.1.1 IAC-06
+  MFA is now IAC-37, while 2026.3 IAC-06 is RBAC; GOV-01 → GOV-02; CRY-05 →
+  CRY-07). A policy still tagged with 2026.1.1 ids keeps building but now
+  claims coverage of the wrong controls, so **re-key your policies'
+  `taxonomies.SCF`, `scope_exclusions`, `control()` shortcodes and `[^ID]`
+  footnotes** with the legacy map `sc2in/scf` publishes
+  (`data/scf-legacy-map.json`), e.g. praxis's `migrate-scf-ids.py`. A site
+  that commits its own copy of `data/scf.{json,yml}` must replace it (the
+  Action copies theme data with `cp -n`, which never overwrites). The example
+  site, starter, docs, test fixtures and golden baselines were re-keyed through
+  the legacy map (no hand edits), the demo `data/praxis-join.json` and
+  `gen-praxis-join.py`'s `--scf-version` default now say `2026.3`, and the
+  coverage-report floors were raised to 1,591.
+
 ## [1.7.4] - 2026-08-07
 
 ### Changed

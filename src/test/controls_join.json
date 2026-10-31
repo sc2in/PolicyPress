@@ -3,8 +3,8 @@
   "generated_at": "2026-01-01",
   "source": {
     "rev": "test-fixture",
-    "scf_version": "2026.1.1"
+    "scf_version": "2026.3"
   },
   "organizational_families": ["IAC"],
-  "ids": ["IAC-01", "NET-02"]
+  "ids": ["IAC-02", "SEA-06"]
 }

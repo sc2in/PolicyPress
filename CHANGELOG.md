@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-31
+
 ### Added
 
 - **`scf_version` in the audit bundle.** `manifest.json` and `coverage.json`

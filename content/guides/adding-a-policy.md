@@ -39,8 +39,8 @@ draft: true
 # in the Framework Coverage section on the policy page.
 taxonomies:
   SCF:
-    - IAC-01
-    - IAC-06
+    - IAC-02
+    - IAC-37
   TSC2017:
     - CC6.1
     - CC6.3
@@ -86,7 +86,7 @@ Each entry in `major_revisions` is a row in the revision history table on the po
 
 Tagging controls links this policy to the SCF and SOC 2 coverage reports. Values must match control IDs in the framework data exactly. They're case-sensitive.
 
-**SCF** uses control IDs from the Secure Controls Framework (e.g. `IAC-01`, `DCH-01`). See the SCF report page for the full list.
+**SCF** uses control IDs from the Secure Controls Framework (e.g. `IAC-02`, `DCH-02`). See the SCF report page for the full list.
 
 **TSC2017** uses SOC 2 Trust Services Criteria identifiers (e.g. `CC6.1`, `A1.2`). See the SOC 2 report page.
 
@@ -101,9 +101,9 @@ Sometimes the right answer for a control is "we deliberately do not do this". Us
 ```yaml
 extra:
   scope_exclusions:
-    - id: PES-01
+    - id: PES-02
       reason: "We operate no physical facilities; all infrastructure is colocated with certified providers."
-    - id: PES-04
+    - id: PES-10
       reason: "No offices or server rooms require physical access control; staff work remotely."
 ```
 

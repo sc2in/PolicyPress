@@ -158,11 +158,11 @@
     "scf": {
       "flake": false,
       "locked": {
-        "lastModified": 1784557474,
-        "narHash": "sha256-z1lGDIZup1+30iHpz/oW7LnQ8sbtuQvA3M5vuIONTAA=",
+        "lastModified": 1793461898,
+        "narHash": "sha256-25COSIQnM75trjXk45E+vXM+9k/4riYs+j7NdxoPbjk=",
         "owner": "sc2in",
         "repo": "scf",
-        "rev": "bde4c1cb6847a530a6b4c841688207bd3ea011fd",
+        "rev": "c4ec686bf91d4eb30f08b330c84b379665010600",
         "type": "github"
       },
       "original": {

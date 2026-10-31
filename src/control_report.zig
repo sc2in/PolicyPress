@@ -147,7 +147,7 @@ test {
     const j = try std.json.parseFromSlice(std.json.Value, tst.allocator, out, .{});
     defer j.deinit();
     try tst.expect(j.value.object.count() >= 1239); // test for number of controls read as of 10/2/2025
-    try tst.expect(j.value.object.get("HRS-05").?.bool);
+    try tst.expect(j.value.object.get("HRS-06").?.bool);
 }
 
 const Control = struct {

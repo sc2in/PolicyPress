@@ -6,17 +6,17 @@ date: 2026-02-01
 weight: 20
 taxonomies:
   SCF:
-    - AST-01
     - AST-02
+    - AST-04
   TSC2017:
     - CC6.4
 extra:
   owner: Ada Byrne
   last_reviewed: 2026-02-01
   scope_exclusions:
-    - id: PES-01
+    - id: PES-02
       reason: "We operate no physical facilities of our own; all production infrastructure is colocated with SOC 2-certified providers whose physical and environmental protections are inherited under a shared-responsibility model."
-    - id: PES-04
+    - id: PES-10
       reason: "The organization maintains no offices, server rooms, or facilities requiring physical access control; staff work remotely and all systems are provider-hosted."
   major_revisions:
     - date: 2026-02-01
@@ -32,7 +32,7 @@ extra:
 
 ## Asset Governance
 
-{{ org() }} maintains an authoritative inventory of all information assets {{ control(id="AST-01") }}, including provider-hosted systems, endpoints, and the personnel accountable for each. Asset inventories {{ control(id="AST-02") }} are reviewed quarterly and reconciled against provider billing and access records.
+{{ org() }} maintains an authoritative inventory of all information assets {{ control(id="AST-02") }}, including provider-hosted systems, endpoints, and the personnel accountable for each. Asset inventories {{ control(id="AST-04") }} are reviewed quarterly and reconciled against provider billing and access records.
 
 ## Provider Responsibility
 

@@ -1150,15 +1150,15 @@ fn runNew(io: std.Io, alloc: Allocator, args: []const [:0]const u8) !void {
         \\# catalog (e.g. data/scf.json) or a --strict build fails. Uncomment to use:
         \\# taxonomies:
         \\#   SCF:
-        \\#     - IAC-01
         \\#     - IAC-02
+        \\#     - IAC-32
         \\extra:
         \\  last_reviewed: {s}
         \\  # Declare controls explicitly out of scope ("we do not do X"). Each entry
         \\  # needs an `id` and a non-empty `reason`; excluded controls are a distinct
         \\  # state (neither covered nor a silent gap). Uncomment to use:
         \\  # scope_exclusions:
-        \\  #   - id: PES-01
+        \\  #   - id: PES-02
         \\  #     reason: "We operate no physical facilities."
         \\  major_revisions:
         \\    - version: "0.1"

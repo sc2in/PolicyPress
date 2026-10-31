@@ -9,17 +9,17 @@ taxonomies:
     - CC2.1
     - P4.1
   SCF:
-    - HRS-05
-    - HRS-05.1
-    - HRS-05.2
-    - HRS-05.3
-    - HRS-05.4
-    - HRS-05.5
+    - HRS-06
+    - HRS-06.1
+    - HRS-06.2
+    - HRS-06.3
+    - HRS-06.4
+    - HRS-06.5
 extra:
   owner: SC2
   last_reviewed: 2025-02-24
   scope_exclusions:
-    - id: PES-01
+    - id: PES-02
       reason: "We operate no physical facilities; all infrastructure is colocated with certified providers."
   major_revisions:
     - date: 2025-06-24

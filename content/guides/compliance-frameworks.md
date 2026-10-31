@@ -177,8 +177,8 @@ taxonomies:
   ACME:
     - AC-01
   SCF:
-    - IAC-01
     - IAC-02
+    - IAC-32
 ```
 
 ## Inline control references
@@ -187,12 +187,12 @@ Front-matter tags map a whole policy to a control. To point at a control from
 inside the body prose, use the `control` shortcode:
 
 ```md
-Access is granted on the principle of least privilege {{/* control(id="IAC-01") */}}.
+Access is granted on the principle of least privilege {{/* control(id="IAC-02") */}}.
 ```
 
 **On the website**, the shortcode renders as an inline link to the control's
-anchor on the SCF report page (`{{/* control(id="IAC-01") */}}` →
-`<a class="control-ref" href="…/reports/scf/#IAC-01">IAC-01</a>`), with the
+anchor on the SCF report page (`{{/* control(id="IAC-02") */}}` →
+`<a class="control-ref" href="…/reports/scf/#IAC-02">IAC-02</a>`), with the
 control's title from the SCF catalog shown as a hover tooltip. If
 `scf_report_page` is not set in `[extra.policypress]`, the reference degrades to
 plain (unlinked) text — it still reads as a control id, it just has nothing to
@@ -205,17 +205,17 @@ synthesised at render time from the SCF catalog and your policy library.
 ### Native footnote syntax (optional)
 
 By default the shortcode is the only accepted inline form, because the website
-build feeds `content/` to Zola verbatim and a bare `[^IAC-01]` would have no
+build feeds `content/` to Zola verbatim and a bare `[^IAC-02]` would have no
 definition to resolve against — it would render as broken literal text on the
 site. Enable native footnote references by setting `control_footnotes = true`
 in `[extra.policypress]`:
 
 ```md
-Access is granted on the principle of least privilege [^IAC-01].
+Access is granted on the principle of least privilege [^IAC-02].
 ```
 
 With the flag on, the build's `policypress stage-site` step (run automatically by
-the GitHub Action) synthesises the matching `[^IAC-01]: …` footnote *definition*
+the GitHub Action) synthesises the matching `[^IAC-02]: …` footnote *definition*
 into a build-time copy of your content — the web analogue of what the PDF
 pipeline already does — so the reference resolves on both the website and the
 PDF. Your authored files are never modified. The definition text comes only from
@@ -225,11 +225,11 @@ Choose per reference:
 
 - The **shortcode** renders an *inline link* (with the title as a tooltip). It
   needs no build flag and is portable to any Zola site.
-- A **native `[^IAC-01]`** renders a GitHub-style superscript marker with the
+- A **native `[^IAC-02]`** renders a GitHub-style superscript marker with the
   definition at the bottom of the page. It is standard Markdown, so a policy
   stays readable in any Markdown tool, but it requires `control_footnotes` and
   the `stage-site` pass. (A plain `zola serve` without staging shows the literal
-  `[^IAC-01]` text — see the local-preview note in the
+  `[^IAC-02]` text — see the local-preview note in the
   [deployments guide](@/guides/deployments.md).) Its report-page link honours a
   `base_url` sub-path (e.g. GitHub Pages project sites), just like the shortcode:
   `stage-site` prepends the sub-path, and the GitHub Action passes it through.
@@ -243,12 +243,12 @@ This marks the controls an external GRC system actively governs, distinct from
 the controls your policies happen to tag.
 
 **Strictness.** The id must match the SCF id shape `[A-Z]{2,5}-[0-9]{2}` with an
-optional dotted sub-id (`IAC-01`, `HRS-05.1`, `IAC-21.5`). A malformed id — or
+optional dotted sub-id (`IAC-02`, `HRS-06.1`, `IAC-30.1`). A malformed id — or
 any `control(…)` shortcode that is not well-formed — is a hard build error, so a
 broken reference can never silently ship. The rule for a native `[^…]` reference
 depends on `control_footnotes`:
 
-- **off** (default): any control-shaped `[^IAC-01]` is a `--strict` error — use
+- **off** (default): any control-shaped `[^IAC-02]` is a `--strict` error — use
   the shortcode, or turn the flag on.
 - **on**: a reference to a *known* SCF id is accepted, but an *unknown*
   well-formed id (e.g. a typo like `[^IAC-99]`) is still critical, because it
@@ -321,9 +321,9 @@ Tag a policy to SCF controls the same way as any other framework:
 ```yaml
 taxonomies:
   SCF:
-    - GOV-01
-    - HRS-05
-    - IAC-01
+    - GOV-02
+    - HRS-06
+    - IAC-02
 ```
 
 ## Custom internal frameworks

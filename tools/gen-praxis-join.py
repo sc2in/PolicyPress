@@ -26,7 +26,7 @@ Options:
   --ids-json FILE            Read ids from FILE (a JSON array) instead of running
                              `nix eval`; use "-" to read stdin.
   --rev REV                  source.rev provenance value (default: "unknown").
-  --scf-version VERSION      source.scf_version (default: "2026.1.1").
+  --scf-version VERSION      source.scf_version (default: "2026.3").
   --organizational-families F[,F...]
                              Families the spine was built from; repeatable and/or
                              comma-separated (default: GOV).
@@ -85,7 +85,7 @@ def main() -> int:
     parser.add_argument("flake", nargs="?", help="praxis flake ref (e.g. github:sc2in/Praxis)")
     parser.add_argument("--ids-json", metavar="FILE", help='read ids from FILE (JSON array); "-" for stdin')
     parser.add_argument("--rev", default="unknown", help="source.rev provenance value")
-    parser.add_argument("--scf-version", default="2026.1.1", help="source.scf_version value")
+    parser.add_argument("--scf-version", default="2026.3", help="source.scf_version value")
     parser.add_argument(
         "--organizational-families",
         action="append",

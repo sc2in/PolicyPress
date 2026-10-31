@@ -5,12 +5,12 @@ date: 2026-01-01
 weight: 20
 taxonomies:
   SCF:
-    - HRS-04
     - HRS-05
-    - IAC-01
-    - NET-01
-    - DCH-01
-    - MON-01
+    - HRS-06
+    - IAC-02
+    - NET-02
+    - DCH-02
+    - MON-02
   TSC2017:
     - CC5.1
     - CC5.2

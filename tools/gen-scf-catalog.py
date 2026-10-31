@@ -8,7 +8,9 @@ data/scf-<version>.json. Emits the flat catalog PolicyPress consumes:
 - data/scf.json — bare array of {domain, control_id, control} objects
   (src/control_report.zig reads only JSON arrays)
 - data/scf.yml  — same rows for the web templates (load_data in
-  templates/SCF/*.html), with a do-not-hand-edit header
+  templates/SCF/*.html), with a do-not-hand-edit header. The "(SCF <ver>)"
+  in its first line is load-bearing: src/audit.zig reads it as the bundle's
+  scf_version, so keep that form if the header changes.
 
 Stdlib only. Deterministic output (workbook order, no timestamps) so the
 committed artifacts diff cleanly and checks.scf-catalog-fresh can drift-

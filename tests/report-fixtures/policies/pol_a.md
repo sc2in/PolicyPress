@@ -3,9 +3,9 @@ title: "Alpha Security Policy"
 description: "Coverage fixture A"
 taxonomies:
   SCF:
-    - GOV-01
     - GOV-02
-    - GOV-02
+    - GOV-04
+    - GOV-04
     - NOT-A-CONTROL
   TSC2017:
     - CC1.1
@@ -13,7 +13,7 @@ extra:
   owner: Security Team
   last_reviewed: 2025-12-01
   scope_exclusions:
-    - id: GOV-03
+    - id: GOV-04.1
       reason: "Periodic review is handled by the parent entity's governance program."
   major_revisions:
     - date: 2025-12-01

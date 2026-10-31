@@ -51,7 +51,7 @@ Each revision entry needs:
 weight: 10                # sort order on the policies index page
 taxonomies:
   TSC2017: [CC1.1, CC6.1]
-  SCF: [GOV-01, IAC-01]
+  SCF: [GOV-02, IAC-02]
 extra:
   owner: Ada Byrne     # person ultimately responsible for this policy
   math: true              # enable LaTeX math rendering on this page
@@ -149,18 +149,18 @@ Do not delete any documents if you receive a legal hold notice.
 {%/* end */%}
 ```
 
-### `{{/* control(id="IAC-01") */}}` - inline control reference
+### `{{/* control(id="IAC-02") */}}` - inline control reference
 
 Points a piece of body prose at a specific compliance control. On the website it
 renders as an inline link to the control on the SCF report page; in the PDF it
 becomes a footnote with the control title and the other policies that cover it.
 
 ```markdown
-Access is granted on the principle of least privilege {{/* control(id="IAC-01") */}}.
+Access is granted on the principle of least privilege {{/* control(id="IAC-02") */}}.
 ```
 
 If you set `control_footnotes = true` in `[extra.policypress]`, you can instead
-write a standard Markdown footnote reference — `[^IAC-01]` — which renders as a
+write a standard Markdown footnote reference — `[^IAC-02]` — which renders as a
 bottom-of-page footnote. See
 [Inline control references](@/guides/compliance-frameworks.md#inline-control-references)
 for the full comparison, the report-page link behaviour, and the strictness

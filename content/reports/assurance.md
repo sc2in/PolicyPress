@@ -30,6 +30,10 @@ PolicyPress site:
   — structured SCF and SOC 2 (TSC 2017) control coverage, the same numbers the
   [reports](@/reports/_index.md) render. Each control also carries an
   `excluded_by` list: the policies that declare it out of scope.
+- Both `manifest.json` and `coverage.json` name the SCF release the coverage
+  was computed against (`scf_version`, e.g. `"2026.3"`). SCF renumbers and
+  reuses control ids across releases, so a consumer joining the bundle should
+  refuse a version it was not built for.
 - [`join.json`](/audit/join.json) — the policy↔praxis join as a first-class
   facet (written only when a [praxis control join](@/guides/configuration.md#praxis-control-join)
   is configured). For every control in the union of the praxis spine, the

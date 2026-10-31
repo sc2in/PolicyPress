@@ -7,7 +7,7 @@ taxonomies:
   TSC2017:
     - CC2.1
   SCF:
-    - HRS-05
+    - HRS-06
 extra:
   owner: SC2
   last_reviewed: 2025-02-24

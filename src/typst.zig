@@ -239,7 +239,7 @@ pub fn render(
 
 /// As `render`, but when `resolver` is non-null every undefined footnote
 /// reference is offered to it (`zigmark.footnotes.resolve`) between parsing and
-/// rendering, so inline control references (`[^IAC-01]`, produced from the
+/// rendering, so inline control references (`[^IAC-02]`, produced from the
 /// `control(...)` shortcode by `replace_control_refs`) become native
 /// `#footnote[…]`. A null resolver leaves the AST untouched — byte-identical to
 /// the pre-#164 output.

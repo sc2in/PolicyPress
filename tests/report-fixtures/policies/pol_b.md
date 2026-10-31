@@ -3,8 +3,8 @@ title: "Bravo Handling Policy"
 description: "Coverage fixture B"
 taxonomies:
   SCF:
-    - GOV-01
-    - HRS-01
+    - GOV-02
+    - HRS-02
   TSC2017:
     - CC1.1
     - CC2.1

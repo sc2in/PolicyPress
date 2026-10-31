@@ -267,8 +267,8 @@ pub fn replace_org(alloc: Allocator, txt: *Array(u8), with: []const u8) !void {
 
 /// PDF pre-pass for inline control references.
 ///
-/// Rewrites every `{{ control(id="IAC-01") }}` shortcode to a Markdown footnote
-/// reference (`[^IAC-01]`). The control-ID join (`src/controls.zig`) then
+/// Rewrites every `{{ control(id="IAC-02") }}` shortcode to a Markdown footnote
+/// reference (`[^IAC-02]`). The control-ID join (`src/controls.zig`) then
 /// synthesises the matching footnote definition — control title + praxis spine
 /// status + covering policies — which zigmark's Typst renderer expands into a
 /// native `#footnote[…]`. The website renders the same shortcode as a link via

@@ -77,10 +77,10 @@ pub const Config = struct {
     /// `pdf_standard`. Generate/refresh it with `nix run .#gen-praxis-join`.
     praxis_join: ?[]const u8 = null,
 
-    /// Accept native Markdown footnote references to controls (`[^IAC-01]`) as
+    /// Accept native Markdown footnote references to controls (`[^IAC-02]`) as
     /// first-class, not only the `{{ control(id="…") }}` shortcode (#173). Off by
     /// default. When on, the web build must run `policypress stage-site` so the
-    /// site gets synthesised `[^IAC-01]: …` definitions (the PDF pipeline resolves
+    /// site gets synthesised `[^IAC-02]: …` definitions (the PDF pipeline resolves
     /// them already); a raw control ref with a KNOWN id then stops being a
     /// `--strict` error, while an UNKNOWN well-formed id stays critical (typo
     /// detection). The shortcode keeps working either way. Set via

@@ -74,7 +74,7 @@ weight: 10
 
 taxonomies:
   SCF:
-    - HRS-05
+    - HRS-06
   TSC2017:
     - CC2.1
 

@@ -140,9 +140,9 @@ nix run github:sc2in/policypress -- -c config.toml -o dist --redact
 
 If you enable `control_footnotes` (see
 [Inline control references](@/guides/compliance-frameworks.md#inline-control-references))
-and write native `[^IAC-01]` references, a plain `zola serve` / `zola build`
+and write native `[^IAC-02]` references, a plain `zola serve` / `zola build`
 does **not** synthesise the footnote definitions — those references show as
-literal `[^IAC-01]` text, because synthesis happens in the `policypress
+literal `[^IAC-02]` text, because synthesis happens in the `policypress
 stage-site` step that CI runs before Zola. To preview the resolved footnotes
 locally, stage first and point Zola at the staged root:
 

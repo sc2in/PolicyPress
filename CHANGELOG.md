@@ -63,6 +63,10 @@ versioning; breaking changes to it bump the major version.
   top-level section (News above Policies); it is now scoped to the current
   section. The prev/next pager no longer jumps from a top-level policy into an
   unrelated section (e.g. a policy linking to "Last Reviewed Report").
+- **Sidebar collapse button covered the active link.** A leftover
+  `.docs-links { margin-right: -1.5rem }` pushed the links under the column
+  border. The links now stay inside the column with room for the button, which
+  is centred on the border.
 
 ## [1.8.0] - 2026-10-31
 

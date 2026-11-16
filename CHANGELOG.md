@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-11-16
+
 ### Added
 
 - **`taxonomies.TSC2017` is validated.** The pre-flight now flags a TSC 2017

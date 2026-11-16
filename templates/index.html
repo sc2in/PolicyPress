@@ -38,9 +38,9 @@ description=description, is_home=true) }}
 <main id="main-content">
 <!-- Hero Section -->
 <section class="hero-section">
-  <div class="container">
+  <div class="container-fluid">
     <div class="row justify-content-center">
-      <div class="col-lg-10 text-center">
+      <div class="col-16 text-center">
         <div class="hero-content">
           <h1 class="hero-title">{{ fp.hero.title |
             default(value="PolicyPress Security Center") }}</h1>
@@ -66,10 +66,12 @@ description=description, is_home=true) }}
               <i class="fas fa-shield-alt" aria-hidden="true"></i>
               {{ config.extra.policypress.organization | default(value="PolicyPress") }}
             </span>
+            {% if config.extra.version %}
             <span class="meta-item">
               <i class="fas fa-code-branch" aria-hidden="true"></i>
-              Version {{ config.extra.version | default(value='1.0.0') }}
+              Version {{ config.extra.version }}
             </span>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -77,16 +79,16 @@ description=description, is_home=true) }}
   </div>
 </section>
 
+{% if fp.features.cards %}
 <section class="features-section">
-  <div class="container">
+  <div class="container-fluid">
     <div class="row justify-content-center">
-      <div class="col-lg-10">
+      <div class="col-16">
         <div class="section-header text-center">
           <h2>{{ fp.features.title | default(value="Comprehensive Security Management") }}</h2>
           <p class="section-subtitle">{{ fp.features.subtitle | default(value="Everything you need to maintain robust security policies and compliance") }}</p>
         </div>
         <div class="features-grid">
-          {% if fp.features.cards %}
           {% for card in fp.features.cards %}
           <div class="feature-card">
             {% if card.icon %}
@@ -105,18 +107,18 @@ description=description, is_home=true) }}
             </div>
           </div>
           {% endfor %}
-          {% endif %}
         </div>
       </div>
     </div>
   </div>
 </section>
+{% endif %}
 
 {% if fp.quick_actions.actions %}
 <section class="quick-actions-section">
-  <div class="container">
+  <div class="container-fluid">
     <div class="row justify-content-center">
-      <div class="col-lg-10">
+      <div class="col-16">
         <div class="section-header text-center">
           <h2>{{ fp.quick_actions.title | default(value="Quick Actions") }}</h2>
           <p class="section-subtitle">{{ fp.quick_actions.subtitle | default(value="Common tasks and resources") }}</p>
@@ -146,9 +148,9 @@ description=description, is_home=true) }}
 
 {% if fp.statistics %}
 <section class="statistics-section">
-  <div class="container">
+  <div class="container-fluid">
     <div class="row justify-content-center">
-      <div class="col-lg-12">
+      <div class="col-16">
         <div class="statistics-grid">
           {% for stat in fp.statistics %}
           <div class="stat-item">
@@ -169,9 +171,9 @@ description=description, is_home=true) }}
 {% if news_path %}{% set news_section = get_section(path=news_path) %}{% else %}{% set news_section = false %}{% endif %}
 {% if news_section and news_section.pages %}
 <section class="recent-updates-section">
-  <div class="container">
+  <div class="container-fluid">
     <div class="row justify-content-center">
-      <div class="col-lg-10">
+      <div class="col-16">
         <div class="section-header text-center">
           <h2>Recent Updates</h2>
           <p class="section-subtitle">Stay informed about the latest policy changes and security updates</p>
@@ -214,9 +216,9 @@ description=description, is_home=true) }}
    framework coverage are computed from the policies themselves, so the page
    is useful even when extra.frontpage.* is unset. #}
 
-<main id="main-content" class="container py-4">
+<main id="main-content" class="container-fluid py-4">
   <div class="row justify-content-center">
-    <div class="col-xl-10">
+    <div class="col-16 col-xl-14">
 
       <!-- Dashboard header -->
       <div class="dashboard-header">
@@ -247,11 +249,12 @@ description=description, is_home=true) }}
       {% set due_soon_secs = overdue_secs - 7776000 %}
       {% set today = now() | date(format="%s") | int %}
       {% set_global overdue_count = 0 %}
+      {% set_global due_soon_count = 0 %}
       {% for policy in policies %}
       {% if policy.extra.last_reviewed %}
       {% set lr_ts = policy.extra.last_reviewed | date(format="%s") | int %}
       {% set diff = today - lr_ts %}
-      {% if diff > overdue_secs %}{% set_global overdue_count = overdue_count + 1 %}{% endif %}
+      {% if diff > overdue_secs %}{% set_global overdue_count = overdue_count + 1 %}{% elif diff > due_soon_secs %}{% set_global due_soon_count = due_soon_count + 1 %}{% endif %}
       {% endif %}
       {% endfor %}
 
@@ -267,10 +270,17 @@ description=description, is_home=true) }}
       {% if has_scf %}
       {% set scf_data = load_data(path=config.extra.policypress.scf_controls | default(value="data/scf.yml"), required=false) %}
       {% if scf_data %}
+      {# Same definition as SCF/list.html: distinct catalog control_ids with >=1
+         mapped policy over distinct catalog control_ids. `items | length` would
+         count stray/typo'd terms that aren't in the catalog. #}
       {% set scf_tax = get_taxonomy(kind="SCF") %}
-      {% set_global scf_covered = scf_tax.items | length %}
-      {% set_global scf_total = scf_data | length %}
+      {% set scf_terms = scf_tax.items | group_by(attribute="name") %}
+      {% for cid, group in scf_data | group_by(attribute="control_id") %}
+      {% set_global scf_total = scf_total + 1 %}
+      {% if cid in scf_terms %}{% set_global scf_covered = scf_covered + 1 %}{% endif %}
+      {% endfor %}
       {% if scf_total > 0 %}{% set_global scf_pct = (scf_covered / scf_total * 100) | round | int %}{% endif %}
+      {% if scf_pct > 100 %}{% set_global scf_pct = 100 %}{% endif %}
       {% endif %}
       {% endif %}
 
@@ -278,44 +288,42 @@ description=description, is_home=true) }}
       {% if has_tsc %}
       {% set tsc_data = load_data(path=config.extra.policypress.tsc2017_controls | default(value="data/tsc2017.yml"), required=false) %}
       {% if tsc_data %}
+      {# Same definition as TSC2017/list.html: catalog criteria with >=1 mapped
+         policy. A misfiled SCF id under TSC2017 must not raise coverage. #}
       {% set tsc_tax = get_taxonomy(kind="TSC2017") %}
-      {% set_global tsc_covered = tsc_tax.items | length %}
-      {% for key, item in tsc_data %}{% set_global tsc_total = tsc_total + 1 %}{% endfor %}
+      {% set tsc_terms = tsc_tax.items | group_by(attribute="name") %}
+      {% for key, item in tsc_data %}
+      {% set_global tsc_total = tsc_total + 1 %}
+      {% if key in tsc_terms %}{% set_global tsc_covered = tsc_covered + 1 %}{% endif %}
+      {% endfor %}
       {% if tsc_total > 0 %}{% set_global tsc_pct = (tsc_covered / tsc_total * 100) | round | int %}{% endif %}
+      {% if tsc_pct > 100 %}{% set_global tsc_pct = 100 %}{% endif %}
       {% endif %}
       {% endif %}
 
-      {# ---- Stat tiles ---- #}
+      {# ---- Stat tiles ----
+         Policy counts only; coverage percentages live in the card below, so
+         they aren't repeated here. #}
       {% if policies | length > 0 %}
-      <div class="row g-3 mb-4">
-        <div class="col-12 col-sm-6 col-lg-4">
+      <div class="row row-cols-1 row-cols-sm-3 g-3 mb-4">
+        <div class="col">
           <div class="card h-100 text-center"><div class="card-body">
             <div class="h2 mb-0 fw-bold text-nowrap">{{ policies | length }}</div>
-            <div class="text-muted small text-uppercase text-nowrap">Policies</div>
+            <div class="text-muted small text-uppercase">Policies</div>
           </div></div>
         </div>
-        <div class="col-12 col-sm-6 col-lg-4">
+        <div class="col">
           <div class="card h-100 text-center"><div class="card-body">
             <div class="h2 mb-0 fw-bold text-nowrap {% if overdue_count > 0 %}text-danger{% else %}text-success{% endif %}">{{ overdue_count }}</div>
-            <div class="text-muted small text-uppercase text-nowrap">Reviews overdue</div>
+            <div class="text-muted small text-uppercase">Reviews overdue</div>
           </div></div>
         </div>
-        {% if scf_pct >= 0 %}
-        <div class="col-12 col-sm-6 col-lg-4">
+        <div class="col">
           <div class="card h-100 text-center"><div class="card-body">
-            <div class="h2 mb-0 fw-bold text-nowrap">{{ scf_pct }}%</div>
-            <div class="text-muted small text-uppercase text-nowrap">SCF coverage</div>
+            <div class="h2 mb-0 fw-bold text-nowrap {% if due_soon_count > 0 %}text-warning{% endif %}">{{ due_soon_count }}</div>
+            <div class="text-muted small text-uppercase">Due within 90 days</div>
           </div></div>
         </div>
-        {% endif %}
-        {% if tsc_pct >= 0 %}
-        <div class="col-12 col-sm-6 col-lg-4">
-          <div class="card h-100 text-center"><div class="card-body">
-            <div class="h2 mb-0 fw-bold text-nowrap">{{ tsc_pct }}%</div>
-            <div class="text-muted small text-uppercase text-nowrap">SOC 2 coverage</div>
-          </div></div>
-        </div>
-        {% endif %}
       </div>
       {% endif %}
 
@@ -329,14 +337,27 @@ description=description, is_home=true) }}
       </div></div>
       {% endif %}
 
+      {# Recent updates only when a news feed is configured (get_section has no
+         `required` arg and errors on a missing section). Looked up first so the
+         review column can take the full width when there is no news column. #}
+      {% set news_path = config.extra.policypress.news_page | default(value="") %}
+      {% if news_path %}{% set news_section = get_section(path=news_path) %}{% else %}{% set news_section = false %}{% endif %}
+      {% set has_news = news_section and news_section.pages %}
+
       <div class="row g-4">
         {# ---- Policy review status ---- #}
         {% if policies | length > 0 %}
-        <div class="col-lg-7">
+        <div class="{% if has_news %}col-16 col-lg-9{% else %}col-16{% endif %}">
           <div class="card h-100"><div class="card-body">
-            <h2 class="h5 mb-3">Policy review status</h2>
+            <h2 class="h5 mb-3">Needs review</h2>
+            {% if overdue_count + due_soon_count == 0 %}
+            <p class="text-muted mb-2">All {{ policies | length }} policies are within their review window.</p>
+            {% else %}
             <div class="list-group list-group-flush">
               {% for policy in policies | sort(attribute="extra.last_reviewed") %}
+              {% if not policy.extra.last_reviewed %}{% continue %}{% endif %}
+              {% set lr_ts = policy.extra.last_reviewed | date(format="%s") | int %}
+              {% if today - lr_ts <= due_soon_secs %}{% continue %}{% endif %}
               {% set current_revision = policy.extra.major_revisions | sort(attribute="date") | reverse | first %}
               <div class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent">
                 <span>
@@ -348,25 +369,22 @@ description=description, is_home=true) }}
                 {% set diff = today - lr_ts %}
                 {% if diff > overdue_secs %}
                 <span class="badge bg-danger">Overdue</span>
-                {% elif diff > due_soon_secs %}
-                <span class="badge bg-warning text-dark">Due soon</span>
                 {% else %}
-                <span class="badge bg-success-subtle text-success-emphasis">Current</span>
+                <span class="badge bg-warning text-dark">Due soon</span>
                 {% endif %}
                 {% endif %}
               </div>
               {% endfor %}
             </div>
+            {% endif %}
+            <a href="{{ get_url(path='reports/review/') | safe }}" class="small">Full review report <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
           </div></div>
         </div>
         {% endif %}
 
-        {# ---- Recent updates (only when a news feed is configured; get_section
-             has no `required` arg and errors on a missing section) ---- #}
-        {% set news_path = config.extra.policypress.news_page | default(value="") %}
-        {% if news_path %}{% set news_section = get_section(path=news_path) %}{% else %}{% set news_section = false %}{% endif %}
-        {% if news_section and news_section.pages %}
-        <div class="col-lg-5">
+        {# ---- Recent updates ---- #}
+        {% if has_news %}
+        <div class="col-16 col-lg-7">
           <div class="card h-100"><div class="card-body">
             <h2 class="h5 mb-3">Recent updates</h2>
             <ul class="activity-list list-unstyled mb-3" role="list">

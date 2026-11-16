@@ -486,20 +486,13 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     // (by resolver value) across the concurrent compile task group. A missing
     // catalog degrades gracefully; a configured-but-unloadable praxis join is a
     // hard error (see ControlJoin.init).
-    const scf_catalog_path = try std.fs.path.join(alloc, &.{ config.root, reports.Kind.scf.catalogFile().? });
-    defer alloc.free(scf_catalog_path);
-    const scf_exists = blk: {
-        std.Io.Dir.cwd().access(io, scf_catalog_path, .{}) catch break :blk false;
-        break :blk true;
-    };
+    // Catalogs resolve site-root first, then the theme submodule's copy.
+    const scf_catalog_path = try reports.Kind.scf.resolveCatalog(io, alloc, config.root);
+    defer if (scf_catalog_path) |p| alloc.free(p);
     // TSC 2017 catalog — only the control-coverage annex reads it (to title
     // tagged criteria). Absent on sites without SOC 2 data; degrades gracefully.
-    const tsc_catalog_path = try std.fs.path.join(alloc, &.{ config.root, reports.Kind.soc2.catalogFile().? });
-    defer alloc.free(tsc_catalog_path);
-    const tsc_exists = blk: {
-        std.Io.Dir.cwd().access(io, tsc_catalog_path, .{}) catch break :blk false;
-        break :blk true;
-    };
+    const tsc_catalog_path = try reports.Kind.soc2.resolveCatalog(io, alloc, config.root);
+    defer if (tsc_catalog_path) |p| alloc.free(p);
     const join_path: ?[]const u8 = if (config.praxis_join) |rel|
         try std.fs.path.join(alloc, &.{ config.root, rel })
     else
@@ -513,8 +506,8 @@ fn runBuild(io: std.Io, env: *EnvMap, alloc: Allocator, args: []const [:0]const 
     var control_join = try controls.ControlJoin.init(
         io,
         alloc,
-        if (scf_exists) scf_catalog_path else null,
-        if (tsc_exists) tsc_catalog_path else null,
+        scf_catalog_path,
+        tsc_catalog_path,
         join_path,
         policy_paths,
     );
@@ -786,15 +779,14 @@ fn compileReports(io: std.Io, env: *EnvMap, alloc: Allocator, config: Config) !v
 
         const source: ?[]u8 = blk: {
             if (kind.catalogFile()) |catalog_rel| {
-                const catalog_path = try std.fs.path.join(alloc, &.{ config.root, catalog_rel });
-                defer alloc.free(catalog_path);
-                std.Io.Dir.cwd().access(io, catalog_path, .{}) catch {
+                const catalog_path = (try kind.resolveCatalog(io, alloc, config.root)) orelse {
                     std.log.info(
-                        "policypress: control catalog '{s}' not found; skipping the {s}",
+                        "policypress: control catalog '{s}' not found (site root or themes/policypress/); skipping the {s}",
                         .{ catalog_rel, kind.title() },
                     );
                     break :blk null;
                 };
+                defer alloc.free(catalog_path);
                 var catalog = reports.init(io, alloc, catalog_path) catch |err| {
                     std.log.warn(
                         "policypress: could not load '{s}' ({s}); skipping the {s}",
@@ -864,10 +856,10 @@ fn sweepStalePdfs(
     // any orphaned policy PDF.
     if (config.report_pdfs) {
         inline for (comptime std.enums.values(reports.Kind)) |kind| {
-            const generatable = if (kind.catalogFile()) |catalog_rel| blk: {
-                const catalog_path = try std.fs.path.join(alloc, &.{ config.root, catalog_rel });
-                defer alloc.free(catalog_path);
-                break :blk if (std.Io.Dir.cwd().access(io, catalog_path, .{})) |_| true else |_| false;
+            const generatable = if (kind.catalogFile() != null) blk: {
+                const catalog_path = (try kind.resolveCatalog(io, alloc, config.root)) orelse break :blk false;
+                alloc.free(catalog_path);
+                break :blk true;
             } else true;
             if (generatable) {
                 const name = try alloc.dupe(u8, kind.pdfName());

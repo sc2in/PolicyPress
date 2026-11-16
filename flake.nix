@@ -696,23 +696,23 @@
                     export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
                     mkdir -p static/pdfs
 
-                    # Run the official and draft compilations in parallel on
-                    # startup. Both pass --redact to match the demo's deployment
-                    # (deploy-docs.yml sets redact_mode = true): with
-                    # redact_web = true the policy pages link the "__Redacted__"
-                    # filenames, so a non-redacted local build 404s every PDF
-                    # link. The random-suffixed temp filenames in policypress
-                    # prevent the two processes from colliding on .typ sources.
-                    policypress -o static/pdfs --redact &
-                    policypress -o static/pdfs --redact --draft &
-                    wait
-
+                    # Start the site first so the port is up while PDFs build;
+                    # zola picks the PDFs up from static/ as they land.
                     zola serve &
                     ZOLA_PID=$!
                     trap 'kill "$ZOLA_PID" 2>/dev/null' EXIT INT TERM
 
+                    # watchexec runs the command once at startup, then on every
+                    # content change: official + draft PDFs in parallel (the
+                    # random-suffixed temp filenames in policypress keep the two
+                    # from colliding on .typ sources). No --redact/--no-redact:
+                    # PDF redaction follows [extra.policypress] redact, the same
+                    # setting the templates use to pick the linked filename, so
+                    # local PDF links resolve whatever the site's redact setting
+                    # is (#159). Hard-coding --redact 404'd every PDF link on
+                    # sites with redact = false.
                     watchexec -w content -e md -- sh -c \
-                      'policypress -o static/pdfs --redact & policypress -o static/pdfs --redact --draft & wait'
+                      'policypress -o static/pdfs & policypress -o static/pdfs --draft & wait'
                     wait
                   '';
                 };
@@ -736,10 +736,10 @@
                   text = ''
                     export TYPST_FONT_PATHS="${typstFonts}/share/fonts"
                     zola build --base-url "http://0.0.0.0:1111"
-                    # --redact matches the demo deployment (redact_mode = true);
-                    # with redact_web = true the pages link "__Redacted__" PDFs.
-                    policypress -o static/pdfs --redact
-                    policypress -o static/pdfs --redact --draft
+                    # Redaction follows [extra.policypress] redact, the same
+                    # setting the templates key the linked PDF filename off (#159).
+                    policypress -o static/pdfs
+                    policypress -o static/pdfs --draft
                     zola serve
                   '';
                 };

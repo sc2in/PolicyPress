@@ -185,6 +185,27 @@ pub const Kind = enum {
         };
     }
 
+    /// Locate this kind's control catalog: the site-root copy (`data/*.json`)
+    /// wins, falling back to the theme-shipped copy under
+    /// `themes/policypress/data/` (submodule layout), so a site that never ran
+    /// `cp -n themes/policypress/data/*.json data/` still gets coverage report
+    /// PDFs and control-id validation. Returns null for the review report or
+    /// when neither copy exists. Caller frees the result.
+    pub fn resolveCatalog(self: Kind, io: std.Io, alloc: Allocator, root: []const u8) !?[]u8 {
+        const rel = self.catalogFile() orelse return null;
+        const candidates = [_][]const []const u8{
+            &.{ root, rel },
+            &.{ root, "themes", "policypress", rel },
+        };
+        for (candidates) |parts| {
+            const path = try std.fs.path.join(alloc, parts);
+            if (std.Io.Dir.cwd().access(io, path, .{})) |_| {
+                return path;
+            } else |_| alloc.free(path);
+        }
+        return null;
+    }
+
     /// Front-matter taxonomy key whose entries map policies to this catalog.
     pub fn taxonomyKey(self: Kind) ?[]const u8 {
         return switch (self) {

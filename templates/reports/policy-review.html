@@ -12,7 +12,7 @@
 {% endblock report_pdf %}
 
 {% block report_content %}
-{% set section = get_section(path=config.extra.policypress.policy_root) %}
+{% set section = get_section(path=config.extra.policypress.policy_root | default(value="policies/_index.md")) %}
 {% set policies = section.pages %}
 {% for sub in section.subsections %}
 {% set subsection = get_section(path=sub) %}

@@ -8,11 +8,18 @@
 			<span class="navbar-toggler-icon"></span>
 		</button>
 		<a class="navbar-brand order-1 order-lg-0 me-auto"
-			href="{{ config.base_url | safe }}"><img class="brand-logo"
-				alt="{{ config.extra.policypress.organization | default(value=config.title | default(value='PolicyPress')) }} logo"
-				src="{{ get_url(path=config.extra.menu.logo) }}">{{
-			config.title |
-			default(value="PolicyPress") }}</a>
+			href="{{ config.base_url | safe }}">
+			{%- set logo_org = config.extra.policypress.organization | default(value=config.title | default(value='PolicyPress')) %}
+			{%- set logo_alt = logo_org ~ " logo" %}
+			{#- extra.menu.logo_dark (optional): shown instead of `logo` in dark mode,
+			    for marks that disappear on the dark navbar. #}
+			<img class="brand-logo{% if config.extra.menu.logo_dark %} brand-logo-light{% endif %}"
+				alt="{{ logo_alt }}" src="{{ get_url(path=config.extra.menu.logo) }}">
+			{%- if config.extra.menu.logo_dark %}
+			<img class="brand-logo brand-logo-dark" alt="{{ logo_alt }}"
+				src="{{ get_url(path=config.extra.menu.logo_dark) }}">
+			{%- endif %}
+			<span class="brand-text">{{ config.title | default(value="PolicyPress") }}</span></a>
 		<button id="mode" class="btn btn-link order-2 order-lg-4" type="button"
 			aria-label="Toggle mode">
 			<span class="toggle-dark"><svg xmlns="http://www.w3.org/2000/svg" width="20"

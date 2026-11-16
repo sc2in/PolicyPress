@@ -8,7 +8,8 @@
     max-height: calc(100vh - 5rem);
     overflow-y: auto;
     overflow-x: clip;
-    padding-right: 0.5rem;
+    // Leaves room for the desktop toggle, which sits centred on the border.
+    padding-right: 1.5rem;
     border-right: 1px solid $gray-200;
   }
 }
@@ -300,9 +301,12 @@ a.docs-link {
 }
 
 // Desktop sidebar collapse toggle button
+// Centred on .sidebar-col-content's right border (the wrap's right edge) by
+// offsetting half the button width; the content's padding-right keeps links
+// clear of it.
 .sidebar-desktop-toggle {
   position: absolute;
-  right: -12px;
+  right: -16px;
   top: 0;
   z-index: 20;
   width: 32px;
@@ -356,6 +360,7 @@ a.docs-link {
   }
 
   .sidebar-desktop-toggle {
+    right: -12px;
     transform: rotate(180deg);
     display: flex !important;
   }

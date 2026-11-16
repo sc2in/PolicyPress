@@ -43,7 +43,8 @@ external_links_no_follow = true
 external_links_no_referrer = true
 
 [search]
-index_format = "elasticlunr_json"
+# Leave index_format at Zola's default (elasticlunr_javascript): the theme's
+# static/js/search.js reads window.searchIndex from search_index.<lang>.js.
 
 [extra]
 # Landing page and navigation
@@ -150,6 +151,7 @@ name = "CEO"
 
 [extra.menu]
 logo = "/logo.png"
+# logo_dark = "/logo-dark.png"   # optional: shown instead of `logo` in dark mode
 
 [[extra.menu.main]]
 title = "Policies"

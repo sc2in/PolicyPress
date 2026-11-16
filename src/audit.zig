@@ -212,11 +212,11 @@ pub fn writeBundle(
                 else => unreachable,
             };
             const catalog_rel = kind.catalogFile().?;
-            const catalog_path = try std.fs.path.join(a, &.{ config.root, catalog_rel });
-            const accessible = if (std.Io.Dir.cwd().access(io, catalog_path, .{})) |_| true else |_| false;
-            if (!accessible) {
+            const resolved = try kind.resolveCatalog(io, a, config.root);
+            if (resolved == null) {
                 log.info("audit bundle: control catalog '{s}' not found; skipping {s} coverage", .{ catalog_rel, framework_id });
             } else {
+                const catalog_path = resolved.?;
                 // No deinit: the JSON tree below borrows catalog/coverage
                 // strings, which must stay alive until writeJson stringifies
                 // the whole document after this loop. The catalog's arena is

@@ -8,6 +8,62 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+### Added
+
+- **`taxonomies.TSC2017` is validated.** The pre-flight now flags a TSC 2017
+  entry that is not a string, is not criterion-shaped (e.g. an SCF id like
+  `AAT-01` filed under `TSC2017`, or a `None` placeholder), or is missing from
+  `data/tsc2017.json`, as audit-critical (fails `--strict`), matching the
+  existing `taxonomies.SCF` check. Such terms used to become Zola taxonomy
+  terms and inflate SOC 2 coverage on the dashboard.
+- **`[extra.menu] logo_dark`.** Optional navbar logo for dark mode, swapped by
+  colour mode, for marks that vanish on the dark navbar.
+
+### Fixed
+
+- **Dashboard coverage could exceed 100%.** The homepage computed covered
+  controls as the number of taxonomy terms in use, so stray or misfiled ids
+  counted (one adopter saw SOC 2 at 121%, 74 / 61). It now counts catalog
+  controls with at least one mapped policy, the same definition as the SCF and
+  SOC 2 reports, and clamps the tiles to 100%.
+- **Control catalogs fall back to the theme's copy.** Coverage-report PDFs,
+  the audit bundle, and control-id validation looked only for site-root
+  `data/scf.json` / `data/tsc2017.json`, so a site that didn't copy them (for
+  example under `nix run .#serve`) silently skipped the reports and validated
+  nothing. They now fall back to `themes/policypress/data/`.
+- **Every PDF link 404'd under `nix run .#serve` / `.#preview`** on sites with
+  `redact = false`: both scripts hard-coded `--redact`, while the templates link
+  the filename for the configured `[extra.policypress] redact`. They now follow
+  the config. `serve` also starts Zola first (the port used to open only after
+  both PDF builds finished).
+- **Search was broken on starter sites.** `starter/config.toml` set
+  `index_format = "elasticlunr_json"`, but `static/js/search.js` reads
+  `window.searchIndex` from `search_index.<lang>.js`. The override is gone and
+  `build-starter` now asserts the `.js` index exists.
+- **`/reports/` 404'd on starter sites** (the dashboard and menu link it). The
+  starter now ships `content/reports/`, and `build-starter` checks it.
+- **`reports/policy-review.html` crashed without `policy_root`.** It now
+  defaults to `policies/_index.md`, like the homepage.
+- **Homepage layout at 992-1199px and on phones.** The theme grid is 16
+  columns, but the homepage and 404 templates used 12-column classes, so
+  `col-lg-10` was 62.5% wide and the feature grid collapsed to one column.
+  Marketing sections also nested a second `.container`. Quick actions now use
+  an auto-fit grid (4 across on wide screens) instead of a fixed 3. On phones
+  the brand truncates instead of pushing the theme toggle onto a second line,
+  and social icons stay in a row.
+- **Dashboard cards.** A leftover `.home .card` blog rule gave every dashboard
+  card 2rem margins, a hover zoom, and no top padding, which pushed the stat
+  tiles into the coverage card. The dashboard also no longer repeats the
+  coverage percentages as tiles, lists only policies that need review, and
+  gives that list the full width when there is no news column.
+- **Marketing hero showed "Version 1.0.0"** when `[extra] version` was unset,
+  and the features section rendered an empty header with no cards. Both are
+  now hidden.
+- **Docs sidebar and pager crossed sections.** The sidebar always listed every
+  top-level section (News above Policies); it is now scoped to the current
+  section. The prev/next pager no longer jumps from a top-level policy into an
+  unrelated section (e.g. a policy linking to "Last Reviewed Report").
+
 ## [1.8.0] - 2026-10-31
 
 ### Added

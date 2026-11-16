@@ -70,7 +70,21 @@ config.mode == "Serve" -%}
             </button>
           </div>
           <div class="sidebar-col-content">
-            {{ macros_sidebar::sidebar(path=current_path) }}
+            {#- Scope the sidebar to the current top-level section (e.g. a
+                policy page lists only Policies), falling back to the site
+                root where the first path segment is not a section
+                (taxonomy pages, 404). #}
+            {%- set _cp = current_path | default(value="/") %}
+            {%- set _top = _cp | trim_start_matches(pat="/") | split(pat="/") | first %}
+            {%- set _sidebar_section = "" %}
+            {#- get_section errors on a missing path (no `required` arg), so test
+                membership in the root's subsection list instead. #}
+            {%- if _top %}
+            {%- set _root = get_section(path="_index.md") %}
+            {%- set _top_index = _top ~ "/_index.md" %}
+            {%- if _top_index in _root.subsections %}{% set _sidebar_section = _top %}{% endif %}
+            {%- endif %}
+            {{ macros_sidebar::sidebar(path=current_path, current_section=_sidebar_section) }}
           </div>
         </div>
         {% endblock sidebar %}

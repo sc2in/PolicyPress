@@ -257,6 +257,7 @@ praxis_join = "data/praxis-join.json"
 # # Additional configuration
 # version = "2.0.0"
 logo = "/logo.svg"
+# logo_dark = "/logo-dark.svg"   # optional: shown instead of `logo` in dark mode
 # Enhanced menu with icons
 [[extra.menu.main]]
 title = "Policies"

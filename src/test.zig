@@ -2181,6 +2181,95 @@ test "controls: reviewControlRefs — unknown id in taxonomies.SCF is critical" 
     try tst.expectEqual(config.IssueKind.critical, cj.reviewControlRefs(io, alloc, p, false));
 }
 
+test "reports: resolveCatalog prefers the site root, falls back to themes/policypress/" {
+    const alloc = tst.allocator;
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const root = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(root);
+
+    // Neither copy: null (the review report has no catalog at all).
+    try tst.expect((try report.Kind.scf.resolveCatalog(io, alloc, root)) == null);
+    try tst.expect((try report.Kind.review.resolveCatalog(io, alloc, root)) == null);
+
+    // Theme copy only: used as the fallback.
+    try tmp.dir.createDirPath(io, "themes/policypress/data");
+    try tmp.dir.writeFile(io, .{ .sub_path = "themes/policypress/data/scf.json", .data = "[]" });
+    {
+        const got = (try report.Kind.scf.resolveCatalog(io, alloc, root)).?;
+        defer alloc.free(got);
+        try tst.expect(std.mem.endsWith(u8, got, "themes" ++ std.fs.path.sep_str ++ "policypress" ++ std.fs.path.sep_str ++ "data" ++ std.fs.path.sep_str ++ "scf.json"));
+    }
+    // TSC has no copy anywhere yet.
+    try tst.expect((try report.Kind.soc2.resolveCatalog(io, alloc, root)) == null);
+
+    // Site-root copy present: it wins over the theme copy.
+    try tmp.dir.createDirPath(io, "data");
+    try tmp.dir.writeFile(io, .{ .sub_path = "data/scf.json", .data = "[]" });
+    {
+        const got = (try report.Kind.scf.resolveCatalog(io, alloc, root)).?;
+        defer alloc.free(got);
+        const want = try std.fs.path.join(alloc, &.{ root, "data", "scf.json" });
+        defer alloc.free(want);
+        try tst.expectEqualStrings(want, got);
+    }
+}
+
+test "controls: isTscId accepts TSC 2017 criteria, rejects SCF ids and junk" {
+    for ([_][]const u8{ "CC1.1", "CC6.1", "CC9.2", "A1.2", "C1.1", "PI1.4", "P4.1", "P8.1" }) |id|
+        try tst.expect(controls.isTscId(id));
+    for ([_][]const u8{ "AAT-01", "None", "", "CC", "CC6", "CC6.", ".1", "cc6.1", "CCC1.1", "CC6.1.2", "CC6.1 " }) |id|
+        try tst.expect(!controls.isTscId(id));
+}
+
+fn reviewTscFrontMatter(alloc: Allocator, tsc_yaml: []const u8) !config.IssueKind {
+    var cj = try fixtureControlJoin(alloc);
+    defer cj.deinit();
+
+    var tmp = tst.tmpDir(.{});
+    defer tmp.cleanup();
+    const tmp_path = try tmpAbsPath(alloc, &tmp);
+    defer alloc.free(tmp_path);
+
+    const md = try std.fmt.allocPrint(alloc,
+        \\---
+        \\title: "TSC Taxonomy"
+        \\taxonomies:
+        \\  TSC2017:
+        \\{s}
+        \\---
+        \\Body.
+    , .{tsc_yaml});
+    defer alloc.free(md);
+    try tmp.dir.writeFile(io, .{ .sub_path = "tsc_tax.md", .data = md });
+    const p = try std.fs.path.join(alloc, &.{ tmp_path, "tsc_tax.md" });
+    defer alloc.free(p);
+    return cj.reviewControlRefs(io, alloc, p, false);
+}
+
+test "controls: reviewControlRefs — known TSC2017 criteria are clean" {
+    try tst.expectEqual(config.IssueKind.none, try reviewTscFrontMatter(tst.allocator, "    - CC1.1\n    - CC6.1"));
+}
+
+test "controls: reviewControlRefs — SCF id misfiled under taxonomies.TSC2017 is critical" {
+    tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
+    defer tst.log_level = .warn;
+    try tst.expectEqual(config.IssueKind.critical, try reviewTscFrontMatter(tst.allocator, "    - CC1.1\n    - AAT-01"));
+}
+
+test "controls: reviewControlRefs — placeholder 'None' under taxonomies.TSC2017 is critical" {
+    tst.log_level = .err;
+    defer tst.log_level = .warn;
+    try tst.expectEqual(config.IssueKind.critical, try reviewTscFrontMatter(tst.allocator, "    - None"));
+}
+
+test "controls: reviewControlRefs — well-formed TSC2017 criterion missing from catalog is critical" {
+    tst.log_level = .err;
+    defer tst.log_level = .warn;
+    // CC9.2 is a real criterion but absent from the two-entry fixture catalog.
+    try tst.expectEqual(config.IssueKind.critical, try reviewTscFrontMatter(tst.allocator, "    - CC9.2"));
+}
+
 test "controls: reviewControlRefs — malformed shortcode is critical" {
     tst.log_level = .err; // expected warnings — see the log_level note above TestConfig
     defer tst.log_level = .warn;

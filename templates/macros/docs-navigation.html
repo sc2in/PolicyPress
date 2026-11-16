@@ -12,7 +12,11 @@
       </div>
     </div>
   </a>
-  {% elif not page.extra.top %}
+  {#- Sibling-section fallbacks walk the *parent* section's subsections. For a
+      page directly under a top-level section (ancestors = [root, section]) that
+      parent is the site root, so the walk would jump into an unrelated
+      top-level section (e.g. a policy linking to a report). Require depth > 2. #}
+  {% elif not page.extra.top and page.ancestors | length > 2 %}
     {% set index = get_section(path=page.ancestors | reverse | first) %}
     {% set parent = get_section(path=index.ancestors | reverse | first)%}
     {% set first_subsection = get_section(path=parent.subsections | first) %}
@@ -78,7 +82,7 @@
         </div>
       </a>
     {% endif %}
-  {% else %}
+  {% elif page.ancestors | length > 2 %}
     {% set index = get_section(path=page.ancestors | reverse | first) %}
     {% set parent = get_section(path=index.ancestors | reverse | first)%}
     {% for s in parent.subsections %}

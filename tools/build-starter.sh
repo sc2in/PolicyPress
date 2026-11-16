@@ -59,7 +59,9 @@ policypress -c config.toml -o public/pdfs --no-draft
 fail() { echo "✗ starter build check FAILED: $*" >&2; exit 1; }
 [ -f public/index.html ]                          || fail "no homepage (public/index.html)"
 [ -f public/policies/access-control/index.html ]  || fail "policy pages did not render"
-[ -f public/search_index.en.json ]                || fail "no search index"
+[ -f public/search_index.en.js ]                  || fail "no search index (theme search.js loads search_index.en.js; is [search] index_format overridden?)"
+[ -f public/reports/index.html ]                  || fail "no /reports/ section (dashboard + menu link it; starter must ship content/reports/)"
+[ -f public/reports/review/index.html ]           || fail "no /reports/review/ page (dashboard 'Full review report' link)"
 ls public/pdfs/*.pdf >/dev/null 2>&1              || fail "no PDFs generated"
 grep -q "Disallow: /" public/robots.txt 2>/dev/null \
   || fail "robots.txt is not private (expected 'Disallow: /' — private-by-default lost)"

@@ -12,6 +12,15 @@
     font-weight: 700;
     color: var(--bs-heading-color);
     text-decoration: none;
+    // Let the brand shrink inside the flex navbar instead of pushing the
+    // toggler/theme button onto a second line on phones. The navbar wraps
+    // (flex-wrap) before it shrinks, so below lg the brand also needs a zero
+    // flex-basis to take only the space that is left.
+    min-width: 0;
+
+    @include media-breakpoint-down(lg) {
+      flex: 1 1 0;
+    }
 
     &:hover {
       color: var(--bs-link-color);
@@ -20,10 +29,34 @@
     .brand-logo {
       height: 32px;
       width: auto;
+      flex-shrink: 0;
+    }
+
+    // Optional extra.menu.logo_dark: swap marks with the colour mode.
+    .brand-logo-dark {
+      display: none;
     }
 
     .brand-text {
-      font-size: 1.25rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  // Social/repo icon links: keep them in a row. .navbar-nav is a column below
+  // the expand breakpoint, which stacked them and doubled the bar height.
+  .fork-me {
+    flex-direction: row;
+  }
+
+  [data-bs-theme="dark"] & .navbar-brand {
+    .brand-logo-light {
+      display: none;
+    }
+
+    .brand-logo-dark {
+      display: block;
     }
   }
 

@@ -78,6 +78,24 @@ fn isDigit(c: u8) bool {
     return c >= '0' and c <= '9';
 }
 
+/// TSC 2017 criterion shape: `^[A-Z]{1,2}[0-9]+\.[0-9]+$` (e.g. `CC6.1`,
+/// `A1.2`, `PI1.4`, `P4.1`). Distinct from the SCF shape: an SCF id such as
+/// `AAT-01` filed under `taxonomies.TSC2017` must not pass.
+pub fn isTscId(s: []const u8) bool {
+    var i: usize = 0;
+    var letters: usize = 0;
+    while (i < s.len and s[i] >= 'A' and s[i] <= 'Z') : (i += 1) letters += 1;
+    if (letters < 1 or letters > 2) return false;
+    var major: usize = 0;
+    while (i < s.len and isDigit(s[i])) : (i += 1) major += 1;
+    if (major == 0) return false;
+    if (i >= s.len or s[i] != '.') return false;
+    i += 1;
+    var minor: usize = 0;
+    while (i < s.len and isDigit(s[i])) : (i += 1) minor += 1;
+    return minor > 0 and i == s.len;
+}
+
 /// The more severe of two issue kinds (Config.IssueKind is ordered
 /// none < advisory < critical). Mirrors config.zig's private `maxKind`.
 fn maxKind(a: Config.IssueKind, b: Config.IssueKind) Config.IssueKind {
@@ -91,8 +109,8 @@ pub const ControlJoin = struct {
     catalog: ?reports,
     /// TSC 2017 (SOC 2) catalog instance, or null when `data/tsc2017.json` is
     /// absent. Only the control-coverage annex reads it (to title tagged
-    /// `taxonomies.TSC2017` criteria); footnote resolution and validation are
-    /// SCF-only.
+    /// `taxonomies.TSC2017` criteria) and the TSC taxonomy check in
+    /// `reviewControlRefs`; footnote resolution is SCF-only.
     tsc_catalog: ?reports,
     /// The optional praxis join — the SINGLE praxis seam in this core type.
     /// Held only to drive the load-time catalog-skew diagnostic
@@ -386,6 +404,7 @@ pub const ControlJoin = struct {
 
         var worst: Config.IssueKind = .none;
         worst = maxKind(worst, self.reviewTaxonomy(alloc, path, content));
+        worst = maxKind(worst, self.reviewTscTaxonomy(alloc, path, content));
         worst = maxKind(worst, self.reviewShortcodes(path, content));
         worst = maxKind(worst, self.reviewDanglingRefs(alloc, path, content, native_refs_ok));
         worst = maxKind(worst, self.reviewInlineCoverage(alloc, path, content, native_refs_ok));
@@ -417,6 +436,41 @@ pub const ControlJoin = struct {
             } else if (self.catalog) |*cat| {
                 if (!cat.map.contains(id)) {
                     ctrllog.warn("{s}: unknown SCF control id '{s}' in taxonomies.SCF (not in data/scf.json)", .{ path, id });
+                    worst = .critical;
+                }
+            }
+        }
+        return worst;
+    }
+
+    /// `taxonomies.TSC2017` criteria: a non-string or malformed entry, or (when
+    /// a TSC catalog is present) an unknown criterion → critical. Without this a
+    /// misfiled SCF id (`AAT-01`) or a placeholder (`None`) becomes a Zola
+    /// taxonomy term and silently inflates SOC 2 coverage past 100%.
+    fn reviewTscTaxonomy(self: *const ControlJoin, alloc: Allocator, path: []const u8, content: []const u8) Config.IssueKind {
+        var fm = zigmark.Frontmatter.initFromMarkdown(alloc, content) catch |err| {
+            ctrllog.debug("{s}: front matter unparseable for TSC validation: {s}", .{ path, @errorName(err) });
+            return .none;
+        };
+        defer fm.deinit();
+
+        const tsc = fm.get("taxonomies.TSC2017") orelse return .none;
+        if (tsc != .array) return .none;
+
+        var worst: Config.IssueKind = .none;
+        for (tsc.array.items) |item| {
+            if (item != .string) {
+                ctrllog.warn("{s}: non-string entry in taxonomies.TSC2017 (expected a criterion id, e.g. CC6.1)", .{path});
+                worst = .critical;
+                continue;
+            }
+            const id = item.string;
+            if (!isTscId(id)) {
+                ctrllog.warn("{s}: malformed TSC 2017 criterion '{s}' in taxonomies.TSC2017 (expected e.g. CC6.1; SCF ids belong under taxonomies.SCF)", .{ path, id });
+                worst = .critical;
+            } else if (self.tsc_catalog) |*cat| {
+                if (!cat.map.contains(id)) {
+                    ctrllog.warn("{s}: unknown TSC 2017 criterion '{s}' in taxonomies.TSC2017 (not in data/tsc2017.json)", .{ path, id });
                     worst = .critical;
                 }
             }

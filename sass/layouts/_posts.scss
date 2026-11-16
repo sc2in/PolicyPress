@@ -1,4 +1,6 @@
-.home .card,
+// Blog/contributor listing cards. (`.home` used to be listed here too, a Doks
+// leftover: it gave every dashboard card 2rem margins, a hover zoom and no top
+// padding, which pushed the stat tiles into the coverage card.)
 .contributors.list .card,
 .blog.list .card {
   margin-top: 2rem;
@@ -6,13 +8,11 @@
   transition: transform 0.3s;
 }
 
-.home .card:hover,
 .contributors.list .card:hover,
 .blog.list .card:hover {
   transform: scale(1.025);
 }
 
-.home .card-body,
 .contributors.list .card-body,
 .blog.list .card-body {
   padding: 0 2rem 1rem;

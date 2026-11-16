@@ -52,7 +52,7 @@ versioning; breaking changes to it bump the major version.
   Marketing sections also nested a second `.container`. Quick actions now use
   an auto-fit grid (4 across on wide screens) instead of a fixed 3. On phones
   the brand truncates instead of pushing the theme toggle onto a second line,
-  and social icons stay in a row.
+  and social icons stay in a row, each with a 36px touch target (WCAG 2.5.8).
 - **Dashboard cards.** A leftover `.home .card` blog rule gave every dashboard
   card 2rem margins, a hover zoom, and no top padding, which pushed the stat
   tiles into the coverage card. The dashboard also no longer repeats the

@@ -8,6 +8,16 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-11-17
+
+### Added
+
+- **`[extra.policypress] pdfs_draft_only`.** For a deploy whose PDF build only
+  ever runs with `--draft` (e.g. a non-publish preview environment), the
+  policy pages' PDF download link and discovery tag now point at the draft
+  PDF instead of the never-built official one. The redundant "Draft Version"
+  button from `show_draft_pdfs` is suppressed in that case.
+
 ## [1.8.1] - 2026-11-16
 
 ### Added

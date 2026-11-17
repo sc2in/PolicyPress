@@ -105,8 +105,9 @@ jobs:
       - name: Install omnix
         # Only the Ubuntu path runs `om ci run`; the macOS path uses
         # `nix shell .#zig …` directly, so omnix is dead weight there.
+        # Match nix-flake-final's working nixpkgs-unstable pin for Omnix 1.3.2.
         if: ${{ runner.os == 'Linux' }}
-        run: nix --accept-flake-config profile add nixpkgs#omnix
+        run: nix --accept-flake-config profile add github:NixOS/nixpkgs/f9a75f41be3a74eab55d3a7679d34ad6cc0da977#omnix
 
       - name: Configure permissions
         # Enable unprivileged user namespaces, required by bubblewrap: zig2nix's

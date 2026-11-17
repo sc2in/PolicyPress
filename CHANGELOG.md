@@ -8,6 +8,8 @@ versioning; breaking changes to it bump the major version.
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-11-17
+
 ### Added
 
 - **`[extra.policypress] pdfs_draft_only`.** For a deploy whose PDF build only
